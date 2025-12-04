@@ -13,6 +13,7 @@ import AdminLeads from './pages/AdminLeads';
 import About from './pages/About';
 import Services from './pages/Services';
 import CalendarPage from './pages/Calendar';
+import ProtectedRoute from './components/ProtectedRoute';
 
 const App = () => {
   return (
@@ -21,16 +22,20 @@ const App = () => {
         <Route path="/" element={<Home />} />
         <Route path="/quick-diagnostic" element={<QuickDiagnostic />} />
         <Route path="/deep-diagnostic" element={<DeepDiagnostic />} />
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route element={<ProtectedRoute />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/admin/leads" element={<AdminLeads />} />
+        </Route>
+
         <Route path="/methodology" element={<Methodology />} />
         <Route path="/resources" element={<Academy />} />
         <Route path="/academy/:id" element={<ResourceDetail />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/admin/leads" element={<AdminLeads />} />
+
         <Route path="/about" element={<About />} />
         <Route path="/services" element={<Services />} />
         <Route path="/calendar" element={<CalendarPage />} />
-        <Route path="/admin" element={<Login />} /> {/* Placeholder reuse for demo */}
+        <Route path="/admin" element={<Navigate to="/dashboard" replace />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
