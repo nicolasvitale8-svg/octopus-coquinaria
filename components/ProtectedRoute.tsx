@@ -3,7 +3,7 @@ import { Navigate, Outlet } from 'react-router-dom';
 import { supabase } from '../services/supabase';
 
 // TODO: REEMPLAZAR CON TU EMAIL REAL
-const ALLOWED_EMAILS = ['tu_email@gmail.com'];
+const ALLOWED_EMAILS = ['nicolasvitale8@gmail.com'];
 
 const ProtectedRoute = () => {
     const [loading, setLoading] = useState(true);
