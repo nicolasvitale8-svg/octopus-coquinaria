@@ -41,6 +41,15 @@ const Dashboard = () => {
       setUser(session?.user || null);
     };
     getUser();
+
+    // Listen for auth changes to catch session updates that happen after mount
+    const { data: { subscription } } = supabase?.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user || null);
+    }) || { data: { subscription: null } };
+
+    return () => {
+      subscription?.unsubscribe();
+    };
   }, []);
 
   return (
