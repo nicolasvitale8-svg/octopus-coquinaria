@@ -24,6 +24,9 @@ const App = () => {
         <Route path="/deep-diagnostic" element={<DeepDiagnostic />} />
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<Dashboard />} />
+        </Route>
+
+        <Route element={<ProtectedRoute allowedEmails={['nicolasvitale8@gmail.com']} />}>
           <Route path="/admin/leads" element={<AdminLeads />} />
         </Route>
 

@@ -54,6 +54,14 @@ const Dashboard = () => {
 
   return (
     <Layout user={user}>
+      {/* DEBUG BANNER - ELIMINAR LUEGO */}
+      <div className="bg-yellow-200 text-black p-2 text-center text-xs font-mono mb-4">
+        DEBUG INFO: User State check.
+        Is User Null?: {user ? "NO" : "YES"}.
+        Email: {user?.email || "No Email"}.
+        ID: {user?.id || "No ID"}.
+      </div>
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">

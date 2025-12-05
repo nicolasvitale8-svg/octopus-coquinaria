@@ -2,10 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { supabase } from '../services/supabase';
 
-// TODO: REEMPLAZAR CON TU EMAIL REAL
-const ALLOWED_EMAILS = ['nicolasvitale8@gmail.com'];
+// Email del administrador
+const ADMIN_EMAIL = 'nicolasvitale8@gmail.com';
 
-const ProtectedRoute = () => {
+interface ProtectedRouteProps {
+    allowedEmails?: string[];
+}
+
+const ProtectedRoute = ({ allowedEmails }: ProtectedRouteProps) => {
     const [loading, setLoading] = useState(true);
     const [isAllowed, setIsAllowed] = useState(false);
 
@@ -18,8 +22,14 @@ const ProtectedRoute = () => {
         const checkUser = async () => {
             if (!supabase) return;
             const { data } = await supabase.auth.getSession();
-            if (data?.session?.user) {
-                setIsAllowed(true);
+            const user = data?.session?.user;
+
+            if (user) {
+                if (allowedEmails && allowedEmails.length > 0) {
+                    setIsAllowed(allowedEmails.includes(user.email || ''));
+                } else {
+                    setIsAllowed(true);
+                }
             } else {
                 setIsAllowed(false);
             }
@@ -29,8 +39,13 @@ const ProtectedRoute = () => {
         checkUser();
 
         const { data } = supabase.auth.onAuthStateChange((_event, session) => {
-            if (session?.user) {
-                setIsAllowed(true);
+            const user = session?.user;
+            if (user) {
+                if (allowedEmails && allowedEmails.length > 0) {
+                    setIsAllowed(allowedEmails.includes(user.email || ''));
+                } else {
+                    setIsAllowed(true);
+                }
             } else {
                 setIsAllowed(false);
             }
