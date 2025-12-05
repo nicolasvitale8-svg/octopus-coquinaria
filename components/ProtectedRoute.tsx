@@ -18,9 +18,7 @@ const ProtectedRoute = () => {
         const checkUser = async () => {
             if (!supabase) return;
             const { data } = await supabase.auth.getSession();
-            const email = data?.session?.user?.email;
-
-            if (email && ALLOWED_EMAILS.includes(email)) {
+            if (data?.session?.user) {
                 setIsAllowed(true);
             } else {
                 setIsAllowed(false);
@@ -30,11 +28,8 @@ const ProtectedRoute = () => {
 
         checkUser();
 
-        if (!supabase) return;
-
         const { data } = supabase.auth.onAuthStateChange((_event, session) => {
-            const email = session?.user?.email;
-            if (email && ALLOWED_EMAILS.includes(email)) {
+            if (session?.user) {
                 setIsAllowed(true);
             } else {
                 setIsAllowed(false);
