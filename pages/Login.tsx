@@ -9,6 +9,7 @@ import { supabase } from '../services/supabase';
 
 const Login = () => {
   const navigate = useNavigate();
+  const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
 
   return (
     <Layout>
@@ -26,13 +27,20 @@ const Login = () => {
               </p>
             </div>
 
+            {errorMessage && (
+              <div className="mb-4 p-3 bg-red-500/10 border border-red-500/50 rounded-lg text-red-400 text-sm text-center">
+                {errorMessage}
+              </div>
+            )}
+
             <Button
               type="button"
               variant="outline"
               fullWidth
               onClick={async () => {
+                setErrorMessage(null);
                 if (!supabase) {
-                  alert("Error: Supabase no está configurado correctamente.");
+                  setErrorMessage("Error: Supabase no está configurado correctamente (Verificar constants.ts).");
                   return;
                 }
                 const { error } = await supabase.auth.signInWithOAuth({
@@ -41,7 +49,7 @@ const Login = () => {
                     redirectTo: `${window.location.origin}/dashboard`
                   }
                 });
-                if (error) alert(error.message);
+                if (error) setErrorMessage(error.message);
               }}
             >
               <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24"><path fill="currentColor" d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.536-6.033-5.696  c0-3.159,2.702-5.696,6.033-5.696c1.482,0,2.615,0.699,3.561,1.584L18.845,5.49C17.151,3.972,14.93,3,12.545,3  c-5.186,0-9.39,4.204-9.39,9.39s4.204,9.39,9.39,9.39c4.953,0,8.73-3.489,8.73-8.875c0-0.729-0.081-1.397-0.18-2.022H12.545z" /></svg>

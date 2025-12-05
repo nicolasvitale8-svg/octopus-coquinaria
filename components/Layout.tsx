@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, BarChart2, LogOut, User as UserIcon, Database } from 'lucide-react';
 import { APP_NAME, INSTAGRAM_URL, DISPLAY_PHONE, CONTACT_EMAIL, YOUTUBE_URL, WHATSAPP_NUMBER, GLOBAL_LOGO_URL, GLOBAL_BACKGROUND_IMAGE_URL } from '../constants';
 import { supabase } from '../services/supabase';
@@ -15,6 +15,7 @@ const Layout: React.FC<LayoutProps> = ({ children, user }) => {
   const [logoError, setLogoError] = useState(false);
   const [bgError, setBgError] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const [dbConnected, setDbConnected] = useState(false);
 
   useEffect(() => {
@@ -29,26 +30,33 @@ const Layout: React.FC<LayoutProps> = ({ children, user }) => {
     { name: 'Sobre mí', path: '/about' },
   ];
 
+  const handleLogout = async () => {
+    if (supabase) {
+      await supabase.auth.signOut();
+      navigate('/');
+    }
+  };
+
   const isActive = (path: string) => location.pathname === path ? 'text-[#1FB6D5] font-bold' : 'text-slate-400 hover:text-white';
 
   return (
     <div className="min-h-screen bg-[#021019] text-slate-200 flex flex-col font-sans">
-      
+
       {/* GLOBAL BACKGROUND IMAGE SUPPORT WITH FALLBACK */}
       {GLOBAL_BACKGROUND_IMAGE_URL && !bgError ? (
-         <div className="fixed inset-0 z-0 pointer-events-none">
-           <img 
-             src={GLOBAL_BACKGROUND_IMAGE_URL} 
-             alt="Background" 
-             className="w-full h-full object-cover"
-             onError={() => setBgError(true)}
-           />
-           {/* Heavy overlay to ensure text readability over any image */}
-           <div className="absolute inset-0 bg-[#021019]/85 backdrop-blur-[2px]"></div>
-         </div>
+        <div className="fixed inset-0 z-0 pointer-events-none">
+          <img
+            src={GLOBAL_BACKGROUND_IMAGE_URL}
+            alt="Background"
+            className="w-full h-full object-cover"
+            onError={() => setBgError(true)}
+          />
+          {/* Heavy overlay to ensure text readability over any image */}
+          <div className="absolute inset-0 bg-[#021019]/85 backdrop-blur-[2px]"></div>
+        </div>
       ) : (
-         /* Default Background */
-         <div className="fixed inset-0 z-0 pointer-events-none opacity-20 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#00344F] via-[#021019] to-[#021019]"></div>
+        /* Default Background */
+        <div className="fixed inset-0 z-0 pointer-events-none opacity-20 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#00344F] via-[#021019] to-[#021019]"></div>
       )}
 
       {/* Navbar - Deep Blue */}
@@ -59,18 +67,18 @@ const Layout: React.FC<LayoutProps> = ({ children, user }) => {
               <Link to="/" className="flex-shrink-0 flex items-center gap-3">
                 {/* Logo Logic: Custom Image OR Default SVG with Error Handling */}
                 {GLOBAL_LOGO_URL && !logoError ? (
-                  <img 
-                    src={GLOBAL_LOGO_URL} 
-                    alt="Octopus Logo" 
-                    className="h-12 w-auto object-contain" 
+                  <img
+                    src={GLOBAL_LOGO_URL}
+                    alt="Octopus Logo"
+                    className="h-12 w-auto object-contain"
                     onError={() => setLogoError(true)}
                   />
                 ) : (
                   <div className="w-10 h-10 rounded-full bg-[#00344F] flex items-center justify-center text-white font-bold text-lg border border-[#1FB6D5]/30 shadow-[0_0_15px_rgba(31,182,213,0.3)]">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6"><path d="M2 22h20"/><path d="M12 2v20"/><path d="M2 12h20"/><circle cx="12" cy="12" r="10"/></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6"><path d="M2 22h20" /><path d="M12 2v20" /><path d="M2 12h20" /><circle cx="12" cy="12" r="10" /></svg>
                   </div>
                 )}
-                
+
                 <div className="flex flex-col">
                   <span className="font-bold text-xl tracking-tight text-white font-space leading-none uppercase">Octopus</span>
                   <span className="text-[10px] tracking-[0.2em] text-[#1FB6D5] uppercase font-bold">Coquinaria</span>
@@ -90,32 +98,36 @@ const Layout: React.FC<LayoutProps> = ({ children, user }) => {
                 </div>
               </div>
             </div>
-            
+
             {/* Desktop Right Menu */}
             <div className="hidden md:flex items-center gap-4">
-               {/* Admin Shortcut for Demo */}
+              {/* Admin Shortcut for Demo */}
               <Link to="/admin/leads" className="flex items-center gap-2 text-slate-300 hover:text-white text-xs font-bold uppercase tracking-wide border border-slate-700 hover:border-[#1FB6D5] px-3 py-1.5 rounded bg-slate-800/50 hover:bg-slate-800 transition-all">
-                 <Database className="w-3 h-3" />
-                 Admin DB
-                 {dbConnected && (
-                   <span className="relative flex h-2 w-2 ml-1">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-                   </span>
-                 )}
+                <Database className="w-3 h-3" />
+                Admin DB
+                {dbConnected && (
+                  <span className="relative flex h-2 w-2 ml-1">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                  </span>
+                )}
               </Link>
 
               <div className="flex items-center md:ml-6 gap-4">
                 {user ? (
-                   <>
+                  <>
                     <Link to="/dashboard" className="flex items-center gap-2 bg-[#00344F] hover:bg-[#1FB6D5]/20 hover:text-[#1FB6D5] border border-[#1FB6D5]/30 px-4 py-2 rounded-md transition-all text-white text-sm font-medium shadow-md">
                       <BarChart2 className="w-4 h-4" />
-                      Mi Tablero
+                      Tablero ({user.email?.split('@')[0]})
                     </Link>
-                    <button className="text-slate-400 hover:text-white transition-colors" title="Salir">
+                    <button
+                      onClick={handleLogout}
+                      className="text-slate-400 hover:text-white transition-colors"
+                      title="Salir"
+                    >
                       <LogOut className="w-5 h-5" />
                     </button>
-                   </>
+                  </>
                 ) : (
                   <>
                     <Link to="/login" className="text-slate-400 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">
@@ -156,13 +168,13 @@ const Layout: React.FC<LayoutProps> = ({ children, user }) => {
               ))}
               <div className="border-t border-slate-800 pt-3 mt-3">
                 <Link to="/admin/leads" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 text-base font-medium text-slate-400 hover:text-white flex items-center gap-2">
-                   <Database className="w-4 h-4" /> Admin DB
-                   {dbConnected && <span className="w-2 h-2 rounded-full bg-green-500"></span>}
+                  <Database className="w-4 h-4" /> Admin DB
+                  {dbConnected && <span className="w-2 h-2 rounded-full bg-green-500"></span>}
                 </Link>
                 {user ? (
-                   <Link to="/dashboard" onClick={() => setIsMenuOpen(false)} className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-[#1FB6D5] bg-slate-800 mt-2">
-                     Ir a mi Dashboard
-                   </Link>
+                  <Link to="/dashboard" onClick={() => setIsMenuOpen(false)} className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-[#1FB6D5] bg-slate-800 mt-2">
+                    Ir a mi Dashboard
+                  </Link>
                 ) : (
                   <>
                     <Link to="/login" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 text-base font-medium text-slate-300 hover:text-white">
@@ -180,7 +192,7 @@ const Layout: React.FC<LayoutProps> = ({ children, user }) => {
       </nav>
 
       <main className="flex-grow relative z-10">
-          {children}
+        {children}
       </main>
 
       {/* Footer - Deep Blue */}
@@ -190,9 +202,9 @@ const Layout: React.FC<LayoutProps> = ({ children, user }) => {
             <div className="col-span-1 md:col-span-1">
               <span className="font-bold text-xl text-white flex items-center gap-2 font-space">
                 {GLOBAL_LOGO_URL && !logoError ? (
-                   <img src={GLOBAL_LOGO_URL} alt="Octopus Logo" className="h-8 w-auto object-contain" onError={() => setLogoError(true)} />
+                  <img src={GLOBAL_LOGO_URL} alt="Octopus Logo" className="h-8 w-auto object-contain" onError={() => setLogoError(true)} />
                 ) : (
-                   <div className="w-6 h-6 bg-[#00344F] rounded-full border border-[#1FB6D5]/30"></div>
+                  <div className="w-6 h-6 bg-[#00344F] rounded-full border border-[#1FB6D5]/30"></div>
                 )}
                 {APP_NAME}
               </span>
