@@ -142,9 +142,12 @@ const AdminUsers = () => {
                                                 ? 'bg-purple-900/30 text-purple-400 border-purple-500/30'
                                                 : user.role === 'consultant'
                                                     ? 'bg-cyan-900/30 text-cyan-400 border-cyan-500/30'
-                                                    : 'bg-slate-800 text-slate-400 border-slate-700'
+                                                    : user.role === 'premium'
+                                                        ? 'bg-amber-900/30 text-amber-500 border-amber-500/30'
+                                                        : 'bg-slate-800 text-slate-400 border-slate-700'
                                                 }`}>
                                                 {user.role === 'admin' && <Shield className="w-3 h-3 mr-1" />}
+                                                {user.role === 'premium' && <Crown className="w-3 h-3 mr-1" />}
                                                 {user.role.toUpperCase()}
                                             </span>
                                         </td>
