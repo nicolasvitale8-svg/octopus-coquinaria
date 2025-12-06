@@ -1,6 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../services/supabase';
+import { Calendar, Play, Pause } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const TickerGastronomico = () => {
   const [isPaused, setIsPaused] = useState(false);
