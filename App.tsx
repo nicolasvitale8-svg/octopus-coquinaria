@@ -26,7 +26,7 @@ const App = () => {
           <Route path="/dashboard" element={<Dashboard />} />
         </Route>
 
-        <Route element={<ProtectedRoute allowedEmails={['nicolasvitale8@gmail.com']} />}>
+        <Route element={<ProtectedRoute />}>
           <Route path="/admin/leads" element={<AdminLeads />} />
         </Route>
 
