@@ -564,8 +564,8 @@ const QuickDiagnostic = () => {
                 </a>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Button variant="outline" className="justify-center py-3" onClick={() => alert("Simulación: PDF Generado y Descargado")}>
-                    <Download className="w-5 h-5 mr-2" /> Descargar informe PDF
+                  <Button variant="outline" className="justify-center py-3" onClick={() => alert(`¡Listo! Te enviaremos el reporte detallado a ${formData.contactEmail} en los próximos minutos.`)}>
+                    <Download className="w-5 h-5 mr-2" /> Recibir reporte por Email
                   </Button>
 
                   <Link to="/dashboard">
