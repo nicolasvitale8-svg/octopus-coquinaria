@@ -3,7 +3,7 @@ import { supabase } from '../services/supabase';
 import { User } from '@supabase/supabase-js';
 
 // Tipos de roles soportados
-export type UserRole = 'admin' | 'consultant' | 'user';
+export type UserRole = 'admin' | 'consultant' | 'premium' | 'user';
 
 interface UserProfile {
     id: string;
@@ -19,6 +19,7 @@ interface AuthContextType {
     isLoading: boolean;
     isAdmin: boolean;
     isConsultant: boolean;
+    isPremium: boolean;
     signOut: () => Promise<void>;
 }
 
@@ -28,6 +29,7 @@ const AuthContext = createContext<AuthContextType>({
     isLoading: true,
     isAdmin: false,
     isConsultant: false,
+    isPremium: false,
     signOut: async () => { },
 });
 
@@ -148,6 +150,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isLoading,
         isAdmin: profile?.role === 'admin',
         isConsultant: profile?.role === 'consultant' || profile?.role === 'admin', // Admin incluye permisos de consultor
+        isPremium: profile?.role === 'premium' || profile?.role === 'consultant' || profile?.role === 'admin', // Jerarquía: Admin > Consultor > Premium > User
         signOut
     };
 

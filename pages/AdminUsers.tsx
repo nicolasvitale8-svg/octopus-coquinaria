@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../services/supabase';
-import { Users, Shield, UserCheck, Search, AlertCircle } from 'lucide-react';
+import { Users, Shield, UserCheck, Search, AlertCircle, Trash2, Crown } from 'lucide-react';
 
 interface UserData {
     id: string;
     email: string;
     full_name: string;
-    role: 'admin' | 'consultant' | 'user';
+    role: 'admin' | 'consultant' | 'premium' | 'user';
     created_at: string;
 }
 
@@ -37,16 +37,16 @@ const AdminUsers = () => {
         fetchUsers();
     }, []);
 
-    const toggleRole = async (userId: string, currentRole: string) => {
+    const toggleRole = async (userId: string, currentRole: string, targetRole: 'consultant' | 'premium') => {
         if (!supabase) return;
-
-        // Logic: Toggle between 'user' and 'consultant'. Admin is protected usually.
-        const newRole = currentRole === 'consultant' ? 'user' : 'consultant';
 
         if (currentRole === 'admin') {
             alert("No se puede cambiar el rol del Administrador principal desde aquí.");
             return;
         }
+
+        // Si ya tiene el rol objetivo, lo bajamos a 'user'. Si no, le subimos al rol objetivo.
+        const newRole = currentRole === targetRole ? 'user' : targetRole;
 
         const { error } = await supabase
             .from('usuarios')
@@ -59,6 +59,23 @@ const AdminUsers = () => {
             alert("Error al actualizar rol: " + error.message);
         }
     };
+
+    const deleteUser = async (userId: string, userName: string) => {
+        if (!confirm(`¿Estás seguro que deseas ELIMINAR al usuario "${userName}"? Esta acción le quitará el acceso (su perfil será borrado).`)) return;
+        if (!supabase) return;
+
+        const { error } = await supabase
+            .from('usuarios')
+            .delete()
+            .eq('id', userId);
+
+        if (!error) {
+            fetchUsers();
+            alert(`Usuario ${userName} eliminado.`);
+        } else {
+            alert("Error al eliminar: " + error.message);
+        }
+    }
 
     const filteredUsers = users.filter(u =>
         u.email?.toLowerCase().includes(search.toLowerCase()) ||
@@ -122,10 +139,10 @@ const AdminUsers = () => {
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${user.role === 'admin'
-                                                    ? 'bg-purple-900/30 text-purple-400 border-purple-500/30'
-                                                    : user.role === 'consultant'
-                                                        ? 'bg-cyan-900/30 text-cyan-400 border-cyan-500/30'
-                                                        : 'bg-slate-800 text-slate-400 border-slate-700'
+                                                ? 'bg-purple-900/30 text-purple-400 border-purple-500/30'
+                                                : user.role === 'consultant'
+                                                    ? 'bg-cyan-900/30 text-cyan-400 border-cyan-500/30'
+                                                    : 'bg-slate-800 text-slate-400 border-slate-700'
                                                 }`}>
                                                 {user.role === 'admin' && <Shield className="w-3 h-3 mr-1" />}
                                                 {user.role.toUpperCase()}
@@ -133,15 +150,38 @@ const AdminUsers = () => {
                                         </td>
                                         <td className="px-6 py-4 text-center">
                                             {user.role !== 'admin' && (
-                                                <button
-                                                    onClick={() => toggleRole(user.id, user.role)}
-                                                    className={`text-xs font-bold px-3 py-1.5 rounded transition-all border ${user.role === 'consultant'
+                                                <div className="flex justify-center gap-2">
+                                                    {/* Toggle Consultor */}
+                                                    <button
+                                                        onClick={() => toggleRole(user.id, user.role, 'consultant')}
+                                                        className={`text-xs font-bold px-2 py-1 rounded transition-all border ${user.role === 'consultant'
                                                             ? 'border-red-500/30 text-red-400 hover:bg-red-900/20'
-                                                            : 'border-[#1FB6D5]/30 text-[#1FB6D5] hover:bg-[#1FB6D5]/10'
-                                                        }`}
-                                                >
-                                                    {user.role === 'consultant' ? 'Quitar Permiso' : 'Hacer Consultor'}
-                                                </button>
+                                                            : 'border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10'
+                                                            }`}
+                                                    >
+                                                        {user.role === 'consultant' ? 'Quitar Consultor' : 'Hacer Consultor'}
+                                                    </button>
+
+                                                    {/* Toggle Premium */}
+                                                    <button
+                                                        onClick={() => toggleRole(user.id, user.role, 'premium')}
+                                                        className={`text-xs font-bold px-2 py-1 rounded transition-all border ${user.role === 'premium'
+                                                            ? 'border-red-500/30 text-red-400 hover:bg-red-900/20'
+                                                            : 'border-amber-500/30 text-amber-500 hover:bg-amber-500/10'
+                                                            }`}
+                                                    >
+                                                        {user.role === 'premium' ? 'Quitar Premium' : 'Hacer Premium'}
+                                                    </button>
+
+                                                    {/* Delete */}
+                                                    <button
+                                                        onClick={() => deleteUser(user.id, user.full_name)}
+                                                        className="text-slate-500 hover:text-red-500 transition-colors p-1"
+                                                        title="Eliminar usuario"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                </div>
                                             )}
                                         </td>
                                     </tr>
