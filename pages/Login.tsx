@@ -70,31 +70,10 @@ const Login = () => {
                   const { error } = await supabase.auth.signInWithOAuth({
                     provider: 'google',
                     options: {
-                      redirectTo: `${window.location.origin}/#/admin/leads`  // Hash router support might need explicit hash, or Supabase handles origin. Safe with origin for strict redirect match, but let's try direct path or just origin + hash if supported. Ideally just origin/admin/leads if no hash router, but we have HashRouter..
-                      // Supabase redirect URLs are strict. Usually just origin is whitelisted.
-                      // Strategy: Redirect to dashboard (default) then let app route, OR redirect to a specific URL.
-                      // If I put explicit redirect, it must be in Supabase allowed list.
-                      // Safer bet: Redirect to origin (root) and use a query param 'next', or simply login to dashboard and let them click again.
-                      // BETTER UX: Just start Google Login pointing to dashboard, assuming they are the admin.
-                      // Actually, let's keep it simple: Trigger Login flow exactly like the main button but with intent.
-                      // Since we can't easily valid dynamic redirects without config, let's just trigger the SAME login flow 
-                      // but maybe show a message "Iniciá sesión con tu cuenta de Google".
+                      redirectTo: window.location.origin
                     }
                   });
-                  // WAIT. If I use the exact same redirect as main logic (dashboard), they go to dashboard.
-                  // If I want them to go to admin/leads, I need that URL allowed in Supabase.
-                  // The user previously said redirect URLs were site URL.
-
-                  // Let's TRY using the standard login flow but explain it.
-                  // OR: Just call signInWithOAuth with redirectTo window.location.href (which is login? no).
-
-                  // Let's use the same redirect as Dashboard for safety, but check user session first.
-                  // If they are not logged in, we MUST log them in. 
-
-                  await supabase.auth.signInWithOAuth({
-                    provider: 'google',
-                    options: { redirectTo: `${window.location.origin}` } // Redirect to root, App checks auth -> Dashboard.
-                  });
+                  if (error) setErrorMessage(error.message);
                 }
               }}
             >
