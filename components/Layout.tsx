@@ -18,8 +18,6 @@ const Layout: React.FC<LayoutProps> = ({ children, user }) => {
   const navigate = useNavigate();
   const [dbConnected, setDbConnected] = useState(false);
 
-  // DEBUG: Borde rojo global para confirmar deploy
-  const debugStyle = { border: "5px solid red", boxSizing: "border-box" } as React.CSSProperties;
 
   useEffect(() => {
     // Check if supabase client is initialized
@@ -43,7 +41,7 @@ const Layout: React.FC<LayoutProps> = ({ children, user }) => {
   const isActive = (path: string) => location.pathname === path ? 'text-[#1FB6D5] font-bold' : 'text-slate-400 hover:text-white';
 
   return (
-    <div className="min-h-screen bg-[#021019] text-slate-200 flex flex-col font-sans" style={{ border: '5px solid red', boxSizing: 'border-box' }}>
+    <div className="min-h-screen bg-[#021019] text-slate-200 flex flex-col font-sans">
 
       {/* GLOBAL BACKGROUND IMAGE SUPPORT WITH FALLBACK */}
       {GLOBAL_BACKGROUND_IMAGE_URL && !bgError ? (
