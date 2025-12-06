@@ -61,6 +61,7 @@ const AdminAcademy = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        console.log("Submitting form...", formData);
         if (!supabase) return;
 
         const { error } = await supabase
