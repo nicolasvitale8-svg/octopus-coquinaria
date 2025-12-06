@@ -59,16 +59,30 @@ const AdminAcademy = () => {
         fetchResources();
     }, []);
 
+    const [isSaving, setIsSaving] = useState(false);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setIsSaving(true);
         console.log("Submitting form...", formData);
-        if (!supabase) return;
 
-        const { error } = await supabase
-            .from('recursos_academia')
-            .insert([formData]);
+        if (!supabase) {
+            alert("Error: Supabase no inicializado.");
+            setIsSaving(false);
+            return;
+        }
 
-        if (!error) {
+        try {
+            const { error } = await supabase
+                .from('recursos_academia')
+                .insert([{
+                    ...formData,
+                    created_at: new Date().toISOString()
+                }]);
+
+            if (error) throw error;
+
+            // Success
             setIsModalOpen(false);
             setFormData({
                 titulo: '',
@@ -77,9 +91,13 @@ const AdminAcademy = () => {
                 descripcion: '',
                 es_premium: false
             });
+            alert("¡Recurso guardado correctamente!");
             fetchResources();
-        } else {
-            alert('Error al guardar: ' + error.message);
+        } catch (error: any) {
+            console.error("Error saving resource:", error);
+            alert(`Error al guardar: ${error.message || 'Error desconocido'}. \n\nVerifica que tengas permisos de Administrador o que la tabla exista.`);
+        } finally {
+            setIsSaving(false);
         }
     };
 
@@ -277,8 +295,8 @@ const AdminAcademy = () => {
                                 <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)} className="text-slate-400">
                                     Cancelar
                                 </Button>
-                                <Button type="submit" className="bg-[#1FB6D5] text-[#021019] font-bold hover:bg-white">
-                                    Guardar Recurso
+                                <Button type="submit" disabled={isSaving} className="bg-[#1FB6D5] text-[#021019] font-bold hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed">
+                                    {isSaving ? 'Guardando...' : 'Guardar Recurso'}
                                 </Button>
                             </div>
                         </form>
