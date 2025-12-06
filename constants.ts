@@ -14,6 +14,7 @@ export const LINKEDIN_URL = "https://www.linkedin.com/";
 export const GLOBAL_LOGO_URL = "https://i.postimg.cc/C1240jfz/logo_completo.png"; // Fallback legacy
 export const LOGO_ADMIN_URL = "https://i.postimg.cc/6pJzVPf7/pulpo-admin-transparente.png";
 export const LOGO_USER_URL = "https://i.postimg.cc/90wtZP42/pulpo-usuario-transparente.png";
+export const LOGO_PREMIUM_URL = "https://i.postimg.cc/sXGbDNPF/pulpo-premium-dorado-transparente-v3.png";
 export const LOGO_GUEST_URL = "https://i.postimg.cc/137dGBXM/pulpo-guest-transparente-v2.png";
 
 export const GLOBAL_BACKGROUND_IMAGE_URL = "https://i.postimg.cc/dt6jtPdV/fondo_abismo_azul.png";
@@ -124,7 +125,7 @@ export const ACADEMY_RESOURCES: AcademyResource[] = [
     idealFor: ['Dueños', 'Gerentes', 'Jefes de Cocina'],
     actionSteps: ['Hacé un inventario general hoy.', 'Registrá todas las compras del mes.', 'Aplicá la fórmula (II + C - IF) / Venta.'],
     recommendedTrigger: ['high_cogs'],
-    youtubeId: 'xyz123'
+    youtubeId: '7k1iPypNCBw'
   },
   {
     id: '2',

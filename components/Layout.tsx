@@ -2,16 +2,17 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, BarChart2, LogOut, User as UserIcon, Database } from 'lucide-react';
-import { APP_NAME, INSTAGRAM_URL, DISPLAY_PHONE, CONTACT_EMAIL, YOUTUBE_URL, WHATSAPP_NUMBER, GLOBAL_LOGO_URL, GLOBAL_BACKGROUND_IMAGE_URL } from '../constants';
-import { supabase } from '../services/supabase';
+import { APP_NAME, INSTAGRAM_URL, DISPLAY_PHONE, CONTACT_EMAIL, YOUTUBE_URL, WHATSAPP_NUMBER, GLOBAL_LOGO_URL, GLOBAL_BACKGROUND_IMAGE_URL, LOGO_ADMIN_URL, LOGO_USER_URL, LOGO_PREMIUM_URL, LOGO_GUEST_URL } from '../constants';
+import { useAuth } from '../contexts/AuthContext';
 
 interface LayoutProps {
   children: React.ReactNode;
   user?: any;
 }
 
-const Layout: React.FC<LayoutProps> = ({ children, user }) => {
-  const [internalUser, setInternalUser] = useState<any>(user);
+const Layout: React.FC<LayoutProps> = ({ children, user: propUser }) => {
+  const { user: contextUser, profile } = useAuth();
+  const [internalUser, setInternalUser] = useState<any>(propUser || contextUser);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [logoError, setLogoError] = useState(false);
   const [bgError, setBgError] = useState(false);
@@ -84,19 +85,30 @@ const Layout: React.FC<LayoutProps> = ({ children, user }) => {
           <div className="flex items-center justify-between h-20">
             <div className="flex items-center">
               <Link to="/" className="flex-shrink-0 flex items-center gap-3">
-                {/* Logo Logic: Custom Image OR Default SVG with Error Handling */}
-                {GLOBAL_LOGO_URL && !logoError ? (
-                  <img
-                    src={GLOBAL_LOGO_URL}
-                    alt="Octopus Logo"
-                    className="h-12 w-auto object-contain"
-                    onError={() => setLogoError(true)}
-                  />
-                ) : (
-                  <div className="w-10 h-10 rounded-full bg-[#00344F] flex items-center justify-center text-white font-bold text-lg border border-[#1FB6D5]/30 shadow-[0_0_15px_rgba(31,182,213,0.3)]">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6"><path d="M2 22h20" /><path d="M12 2v20" /><path d="M2 12h20" /><circle cx="12" cy="12" r="10" /></svg>
-                  </div>
-                )}
+                {/* Logo Logic: Role Based */}
+                {(() => {
+                  let logoToUse = LOGO_GUEST_URL;
+                  if (contextUser || internalUser) {
+                    const role = profile?.role;
+                    if (role === 'admin' || role === 'consultant') logoToUse = LOGO_ADMIN_URL;
+                    else if (role === 'premium') logoToUse = LOGO_PREMIUM_URL;
+                    else logoToUse = LOGO_USER_URL;
+                  }
+                  if (logoError) logoToUse = GLOBAL_LOGO_URL; // Fallback to global if specific fails (or just keep logic simple)
+
+                  return (
+                    <img
+                      src={logoToUse}
+                      alt="Octopus Logo"
+                      className="h-12 w-auto object-contain"
+                      onError={(e) => {
+                        // Fallback loop prevention
+                        const target = e.target as HTMLImageElement;
+                        if (target.src !== GLOBAL_LOGO_URL) target.src = GLOBAL_LOGO_URL;
+                      }}
+                    />
+                  );
+                })()}
 
                 <div className="flex flex-col">
                   <span className="font-bold text-xl tracking-tight text-white font-space leading-none uppercase">Octopus</span>
