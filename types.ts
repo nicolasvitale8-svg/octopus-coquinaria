@@ -19,7 +19,7 @@ export interface QuickDiagnosticData {
   city: string;
   dailyCovers: number;
   openDays: number;
-  
+
   // Lead / Contact Info
   contactName: string;
   contactEmail: string;
@@ -32,9 +32,9 @@ export interface QuickDiagnosticData {
   laborCost: number;
   rent: number;
   utilitiesAndFixed: number;
-  
+
   // Qualitative
-  primaryConcern: string[]; 
+  primaryConcern: string[];
   methodologyScores: Record<string, number>; // 7P answers 1-5
 }
 
@@ -43,18 +43,18 @@ export interface QuickDiagnosticResult {
   scoreGlobal: number;
   scoreFinancial: number;
   score7P: number;
-  
+
   cogsPercentage: number;
   laborPercentage: number;
   fixedPercentage: number;
   marginPercentage: number;
-  
+
   profileName: string;
   profileDescription: string;
-  
+
   strengths: string[];
   priorities: string[];
-  
+
   // Lead info passed through to result
   leadData?: {
     name: string;
@@ -71,16 +71,16 @@ export interface DeepDiagnosticInput {
   salesBeverage: number;
   salesOther: number;
   discounts: number;
-  
+
   costFood: number;
   costBeverage: number;
   inventoryAdjustment: number;
-  
+
   laborKitchen: number;
   laborService: number;
   laborSocial: number;
   laborOther: number;
-  
+
   services: number;
   rent: number;
   taxes: number;
@@ -127,6 +127,7 @@ export interface AcademyResource {
   downloadUrl?: string; // If template/guide
   youtubeId?: string; // If video
   recommendedTrigger?: string[]; // Internal logic codes e.g. ['high_cogs', 'low_order']
+  es_premium?: boolean;
 }
 
 export interface LearningPath {
