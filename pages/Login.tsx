@@ -43,7 +43,7 @@ const Login = () => {
                   setErrorMessage("Error: Supabase no está configurado correctamente (Verificar constants.ts).");
                   return;
                 }
-                const { error } = await supabase.auth.signInWithOAuth({
+                const { error } = await supabase!.auth.signInWithOAuth({
                   provider: 'google',
                   options: {
                     redirectTo: `${window.location.origin}/dashboard`
@@ -63,11 +63,15 @@ const Login = () => {
               fullWidth
               className="text-xs text-slate-500 hover:text-cyan-400"
               onClick={async () => {
-                const { data } = await supabase.auth.getSession();
+                if (!supabase) {
+                  setErrorMessage("Error: Supabase no configurado.");
+                  return;
+                }
+                const { data } = await supabase!.auth.getSession();
                 if (data.session) {
                   navigate('/admin/leads');
                 } else {
-                  const { error } = await supabase.auth.signInWithOAuth({
+                  const { error } = await supabase!.auth.signInWithOAuth({
                     provider: 'google',
                     options: {
                       redirectTo: window.location.origin
