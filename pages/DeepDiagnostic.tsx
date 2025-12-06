@@ -7,6 +7,7 @@ import Button from '../components/ui/Button';
 import { DeepDiagnosticInput } from '../types';
 import { calculateDeepDiagnostic } from '../services/calculations';
 import { saveDeepDiagnosticResult } from '../services/storage';
+import { supabase } from '../services/supabase';
 import { Save, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -33,15 +34,46 @@ const DeepDiagnostic = () => {
     setData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const result = calculateDeepDiagnostic(data);
+
+    // Save to Supabase
+    if (supabase) {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { error } = await supabase.from('diagnosticos_completos').insert({
+          user_id: user.id,
+          month: data.month,
+          sales_food: data.salesFood,
+          sales_beverage: data.salesBeverage,
+          sales_other: data.salesOther,
+          cost_food: data.costFood,
+          cost_beverage: data.costBeverage,
+          labor_kitchen: data.laborKitchen,
+          labor_service: data.laborService,
+          labor_other: data.laborOther,
+          rent: data.rent,
+          utilities: data.services, // Note mapping: services -> utilities in DB
+          total_sales: result.totalSales,
+          gross_margin: result.grossMargin,
+          net_result: result.netResult,
+          break_even_point: result.breakEvenPoint,
+          notes: 'Generated from Deep Diagnostic'
+        });
+
+        if (error) {
+          console.error('Error saving deep diagnostic:', error);
+          alert("Error al guardar en la nube. Se guardará localmente.");
+        }
+      }
+    }
+
     const success = saveDeepDiagnosticResult(result);
-    
+
     if (success) {
-        // No alert needed, just redirect for smooth UX
-        navigate('/dashboard');
+      navigate('/dashboard');
     } else {
-        alert("Hubo un error al guardar los datos.");
+      alert("Hubo un error al guardar los datos.");
     }
   };
 
@@ -51,18 +83,18 @@ const DeepDiagnostic = () => {
     <Layout user={{ name: "User" }}>
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="mb-6 flex justify-between items-end">
-           <div>
-             <h1 className="text-2xl font-bold text-white">Nuevo Diagnóstico Profundo</h1>
-             <p className="text-slate-400 text-sm">Cargá los datos de tu P&L para obtener un análisis detallado.</p>
-           </div>
-           <Input 
-              label="Mes Analizado" 
-              type="month" 
-              name="month" 
-              value={data.month} 
-              onChange={handleChange} 
-              className="mb-0 w-48"
-           />
+          <div>
+            <h1 className="text-2xl font-bold text-white">Nuevo Diagnóstico Profundo</h1>
+            <p className="text-slate-400 text-sm">Cargá los datos de tu P&L para obtener un análisis detallado.</p>
+          </div>
+          <Input
+            label="Mes Analizado"
+            type="month"
+            name="month"
+            value={data.month}
+            onChange={handleChange}
+            className="mb-0 w-48"
+          />
         </div>
 
         {/* Tabs */}
@@ -71,11 +103,10 @@ const DeepDiagnostic = () => {
             <button
               key={tab}
               onClick={() => setActiveTab(idx)}
-              className={`px-6 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
-                activeTab === idx 
-                ? 'border-b-2 border-cyan-500 text-cyan-400' 
+              className={`px-6 py-3 text-sm font-medium transition-colors whitespace-nowrap ${activeTab === idx
+                ? 'border-b-2 border-cyan-500 text-cyan-400'
                 : 'text-slate-400 hover:text-white'
-              }`}
+                }`}
             >
               {tab}
             </button>
@@ -115,11 +146,11 @@ const DeepDiagnostic = () => {
 
           {activeTab === 3 && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in">
-               <CurrencyInput label="Alquiler" prefix="$" name="rent" value={data.rent} onValueChange={handleCurrencyValueChange} />
-               <CurrencyInput label="Servicios (Luz, Gas, Agua, Internet)" prefix="$" name="services" value={data.services} onValueChange={handleCurrencyValueChange} />
-               <CurrencyInput label="Impuestos (IIBB, Municipal)" prefix="$" name="taxes" value={data.taxes} onValueChange={handleCurrencyValueChange} />
-               <CurrencyInput label="Honorarios / Sistemas" prefix="$" name="fees" value={data.fees} onValueChange={handleCurrencyValueChange} />
-               <CurrencyInput label="Otros Gastos Operativos" prefix="$" name="otherFixed" value={data.otherFixed} onValueChange={handleCurrencyValueChange} />
+              <CurrencyInput label="Alquiler" prefix="$" name="rent" value={data.rent} onValueChange={handleCurrencyValueChange} />
+              <CurrencyInput label="Servicios (Luz, Gas, Agua, Internet)" prefix="$" name="services" value={data.services} onValueChange={handleCurrencyValueChange} />
+              <CurrencyInput label="Impuestos (IIBB, Municipal)" prefix="$" name="taxes" value={data.taxes} onValueChange={handleCurrencyValueChange} />
+              <CurrencyInput label="Honorarios / Sistemas" prefix="$" name="fees" value={data.fees} onValueChange={handleCurrencyValueChange} />
+              <CurrencyInput label="Otros Gastos Operativos" prefix="$" name="otherFixed" value={data.otherFixed} onValueChange={handleCurrencyValueChange} />
             </div>
           )}
         </div>
@@ -128,14 +159,14 @@ const DeepDiagnostic = () => {
           <Button variant="secondary" onClick={() => setActiveTab(Math.max(0, activeTab - 1))} disabled={activeTab === 0}>
             Anterior
           </Button>
-          
+
           {activeTab < TABS.length - 1 ? (
-             <Button onClick={() => setActiveTab(activeTab + 1)}>
-               Siguiente
-             </Button>
+            <Button onClick={() => setActiveTab(activeTab + 1)}>
+              Siguiente
+            </Button>
           ) : (
             <Button onClick={handleSave} className="bg-green-600 hover:bg-green-500">
-               <Save className="w-4 h-4 mr-2" /> Calcular y Guardar
+              <Save className="w-4 h-4 mr-2" /> Calcular y Guardar
             </Button>
           )}
         </div>

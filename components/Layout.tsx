@@ -11,6 +11,7 @@ interface LayoutProps {
 }
 
 const Layout: React.FC<LayoutProps> = ({ children, user }) => {
+  const [internalUser, setInternalUser] = useState<any>(user);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [logoError, setLogoError] = useState(false);
   const [bgError, setBgError] = useState(false);
@@ -22,6 +23,23 @@ const Layout: React.FC<LayoutProps> = ({ children, user }) => {
   useEffect(() => {
     // Check if supabase client is initialized
     setDbConnected(!!supabase);
+
+    // Auto-fetch user if not provided (fixes "logged out" header on some pages)
+    if (!user && supabase) {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session?.user) {
+          setInternalUser(session.user);
+        }
+      });
+
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        setInternalUser(session?.user || null);
+      });
+
+      return () => subscription.unsubscribe();
+    } else {
+      setInternalUser(user);
+    }
   }, []);
 
   const navLinks = [
@@ -172,7 +190,7 @@ const Layout: React.FC<LayoutProps> = ({ children, user }) => {
                   <Database className="w-4 h-4" /> Admin DB
                   {dbConnected && <span className="w-2 h-2 rounded-full bg-green-500"></span>}
                 </Link>
-                {user ? (
+                {internalUser ? (
                   <Link to="/dashboard" onClick={() => setIsMenuOpen(false)} className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-[#1FB6D5] bg-slate-800 mt-2">
                     Ir a mi Dashboard
                   </Link>

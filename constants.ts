@@ -10,14 +10,19 @@ export const APP_NAME = "Octopus Coquinaria";
 export const LINKEDIN_URL = "https://www.linkedin.com/";
 
 // --- ASSETS VISUALES (URLs Externas) ---
-export const GLOBAL_LOGO_URL = "https://i.postimg.cc/C1240jfz/logo_completo.png";
+// --- ASSETS VISUALES (URLs Externas) ---
+export const GLOBAL_LOGO_URL = "https://i.postimg.cc/C1240jfz/logo_completo.png"; // Fallback legacy
+export const LOGO_ADMIN_URL = "https://i.postimg.cc/6pJzVPf7/pulpo-admin-transparente.png";
+export const LOGO_USER_URL = "https://i.postimg.cc/90wtZP42/pulpo-usuario-transparente.png";
+export const LOGO_GUEST_URL = "https://i.postimg.cc/137dGBXM/pulpo-guest-transparente-v2.png";
+
 export const GLOBAL_BACKGROUND_IMAGE_URL = "https://i.postimg.cc/dt6jtPdV/fondo_abismo_azul.png";
 export const BRAND_ILLUSTRATION_URL = "https://i.postimg.cc/dVtPLYx4/pulpo_completo_transparente.png";
 export const NICOLAS_PHOTO_URL = "https://i.postimg.cc/ht9zPVN8/Generated_Image_September_05_2025_2_20PM.jpg";
 
 export const COLIFA_MENU_URL = "https://drive.google.com/file/d/12x0CoM4lYMKMNSQWtNxPEEtT2eAMiCX4/view?usp=drive_link";
-export const TECHNICAL_SHEETS_EXAMPLE_URL = "#";
-export const PROCESS_EXAMPLE_URL = "#";
+export const TECHNICAL_SHEETS_EXAMPLE_URL = "https://drive.google.com/file/d/1vfOyn2-cQ2ZKH6EDxbrL6RhCCbR65QEe/view?usp=sharing";
+export const PROCESS_EXAMPLE_URL = "https://drive.google.com/file/d/18--dvReEprD_5RN3Q2llxn6Nw8giqeFt/view?usp=sharing";
 
 // --- SUPABASE CONFIGURATION ---
 // Configuración inyectada automáticamente.

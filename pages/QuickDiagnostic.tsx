@@ -10,6 +10,7 @@ import { WHATSAPP_NUMBER } from '../constants';
 import { CheckCircle, AlertTriangle, XCircle, Download, Save, MessageCircle, Star, ArrowRight, TrendingUp, Check, User, Lock, Sparkles } from 'lucide-react';
 import { calculateQuickDiagnostic, formatPercent } from '../services/calculations';
 import { saveDiagnosticResult } from '../services/storage';
+import { supabase } from '../services/supabase';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 const STEPS = ['Negocio', 'Números', 'Problemas', 'Check 7P', 'Tus Datos', 'Resultado'];
@@ -110,7 +111,27 @@ const QuickDiagnostic = () => {
       };
 
       setResult(finalResult);
-      // Async Save to DB
+
+      // Save to Supabase
+      if (supabase) {
+        await supabase.from('diagnosticos_express').insert({
+          contact_name: formData.contactName,
+          contact_email: formData.contactEmail,
+          contact_phone: formData.contactPhone,
+          business_name: formData.businessName,
+          city: formData.city,
+          business_type: formData.businessType,
+          monthly_revenue: formData.monthlyRevenue,
+          score_global: finalResult.scoreGlobal,
+          score_financial: finalResult.scoreFinancial,
+          score_7p: finalResult.score7P,
+          profile_name: finalResult.profileName,
+          status: finalResult.status,
+          source: 'web_quick_diagnostic'
+        });
+      }
+
+      // Keep local storage as backup/cache
       await saveDiagnosticResult(finalResult);
       setIsSaving(false);
     }

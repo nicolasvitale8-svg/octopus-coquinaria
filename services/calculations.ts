@@ -42,7 +42,7 @@ export const calculateDeepDiagnostic = (input: DeepDiagnosticInput): DeepDiagnos
 
 export const calculateQuickDiagnostic = (data: QuickDiagnosticData): QuickDiagnosticResult => {
   const revenue = data.monthlyRevenue || 0;
-  
+
   // 1. Calculate Financial Percentages
   // Handle edge case of 0 revenue to avoid Infinity
   const cogsPct = revenue > 0 ? (data.cogs / revenue) * 100 : 0;
@@ -53,10 +53,10 @@ export const calculateQuickDiagnostic = (data: QuickDiagnosticData): QuickDiagno
   // 2. Financial Scoring (Traffic Lights -> Points)
   // COGS: Green <= 35, Yellow <= 40, Red > 40
   const cogsScore = cogsPct <= 35 ? 100 : (cogsPct <= 40 ? 60 : 20);
-  
+
   // Labor: Green <= 25, Yellow <= 30, Red > 30
   const laborScore = laborPct <= 25 ? 100 : (laborPct <= 30 ? 60 : 20);
-  
+
   // Margin: Green >= 15, Yellow >= 5, Red < 5
   const marginScore = marginPct >= 15 ? 100 : (marginPct >= 5 ? 60 : 20);
 
@@ -66,7 +66,7 @@ export const calculateQuickDiagnostic = (data: QuickDiagnosticData): QuickDiagno
   // Average of 1-5 scores normalized to 0-100
   const scores = Object.values(data.methodologyScores);
   const avgRawScore = scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
-  
+
   // Correct Normalization: (val - 1) / (max - min) * 100
   // Scale 1-5 maps to 0-100. 1 -> 0%, 3 -> 50%, 5 -> 100%
   const score7P = scores.length > 0 ? ((avgRawScore - 1) / 4) * 100 : 0;
@@ -106,7 +106,7 @@ export const calculateQuickDiagnostic = (data: QuickDiagnosticData): QuickDiagno
 
   // 7. Priorities & Strengths
   const priorities: string[] = [];
-  
+
   // Financial Priorities
   if (cogsPct > 35) priorities.push(`Bajar tu costo de mercadería urgente (está en ${cogsPct.toFixed(1)}%).`);
   if (laborPct > 30) priorities.push("Revisar la eficiencia de tu personal y turnos.");
@@ -118,7 +118,7 @@ export const calculateQuickDiagnostic = (data: QuickDiagnosticData): QuickDiagno
   if ((data.methodologyScores['O_obs'] || 0) <= 3) priorities.push("Establecer una rutina semanal de análisis de números.");
   if ((data.methodologyScores['P'] || 0) <= 3) priorities.push("Definir 3 metas numéricas claras para el mes.");
   if ((data.methodologyScores['C'] || 0) <= 3) priorities.push("Revisar la rentabilidad y concepto de la carta.");
-  
+
   // Fill with generic if empty
   if (priorities.length === 0) priorities.push("Mantener los costos bajo control.", "Buscar oportunidades para subir el ticket promedio.");
 
@@ -127,7 +127,7 @@ export const calculateQuickDiagnostic = (data: QuickDiagnosticData): QuickDiagno
   if ((data.methodologyScores['T'] || 0) >= 4) strengths.push("Buen uso de tecnología/registros.");
   if ((data.methodologyScores['C'] || 0) >= 4) strengths.push("Propuesta creativa y dinámica.");
   if (cogsScore === 100) strengths.push("Excelente control de costo de mercadería.");
-  
+
   if (strengths.length === 0) strengths.push("Voluntad de mejora (por estar acá).");
 
   return {
@@ -147,10 +147,12 @@ export const calculateQuickDiagnostic = (data: QuickDiagnosticData): QuickDiagno
 };
 
 
-export const formatCurrency = (value: number) => {
+export const formatCurrency = (value: number | undefined | null) => {
+  if (value === undefined || value === null || isNaN(value)) return '$ 0';
   return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(value);
 };
 
-export const formatPercent = (value: number) => {
-  return `${value.toFixed(1)}%`;
+export const formatPercent = (value: number | undefined | null) => {
+  if (value === undefined || value === null || isNaN(value)) return '0%';
+  return `${Number(value).toFixed(1)}%`;
 };
