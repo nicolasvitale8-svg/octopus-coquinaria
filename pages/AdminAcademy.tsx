@@ -37,7 +37,10 @@ const AdminAcademy = () => {
         tipo: 'video' as 'video' | 'plantilla' | 'guia',
         url: '',
         descripcion: '',
-        es_premium: false
+        url: '',
+        descripcion: '',
+        es_premium: false,
+        topics: [] as string[]
     });
 
     const fetchResources = async () => {
@@ -289,6 +292,29 @@ const AdminAcademy = () => {
                                 <label htmlFor="premium" className="text-sm text-white cursor-pointer select-none">
                                     Marcar como contenido <strong>Premium</strong> (solo clientes)
                                 </label>
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Rubros / Categorías</label>
+                                <div className="grid grid-cols-2 gap-2">
+                                    {['finanzas', 'operaciones', 'equipo', 'marketing', 'tecnologia', 'cliente'].map((topic) => (
+                                        <label key={topic} className="flex items-center space-x-2 bg-slate-950 p-2 rounded border border-slate-800 cursor-pointer hover:border-slate-600">
+                                            <input
+                                                type="checkbox"
+                                                className="rounded border-slate-700 bg-slate-900 text-[#1FB6D5] focus:ring-[#1FB6D5]"
+                                                checked={formData.topics?.includes(topic) || false}
+                                                onChange={(e) => {
+                                                    const currentTopics = formData.topics || [];
+                                                    const newTopics = e.target.checked
+                                                        ? [...currentTopics, topic]
+                                                        : currentTopics.filter(t => t !== topic);
+                                                    setFormData({ ...formData, topics: newTopics });
+                                                }}
+                                            />
+                                            <span className="text-sm text-slate-300 capitalize">{topic}</span>
+                                        </label>
+                                    ))}
+                                </div>
                             </div>
 
                             <div className="pt-4 flex justify-end gap-3 border-t border-slate-800 mt-4">
