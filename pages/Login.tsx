@@ -57,33 +57,53 @@ const Login = () => {
             </Button>
           </div>
 
-          <div className="mt-8 pt-6 border-t border-slate-800">
-            <Button
-              variant="ghost"
-              fullWidth
-              className="text-xs text-slate-500 hover:text-cyan-400"
-              onClick={async () => {
-                if (!supabase) {
-                  setErrorMessage("Error: Supabase no configurado.");
-                  return;
-                }
-                const { data } = await supabase!.auth.getSession();
-                if (data.session) {
-                  navigate('/admin/leads');
-                } else {
-                  const { error } = await supabase!.auth.signInWithOAuth({
-                    provider: 'google',
-                    options: {
-                      redirectTo: window.location.origin
+          <div className="mt-6 border-t border-slate-800 pt-6">
+            <details className="group">
+              <summary className="text-xs text-slate-500 cursor-pointer hover:text-white list-none flex items-center justify-center gap-1">
+                <Shield className="w-3 h-3" />
+                Acceso con Credenciales
+              </summary>
+              <div className="mt-4 space-y-3 animate-fade-in">
+                <form onSubmit={async (e) => {
+                  e.preventDefault();
+                  setErrorMessage(null);
+                  const email = (e.currentTarget.elements.namedItem('email') as HTMLInputElement).value;
+                  const password = (e.currentTarget.elements.namedItem('password') as HTMLInputElement).value;
+                  if (!supabase) return;
+
+                  const { error } = await supabase.auth.signInWithPassword({ email, password });
+                  if (error) {
+                    // Si falla login, intentamos registro (dev convenience)
+                    if (error.message.includes("Invalid login")) {
+                      setErrorMessage("Credenciales inválidas.");
+                    } else {
+                      setErrorMessage(error.message);
                     }
-                  });
-                  if (error) setErrorMessage(error.message);
-                }
-              }}
-            >
-              <Shield className="w-3 h-3 mr-2" />
-              Acceso Consultor
-            </Button>
+                  } else {
+                    navigate('/dashboard');
+                  }
+                }} className="space-y-2">
+                  <Input label="Email" name="email" type="email" placeholder="admin@octopus.com" required className="bg-slate-950" />
+                  <Input label="Contraseña" name="password" type="password" placeholder="••••••••" required className="bg-slate-950" />
+                  <Button fullWidth variant="primary" type="submit" className="text-sm py-2">
+                    Ingresar
+                  </Button>
+                  <div className="text-center">
+                    <button type="button" onClick={async () => {
+                      const email = prompt("Email para registro:");
+                      const password = prompt("Password para registro:");
+                      if (email && password && supabase) {
+                        const { error } = await supabase.auth.signUp({ email, password });
+                        if (error) alert(error.message);
+                        else alert("Usuario creado! Revisa tu email o intenta loguearte (si auto-confirm off).");
+                      }
+                    }} className="text-[10px] text-slate-600 hover:text-slate-400 underline">
+                      Crear cuenta (Dev)
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </details>
           </div>
 
           <p className="mt-4 text-center text-sm text-slate-400">

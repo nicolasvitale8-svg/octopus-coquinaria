@@ -37,25 +37,38 @@ const AdminAcademy = () => {
         tipo: 'video' as 'video' | 'plantilla' | 'guia',
         url: '',
         descripcion: '',
-        url: '',
-        descripcion: '',
         es_premium: false,
         topics: [] as string[]
     });
 
     const fetchResources = async () => {
         setIsLoading(true);
-        if (!supabase) return;
-
-        const { data, error } = await supabase
-            .from('recursos_academia')
-            .select('*')
-            .order('created_at', { ascending: false });
-
-        if (!error && data) {
-            setResources(data);
+        if (!supabase) {
+            setIsLoading(false);
+            return;
         }
-        setIsLoading(false);
+
+        // Timeout promise
+        const timeout = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Request timed out')), 5000)
+        );
+
+        try {
+            const fetchPromise = supabase
+                .from('recursos_academia')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            const { data, error } = await Promise.race([fetchPromise, timeout]) as any;
+
+            if (error) throw error;
+            if (data) setResources(data);
+
+        } catch (error) {
+            console.error('Error loading resources:', error);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     useEffect(() => {
@@ -92,7 +105,8 @@ const AdminAcademy = () => {
                 tipo: 'video',
                 url: '',
                 descripcion: '',
-                es_premium: false
+                es_premium: false,
+                topics: []
             });
             alert("¡Recurso guardado correctamente!");
             fetchResources();
@@ -108,13 +122,22 @@ const AdminAcademy = () => {
         if (!confirm('¿Seguro que deseas eliminar este recurso?')) return;
         if (!supabase) return;
 
-        const { error } = await supabase
-            .from('recursos_academia')
-            .delete()
-            .match({ id });
+        try {
+            const { error } = await supabase
+                .from('recursos_academia')
+                .delete()
+                .eq('id', id);
 
-        if (!error) {
+            if (error) {
+                console.error('Error deleting resource:', error);
+                alert('Error al borrar recurso: ' + error.message);
+                return;
+            }
+
             fetchResources();
+        } catch (err) {
+            console.error('Exception deleting resource:', err);
+            alert('Error inesperado al borrar.');
         }
     };
 

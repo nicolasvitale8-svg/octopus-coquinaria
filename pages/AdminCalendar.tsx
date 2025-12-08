@@ -50,19 +50,40 @@ const AdminCalendar = () => {
     // --- Data Fetching ---
     const fetchEvents = async () => {
         setIsLoading(true);
-        if (!supabase) return;
-
-        // Traemos eventos que solapen con el mes actual (simplificado: traemos todo el rango visible)
-        const { data, error } = await supabase
-            .from('eventos_calendario')
-            .select('*')
-            .gte('fecha_inicio', startDate.toISOString())
-            .lte('fecha_inicio', endDate.toISOString());
-
-        if (!error && data) {
-            setEvents(data);
+        if (!supabase) {
+            console.error('Supabase client not initialized');
+            setIsLoading(false);
+            return;
         }
-        setIsLoading(false);
+
+        // Timeout promise
+        const timeout = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Request timed out')), 5000)
+        );
+
+        try {
+            const fetchPromise = supabase
+                .from('eventos_calendario')
+                .select('*')
+                .gte('fecha_inicio', startDate.toISOString())
+                .lte('fecha_inicio', endDate.toISOString());
+
+            const { data, error } = await Promise.race([fetchPromise, timeout]) as any;
+
+            if (error) {
+                console.error('Error fetching events:', error);
+                throw error;
+            }
+
+            if (data) {
+                setEvents(data);
+            }
+        } catch (error) {
+            console.error('Exception in fetchEvents:', error);
+            // alert('Aviso: No se pudieron cargar los eventos (Posible bloqueo de red o timeout).');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     useEffect(() => {
@@ -110,9 +131,20 @@ const AdminCalendar = () => {
         if (!supabase) return;
         if (!confirm('¿Borrar este evento?')) return;
 
-        const { error } = await supabase.from('eventos_calendario').delete().match({ id });
-        if (!error) {
+        try {
+            const { error } = await supabase.from('eventos_calendario').delete().eq('id', id);
+
+            if (error) {
+                console.error('Error deleting event:', error);
+                alert('Error al borrar evento: ' + error.message);
+                return;
+            }
+
+            // Recargar eventos
             fetchEvents();
+        } catch (err) {
+            console.error('Exception deleting event:', err);
+            alert('Error inesperado al borrar.');
         }
     };
 
@@ -249,8 +281,8 @@ const AdminCalendar = () => {
                                             type="button"
                                             onClick={() => setNewEventType(type as any)}
                                             className={`py-2 text-xs font-bold uppercase rounded border transition-all ${newEventType === type
-                                                    ? getEventTypeColor(type) + ' ring-1 ring-offset-1 ring-offset-slate-900'
-                                                    : 'bg-slate-950 border-slate-700 text-slate-500 hover:bg-slate-800'
+                                                ? getEventTypeColor(type) + ' ring-1 ring-offset-1 ring-offset-slate-900'
+                                                : 'bg-slate-950 border-slate-700 text-slate-500 hover:bg-slate-800'
                                                 }`}
                                         >
                                             {type}

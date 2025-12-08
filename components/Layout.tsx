@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, BarChart2, LogOut, User as UserIcon, Database } from 'lucide-react';
 import { APP_NAME, INSTAGRAM_URL, DISPLAY_PHONE, CONTACT_EMAIL, YOUTUBE_URL, WHATSAPP_NUMBER, GLOBAL_LOGO_URL, GLOBAL_BACKGROUND_IMAGE_URL, LOGO_ADMIN_URL, LOGO_USER_URL, LOGO_PREMIUM_URL, LOGO_GUEST_URL } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../services/supabase';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -23,10 +24,10 @@ const Layout: React.FC<LayoutProps> = ({ children, user: propUser }) => {
 
   useEffect(() => {
     // Check if supabase client is initialized
-    setDbConnected(!!supabase);
+    setDbConnected(true);
 
     // Auto-fetch user if not provided (fixes "logged out" header on some pages)
-    if (!propUser && supabase) {
+    if (!propUser) {
       // Sync with context
       if (contextUser) setInternalUser(contextUser);
     } else {
@@ -134,11 +135,11 @@ const Layout: React.FC<LayoutProps> = ({ children, user: propUser }) => {
               </Link>
 
               <div className="flex items-center md:ml-6 gap-4">
-                {user ? (
+                {internalUser ? (
                   <>
                     <Link to="/dashboard" className="flex items-center gap-2 bg-[#00344F] hover:bg-[#1FB6D5]/20 hover:text-[#1FB6D5] border border-[#1FB6D5]/30 px-4 py-2 rounded-md transition-all text-white text-sm font-medium shadow-md">
                       <BarChart2 className="w-4 h-4" />
-                      Tablero ({user.email?.split('@')[0]})
+                      Tablero ({internalUser.email?.split('@')[0]})
                     </Link>
                     <button
                       onClick={handleLogout}

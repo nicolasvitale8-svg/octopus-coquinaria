@@ -138,10 +138,12 @@ const Academy = () => {
   };
 
   const filteredResources = resources.filter(res => {
-    // Basic filtering (topics defaulted to general so filter might be weak, can improve later)
     const matchesType = typeFilter === 'all' || res.type === typeFilter;
-    return matchesType; // Ignore topic filter for now as DB doesn't have topics
+    const matchesTopic = topicFilter === 'all' || (res.topics && res.topics.includes(topicFilter));
+    return matchesType && matchesTopic;
   });
+
+  const topics: ResourceTopic[] = ['finanzas', 'operaciones', 'equipo', 'marketing', 'tecnologia', 'cliente'];
 
   return (
     <Layout>
@@ -158,15 +160,35 @@ const Academy = () => {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
 
-          {/* Filters (Simplified) */}
-          <div className="mb-8 flex flex-col sm:flex-row gap-4 justify-between items-center border-b border-slate-800 pb-6">
-            <div className="flex gap-2">
+          {/* Filters */}
+          <div className="mb-8 flex flex-col lg:flex-row gap-6 justify-between items-center border-b border-slate-800 pb-6">
+            {/* Topic Pills */}
+            <div className="flex flex-wrap justify-center gap-2">
+              <FilterButton
+                active={topicFilter === 'all'}
+                onClick={() => setTopicFilter('all')}
+              >
+                Todos
+              </FilterButton>
+              {topics.map(topic => (
+                <FilterButton
+                  key={topic}
+                  active={topicFilter === topic}
+                  onClick={() => setTopicFilter(topic)}
+                >
+                  {topic.charAt(0).toUpperCase() + topic.slice(1)}
+                </FilterButton>
+              ))}
+            </div>
+
+            {/* Type Dropdown */}
+            <div className="flex gap-2 min-w-[200px]">
               <select
-                className="bg-slate-900 border border-slate-700 text-slate-300 rounded-md text-sm p-2 focus:ring-cyan-500"
+                className="w-full bg-slate-900 border border-slate-700 text-slate-300 rounded-md text-sm p-2 focus:ring-cyan-500"
                 value={typeFilter}
                 onChange={(e) => setTypeFilter(e.target.value as ResourceType | 'all')}
               >
-                <option value="all">Todos los formatos</option>
+                <option value="all">Cualquier formato</option>
                 <option value="video">Videos</option>
                 <option value="guide">Guías</option>
                 <option value="template">Plantillas</option>

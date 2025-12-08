@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
-import { supabase } from '../services/supabase';
+import { useAuth } from '../contexts/AuthContext';
 
 // Email del administrador
 const ADMIN_EMAIL = 'nicolasvitale8@gmail.com';
@@ -10,56 +10,32 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute = ({ allowedEmails }: ProtectedRouteProps) => {
-    const [loading, setLoading] = useState(true);
-    const [isAllowed, setIsAllowed] = useState(false);
+    const { user, isLoading } = useAuth();
+    const [isTimeout, setIsTimeout] = useState(false);
 
+    // Timeout safety for AuthContext loading
     useEffect(() => {
-        if (!supabase) {
-            setLoading(false);
-            return;
-        }
+        const timer = setTimeout(() => {
+            if (isLoading) setIsTimeout(true);
+        }, 3000);
+        return () => clearTimeout(timer);
+    }, [isLoading]);
 
-        const checkUser = async () => {
-            if (!supabase) return;
-            const { data } = await supabase.auth.getSession();
-            const user = data?.session?.user;
-
-            if (user) {
-                if (allowedEmails && allowedEmails.length > 0) {
-                    setIsAllowed(allowedEmails.includes(user.email || ''));
-                } else {
-                    setIsAllowed(true);
-                }
-            } else {
-                setIsAllowed(false);
-            }
-            setLoading(false);
-        };
-
-        checkUser();
-
-        const { data } = supabase.auth.onAuthStateChange((_event, session) => {
-            const user = session?.user;
-            if (user) {
-                if (allowedEmails && allowedEmails.length > 0) {
-                    setIsAllowed(allowedEmails.includes(user.email || ''));
-                } else {
-                    setIsAllowed(true);
-                }
-            } else {
-                setIsAllowed(false);
-            }
-            setLoading(false);
-        });
-
-        return () => data.subscription.unsubscribe();
-    }, []);
-
-    if (loading) {
+    if (isLoading && !isTimeout) {
         return <div className="min-h-screen flex items-center justify-center text-white">Cargando...</div>;
     }
 
-    return isAllowed ? <Outlet /> : <Navigate to="/login" replace />;
+    if (!user) {
+        return <Navigate to="/login" replace />;
+    }
+
+    if (allowedEmails && allowedEmails.length > 0) {
+        if (!allowedEmails.includes(user.email || '')) {
+            return <Navigate to="/login" replace />;
+        }
+    }
+
+    return <Outlet />;
 };
 
 export default ProtectedRoute;
