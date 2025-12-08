@@ -113,9 +113,7 @@ const Academy = () => {
           title: r.titulo,
           type: r.tipo === 'plantilla' ? 'template' : r.tipo === 'guia' ? 'guide' : 'video',
           duration: '5 min', // Default
-          duration: '5 min', // Default
           topics: r.topics || ['general'], // Traer de DB
-          letters7p: ['O'], // Default
           letters7p: ['O'], // Default
           summary: r.descripcion,
           description: r.descripcion,
