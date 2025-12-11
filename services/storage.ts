@@ -122,6 +122,7 @@ export const getAllLeads = async (): Promise<any[]> => {
 
       if (data) {
         supabaseData = data.map(row => ({
+          id: row.id,
           date: row.created_at,
           profileName: row.profile_name,
           profileDescription: row.full_data?.profileDescription || '',

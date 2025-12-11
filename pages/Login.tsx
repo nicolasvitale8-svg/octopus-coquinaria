@@ -6,9 +6,11 @@ import Button from '../components/ui/Button';
 import { Link, useNavigate } from 'react-router-dom';
 import { Shield } from 'lucide-react';
 import { supabase } from '../services/supabase';
+import { useAuth } from '../contexts/AuthContext';
 
 const Login = () => {
   const navigate = useNavigate();
+  const { devLogin } = useAuth();
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
 
   return (
@@ -46,7 +48,7 @@ const Login = () => {
                 const { error } = await supabase!.auth.signInWithOAuth({
                   provider: 'google',
                   options: {
-                    redirectTo: `${window.location.origin}/dashboard`
+                    redirectTo: `${window.location.protocol}//${window.location.host}/dashboard` // Ensure exact match
                   }
                 });
                 if (error) setErrorMessage(error.message);
@@ -87,6 +89,20 @@ const Login = () => {
                   <Input label="Contraseña" name="password" type="password" placeholder="••••••••" required className="bg-slate-950" />
                   <Button fullWidth variant="primary" type="submit" className="text-sm py-2">
                     Ingresar
+                  </Button>
+
+                  {/* DEV MODE BYPASS - Always visible now for debugging */}
+                  <Button
+                    fullWidth
+                    variant="secondary"
+                    type="button"
+                    onClick={async () => {
+                      await devLogin();
+                      navigate('/admin/dashboard');
+                    }}
+                    className="text-xs py-1 border-dashed border-emerald-500 text-emerald-400 hover:bg-emerald-950/50 mt-2"
+                  >
+                    🛡️ MODO DEV LOCAL (Bypass)
                   </Button>
                   <div className="text-center">
                     <button type="button" onClick={async () => {

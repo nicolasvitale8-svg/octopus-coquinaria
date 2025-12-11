@@ -1,0 +1,5 @@
+pages/AdminCalendar.tsx(54,19): error TS2345: Argument of type 'CalendarEvent[]' is not assignable to parameter of type 'SetStateAction<CalendarEvent[]>'.
+  Type 'import("C:/Users/nicol/OneDrive/Desktop/Octopus app/services/calendarService").CalendarEvent[]' is not assignable to type 'CalendarEvent[]'.
+    Type 'CalendarEvent' is missing the following properties from type 'CalendarEvent': titulo, tipo, fecha_inicio, fecha_fin
+pages/AdminCalendar.tsx(79,13): error TS2353: Object literal may only specify known properties, and 'titulo' does not exist in type 'Omit<CalendarEvent, "id" | "created_at">'.
+pages/AdminLeads.tsx(170,62): error TS2552: Cannot find name 'User'. Did you mean 'Users'?

@@ -21,6 +21,7 @@ interface AuthContextType {
     isConsultant: boolean;
     isPremium: boolean;
     signOut: () => Promise<void>;
+    devLogin: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -31,6 +32,7 @@ const AuthContext = createContext<AuthContextType>({
     isConsultant: false,
     isPremium: false,
     signOut: async () => { },
+    devLogin: async () => { },
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -51,16 +53,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 .eq('id', userId)
                 .single();
 
+            // LISTA DE CORREOS AUTORIZADOS COMO ADMIN (Seguridad Capa 1)
+            const DEV_ADMIN_EMAILS = ['admin@octopus.com', 'nicolasvitale8@gmail.com'];
+            const isAdminEmail = email && DEV_ADMIN_EMAILS.includes(email);
+
             if (data) {
-                setProfile(data as UserProfile);
+                // Respetar rol de BDD, salvo que sea un admin en allowlist que perdió permisos
+                let finalRole = data.role;
+                if (isAdminEmail && finalRole !== 'admin') {
+                    finalRole = 'admin';
+                }
+                setProfile({ ...data, role: finalRole } as UserProfile);
             } else {
-                // Si no existe, lo creamos (Upsert pattern)
+                // Si no existe, lo creamos
                 console.log("Creando perfil nuevo para", userId);
                 const newProfile = {
                     id: userId,
                     email: email,
                     full_name: metadata?.full_name || metadata?.name || email?.split('@')[0],
-                    role: 'user' as UserRole
+                    role: (isAdminEmail ? 'admin' : 'user') as UserRole
                 };
 
                 const { error: insertError } = await supabase
@@ -71,7 +82,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     setProfile(newProfile as UserProfile);
                 } else {
                     console.error("Error creating profile:", insertError);
-                    // Fallback local visual
                     setProfile(newProfile as UserProfile);
                 }
             }
@@ -144,14 +154,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
+    // MOCK LOGIN PARA DESARROLLO LOCAL
+    const devLogin = async () => {
+        console.warn("⚠️ USANDO LOGIN DE DESARROLLO (BYPASS SUPABASE) ⚠️");
+        const mockUser = {
+            id: 'dev-admin-id',
+            aud: 'authenticated',
+            role: 'authenticated',
+            email: 'admin@local.dev',
+            confirmed_at: new Date().toISOString(),
+            app_metadata: { provider: 'email' },
+            user_metadata: {},
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+        } as User;
+
+        const mockProfile: UserProfile = {
+            id: 'dev-admin-id',
+            email: 'admin@local.dev',
+            full_name: 'Desarrollador Local',
+            role: 'admin', // ¡Siempre Admin!
+            business_name: 'Local Dev Corp'
+        };
+
+        setUser(mockUser);
+        setProfile(mockProfile);
+        setIsLoading(false);
+    };
+
     const value = {
         user,
         profile,
         isLoading,
-        isAdmin: profile?.role === 'admin',
-        isConsultant: profile?.role === 'consultant' || profile?.role === 'admin', // Admin incluye permisos de consultor
-        isPremium: profile?.role === 'premium' || profile?.role === 'consultant' || profile?.role === 'admin', // Jerarquía: Admin > Consultor > Premium > User
-        signOut
+        isAdmin: profile?.role === 'admin' || user?.email === 'admin@local.dev',
+        isConsultant: profile?.role === 'consultant' || profile?.role === 'admin' || user?.email === 'admin@local.dev',
+        isPremium: profile?.role === 'premium' || profile?.role === 'consultant' || profile?.role === 'admin',
+        signOut,
+        devLogin // Exportamos la función mágica
     };
 
     return (

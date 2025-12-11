@@ -14,18 +14,11 @@ import {
 } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight, Plus, Calendar as CalendarIcon, X, Trash2, Clock } from 'lucide-react';
-import { supabase } from '../services/supabase';
+import { getEvents, createEvent, deleteEvent, CalendarEvent } from '../services/calendarService';
 import Button from '../components/ui/Button';
 
 // Tipos
-interface CalendarEvent {
-    id: string;
-    titulo: string;
-    tipo: 'feriado' | 'comercial' | 'interno';
-    fecha_inicio: string;
-    fecha_fin: string;
-    mensaje?: string;
-}
+
 
 const AdminCalendar = () => {
     const [currentDate, setCurrentDate] = useState(new Date());
@@ -50,40 +43,9 @@ const AdminCalendar = () => {
     // --- Data Fetching ---
     const fetchEvents = async () => {
         setIsLoading(true);
-        if (!supabase) {
-            console.error('Supabase client not initialized');
-            setIsLoading(false);
-            return;
-        }
-
-        // Timeout promise
-        const timeout = new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('Request timed out')), 5000)
-        );
-
-        try {
-            const fetchPromise = supabase
-                .from('eventos_calendario')
-                .select('*')
-                .gte('fecha_inicio', startDate.toISOString())
-                .lte('fecha_inicio', endDate.toISOString());
-
-            const { data, error } = await Promise.race([fetchPromise, timeout]) as any;
-
-            if (error) {
-                console.error('Error fetching events:', error);
-                throw error;
-            }
-
-            if (data) {
-                setEvents(data);
-            }
-        } catch (error) {
-            console.error('Exception in fetchEvents:', error);
-            // alert('Aviso: No se pudieron cargar los eventos (Posible bloqueo de red o timeout).');
-        } finally {
-            setIsLoading(false);
-        }
+        const data = await getEvents();
+        setEvents(data);
+        setIsLoading(false);
     };
 
     useEffect(() => {
@@ -104,48 +66,26 @@ const AdminCalendar = () => {
 
     const handleCreateEvent = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!selectedDate || !supabase) return;
+        if (!selectedDate) return;
 
-        const { error } = await supabase
-            .from('eventos_calendario')
-            .insert([
-                {
-                    titulo: newEventTitle,
-                    tipo: newEventType,
-                    fecha_inicio: selectedDate.toISOString(), // Guardamos timestamps completos
-                    fecha_fin: selectedDate.toISOString(), // Por ahora eventos de 1 día
-                    mensaje: newEventMsg
-                }
-            ]);
+        await createEvent({
+            title: newEventTitle,
+            type: newEventType,
+            start_date: selectedDate.toISOString(),
+            end_date: selectedDate.toISOString(),
+            description: newEventMsg
+        });
 
-        if (!error) {
-            setIsModalOpen(false);
-            fetchEvents();
-        } else {
-            alert('Error al crear evento: ' + error.message);
-        }
+        setIsModalOpen(false);
+        fetchEvents();
     };
 
     const handleDeleteEvent = async (id: string, e: React.MouseEvent) => {
         e.stopPropagation(); // Evitar abrir modal del día
-        if (!supabase) return;
         if (!confirm('¿Borrar este evento?')) return;
 
-        try {
-            const { error } = await supabase.from('eventos_calendario').delete().eq('id', id);
-
-            if (error) {
-                console.error('Error deleting event:', error);
-                alert('Error al borrar evento: ' + error.message);
-                return;
-            }
-
-            // Recargar eventos
-            fetchEvents();
-        } catch (err) {
-            console.error('Exception deleting event:', err);
-            alert('Error inesperado al borrar.');
-        }
+        await deleteEvent(id);
+        fetchEvents();
     };
 
     // Helpers UI
@@ -196,7 +136,7 @@ const AdminCalendar = () => {
                 <div className="grid grid-cols-7 auto-rows-fr">
                     {calendarDays.map((day, dayIdx) => {
                         const isCurrentMonth = isSameMonth(day, monthStart);
-                        const dayEvents = events.filter(e => isSameDay(new Date(e.fecha_inicio), day));
+                        const dayEvents = events.filter(e => isSameDay(new Date(e.start_date), day));
                         const isTodayDate = isToday(day);
 
                         return (
@@ -226,10 +166,10 @@ const AdminCalendar = () => {
                                     {dayEvents.map(event => (
                                         <div
                                             key={event.id}
-                                            className={`text-[10px] px-1.5 py-1 rounded border truncate flex justify-between items-center group/event ${getEventTypeColor(event.tipo)}`}
-                                            title={event.titulo}
+                                            className={`text-[10px] px-1.5 py-1 rounded border truncate flex justify-between items-center group/event ${getEventTypeColor(event.type)}`}
+                                            title={event.title}
                                         >
-                                            <span className="truncate">{event.titulo}</span>
+                                            <span className="truncate">{event.title}</span>
                                             <button
                                                 onClick={(e) => handleDeleteEvent(event.id, e)}
                                                 className="opacity-0 group-hover/event:opacity-100 hover:text-red-300 ml-1"

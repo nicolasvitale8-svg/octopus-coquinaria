@@ -137,6 +137,62 @@ export interface LearningPath {
   resourceIds: string[];
 }
 
+// ... existing types ...
+
+export interface ProjectMilestone {
+  name: string;
+  date: string;
+  status: 'pending' | 'in_progress' | 'done';
+  note?: string;
+}
+
+export interface ProjectActivity {
+  date: string;
+  text: string;
+  author: string;
+}
+
+export interface ClientContact {
+  name: string;
+  role: string;
+  email: string;
+  phone: string;
+  notes?: string;
+}
+
+export interface Project {
+  // ... existing fields ...
+  id: string;
+  created_at: string;
+  lead_id?: string;
+  business_name: string;
+  main_service?: string;
+  lead_consultant?: string;
+  phase: 'Lead' | 'Onboarding' | 'Diagnóstico' | 'Implementación' | 'Seguimiento' | 'Cerrado';
+  status: 'verde' | 'amarillo' | 'rojo';
+  next_action?: string;
+  next_action_date?: string;
+  notion_url?: string;
+  chatgpt_url?: string; // NEW
+  drive_url?: string; // NEW
+  summary: {
+    objective?: string;
+    problem?: string;
+    pillars?: string[];
+    services?: string[];
+  };
+  team: {
+    consultants?: string[];
+    client_rep?: string;
+    client_email?: string; // NEW: Main contact email
+    client_location?: string; // Google Maps URL or string
+    client_contacts?: ClientContact[];
+    roles?: string;
+  };
+  milestones: ProjectMilestone[];
+  activity_log: ProjectActivity[];
+}
+
 // --- TICKER TYPES ---
 
 export interface GastronomicEvent {

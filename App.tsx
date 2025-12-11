@@ -17,13 +17,20 @@ import AdminDashboard from './pages/AdminDashboard';
 import AdminLeads from './pages/AdminLeads';
 import AdminCalendar from './pages/AdminCalendar';
 import AdminAcademy from './pages/AdminAcademy';
+import AdminProjects from './pages/AdminProjects';
+import AdminProjectHub from './pages/AdminProjectHub';
 import AdminUsers from './pages/AdminUsers';
 import { AdminConfig } from './pages/AdminPages';
 
 
 import { AuthProvider } from './contexts/AuthContext';
+import { useEffect } from 'react'; // Added import
+import { syncLocalProjects } from './services/projectService'; // Added import
 
 const App = () => {
+  useEffect(() => {
+    syncLocalProjects();
+  }, []);
   return (
     <AuthProvider>
       <Router>
@@ -41,6 +48,8 @@ const App = () => {
               <Route index element={<Navigate to="/admin/dashboard" replace />} />
               <Route path="dashboard" element={<AdminDashboard />} />
               <Route path="leads" element={<AdminLeads />} />
+              <Route path="projects" element={<AdminProjects />} />
+              <Route path="projects/:id" element={<AdminProjectHub />} />
               <Route path="users" element={<AdminUsers />} /> {/* Nueva Ruta */}
               <Route path="calendar" element={<AdminCalendar />} />
               <Route path="academy" element={<AdminAcademy />} />
