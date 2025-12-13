@@ -42,7 +42,16 @@ const AdminCalendar = () => {
 
     // --- Data Fetching ---
     const fetchEvents = async () => {
-        setIsLoading(true);
+        // 1. FAST: Load local
+        const { getLocalEvents } = await import('../services/calendarService');
+        const local = getLocalEvents();
+        if (local.length > 0) {
+            setEvents(local);
+            setIsLoading(false);
+        }
+
+        // 2. SLOW: Fetch remote
+        if (local.length === 0) setIsLoading(true);
         const data = await getEvents();
         setEvents(data);
         setIsLoading(false);

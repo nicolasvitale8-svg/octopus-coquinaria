@@ -26,10 +26,12 @@ import { AdminConfig } from './pages/AdminPages';
 import { AuthProvider } from './contexts/AuthContext';
 import { useEffect } from 'react'; // Added import
 import { syncLocalProjects } from './services/projectService'; // Added import
+import { syncLocalLeads } from './services/storage'; // Added import
 
 const App = () => {
   useEffect(() => {
     syncLocalProjects();
+    syncLocalLeads(); // Added call
   }, []);
   return (
     <AuthProvider>

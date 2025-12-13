@@ -23,16 +23,23 @@ const CALENDAR_STORAGE_KEY = 'octopus_calendar_local';
 /**
  * Fetch events. Local + Supabase.
  */
-export const getEvents = async (): Promise<CalendarEvent[]> => {
-    let localEvents: CalendarEvent[] = [];
+/**
+ * Get events from LocalStorage immediately.
+ */
+export const getLocalEvents = (): CalendarEvent[] => {
     try {
         const localData = localStorage.getItem(CALENDAR_STORAGE_KEY);
-        if (localData) {
-            localEvents = JSON.parse(localData);
-        }
+        return localData ? JSON.parse(localData) : [];
     } catch (e) {
-        console.warn("Error reading local calendar", e);
+        return [];
     }
+};
+
+/**
+ * Fetch events from Supabase, merge with local, and return.
+ */
+export const getEvents = async (): Promise<CalendarEvent[]> => {
+    let localEvents = getLocalEvents();
 
     if (!supabase) return localEvents;
 
@@ -66,6 +73,9 @@ export const getEvents = async (): Promise<CalendarEvent[]> => {
 /**
  * Create event. Safe offline.
  */
+/**
+ * Create event. Safe offline. Optimistic.
+ */
 export const createEvent = async (event: Omit<CalendarEvent, 'id' | 'created_at'>): Promise<CalendarEvent | null> => {
     const newEvent: CalendarEvent = {
         ...event,
@@ -84,18 +94,17 @@ export const createEvent = async (event: Omit<CalendarEvent, 'id' | 'created_at'
         console.error("Error saving local event", e);
     }
 
-    // 2. Sync Supabase
+    // 2. Sync Supabase (Background)
     if (supabase) {
-        try {
-            const { error } = await supabase.from('eventos_calendario').insert([newEvent]);
-            if (error) {
-                console.warn("Supabase insert failed (RLS?):", error.message);
-            } else {
-                console.log("✅ Event synced to Supabase");
+        (async () => {
+            try {
+                const { error } = await supabase.from('eventos_calendario').insert([newEvent]);
+                if (error) console.warn("Background Sync: Supabase insert failed:", error.message);
+                else console.log("Background Sync: Event synced to Supabase");
+            } catch (e) {
+                console.error("Background Sync exception", e);
             }
-        } catch (e) {
-            console.error(e);
-        }
+        })();
     }
 
     return newEvent;
@@ -120,5 +129,41 @@ export const deleteEvent = async (id: string): Promise<void> => {
         try {
             await supabase.from('eventos_calendario').delete().eq('id', id);
         } catch (e) { console.warn(e); }
+    }
+};
+
+/**
+ * Sync all local events to Supabase
+ */
+export const syncLocalEvents = async (): Promise<void> => {
+    if (!supabase) return;
+
+    try {
+        const localEvents = getLocalEvents();
+        if (localEvents.length === 0) return;
+
+        console.log(`🔄 Syncing ${localEvents.length} calendar events...`);
+
+        // TIMEOUT WRAPPER
+        const timeoutPromise = new Promise<{ timeout: true }>((resolve) => {
+            setTimeout(() => resolve({ timeout: true }), 60000);
+        });
+
+        const syncPromise = supabase
+            .from('eventos_calendario')
+            .upsert(localEvents, { onConflict: 'id' });
+
+        const result = await Promise.race([syncPromise, timeoutPromise]);
+
+        if ('timeout' in result) {
+            console.error("❌ Calendar Sync Timed Out.");
+        } else {
+            const { error } = result as any;
+            if (error) console.error("❌ Calendar Sync Failed:", error.message);
+            else console.log("✅ Calendar synced successfully!");
+        }
+
+    } catch (e) {
+        console.error("Calendar sync exception", e);
     }
 };

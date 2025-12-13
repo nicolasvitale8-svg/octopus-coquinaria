@@ -13,10 +13,13 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { LOGO_ADMIN_URL } from '../constants';
+import { syncLocalProjects } from '../services/projectService';
+import { RefreshCw } from 'lucide-react';
 
 const AdminLayout = () => {
     const { signOut, profile } = useAuth();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [isSyncing, setIsSyncing] = useState(false);
     const location = useLocation();
     const navigate = useNavigate();
 
@@ -74,6 +77,45 @@ const AdminLayout = () => {
                             <span>{item.label}</span>
                         </Link>
                     ))}
+
+                    <div className="pt-4 mt-4 border-t border-slate-800">
+                        <button
+                            onClick={async () => {
+                                if (confirm("¿Forzar sincronización de TODOS los datos (Proyectos, Leads, Calendario, Academia)?\n\nEsto subirá tus cambios locales a la nube.")) {
+                                    setIsSyncing(true);
+                                    try {
+                                        // Dynamic imports
+                                        const { syncLocalProjects } = await import('../services/projectService');
+                                        const { syncLocalLeads } = await import('../services/storage');
+                                        const { syncLocalEvents } = await import('../services/calendarService');
+                                        const { syncLocalResources } = await import('../services/academyService');
+
+                                        await Promise.all([
+                                            syncLocalProjects(),
+                                            syncLocalLeads(),
+                                            syncLocalEvents(),
+                                            syncLocalResources()
+                                        ]);
+
+                                        // Give a small delay so user sees the spinner for at least a sec (UX)
+                                        await new Promise(r => setTimeout(r, 1000));
+
+                                        alert("✅ Sincronización completada con éxito.");
+                                        window.location.reload();
+                                    } catch (e) {
+                                        console.error("Sync Error", e);
+                                        alert("Hubo un error al sincronizar. Revisa la consola.");
+                                        setIsSyncing(false);
+                                    }
+                                }
+                            }}
+                            className="flex w-full items-center px-4 py-3 text-[#1FB6D5] hover:bg-[#1FB6D5]/10 rounded-lg transition-colors font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+                            disabled={isSyncing}
+                        >
+                            <RefreshCw size={20} className={`mr-3 ${isSyncing ? 'animate-spin' : ''}`} />
+                            <span>{isSyncing ? 'Sincronizando...' : 'Forzar Sincronización'}</span>
+                        </button>
+                    </div>
 
                     <div className="pt-8 mt-8 border-t border-slate-800">
                         <button

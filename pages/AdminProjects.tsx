@@ -26,7 +26,17 @@ const AdminProjects = () => {
     }, []);
 
     const fetchProjects = async () => {
-        setIsLoading(true);
+        // 1. FAST: Load from LocalStorage immediately to avoid blocking UI
+        const localData = localStorage.getItem('octopus_projects_local');
+        if (localData) {
+            setProjects(JSON.parse(localData));
+            setIsLoading(false); // Show UI instantly
+        }
+
+        // 2. SLOW: Fetch from Supabase in background
+        // If local was empty, keep loading indicator. If local had data, valid update happens quietly.
+        if (!localData) setIsLoading(true);
+
         const data = await getAllProjects();
         setProjects(data);
         setIsLoading(false);
@@ -39,8 +49,8 @@ const AdminProjects = () => {
         setIsCreating(true);
         setProcessingAction('Creando Proyecto...');
 
-        // Small delay to show animation (UX)
-        await new Promise(r => setTimeout(r, 800));
+        // Optimistic UI: Instant response
+        // await new Promise(r => setTimeout(r, 800)); // Removed for speed
 
         const newProject = await createProject({
             business_name: newProjectName,
@@ -61,13 +71,16 @@ const AdminProjects = () => {
         setProcessingAction(null);
     };
 
-    const handleDeleteProject = async (id: string, name: string) => {
-        if (window.confirm(`¿Estás seguro de ELIMINAR el proyecto "${name}"?\nEsta acción no se puede deshacer.`)) {
-            setProcessingAction('Eliminando Proyecto...');
-            await deleteProject(id);
-            await fetchProjects(); // Refresh list
-            setProcessingAction(null);
-        }
+    const handleDeleteProject = async (id: string) => {
+        if (!confirm('¿Estás seguro de que deseas eliminar este proyecto?')) return;
+
+        // Optimistic UI: Remove from list immediately
+        setProjects(prev => prev.filter(p => p.id !== id));
+
+        // Call service (start background process)
+        await deleteProject(id);
+
+        // No need to reload or wait, it's gone.
     };
 
 

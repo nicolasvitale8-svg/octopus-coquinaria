@@ -13,23 +13,16 @@ import {
     X
 } from 'lucide-react';
 import Button from '../components/ui/Button';
+import LoadingOverlay from '../components/ui/LoadingOverlay';
 
-interface Resource {
-    id: string;
-    titulo: string;
-    tipo: 'video' | 'plantilla' | 'guia';
-    url: string;
-    thumbnail_url?: string;
-    descripcion?: string;
-    es_premium: boolean;
-    created_at: string;
-}
+import { getResources, createResource, deleteResource, Resource } from '../services/academyService';
 
 const AdminAcademy = () => {
     const [resources, setResources] = useState<Resource[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [processingAction, setProcessingAction] = useState<string | null>(null);
 
     // Form State
     const [formData, setFormData] = useState({
@@ -42,103 +35,54 @@ const AdminAcademy = () => {
     });
 
     const fetchResources = async () => {
-        setIsLoading(true);
-        if (!supabase) {
+        // 1. Load Local Fast
+        const { getLocalResources } = await import('../services/academyService');
+        const local = getLocalResources();
+        if (local.length > 0) {
+            setResources(local);
             setIsLoading(false);
-            return;
+        } else {
+            setIsLoading(true);
         }
 
-        // Timeout promise
-        const timeout = new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('Request timed out')), 5000)
-        );
-
-        try {
-            const fetchPromise = supabase
-                .from('recursos_academia')
-                .select('*')
-                .order('created_at', { ascending: false });
-
-            const { data, error } = await Promise.race([fetchPromise, timeout]) as any;
-
-            if (error) throw error;
-            if (data) setResources(data);
-
-        } catch (error) {
-            console.error('Error loading resources:', error);
-        } finally {
-            setIsLoading(false);
-        }
+        // 2. Load Remote Background
+        const data = await getResources();
+        setResources(data);
+        setIsLoading(false);
     };
 
     useEffect(() => {
         fetchResources();
     }, []);
 
-    const [isSaving, setIsSaving] = useState(false);
-
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setIsSaving(true);
-        console.log("Submitting form...", formData);
+        setProcessingAction('Guardando Recurso...');
 
-        if (!supabase) {
-            alert("Error: Supabase no inicializado.");
-            setIsSaving(false);
-            return;
-        }
+        await createResource({
+            ...formData,
+            topics: formData.topics
+        });
 
-        try {
-            const { error } = await supabase
-                .from('recursos_academia')
-                .insert([{
-                    ...formData,
-                    created_at: new Date().toISOString()
-                }]);
+        // Refresh List (Local update is handled inside service, but we reload here to be sure)
+        fetchResources();
 
-            if (error) throw error;
-
-            // Success
-            setIsModalOpen(false);
-            setFormData({
-                titulo: '',
-                tipo: 'video',
-                url: '',
-                descripcion: '',
-                es_premium: false,
-                topics: []
-            });
-            alert("¡Recurso guardado correctamente!");
-            fetchResources();
-        } catch (error: any) {
-            console.error("Error saving resource:", error);
-            alert(`Error al guardar: ${error.message || 'Error desconocido'}. \n\nVerifica que tengas permisos de Administrador o que la tabla exista.`);
-        } finally {
-            setIsSaving(false);
-        }
+        setProcessingAction(null);
+        setIsModalOpen(false);
+        setFormData({
+            titulo: '',
+            tipo: 'video',
+            url: '',
+            descripcion: '',
+            es_premium: false,
+            topics: []
+        });
     };
 
     const handleDelete = async (id: string) => {
         if (!confirm('¿Seguro que deseas eliminar este recurso?')) return;
-        if (!supabase) return;
-
-        try {
-            const { error } = await supabase
-                .from('recursos_academia')
-                .delete()
-                .eq('id', id);
-
-            if (error) {
-                console.error('Error deleting resource:', error);
-                alert('Error al borrar recurso: ' + error.message);
-                return;
-            }
-
-            fetchResources();
-        } catch (err) {
-            console.error('Exception deleting resource:', err);
-            alert('Error inesperado al borrar.');
-        }
+        await deleteResource(id);
+        fetchResources();
     };
 
     const getIcon = (tipo: string) => {
@@ -344,14 +288,16 @@ const AdminAcademy = () => {
                                 <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)} className="text-slate-400">
                                     Cancelar
                                 </Button>
-                                <Button type="submit" disabled={isSaving} className="bg-[#1FB6D5] text-[#021019] font-bold hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed">
-                                    {isSaving ? 'Guardando...' : 'Guardar Recurso'}
+                                <Button type="submit" className="bg-[#1FB6D5] text-[#021019] font-bold hover:bg-white">
+                                    Guardar Recurso
                                 </Button>
                             </div>
                         </form>
                     </div>
                 </div>
             )}
+
+            <LoadingOverlay isVisible={!!processingAction} text={processingAction || ''} />
         </div>
     );
 };

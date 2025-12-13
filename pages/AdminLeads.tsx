@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
 import { getAllLeads } from '../services/storage';
 import { WHATSAPP_NUMBER } from '../constants';
-import { MessageCircle, Search, Download, Users, User, Calendar, FileText, X, PieChart as PieIcon, Activity, Briefcase } from 'lucide-react';
+import { MessageCircle, Search, Download, Users, User, Calendar, FileText, X, PieChart as PieIcon, Activity, Briefcase, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../services/supabase';
 import Button from '../components/ui/Button';
@@ -45,8 +45,21 @@ const AdminLeads = () => {
 
   useEffect(() => {
     // Fetch leads async
+    // Fetch leads async
     const fetchLeads = async () => {
-      setIsLoading(true);
+      // 1. FAST: Load from LocalStorage immediately
+      const { getDiagnosticHistory } = await import('../services/storage');
+      const history = getDiagnosticHistory();
+      const localLeads = history.filter((h: any) => h.type === 'quick' || !h.type);
+
+      if (localLeads.length > 0) {
+        setLeads(localLeads);
+        setIsLoading(false);
+      }
+
+      // 2. SLOW: Fetch from Supabase in background
+      if (localLeads.length === 0) setIsLoading(true);
+
       const loadedLeads = await getAllLeads();
       setLeads(loadedLeads);
       setIsLoading(false);
@@ -140,13 +153,29 @@ const AdminLeads = () => {
                         {formatPercent(lead.scoreGlobal / 100)}
                       </div>
                     </td>
-                    <td className="p-4 text-center">
+                    <td className="p-4 text-center flex justify-center gap-2">
                       <button
                         onClick={() => setSelectedLead(lead)}
                         className="p-2 bg-slate-700 hover:bg-[#1FB6D5] text-slate-300 hover:text-[#021019] rounded-lg transition-all"
                         title="Ver Detalle"
                       >
                         <FileText className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          if (confirm('¿Estás seguro de que quieres eliminar este Lead? Esta acción no se puede deshacer.')) {
+                            const { deleteLead } = await import('../services/storage');
+                            await deleteLead(lead);
+                            // Refresh list
+                            const loadedLeads = await getAllLeads();
+                            setLeads(loadedLeads);
+                          }
+                        }}
+                        className="p-2 bg-red-900/30 hover:bg-red-600 text-red-400 hover:text-white rounded-lg transition-all"
+                        title="Eliminar Lead"
+                      >
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     </td>
                   </tr>

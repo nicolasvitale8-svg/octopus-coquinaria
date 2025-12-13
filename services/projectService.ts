@@ -1,6 +1,7 @@
 
 import { Project } from '../types';
 import { supabase } from './supabase';
+import { runWithRetryAndTimeout } from './network';
 
 const PROJECTS_STORAGE_KEY = 'octopus_projects_local';
 
@@ -19,32 +20,23 @@ export const getAllProjects = async (): Promise<Project[]> => {
         console.warn("Error reading local projects", e);
     }
 
-    // Try Supabase with Timeout
-    if (!supabase) return localProjects;
+    const client = supabase;
+    if (!client) return localProjects;
 
     try {
-        // Create a timeout promise that rejects after 15 seconds (increased for debugging)
-        const timeoutPromise = new Promise<{ timeout: true }>((resolve) => {
-            setTimeout(() => resolve({ timeout: true }), 15000);
-        });
+        const response = await runWithRetryAndTimeout(
+            () =>
+                new Promise((resolve, reject) => {
+                    client
+                        .from('projects')
+                        .select('*')
+                        .order('created_at', { ascending: false })
+                        .then(resolve, reject);
+                }),
+            { timeoutMs: 30000, retries: 2, backoffMs: 1600, label: 'Cargar proyectos' }
+        );
 
-        // The actual fetch promise
-        const fetchPromise = supabase
-            .from('projects')
-            .select('*')
-            .order('created_at', { ascending: false });
-
-        // Race them
-        const result = await Promise.race([fetchPromise, timeoutPromise]);
-
-        // Check if it was a timeout
-        if ('timeout' in result) {
-            console.error("❌ Supabase fetch TIMED OUT (>15s). Check internet connection or Supabase status.");
-            return localProjects;
-        }
-
-        // It was a fetch result
-        const { data, error } = result as any; // Cast because TS doesn't know which race won easily
+        const { data, error } = response as any;
 
         if (error) {
             console.warn("Supabase fetch failed (likely dev mode/RLS), using local only.", error.message);
@@ -52,88 +44,58 @@ export const getAllProjects = async (): Promise<Project[]> => {
         }
 
         if (data) {
-            // Merge strategy: Server wins, but keep local-only ones if they don't exist on server
             const serverIds = new Set(data.map((p: Project) => p.id));
             const uniqueLocal = localProjects.filter(p => !serverIds.has(p.id));
-
-            // Update local cache with EVERYTHING
             const combined = [...data, ...uniqueLocal];
             localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(combined));
-
             return combined;
         }
-    } catch (e) {
-        console.error("Supabase fetch exception", e);
+    } catch (error) {
+        console.error("Supabase fetch exception (retry)", error);
     }
 
     return localProjects;
 };
 
-/**
- * Get a single project by ID.
- * Tries Supabase first, but falls back to LocalStorage if not found or error.
- */
 export const getProjectById = async (id: string): Promise<Project | null> => {
-    // 1. Try Local Fetch
     try {
         const localData = localStorage.getItem(PROJECTS_STORAGE_KEY);
         if (localData) {
             const projects: Project[] = JSON.parse(localData);
             const localProject = projects.find(p => p.id === id);
-
-            // If we found it locally, we can return it immediately OR try to refresh from server.
-            // For Dev Mode stability, let's return it immediately if found.
-            // If offline-first is priority, this is good.
             if (localProject) return localProject;
         }
     } catch (e) {
         console.warn("Error reading local project by id", e);
     }
 
-    // 2. Try Supabase with Timeout
-    if (supabase) {
+    const client = supabase;
+    if (client) {
         try {
-            // Create a timeout promise that rejects after 5 seconds
-            const timeoutPromise = new Promise<{ timeout: true }>((resolve) => {
-                setTimeout(() => resolve({ timeout: true }), 5000);
-            });
+            const response = await runWithRetryAndTimeout(
+                () =>
+                    new Promise((resolve, reject) => {
+                        client
+                            .from('projects')
+                            .select('*')
+                            .eq('id', id)
+                            .single()
+                            .then(resolve, reject);
+                    }),
+                { timeoutMs: 5000, retries: 2, backoffMs: 1200, label: `Proyecto ${id}` }
+            );
 
-            const fetchPromise = supabase
-                .from('projects')
-                .select('*')
-                .eq('id', id)
-                .single();
-
-            // Race them
-            const result = await Promise.race([fetchPromise, timeoutPromise]);
-
-            // Check if it was a timeout
-            if ('timeout' in result) {
-                console.warn(`⚠️ Supabase fetch project(${id}) timed out (5s). Fallback to local.`);
-                // If we are here, we already tried local at step 1. 
-                // We should re-return the local search execution if we didn't return early?
-                // Actually step 1 returns early if found. So if we are here, local didn't have it...
-                // OR we decided to sync.
-                // But wait, step 1 says: "if (localProject) return localProject;"
-                // So if we are here, we probably didn't find it locally.
-                // Returning null is correct-ish, or we could try to re-read?
-                // Actually, let's just let it return null if not in local.
-                return null;
-            }
-
-            const { data, error } = result as any;
+            const { data, error } = response as any;
 
             if (data) return data;
             if (error) console.warn("Supabase fetch project by id error:", error.message);
-        } catch (e) {
-            console.error(e);
+        } catch (error) {
+            console.warn("Supabase fetch project failed (retry).", error);
         }
     }
 
-    // 3. Fallback: Mock Data (Only for testing/dev if real data missing)
-    // This ensures the UI never crashes "empty" for the specific ID used in dev
     if (id === '16326af3-462f-45b7-897e-0d83461ebf46') {
-        console.warn("⚠️ Project not found. Generating MOCK PROJECT for Dev/Testing.");
+        console.warn("?? Project not found. Generating MOCK PROJECT for Dev/Testing.");
         return {
             id: '16326af3-462f-45b7-897e-0d83461ebf46',
             created_at: new Date().toISOString(),
@@ -174,7 +136,6 @@ export const getProjectById = async (id: string): Promise<Project | null> => {
 
     return null;
 };
-
 /**
  * Creates a project. Saves to LocalStorage immediately, then tries Supabase.
  */
@@ -363,15 +324,27 @@ export const syncLocalProjects = async (): Promise<void> => {
 
         console.log(`🔄 Syncing ${localProjects.length} projects to Supabase...`);
 
-        // We use upsert for each project to avoid duplicates if some already exist
-        const { error } = await supabase
+        // WRAPPED WITH TIMEOUT for bad networks
+        const timeoutPromise = new Promise<{ timeout: true }>((resolve) => {
+            setTimeout(() => resolve({ timeout: true }), 60000); // 60s max per sync attempt
+        });
+
+        const syncPromise = supabase
             .from('projects')
             .upsert(localProjects, { onConflict: 'id' });
 
-        if (error) {
-            console.error("❌ Sync Failed (RLS might still be blocking):", error.message);
+        const result = await Promise.race([syncPromise, timeoutPromise]);
+
+        if ('timeout' in result) {
+            console.error("❌ Sync Timed Out (Network too slow for bulk upload).");
+            throw new Error("Network Timeout during Sync");
         } else {
-            console.log("✅ All local projects synced successfully!");
+            const { error } = result as any;
+            if (error) {
+                console.error("❌ Sync Failed (RLS/Auth):", error.message);
+            } else {
+                console.log("✅ All local projects synced and confirmed by server!");
+            }
         }
 
     } catch (e) {

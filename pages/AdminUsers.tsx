@@ -16,10 +16,18 @@ const AdminUsers = () => {
     const [search, setSearch] = useState('');
 
     const fetchUsers = async () => {
-        setIsLoading(true);
+        // 1. Load Local
+        const localData = localStorage.getItem('octopus_users_cache');
+        if (localData) {
+            setUsers(JSON.parse(localData));
+            setIsLoading(false);
+        } else {
+            setIsLoading(true);
+        }
+
         if (!supabase) return;
 
-        // Fetch de la tabla publica usuarios
+        // 2. Fetch Remote
         const { data, error } = await supabase
             .from('usuarios')
             .select('*')
@@ -27,6 +35,7 @@ const AdminUsers = () => {
 
         if (data) {
             setUsers(data as UserData[]);
+            localStorage.setItem('octopus_users_cache', JSON.stringify(data));
         } else if (error) {
             console.error("Error fetching users:", error);
         }
@@ -38,42 +47,63 @@ const AdminUsers = () => {
     }, []);
 
     const toggleRole = async (userId: string, currentRole: string, targetRole: 'consultant' | 'premium') => {
-        if (!supabase) return;
-
         if (currentRole === 'admin') {
             alert("No se puede cambiar el rol del Administrador principal desde aquí.");
             return;
         }
 
-        // Si ya tiene el rol objetivo, lo bajamos a 'user'. Si no, le subimos al rol objetivo.
         const newRole = currentRole === targetRole ? 'user' : targetRole;
 
-        const { error } = await supabase
-            .from('usuarios')
-            .update({ role: newRole })
-            .eq('id', userId);
+        // 1. Optimistic Update (State)
+        const previousUsers = [...users];
+        const updatedUsers = users.map(u => u.id === userId ? { ...u, role: newRole } : u) as UserData[];
+        setUsers(updatedUsers);
 
-        if (!error) {
-            fetchUsers(); // Refresh
-        } else {
-            alert("Error al actualizar rol: " + error.message);
+        // 2. Optimistic Update (Cache)
+        localStorage.setItem('octopus_users_cache', JSON.stringify(updatedUsers));
+
+        // 3. Background Sync
+        if (supabase) {
+            const { error } = await supabase
+                .from('usuarios')
+                .update({ role: newRole })
+                .eq('id', userId);
+
+            if (error) {
+                console.error("Role update failed:", error);
+                // Revert
+                setUsers(previousUsers);
+                localStorage.setItem('octopus_users_cache', JSON.stringify(previousUsers));
+                alert("Error de sincronización: " + error.message);
+            }
         }
     };
 
     const deleteUser = async (userId: string, userName: string) => {
         if (!confirm(`¿Estás seguro que deseas ELIMINAR al usuario "${userName}"? Esta acción le quitará el acceso (su perfil será borrado).`)) return;
-        if (!supabase) return;
 
-        const { error } = await supabase
-            .from('usuarios')
-            .delete()
-            .eq('id', userId);
+        // 1. Optimistic Update (State)
+        const previousUsers = [...users];
+        const updatedUsers = users.filter(u => u.id !== userId);
+        setUsers(updatedUsers);
 
-        if (!error) {
-            fetchUsers();
-            alert(`Usuario ${userName} eliminado.`);
-        } else {
-            alert("Error al eliminar: " + error.message);
+        // 2. Optimistic Update (Cache)
+        localStorage.setItem('octopus_users_cache', JSON.stringify(updatedUsers));
+
+        // 3. Background Sync
+        if (supabase) {
+            const { error } = await supabase
+                .from('usuarios')
+                .delete()
+                .eq('id', userId);
+
+            if (error) {
+                console.error("Delete user failed:", error);
+                // Revert
+                setUsers(previousUsers);
+                localStorage.setItem('octopus_users_cache', JSON.stringify(previousUsers));
+                alert("Error al eliminar en servidor: " + error.message);
+            }
         }
     }
 
