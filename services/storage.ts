@@ -173,58 +173,63 @@ export const clearDiagnostic = () => {
 };
 
 export const syncLocalLeads = async (): Promise<void> => {
-  const client = supabase;
-  if (!client) return;
+  // 1. Get Local Data
+  const historyData = localStorage.getItem(HISTORY_KEY);
+  if (!historyData) return;
 
+  const localLeads: any[] = JSON.parse(historyData);
+  const leadsToSync = localLeads.filter(h => h.type === 'quick' || !h.type);
+
+  if (leadsToSync.length === 0) return;
+
+  console.log(`🔄 Syncing ${leadsToSync.length} leads via RAW FETCH...`);
+
+  const supabaseUrl = process.env.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL;
+  const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseKey) {
+    console.error("❌ Missing Supabase constants for REST sync.");
+    return;
+  }
+
+  // 2. Prepare Data
+  const dbRows = leadsToSync.map(result => ({
+    business_name: result.leadData?.business || 'Anonimo',
+    contact_name: result.leadData?.name || 'Anonimo',
+    contact_email: result.leadData?.email || '',
+    contact_phone: result.leadData?.phone || '',
+    profile_name: result.profileName || 'Desconocido',
+    status: result.status || 'Amarillo',
+    score_global: result.scoreGlobal || 0,
+    cogs_percentage: result.cogsPercentage || 0,
+    labor_percentage: result.laborPercentage || 0,
+    margin_percentage: result.marginPercentage || 0,
+    full_data: result,
+    created_at: result.date || new Date().toISOString()
+  }));
+
+  // 3. NUCLEAR OPTION: Raw Fetch
   try {
-    const historyData = localStorage.getItem(HISTORY_KEY);
-    if (!historyData) return;
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/diagnosticos_express`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "apikey": SUPABASE_ANON_KEY,
+        "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+        "Prefer": "resolution=merge-duplicates" // UPSERT equivalent
+      },
+      body: JSON.stringify(dbRows)
+    });
 
-    const localLeads: any[] = JSON.parse(historyData);
-    const leadsToSync = localLeads.filter(h => h.type === 'quick' || !h.type);
-    if (leadsToSync.length === 0) return;
-
-    const dbRows = leadsToSync.map(result => ({
-      business_name: result.leadData?.business || 'Anonimo',
-      contact_name: result.leadData?.name || 'Anonimo',
-      contact_email: result.leadData?.email || '',
-      contact_phone: result.leadData?.phone || '',
-      profile_name: result.profileName || 'Desconocido',
-      status: result.status || 'Amarillo',
-      score_global: result.scoreGlobal || 0,
-      cogs_percentage: result.cogsPercentage || 0,
-      labor_percentage: result.laborPercentage || 0,
-      margin_percentage: result.marginPercentage || 0,
-      full_data: result,
-      created_at: result.date || new Date().toISOString()
-    }));
-
-    try {
-      const timeoutPromise = new Promise<{ timeout: true }>((resolve) => {
-        setTimeout(() => resolve({ timeout: true }), 60000);
-      });
-
-      const syncPromise = client
-        .from('diagnosticos_express')
-        .upsert(dbRows, { onConflict: 'created_at', ignoreDuplicates: true });
-
-      const result = await Promise.race([syncPromise, timeoutPromise]);
-
-      if ('timeout' in result) {
-        console.error("❌ Lead Sync Timed Out.");
-      } else {
-        const { error } = result as any;
-        if (error) {
-          console.error('❌ Lead Sync Failed:', error.message);
-        } else {
-          console.log('✅ Leads synced successfully!');
-        }
-      }
-    } catch (error) {
-      console.error('❌ Lead Sync Failed (retry):', error);
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`❌ Raw Sync Failed (Leads): ${response.status}`, errorText);
+    } else {
+      console.log("✅ All leads synced successfully via REST!");
     }
+
   } catch (e) {
-    console.error('Lead sync exception', e);
+    console.error("❌ Raw Sync Exception (Leads):", e);
   }
 };
 

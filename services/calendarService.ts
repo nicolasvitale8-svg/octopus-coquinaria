@@ -55,9 +55,20 @@ export const getEvents = async (): Promise<CalendarEvent[]> => {
 
         if (data) {
             // Merge strategy: Server wins + Local unique
-            const serverIds = new Set(data.map(e => e.id));
+            // MAP SERVER DATA (Spanish -> English)
+            const mappedServerData: CalendarEvent[] = data.map((e: any) => ({
+                id: e.id,
+                title: e.titulo,
+                description: e.mensaje,
+                start_date: e.fecha_inicio,
+                end_date: e.fecha_fin,
+                type: e.tipo, // 'feriado', 'comercial', etc. matches
+                created_at: e.created_at
+            }));
+
+            const serverIds = new Set(mappedServerData.map(e => e.id));
             const uniqueLocal = localEvents.filter(e => !serverIds.has(e.id));
-            const combined = [...data, ...uniqueLocal];
+            const combined = [...mappedServerData, ...uniqueLocal];
 
             // Sync local cache
             localStorage.setItem(CALENDAR_STORAGE_KEY, JSON.stringify(combined));
@@ -132,38 +143,52 @@ export const deleteEvent = async (id: string): Promise<void> => {
     }
 };
 
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../constants';
+
 /**
  * Sync all local events to Supabase
  */
 export const syncLocalEvents = async (): Promise<void> => {
-    if (!supabase) return;
+    // 1. Get Local Data
+    const localEvents = getLocalEvents();
+    if (localEvents.length === 0) return;
 
+    console.log(`🔄 Syncing ${localEvents.length} calendar events via RAW FETCH...`);
+
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) { return; }
+
+    // 2. Prepare Data (Map keys: description -> mensaje, robust check)
+    const dbRows = localEvents.map((e: any) => ({
+        id: e.id,
+        titulo: e.title || e.titulo || 'Sin Título',
+        tipo: e.type || e.tipo || 'comercial',
+        fecha_inicio: e.start_date || e.fecha_inicio || new Date().toISOString(),
+        fecha_fin: e.end_date || e.fecha_fin || e.start_date || new Date().toISOString(),
+        mensaje: e.description || e.mensaje || '', // Robust mapping
+        prioridad: e.priority || e.prioridad || 1,
+        created_at: e.created_at || new Date().toISOString()
+    }));
+
+    // 3. RAW FETCH
     try {
-        const localEvents = getLocalEvents();
-        if (localEvents.length === 0) return;
-
-        console.log(`🔄 Syncing ${localEvents.length} calendar events...`);
-
-        // TIMEOUT WRAPPER
-        const timeoutPromise = new Promise<{ timeout: true }>((resolve) => {
-            setTimeout(() => resolve({ timeout: true }), 60000);
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/eventos_calendario`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "apikey": SUPABASE_ANON_KEY,
+                "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+                "Prefer": "resolution=merge-duplicates" // Upsert on ID
+            },
+            body: JSON.stringify(dbRows) // Send mapped rows
         });
 
-        const syncPromise = supabase
-            .from('eventos_calendario')
-            .upsert(localEvents, { onConflict: 'id' });
-
-        const result = await Promise.race([syncPromise, timeoutPromise]);
-
-        if ('timeout' in result) {
-            console.error("❌ Calendar Sync Timed Out.");
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error(`❌ Raw Sync Failed (Calendar): ${response.status}`, errorText);
         } else {
-            const { error } = result as any;
-            if (error) console.error("❌ Calendar Sync Failed:", error.message);
-            else console.log("✅ Calendar synced successfully!");
+            console.log("✅ Calendar synced successfully via REST!");
         }
-
     } catch (e) {
-        console.error("Calendar sync exception", e);
+        console.error("❌ Raw Sync Exception (Calendar):", e);
     }
 };

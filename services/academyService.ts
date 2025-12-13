@@ -48,9 +48,24 @@ export const getResources = async (): Promise<Resource[]> => {
 
         if (data) {
             // Merge strategy: Server wins + Local unique
-            const serverIds = new Set(data.map(r => r.id));
+            // MAP SERVER DATA (Spanish -> English)
+            const mappedServerData: Resource[] = data.map((r: any) => ({
+                id: r.id,
+                title: r.titulo,
+                type: r.tipo,
+                url: r.url,
+                thumbnail_url: r.thumbnail_url,
+                description: r.descripcion,
+                es_premium: r.es_premium,
+                created_at: r.created_at,
+                // Optional fields mock
+                topics: [],
+                summary: r.descripcion
+            }));
+
+            const serverIds = new Set(mappedServerData.map(r => r.id));
             const uniqueLocal = localResources.filter(r => !serverIds.has(r.id));
-            const combined = [...data, ...uniqueLocal] as Resource[];
+            const combined = [...mappedServerData, ...uniqueLocal];
 
             localStorage.setItem(ACADEMY_STORAGE_KEY, JSON.stringify(combined));
             return combined;
@@ -115,37 +130,59 @@ export const deleteResource = async (id: string): Promise<void> => {
     }
 };
 
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../constants';
+
 /**
  * Sync all local resources to Supabase
  */
 export const syncLocalResources = async (): Promise<void> => {
-    if (!supabase) return;
+    // 1. Get Local Data
+    const localResources = getLocalResources();
+    if (localResources.length === 0) return;
 
+    console.log(`🔄 Syncing ${localResources.length} academy resources via RAW FETCH...`);
+
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) { return; }
+
+    // 2. Prepare Data (Map English/Spanish Mixed Keys)
+    const dbRows = localResources.map((r: any) => {
+        // Determine URL
+        let finalUrl = r.url || '';
+        if (!finalUrl && r.youtubeId) finalUrl = `https://www.youtube.com/watch?v=${r.youtubeId}`;
+        if (!finalUrl && r.downloadUrl) finalUrl = r.downloadUrl;
+
+        return {
+            id: r.id,
+            titulo: r.title || r.titulo || 'Sin Título', // Robust check
+            tipo: r.type || r.tipo || 'guia',           // Robust check
+            url: finalUrl,
+            thumbnail_url: r.thumbnail_url || null,
+            descripcion: r.description || r.descripcion || r.summary || '', // Robust check
+            es_premium: r.es_premium || false,
+            created_at: r.created_at || new Date().toISOString()
+        };
+    });
+
+    // 3. RAW FETCH
     try {
-        const localResources = getLocalResources();
-        if (localResources.length === 0) return;
-
-        console.log(`🔄 Syncing ${localResources.length} academy resources...`);
-
-        // TIMEOUT WRAPPER
-        const timeoutPromise = new Promise<{ timeout: true }>((resolve) => {
-            setTimeout(() => resolve({ timeout: true }), 60000);
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/recursos_academia`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "apikey": SUPABASE_ANON_KEY,
+                "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+                "Prefer": "resolution=merge-duplicates" // Upsert on ID
+            },
+            body: JSON.stringify(dbRows)
         });
 
-        const syncPromise = supabase
-            .from('recursos_academia')
-            .upsert(localResources, { onConflict: 'id' });
-
-        const result = await Promise.race([syncPromise, timeoutPromise]);
-
-        if ('timeout' in result) {
-            console.error("❌ Academy Sync Timed Out.");
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error(`❌ Raw Sync Failed (Academy): ${response.status}`, errorText);
         } else {
-            const { error } = result as any;
-            if (error) console.error("❌ Academy Sync Failed:", error.message);
-            else console.log("✅ Academy synced successfully!");
+            console.log("✅ Academy synced successfully via REST!");
         }
     } catch (e) {
-        console.error("Academy sync exception", e);
+        console.error("❌ Raw Sync Exception (Academy):", e);
     }
 };
