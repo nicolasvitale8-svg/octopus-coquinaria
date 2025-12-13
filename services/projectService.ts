@@ -1,5 +1,7 @@
 
 import { Project } from '../types';
+import { createClient } from '@supabase/supabase-js';
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../constants';
 import { supabase } from './supabase';
 import { runWithRetryAndTimeout } from './network';
 
@@ -314,8 +316,6 @@ export const deleteProject = async (id: string): Promise<void> => {
  * Useful for recovering data that was "stuck" locally due to RLS or network issues.
  */
 export const syncLocalProjects = async (): Promise<void> => {
-    if (!supabase) return;
-
     try {
         const localData = localStorage.getItem(PROJECTS_STORAGE_KEY);
         if (!localData) return;
@@ -323,32 +323,49 @@ export const syncLocalProjects = async (): Promise<void> => {
         const localProjects: Project[] = JSON.parse(localData);
         if (localProjects.length === 0) return;
 
-        console.log(`🔄 Syncing ${localProjects.length} projects to Supabase...`);
+        console.log(`🔄 Syncing ${localProjects.length} projects via RAW FETCH (No Client)...`);
 
-        // WRAPPED WITH TIMEOUT for bad networks
-        const timeoutPromise = new Promise<{ timeout: true }>((resolve) => {
-            setTimeout(() => resolve({ timeout: true }), 60000); // 60s max per sync attempt
-        });
+        let successCount = 0;
+        let failCount = 0;
 
-        const syncPromise = supabase
-            .from('projects')
-            .upsert(localProjects, { onConflict: 'id' });
+        for (const project of localProjects) {
+            try {
+                // Use Raw REST API to bypass Supabase Client issues
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/projects`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'resolution=merge-duplicates'
+                    },
+                    body: JSON.stringify(project)
+                });
 
-        const result = await Promise.race([syncPromise, timeoutPromise]);
-
-        if ('timeout' in result) {
-            console.error("❌ Sync Timed Out (Network too slow for bulk upload).");
-            throw new Error("Network Timeout during Sync");
-        } else {
-            const { error } = result as any;
-            if (error) {
-                console.error("❌ Sync Failed (RLS/Auth):", error.message);
-            } else {
-                console.log("✅ All local projects synced and confirmed by server!");
+                if (!response.ok) {
+                    const text = await response.text();
+                    console.error(`❌ Fetch Failed for "${project.business_name}": ${response.status} - ${text}`);
+                    failCount++;
+                } else {
+                    console.log(`✅ Raw Sync Success: "${project.business_name}"`);
+                    successCount++;
+                }
+            } catch (innerError) {
+                console.error(`❌ Network Exception for "${project.business_name}":`, innerError);
+                failCount++;
             }
+        }
+
+        if (failCount > 0) {
+            throw new Error(`Sync completed with errors: ${successCount} success, ${failCount} failed.`);
+        } else {
+            console.log("✅ All local projects synced successfully via REST!");
+            alert("✅ Sincronización completada (Método REST).");
+            window.location.reload();
         }
 
     } catch (e) {
         console.error("Sync exception", e);
+        alert("Error en sincronización: " + (e as Error).message);
     }
 };

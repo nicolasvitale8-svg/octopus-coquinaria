@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Supabase Debug</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body style="background: #111; color: #eee; font-family: monospace; padding: 2em;">
+    <h1>Supabase Browser Debug</h1>
+    <div id="status">Connecting...</div>
+    <pre id="log" style="color: #0f0;"></pre>
+
+    <script>
+        const log = (msg) => document.getElementById('log').innerText += msg + '\n';
+        const status = (msg) => document.getElementById('status').innerText = msg;
+
+        const SUPABASE_URL = "https://hmyzuuujyurvyuusvyzp.supabase.co";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhteXp1dXVqeXVydnl1dXN2eXpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ3MDUyMjgsImV4cCI6MjA4MDI4MTIyOH0.PSXTNZoGg2alqdtlGuluWsvMbu2dnGIJuxjdGPCTWrQ";
+
+        async function test() {
+            try {
+                const { createClient } = supabase;
+                const client = createClient(SUPABASE_URL, SUPABASE_KEY);
+                
+                log("Client initialized.");
+                log("Testing INSERT (upsert)...");
+                
+                const id = "22222222-2222-2222-2222-222222222222"; 
+                const start = Date.now();
+                
+                const { data, error } = await client.from('projects').upsert([
+                    { id: id, business_name: 'BROWSER_DEBUG_' + Date.now(), status: 'verde' }
+                ]).select();
+
+                const end = Date.now();
+                log(`Time taken: ${end - start}ms`);
+
+                if (error) {
+                    log("ERROR: " + error.message);
+                    status("FAILED");
+                } else {
+                    log("SUCCESS: Upserted ID " + (data[0]?.id || "unknown"));
+                    status("SUCCESS");
+                }
+            } catch (e) {
+                log("CRITICAL: " + e.message);
+                status("CRASH");
+            }
+        }
+
+        test();
+    </script>
+</body>
+</html>

@@ -8,16 +8,8 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 async function run() {
     try {
-        const { error: loginError } = await supabase.auth.signInWithPassword({
-            email: 'admin@octopus.com',
-            password: 'admin123',
-        });
-
-        if (loginError) {
-            console.log("LOGIN_ERROR: " + loginError.message);
-            return;
-        }
-
+        console.log("Testing Anonymous Access...");
+        // Skip login, try public access directly
         const { data, error } = await supabase.from('projects').select('*').limit(3);
 
         if (error) {

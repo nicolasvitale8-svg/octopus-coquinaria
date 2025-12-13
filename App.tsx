@@ -30,8 +30,8 @@ import { syncLocalLeads } from './services/storage'; // Added import
 
 const App = () => {
   useEffect(() => {
-    syncLocalProjects();
-    syncLocalLeads(); // Added call
+    // syncLocalProjects(); // REMOVED: Causes infinite loop with window.location.reload()
+    // syncLocalLeads(); 
   }, []);
   return (
     <AuthProvider>

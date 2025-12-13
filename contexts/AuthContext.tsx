@@ -141,16 +141,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const signOut = async () => {
         try {
+            // 1. Attempt network sign out with timeout (don't block UI indefinitely)
             if (supabase) {
-                await supabase.auth.signOut();
+                const timeoutPromise = new Promise((resolve) => setTimeout(resolve, 2000));
+                const signOutPromise = supabase.auth.signOut();
+                await Promise.race([signOutPromise, timeoutPromise]);
             }
         } catch (error) {
             console.error("Error signing out:", error);
         } finally {
-            // Force clean state
+            // 2. Force local cleanup
             setUser(null);
             setProfile(null);
-            localStorage.clear(); // Clean any persisted state
+            // DO NOT clear all localStorage, we want to keep unsynced projects!
+            // localStorage.clear(); 
+
+            // Just clear any potentially stuck Supabase auth keys if needed, 
+            // but setUser(null) triggers the App state update regardless.
         }
     };
 
