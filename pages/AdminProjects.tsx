@@ -71,8 +71,8 @@ const AdminProjects = () => {
         setProcessingAction(null);
     };
 
-    const handleDeleteProject = async (id: string) => {
-        if (!confirm('¿Estás seguro de que deseas eliminar este proyecto?')) return;
+    const handleDeleteProject = async (id: string, businessName?: string) => {
+        if (!confirm(`¿Estás seguro de que deseas eliminar el proyecto "${businessName || 'seleccionado'}"?`)) return;
 
         // Optimistic UI: Remove from list immediately
         setProjects(prev => prev.filter(p => p.id !== id));
