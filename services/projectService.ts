@@ -10,6 +10,7 @@ const PROJECTS_STORAGE_KEY = 'octopus_projects_local';
  * In Dev Mode, prioritizes LocalStorage merged with Supabase if available.
  */
 export const getAllProjects = async (): Promise<Project[]> => {
+    console.log("🚀 ProjectService v2.1 (Timeout 90s) - Initializing...");
     let localProjects: Project[] = [];
     try {
         const localData = localStorage.getItem(PROJECTS_STORAGE_KEY);
@@ -33,7 +34,7 @@ export const getAllProjects = async (): Promise<Project[]> => {
                         .order('created_at', { ascending: false })
                         .then(resolve, reject);
                 }),
-            { timeoutMs: 60000, retries: 2, backoffMs: 1600, label: 'Cargar proyectos' }
+            { timeoutMs: 90000, retries: 2, backoffMs: 1600, label: 'Cargar proyectos' }
         );
 
         const { data, error } = response as any;
