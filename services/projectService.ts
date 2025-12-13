@@ -33,7 +33,7 @@ export const getAllProjects = async (): Promise<Project[]> => {
                         .order('created_at', { ascending: false })
                         .then(resolve, reject);
                 }),
-            { timeoutMs: 30000, retries: 2, backoffMs: 1600, label: 'Cargar proyectos' }
+            { timeoutMs: 60000, retries: 2, backoffMs: 1600, label: 'Cargar proyectos' }
         );
 
         const { data, error } = response as any;
