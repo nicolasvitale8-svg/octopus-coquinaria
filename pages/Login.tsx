@@ -92,18 +92,7 @@ const Login = () => {
                   </Button>
 
                   {/* DEV MODE BYPASS - Always visible now for debugging */}
-                  <Button
-                    fullWidth
-                    variant="secondary"
-                    type="button"
-                    onClick={async () => {
-                      await devLogin();
-                      navigate('/admin/dashboard');
-                    }}
-                    className="text-xs py-1 border-dashed border-emerald-500 text-emerald-400 hover:bg-emerald-950/50 mt-2"
-                  >
-                    🛡️ MODO DEV LOCAL (Bypass)
-                  </Button>
+
                   <div className="text-center">
                     <button type="button" onClick={async () => {
                       const email = prompt("Email para registro:");
