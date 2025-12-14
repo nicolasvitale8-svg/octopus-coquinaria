@@ -101,7 +101,7 @@ const AdminLayout = () => {
                                         await new Promise(r => setTimeout(r, 1000));
 
                                         alert("✅ Sincronización completada con éxito.");
-                                        window.location.reload();
+                                        setIsSyncing(false); // Enable button again
                                     } catch (e) {
                                         console.error("Sync Error", e);
                                         alert("Hubo un error al sincronizar. Revisa la consola.");
