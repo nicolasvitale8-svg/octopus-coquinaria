@@ -1,0 +1,10 @@
+constants.ts(5,14): error TS2451: Cannot redeclare block-scoped variable 'SUPABASE_URL'.
+constants.ts(5,41): error TS2339: Property 'env' does not exist on type 'ImportMeta'.
+constants.ts(6,14): error TS2451: Cannot redeclare block-scoped variable 'SUPABASE_ANON_KEY'.
+constants.ts(6,46): error TS2339: Property 'env' does not exist on type 'ImportMeta'.
+constants.ts(34,14): error TS2451: Cannot redeclare block-scoped variable 'SUPABASE_URL'.
+constants.ts(35,14): error TS2451: Cannot redeclare block-scoped variable 'SUPABASE_ANON_KEY'.
+pages/Methodology.tsx(191,20): error TS2786: 'DynamicPill' cannot be used as a JSX component.
+  Its type '({ pills }: { pills: string[]; }) => void' is not a valid JSX element type.
+    Type '({ pills }: { pills: string[]; }) => void' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'void' is not assignable to type 'ReactNode'.

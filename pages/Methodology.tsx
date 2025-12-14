@@ -8,7 +8,16 @@ import Button from '../components/ui/Button';
 
 // Level 3: Dynamic Pill Component
 const DynamicPill = ({ pills }: { pills: string[] }) => {
-  // ... existing code ...
+  if (!pills || pills.length === 0) return null;
+  return (
+    <div className="flex flex-wrap gap-2 mt-4">
+      {pills.map((pill, idx) => (
+        <span key={idx} className="bg-[#1FB6D5]/10 text-[#1FB6D5] px-3 py-1 rounded-full text-xs font-bold border border-[#1FB6D5]/30">
+          {pill}
+        </span>
+      ))}
+    </div>
+  );
 };
 
 const Methodology = () => {
