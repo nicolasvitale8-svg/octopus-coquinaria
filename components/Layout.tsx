@@ -122,17 +122,19 @@ const Layout: React.FC<LayoutProps> = ({ children, user: propUser }) => {
 
             {/* Desktop Right Menu */}
             <div className="hidden md:flex items-center gap-4">
-              {/* Admin Shortcut for Demo */}
-              <Link to="/admin/leads" className="flex items-center gap-2 text-slate-300 hover:text-white text-xs font-bold uppercase tracking-wide border border-slate-700 hover:border-[#1FB6D5] px-3 py-1.5 rounded bg-slate-800/50 hover:bg-slate-800 transition-all">
-                <Database className="w-3 h-3" />
-                Admin DB
-                {dbConnected && (
-                  <span className="relative flex h-2 w-2 ml-1">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-                  </span>
-                )}
-              </Link>
+              {/* Admin Shortcut - Only for Admin/Consultant */}
+              {(profile?.role === 'admin' || profile?.role === 'consultant') && (
+                <Link to="/admin/leads" className="flex items-center gap-2 text-slate-300 hover:text-white text-xs font-bold uppercase tracking-wide border border-slate-700 hover:border-[#1FB6D5] px-3 py-1.5 rounded bg-slate-800/50 hover:bg-slate-800 transition-all">
+                  <Database className="w-3 h-3" />
+                  Admin DB
+                  {dbConnected && (
+                    <span className="relative flex h-2 w-2 ml-1">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                    </span>
+                  )}
+                </Link>
+              )}
 
               <div className="flex items-center md:ml-6 gap-4">
                 {internalUser ? (
