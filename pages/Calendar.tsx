@@ -13,7 +13,10 @@ const CalendarPage = () => {
 
   useEffect(() => {
     const fetchEvents = async () => {
-      if (!supabase) return;
+      if (!supabase) {
+        setIsLoading(false);
+        return;
+      }
 
       const { data, error } = await supabase
         .from('eventos_calendario')
