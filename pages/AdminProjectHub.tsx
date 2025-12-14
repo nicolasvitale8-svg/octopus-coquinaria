@@ -115,7 +115,7 @@ const AdminProjectHub = () => {
 
     // --- Helpers for Client Contacts ---
     const addContact = () => {
-        const newC: ClientContact = { name: '', role: '', email: '', phone: '', notes: '' };
+        const newC: ClientContact = { name: '', role: '', email: '', phone: '', notes: '', is_team_member: false };
         setEditForm(prev => ({
             ...prev,
             team: {
@@ -125,7 +125,7 @@ const AdminProjectHub = () => {
         }));
     };
 
-    const updateContact = (index: number, field: keyof ClientContact, value: string) => {
+    const updateContact = (index: number, field: keyof ClientContact, value: any) => {
         setEditForm(prev => {
             const contacts = [...(prev.team?.client_contacts || [])];
             contacts[index] = { ...contacts[index], [field]: value };
@@ -320,7 +320,10 @@ const AdminProjectHub = () => {
                                             <div key={i} className="p-2 bg-slate-950 rounded border border-slate-900 hover:border-slate-700">
                                                 <div className="flex justify-between items-start">
                                                     <p className="text-slate-300 font-bold text-sm">{c.name || 'Sin nombre'}</p>
-                                                    <span className="text-xs text-indigo-400 bg-indigo-500/10 px-1.5 py-0.5 rounded">{c.role || 'Rol'}</span>
+                                                    <span className={`text-xs px-1.5 py-0.5 rounded flex items-center gap-1 border ${c.is_team_member ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' : 'text-indigo-400 bg-indigo-500/10 border-transparent'}`}>
+                                                        {c.role || 'Rol'}
+                                                        {c.is_team_member && <span title="Equipo Octopus">🐙</span>}
+                                                    </span>
                                                 </div>
                                                 <div className="mt-1 flex gap-3 text-xs text-slate-500">
                                                     {c.phone && (
@@ -681,7 +684,16 @@ const AdminProjectHub = () => {
                                                     onChange={(e) => updateContact(i, 'phone', e.target.value)}
                                                 />
                                             </div>
-                                            <div className="md:col-span-2 flex items-center gap-2 pt-1">
+                                            <div className="md:col-span-2 flex items-center gap-3 pt-1">
+                                                <div className="flex items-center gap-2 bg-slate-900 border border-slate-700 px-2 py-1 rounded">
+                                                    <input
+                                                        type="checkbox"
+                                                        className="accent-emerald-500 w-4 h-4"
+                                                        checked={c.is_team_member || false}
+                                                        onChange={(e) => updateContact(i, 'is_team_member', e.target.checked)}
+                                                    />
+                                                    <span className="text-xs text-emerald-400 font-bold whitespace-nowrap flex gap-1">Es Octopus 🐙</span>
+                                                </div>
                                                 <input
                                                     className="bg-transparent outline-none text-slate-400 text-xs w-full italic placeholder-slate-700"
                                                     placeholder="Observaciones adicionales..."

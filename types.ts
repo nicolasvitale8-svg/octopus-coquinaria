@@ -159,6 +159,7 @@ export interface ClientContact {
   email: string;
   phone: string;
   notes?: string;
+  is_team_member?: boolean;
 }
 
 // --- External Systems ---
