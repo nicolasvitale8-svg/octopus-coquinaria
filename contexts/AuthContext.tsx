@@ -199,21 +199,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setIsLoading(false);
     };
 
+    const isSuperAdminEmail = (email?: string) => {
+        return email === 'nicolasvitale8@gmail.com' || email === 'admin@local.dev';
+    };
+
     const value = {
         user,
         profile,
         isLoading,
-        isAdmin: profile?.role === 'admin' || user?.email === 'admin@local.dev',
-        isConsultant: profile?.role === 'consultant' || profile?.role === 'admin' || user?.email === 'admin@local.dev',
-        // isPremium legacy mapping to 'client'
-        isPremium: profile?.role === 'client' || profile?.role === 'consultant' || profile?.role === 'admin',
+        isAdmin: profile?.role === 'admin' || isSuperAdminEmail(user?.email),
+        isConsultant: profile?.role === 'consultant' || profile?.role === 'admin' || isSuperAdminEmail(user?.email),
+        isPremium: profile?.role === 'client' || profile?.role === 'consultant' || profile?.role === 'admin' || isSuperAdminEmail(user?.email),
         isManager: profile?.role === 'manager',
         hasPermission: (permission: string) => {
-            if (profile?.role === 'admin') return true;
+            if (profile?.role === 'admin' || isSuperAdminEmail(user?.email)) return true;
             return profile?.permissions?.includes(permission) || false;
         },
         signOut,
-        devLogin // Exportamos la función mágica
+        devLogin
     };
 
     return (
