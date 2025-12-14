@@ -3,7 +3,17 @@ import { supabase } from '../services/supabase';
 import { User } from '@supabase/supabase-js';
 
 // Tipos de roles soportados
-export type UserRole = 'admin' | 'consultant' | 'premium' | 'user';
+// Tipos de roles soportados
+export type UserRole = 'admin' | 'consultant' | 'client' | 'manager' | 'user';
+
+export interface UserPermissions {
+    can_view_dashboard: boolean;
+    can_view_calendar: boolean;
+    can_view_finance: boolean;
+    can_edit_calendar: boolean;
+    can_manage_users: boolean;
+    can_view_ticker: boolean;
+}
 
 interface UserProfile {
     id: string;
@@ -11,6 +21,7 @@ interface UserProfile {
     full_name?: string;
     role: UserRole;
     business_name?: string;
+    permissions?: string[]; // Array of strings e.g. ['view_dashboard', 'edit_calendar']
 }
 
 interface AuthContextType {
@@ -20,6 +31,8 @@ interface AuthContextType {
     isAdmin: boolean;
     isConsultant: boolean;
     isPremium: boolean;
+    isManager: boolean;
+    hasPermission: (permission: string) => boolean;
     signOut: () => Promise<void>;
     devLogin: () => Promise<void>;
 }
@@ -31,6 +44,8 @@ const AuthContext = createContext<AuthContextType>({
     isAdmin: false,
     isConsultant: false,
     isPremium: false,
+    isManager: false,
+    hasPermission: () => false,
     signOut: async () => { },
     devLogin: async () => { },
 });
@@ -190,7 +205,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isLoading,
         isAdmin: profile?.role === 'admin' || user?.email === 'admin@local.dev',
         isConsultant: profile?.role === 'consultant' || profile?.role === 'admin' || user?.email === 'admin@local.dev',
-        isPremium: profile?.role === 'premium' || profile?.role === 'consultant' || profile?.role === 'admin',
+        // isPremium legacy mapping to 'client'
+        isPremium: profile?.role === 'client' || profile?.role === 'consultant' || profile?.role === 'admin',
+        isManager: profile?.role === 'manager',
+        hasPermission: (permission: string) => {
+            if (profile?.role === 'admin') return true;
+            return profile?.permissions?.includes(permission) || false;
+        },
         signOut,
         devLogin // Exportamos la función mágica
     };
