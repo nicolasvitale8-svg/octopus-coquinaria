@@ -9,36 +9,32 @@ const ClientProjectRedirect = () => {
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
+    const [debugInfo, setDebugInfo] = useState({ count: 0 });
 
     useEffect(() => {
         const findProject = async () => {
             if (!supabase || !user) return;
 
-            // Strategy: Find project where this user is the client
-            // 1. Check by client_email in team JSON
-            // 2. Check by client_contacts array in team JSON
-
             try {
-                // Fetch all projects (RLS should filter, but we might not have RLS perfectly set for 'list all' for clients yet)
-                // Better to search. Supabase JSON filtering is tricky.
-                // Let's fetch all (usually not many) and filter in JS for flexibility, 
-                // OR use a specific RPC if we had one. Simple fetch first.
-
+                // Fetch all projects accessible to this user
                 const { data: projects, error } = await supabase
                     .from('projects')
                     .select('*');
 
                 if (error) throw error;
 
-                // Filter logic
-                const myProject = projects?.find((p: any) => {
-                    // Check direct email
-                    if (p.team?.client_email === user.email) return true;
+                setDebugInfo({ count: projects?.length || 0 });
 
-                    // Check contacts
+                // Filter logic (Case Insensitive)
+                const userEmail = user.email?.toLowerCase().trim() || '';
+
+                const myProject = projects?.find((p: any) => {
+                    const clientEmail = (p.team?.client_email || '').toLowerCase().trim();
+                    if (clientEmail === userEmail) return true;
+
                     const contacts = p.team?.client_contacts || [];
                     if (Array.isArray(contacts)) {
-                        return contacts.some((c: any) => c.email === user.email);
+                        return contacts.some((c: any) => (c.email || '').toLowerCase().trim() === userEmail);
                     }
                     return false;
                 });
@@ -68,11 +64,25 @@ const ClientProjectRedirect = () => {
     if (isLoading) return <div className="p-8 text-white text-center">Buscando tu proyecto...</div>;
 
     if (error) return (
-        <div className="p-8 text-center">
-            <h2 className="text-xl text-red-400 mb-2">Error</h2>
-            <p className="text-slate-300">{error}</p>
-            <p className="text-slate-500 text-sm mt-2">Buscando proyecto para: <span className="text-cyan-400 font-mono">{user?.email}</span></p>
-            <button onClick={() => navigate('/dashboard')} className="mt-4 text-blue-400 hover:underline">Volver</button>
+        <div className="p-8 text-center max-w-lg mx-auto">
+            <h2 className="text-xl text-red-400 mb-4 font-bold">No encontramos tu proyecto</h2>
+
+            <div className="bg-slate-900 p-4 rounded-lg border border-slate-800 text-left space-y-2 mb-6">
+                <p className="text-slate-400 text-xs uppercase font-bold">Diagnóstico:</p>
+                <p className="text-slate-300 text-sm">Usuario actual: <span className="text-cyan-400 font-mono">{user?.email}</span></p>
+                <p className="text-slate-300 text-sm">Proyectos cargados desde BD: <span className="text-white font-mono">{debugInfo.count}</span></p>
+                {debugInfo.count > 0 && <p className="text-emerald-400 text-xs">¡La base de datos devolvió proyectos! (El problema está en el filtrado)</p>}
+                {debugInfo.count === 0 && <p className="text-orange-400 text-xs">La base de datos NO devolvió proyectos. (El problema es permisos RLS o el email no coincide en BD)</p>}
+            </div>
+
+            <p className="text-slate-400 text-sm mb-6">{error}</p>
+
+            <button onClick={() => window.location.reload()} className="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded mr-4 transition">
+                Reintentar
+            </button>
+            <button onClick={() => navigate('/dashboard')} className="text-slate-500 hover:text-slate-300 ml-2">
+                Volver al Inicio
+            </button>
         </div>
     );
 
