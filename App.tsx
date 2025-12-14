@@ -27,7 +27,9 @@ import { AuthProvider } from './contexts/AuthContext';
 import { useEffect } from 'react'; // Added import
 import { syncLocalProjects } from './services/projectService'; // Added import
 import { syncLocalLeads } from './services/storage'; // Added import
-import HubCalendar from './pages/HubCalendar'; // Fixed: Missing import
+import HubCalendar from './pages/HubCalendar';
+import ClientProjectRedirect from './pages/ClientProjectRedirect';
+import AdminProjectHub from './pages/AdminProjectHub'; // Ensure this is imported if used directly (it was lazy loaded or imported before?)
 
 const App = () => {
   useEffect(() => {
@@ -68,6 +70,19 @@ const App = () => {
           <Route path="/hub/calendar" element={
             <ProtectedRoute>
               <HubCalendar />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/hub/my-project" element={
+            <ProtectedRoute>
+              <ClientProjectRedirect />
+            </ProtectedRoute>
+          } />
+
+          {/* Reuse AdminProjectHub for Clients (Read Only logic handled inside) */}
+          <Route path="/hub/projects/:id" element={
+            <ProtectedRoute>
+              <AdminProjectHub />
             </ProtectedRoute>
           } />
 
