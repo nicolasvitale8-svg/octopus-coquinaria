@@ -29,7 +29,7 @@ import { syncLocalProjects } from './services/projectService'; // Added import
 import { syncLocalLeads } from './services/storage'; // Added import
 import HubCalendar from './pages/HubCalendar';
 import ClientProjectRedirect from './pages/ClientProjectRedirect';
-import AdminProjectHub from './pages/AdminProjectHub'; // Ensure this is imported if used directly (it was lazy loaded or imported before?)
+// AdminProjectHub is already imported above (likely lazy or standard). Removing duplicate.
 
 const App = () => {
   useEffect(() => {

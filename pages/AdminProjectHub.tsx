@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import AdminLayout from '../components/AdminLayout';
+import { useAuth } from '../contexts/AuthContext';
 import { getProjectById, updateProject } from '../services/projectService';
 import { Project, ProjectMilestone, ProjectActivity, ClientContact } from '../types';
 import { ArrowLeft, ExternalLink, Calendar, CheckCircle, Circle, Clock, MessageSquare, PieChart, Users, Target, Activity, Edit2, X, Save, MapPin, Phone, Trash, Mail, User, Briefcase, Plus, Key } from 'lucide-react';
@@ -9,6 +10,7 @@ import Input from '../components/ui/Input';
 import SystemAccessManager from '../components/SystemAccessManager';
 
 const AdminProjectHub = () => {
+    const { profile } = useAuth();
     const { id } = useParams<{ id: string }>();
     const [project, setProject] = useState<Project | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -159,9 +161,11 @@ const AdminProjectHub = () => {
         <div className="max-w-6xl mx-auto space-y-8 pb-12">
             {/* Header */}
             <div className="flex flex-col gap-4">
-                <Link to="/admin/projects" className="text-slate-500 hover:text-white flex items-center gap-2 text-sm w-fit">
-                    <ArrowLeft className="w-4 h-4" /> Volver a lista
-                </Link>
+                {profile?.role !== 'client' && (
+                    <Link to="/admin/projects" className="text-slate-500 hover:text-white flex items-center gap-2 text-sm w-fit">
+                        <ArrowLeft className="w-4 h-4" /> Volver a lista
+                    </Link>
+                )}
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-2xl relative overflow-hidden">
                     <div className="absolute top-0 right-0 p-32 bg-cyan-500/5 rounded-full blur-3xl -z-10"></div>
 
@@ -172,9 +176,11 @@ const AdminProjectHub = () => {
                         <div>
                             <div className="flex items-center gap-3">
                                 <h1 className="text-3xl font-bold text-white font-space tracking-tight">{project.business_name}</h1>
-                                <button onClick={handleEditClick} className="text-slate-500 hover:text-cyan-400 Transition-colors">
-                                    <Edit2 className="w-4 h-4" />
-                                </button>
+                                {profile?.role !== 'client' && (
+                                    <button onClick={handleEditClick} className="text-slate-500 hover:text-cyan-400 Transition-colors">
+                                        <Edit2 className="w-4 h-4" />
+                                    </button>
+                                )}
                             </div>
                             <div className="flex gap-3 text-sm text-slate-400 mt-1">
                                 <span>{project.main_service || 'Sin servicio'}</span>
