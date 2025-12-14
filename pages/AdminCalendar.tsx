@@ -81,8 +81,8 @@ const AdminCalendar = () => {
         await createEvent({
             title: newEventTitle,
             type: newEventType,
-            start_date: selectedDate.toISOString(),
-            end_date: selectedDate.toISOString(),
+            start_date: format(selectedDate, 'yyyy-MM-dd'),
+            end_date: format(selectedDate, 'yyyy-MM-dd'),
             description: newEventMsg
         });
 
@@ -146,7 +146,14 @@ const AdminCalendar = () => {
                 <div className="grid grid-cols-7 auto-rows-fr">
                     {calendarDays.map((day, dayIdx) => {
                         const isCurrentMonth = isSameMonth(day, monthStart);
-                        const dayEvents = events.filter(e => isSameDay(new Date(e.start_date), day));
+                        const dayEvents = events.filter(e => {
+                            // Robust Fix: Always take the YYYY-MM-DD part and force Local Midnight
+                            // This ignores any time/zone info coming from DB (e.g. 2025-01-01T00:00:00Z -> 2025-01-01T00:00:00)
+                            if (!e.start_date) return false;
+                            const datePart = e.start_date.split('T')[0];
+                            const localDateStr = `${datePart}T00:00:00`;
+                            return isSameDay(new Date(localDateStr), day);
+                        });
                         const isTodayDate = isToday(day);
 
                         return (
