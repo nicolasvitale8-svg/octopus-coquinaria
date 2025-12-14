@@ -81,7 +81,7 @@ const Layout: React.FC<LayoutProps> = ({ children, user: propUser }) => {
                   if (contextUser || internalUser) {
                     const role = profile?.role;
                     if (role === 'admin' || role === 'consultant') logoToUse = LOGO_ADMIN_URL;
-                    else if (role === 'premium') logoToUse = LOGO_PREMIUM_URL;
+                    else if (role === 'client') logoToUse = LOGO_PREMIUM_URL; // Updated 'premium' to 'client'
                     else logoToUse = LOGO_USER_URL;
                   }
                   if (logoError) logoToUse = GLOBAL_LOGO_URL; // Fallback to global if specific fails (or just keep logic simple)

@@ -27,6 +27,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { useEffect } from 'react'; // Added import
 import { syncLocalProjects } from './services/projectService'; // Added import
 import { syncLocalLeads } from './services/storage'; // Added import
+import HubCalendar from './pages/HubCalendar'; // Fixed: Missing import
 
 const App = () => {
   useEffect(() => {

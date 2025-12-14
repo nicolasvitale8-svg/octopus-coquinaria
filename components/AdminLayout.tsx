@@ -18,7 +18,18 @@ import { RefreshCw } from 'lucide-react';
 
 const AdminLayout = () => {
     const { signOut, profile, isAdmin, isManager, isPremium } = useAuth();
-    // ...
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [isSyncing, setIsSyncing] = useState(false);
+    const location = useLocation();
+    const navigate = useNavigate();
+
+    const handleLogout = async () => {
+        await signOut();
+        navigate('/login');
+    };
+
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [isSyncing, setIsSyncing] = useState(false);
 
     const navItems = [
         { path: '/admin/dashboard', icon: <LayoutDashboard size={20} />, label: 'Dashboard' },

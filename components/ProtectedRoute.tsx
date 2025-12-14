@@ -11,7 +11,7 @@ interface ProtectedRouteProps {
     children?: React.ReactNode;
 }
 
-const ProtectedRoute = ({ allowedEmails, requireAdmin }: ProtectedRouteProps) => {
+const ProtectedRoute = ({ allowedEmails, requireAdmin, children }: ProtectedRouteProps) => {
     const { user, isLoading, isAdmin } = useAuth();
     const [isTimeout, setIsTimeout] = useState(false);
 
