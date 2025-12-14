@@ -29,11 +29,11 @@ import { syncLocalProjects } from './services/projectService'; // Added import
 import { syncLocalLeads } from './services/storage'; // Added import
 import HubCalendar from './pages/HubCalendar';
 import ClientProjectRedirect from './pages/ClientProjectRedirect';
-// AdminProjectHub is already imported above (likely lazy or standard). Removing duplicate.
+// AdminProjectHub is imported above.
 
 const App = () => {
   useEffect(() => {
-    // syncLocalProjects(); // REMOVED: Causes infinite loop with window.location.reload()
+    // syncLocalProjects(); 
     // syncLocalLeads(); 
   }, []);
   return (
@@ -46,10 +46,6 @@ const App = () => {
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
           </Route>
-
-          import HubCalendar from './pages/HubCalendar'; // New Import
-
-          // ...
 
           {/* Rutas ADMINISTRADOR (Módulo Consultor) */}
           <Route element={<ProtectedRoute requireAdmin={true} />}>
