@@ -44,6 +44,10 @@ const App = () => {
             <Route path="/dashboard" element={<Dashboard />} />
           </Route>
 
+          import HubCalendar from './pages/HubCalendar'; // New Import
+
+          // ...
+
           {/* Rutas ADMINISTRADOR (Módulo Consultor) */}
           <Route element={<ProtectedRoute requireAdmin={true} />}>
             <Route path="/admin" element={<AdminLayout />}>
@@ -58,6 +62,13 @@ const App = () => {
               <Route path="config" element={<AdminConfig />} />
             </Route>
           </Route>
+
+          {/* New Hub Routes for Clients/Managers */}
+          <Route path="/hub/calendar" element={
+            <ProtectedRoute>
+              <HubCalendar />
+            </ProtectedRoute>
+          } />
 
           <Route path="/methodology" element={<Methodology />} />
           <Route path="/resources" element={<Academy />} />

@@ -17,26 +17,23 @@ import { syncLocalProjects } from '../services/projectService';
 import { RefreshCw } from 'lucide-react';
 
 const AdminLayout = () => {
-    const { signOut, profile } = useAuth();
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    const [isSyncing, setIsSyncing] = useState(false);
-    const location = useLocation();
-    const navigate = useNavigate();
-
-    const handleLogout = async () => {
-        await signOut();
-        navigate('/login');
-    };
+    const { signOut, profile, isAdmin, isManager, isPremium } = useAuth();
+    // ...
 
     const navItems = [
         { path: '/admin/dashboard', icon: <LayoutDashboard size={20} />, label: 'Dashboard' },
-        { path: '/admin/leads', icon: <Users size={20} />, label: 'CRM Leads' },
+        { path: '/admin/leads', icon: <Users size={20} />, label: 'CRM Leads', hidden: !isAdmin }, // Only Admins see Leads
         { path: '/admin/projects', icon: <Briefcase size={20} />, label: 'Hub Proyectos' },
-        { path: '/admin/users', icon: <Users size={20} />, label: 'Usuarios y Roles' },
-        { path: '/admin/calendar', icon: <Calendar size={20} />, label: 'Calendario' },
+        { path: '/admin/users', icon: <Users size={20} />, label: 'Usuarios y Roles', hidden: !isAdmin }, // Only Admins
+        // Conditional Calendar Path
+        {
+            path: isAdmin ? '/admin/calendar' : '/hub/calendar',
+            icon: <Calendar size={20} />,
+            label: 'Calendario'
+        },
         { path: '/admin/academy', icon: <GraduationCap size={20} />, label: 'Academia' },
-        { path: '/admin/config', icon: <Settings size={20} />, label: 'Configuración' },
-    ];
+        { path: '/admin/config', icon: <Settings size={20} />, label: 'Configuración', hidden: !isAdmin }, // Only Admins
+    ].filter(item => !item.hidden);
 
     const isActive = (path: string) => location.pathname === path;
 

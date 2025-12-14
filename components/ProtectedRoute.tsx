@@ -8,6 +8,7 @@ const ADMIN_EMAIL = 'nicolasvitale8@gmail.com';
 interface ProtectedRouteProps {
     allowedEmails?: string[];
     requireAdmin?: boolean;
+    children?: React.ReactNode;
 }
 
 const ProtectedRoute = ({ allowedEmails, requireAdmin }: ProtectedRouteProps) => {
@@ -41,7 +42,7 @@ const ProtectedRoute = ({ allowedEmails, requireAdmin }: ProtectedRouteProps) =>
         }
     }
 
-    return <Outlet />;
+    return children ? <>{children}</> : <Outlet />;
 };
 
 export default ProtectedRoute;

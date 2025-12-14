@@ -16,6 +16,7 @@ export interface CalendarEvent {
     type: 'feriado' | 'comercial' | 'interno';
     created_at?: string;
     author_id?: string;
+    business_id?: string; // New: For private business events
 }
 
 const CALENDAR_STORAGE_KEY = 'octopus_calendar_local';
@@ -63,7 +64,8 @@ export const getEvents = async (): Promise<CalendarEvent[]> => {
                 start_date: e.fecha_inicio,
                 end_date: e.fecha_fin,
                 type: e.tipo, // 'feriado', 'comercial', etc. matches
-                created_at: e.created_at
+                created_at: e.created_at,
+                business_id: e.business_id // Map from DB
             }));
 
             const serverIds = new Set(mappedServerData.map(e => e.id));
@@ -166,7 +168,8 @@ export const syncLocalEvents = async (): Promise<void> => {
         fecha_fin: e.end_date || e.fecha_fin || e.start_date || new Date().toISOString(),
         mensaje: e.description || e.mensaje || '', // Robust mapping
         prioridad: e.priority || e.prioridad || 1,
-        created_at: e.created_at || new Date().toISOString()
+        created_at: e.created_at || new Date().toISOString(),
+        business_id: e.business_id || null
     }));
 
     // 3. RAW FETCH
