@@ -31,7 +31,8 @@ const AdminAcademy = () => {
         url: '',
         descripcion: '',
         es_premium: false,
-        topics: [] as string[]
+        topics: [] as string[],
+        pilares: [] as string[]
     });
 
     const fetchResources = async () => {
@@ -61,7 +62,8 @@ const AdminAcademy = () => {
 
         await createResource({
             ...formData,
-            topics: formData.topics
+            topics: formData.topics,
+            pilares: formData.pilares
         });
 
         // Refresh List (Local update is handled inside service, but we reload here to be sure)
@@ -75,7 +77,8 @@ const AdminAcademy = () => {
             url: '',
             descripcion: '',
             es_premium: false,
-            topics: []
+            topics: [],
+            pilares: []
         });
     };
 
@@ -259,6 +262,37 @@ const AdminAcademy = () => {
                                 <label htmlFor="premium" className="text-sm text-white cursor-pointer select-none">
                                     Marcar como contenido <strong>Premium</strong> (solo clientes)
                                 </label>
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Pilar(es) Metodología 7P (Se vincula con web)</label>
+                                <div className="grid grid-cols-4 gap-2">
+                                    {[
+                                        { id: 'orden', label: 'O - Orden' },
+                                        { id: 'creatividad', label: 'C - Creatividad' },
+                                        { id: 'tecnologia', label: 'T - Tecnología' },
+                                        { id: 'observacion', label: 'O - Observación' },
+                                        { id: 'pragmatismo', label: 'P - Pragmatismo' },
+                                        { id: 'universalidad', label: 'U - Universalidad' },
+                                        { id: 'sutileza', label: 'S - Sutileza' }
+                                    ].map((pilar) => (
+                                        <label key={pilar.id} className="flex items-center space-x-2 bg-slate-950 p-2 rounded border border-slate-800 cursor-pointer hover:border-[#1FB6D5]/50 transition-colors">
+                                            <input
+                                                type="checkbox"
+                                                className="rounded border-slate-700 bg-slate-900 text-[#1FB6D5] focus:ring-[#1FB6D5]"
+                                                checked={formData.pilares?.includes(pilar.id) || false}
+                                                onChange={(e) => {
+                                                    const current = formData.pilares || [];
+                                                    const updated = e.target.checked
+                                                        ? [...current, pilar.id]
+                                                        : current.filter(p => p !== pilar.id);
+                                                    setFormData({ ...formData, pilares: updated });
+                                                }}
+                                            />
+                                            <span className="text-xs text-slate-300 font-bold">{pilar.label}</span>
+                                        </label>
+                                    ))}
+                                </div>
                             </div>
 
                             <div>

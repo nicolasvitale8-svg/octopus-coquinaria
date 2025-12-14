@@ -53,6 +53,7 @@ const AdminCalendar = () => {
         // 2. SLOW: Fetch remote
         if (local.length === 0) setIsLoading(true);
         const data = await getEvents();
+        console.log("📅 AdminCalendar Fetched:", data);
         setEvents(data);
         setIsLoading(false);
     };
@@ -113,7 +114,7 @@ const AdminCalendar = () => {
                 <div>
                     <h1 className="text-2xl font-bold text-white font-space flex items-center gap-2">
                         <CalendarIcon className="w-6 h-6 text-[#1FB6D5]" />
-                        Calendario Comercial
+                        Calendario Comercial <span className="text-xs text-slate-600">(v2.2)</span>
                     </h1>
                     <p className="text-slate-400 text-sm">Gestiona fechas clave, feriados y eventos operativos.</p>
                 </div>

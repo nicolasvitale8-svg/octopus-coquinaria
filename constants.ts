@@ -1,6 +1,10 @@
 
 import { AcademyResource, LearningPath, GastronomicEvent } from './types';
 
+// --- SUPABASE CONFIG ---
+export const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+export const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+
 export const WHATSAPP_NUMBER = "5493517736981";
 export const DISPLAY_PHONE = "+54 9 351 773-6981";
 export const CONTACT_EMAIL = "octopuscoquinaria@gmail.com";

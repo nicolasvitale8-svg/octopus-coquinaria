@@ -53,17 +53,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 .eq('id', userId)
                 .single();
 
-            // LISTA DE CORREOS AUTORIZADOS COMO ADMIN (Seguridad Capa 1)
-            const DEV_ADMIN_EMAILS = ['admin@octopus.com', 'nicolasvitale8@gmail.com'];
-            const isAdminEmail = email && DEV_ADMIN_EMAILS.includes(email);
+            // LISTA DE CORREOS AUTORIZADOS COMO ADMIN (REMOVED - DATABASE AUTHORITY ONLY)
+            // const DEV_ADMIN_EMAILS = ['admin@octopus.com', 'nicolasvitale8@gmail.com'];
 
             if (data) {
-                // Respetar rol de BDD, salvo que sea un admin en allowlist que perdió permisos
-                let finalRole = data.role;
-                if (isAdminEmail && finalRole !== 'admin') {
-                    finalRole = 'admin';
-                }
-                setProfile({ ...data, role: finalRole } as UserProfile);
+                // Respetar rol de BDD 100%
+                setProfile(data as UserProfile);
             } else {
                 // Si no existe, lo creamos
                 console.log("Creando perfil nuevo para", userId);
@@ -71,7 +66,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     id: userId,
                     email: email,
                     full_name: metadata?.full_name || metadata?.name || email?.split('@')[0],
-                    role: (isAdminEmail ? 'admin' : 'user') as UserRole
+                    role: 'user' as UserRole // Default role is ALWAYS user
                 };
 
                 const { error: insertError } = await supabase

@@ -39,6 +39,7 @@ export interface QuickDiagnosticData {
 }
 
 export interface QuickDiagnosticResult {
+  id?: string; // New: UUID for sync
   status: DiagnosticStatus;
   scoreGlobal: number;
   scoreFinancial: number;

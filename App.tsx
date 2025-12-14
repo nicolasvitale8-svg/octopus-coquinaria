@@ -45,7 +45,7 @@ const App = () => {
           </Route>
 
           {/* Rutas ADMINISTRADOR (Módulo Consultor) */}
-          <Route element={<ProtectedRoute />}>
+          <Route element={<ProtectedRoute requireAdmin={true} />}>
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<Navigate to="/admin/dashboard" replace />} />
               <Route path="dashboard" element={<AdminDashboard />} />

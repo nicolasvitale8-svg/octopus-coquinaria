@@ -46,7 +46,7 @@ const AdminUsers = () => {
         fetchUsers();
     }, []);
 
-    const toggleRole = async (userId: string, currentRole: string, targetRole: 'consultant' | 'premium') => {
+    const toggleRole = async (userId: string, currentRole: string, targetRole: 'admin' | 'consultant' | 'premium') => {
         if (currentRole === 'admin') {
             alert("No se puede cambiar el rol del Administrador principal desde aquí.");
             return;
@@ -213,6 +213,19 @@ const AdminUsers = () => {
                                                         title="Eliminar usuario"
                                                     >
                                                         <Trash2 className="w-4 h-4" />
+                                                    </button>
+
+                                                    {/* Promote to Admin (Danger Zone) */}
+                                                    <button
+                                                        onClick={() => {
+                                                            if (confirm(`¿ATENCIÓN: Estás seguro de nombrar ADMINISTRADOR a ${user.full_name}?\n\nPodrá ver y editar TODO.`)) {
+                                                                toggleRole(user.id, user.role, 'admin');
+                                                            }
+                                                        }}
+                                                        className="text-slate-500 hover:text-purple-400 transition-colors p-1 ml-2 border-l border-slate-700 pl-2"
+                                                        title="Hacer Administrador"
+                                                    >
+                                                        <Shield className="w-4 h-4" />
                                                     </button>
                                                 </div>
                                             )}

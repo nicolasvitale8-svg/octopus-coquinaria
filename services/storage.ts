@@ -1,6 +1,7 @@
 import { QuickDiagnosticResult, DeepDiagnosticResult } from '../types';
 import { supabase } from './supabase';
 import { runWithRetryAndTimeout } from './network';
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../constants';
 
 const STORAGE_KEY = 'octopus_diagnostic_result';
 const HISTORY_KEY = 'octopus_diagnostic_history';
@@ -9,10 +10,15 @@ const HISTORY_KEY = 'octopus_diagnostic_history';
 
 export const saveDiagnosticResult = async (result: QuickDiagnosticResult) => {
   try {
+    // Ensure ID exists (for sync stability)
+    if (!result.id) {
+      result.id = crypto.randomUUID();
+    }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(result));
 
     const historyEntry = {
       ...result,
+      id: result.id, // Explicitly carry over
       date: new Date().toISOString(),
       type: 'quick'
     };
@@ -184,16 +190,15 @@ export const syncLocalLeads = async (): Promise<void> => {
 
   console.log(`🔄 Syncing ${leadsToSync.length} leads via RAW FETCH...`);
 
-  const supabaseUrl = process.env.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL;
-  const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-  if (!supabaseUrl || !supabaseKey) {
+  // Use imported constants
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
     console.error("❌ Missing Supabase constants for REST sync.");
     return;
   }
 
   // 2. Prepare Data
   const dbRows = leadsToSync.map(result => ({
+    id: result.id, // CRITICAL: Send ID for UPSERT to work (otherwise we get duplicates)
     business_name: result.leadData?.business || 'Anonimo',
     contact_name: result.leadData?.name || 'Anonimo',
     contact_email: result.leadData?.email || '',

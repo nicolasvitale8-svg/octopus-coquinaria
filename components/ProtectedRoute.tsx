@@ -7,10 +7,11 @@ const ADMIN_EMAIL = 'nicolasvitale8@gmail.com';
 
 interface ProtectedRouteProps {
     allowedEmails?: string[];
+    requireAdmin?: boolean;
 }
 
-const ProtectedRoute = ({ allowedEmails }: ProtectedRouteProps) => {
-    const { user, isLoading } = useAuth();
+const ProtectedRoute = ({ allowedEmails, requireAdmin }: ProtectedRouteProps) => {
+    const { user, isLoading, isAdmin } = useAuth();
     const [isTimeout, setIsTimeout] = useState(false);
 
     // Timeout safety for AuthContext loading
@@ -27,6 +28,11 @@ const ProtectedRoute = ({ allowedEmails }: ProtectedRouteProps) => {
 
     if (!user) {
         return <Navigate to="/login" replace />;
+    }
+
+    // Role Check
+    if (requireAdmin && !isAdmin) {
+        return <Navigate to="/" replace />;
     }
 
     if (allowedEmails && allowedEmails.length > 0) {

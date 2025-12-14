@@ -11,6 +11,7 @@ export interface Resource {
     es_premium: boolean;
     created_at: string;
     topics?: string[];
+    pilares?: string[]; // New field for 7P tagging
 }
 
 const ACADEMY_STORAGE_KEY = 'octopus_academy_cache';
@@ -48,19 +49,19 @@ export const getResources = async (): Promise<Resource[]> => {
 
         if (data) {
             // Merge strategy: Server wins + Local unique
-            // MAP SERVER DATA (Spanish -> English)
+            // MAP SERVER DATA (Spanish -> Spanish Interface)
             const mappedServerData: Resource[] = data.map((r: any) => ({
                 id: r.id,
-                title: r.titulo,
-                type: r.tipo,
+                titulo: r.titulo, // standardized to Spanish
+                tipo: r.tipo,     // standardized to Spanish
                 url: r.url,
                 thumbnail_url: r.thumbnail_url,
-                description: r.descripcion,
+                descripcion: r.descripcion,
                 es_premium: r.es_premium,
                 created_at: r.created_at,
+                pilares: r.pilares || [], // Map back to local
                 // Optional fields mock
                 topics: [],
-                summary: r.descripcion
             }));
 
             const serverIds = new Set(mappedServerData.map(r => r.id));
@@ -159,6 +160,7 @@ export const syncLocalResources = async (): Promise<void> => {
             thumbnail_url: r.thumbnail_url || null,
             descripcion: r.description || r.descripcion || r.summary || '', // Robust check
             es_premium: r.es_premium || false,
+            pilares: r.pilares || r.letters7p || [], // Map local pillars
             created_at: r.created_at || new Date().toISOString()
         };
     });
