@@ -71,6 +71,7 @@ const ClientProjectRedirect = () => {
         <div className="p-8 text-center">
             <h2 className="text-xl text-red-400 mb-2">Error</h2>
             <p className="text-slate-300">{error}</p>
+            <p className="text-slate-500 text-sm mt-2">Buscando proyecto para: <span className="text-cyan-400 font-mono">{user?.email}</span></p>
             <button onClick={() => navigate('/dashboard')} className="mt-4 text-blue-400 hover:underline">Volver</button>
         </div>
     );
