@@ -2,8 +2,8 @@
 import { AcademyResource, LearningPath, GastronomicEvent } from './types';
 
 // --- SUPABASE CONFIG ---
-export const SUPABASE_URL = (import.meta as any).env.VITE_SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-export const SUPABASE_ANON_KEY = (import.meta as any).env.VITE_SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+export const SUPABASE_URL = (import.meta as any).env.VITE_SUPABASE_URL || process.env.VITE_SUPABASE_URL || "https://hmyzuuujyurvyuusvyzp.supabase.co";
+export const SUPABASE_ANON_KEY = (import.meta as any).env.VITE_SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhteXp1dXVqeXVydnl1dXN2eXpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ3MDUyMjgsImV4cCI6MjA4MDI4MTIyOH0.PSXTNZoGg2alqdtlGuluWsvMbu2dnGIJuxjdGPCTWrQ";
 
 export const WHATSAPP_NUMBER = "5493517736981";
 export const DISPLAY_PHONE = "+54 9 351 773-6981";
