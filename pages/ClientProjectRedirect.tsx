@@ -9,7 +9,7 @@ const ClientProjectRedirect = () => {
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
-    const [debugInfo, setDebugInfo] = useState({ count: 0 });
+    const [debugInfo, setDebugInfo] = useState<{ count: number, projects: any[] }>({ count: 0, projects: [] });
 
     useEffect(() => {
         const findProject = async () => {
@@ -23,7 +23,10 @@ const ClientProjectRedirect = () => {
 
                 if (error) throw error;
 
-                setDebugInfo({ count: projects?.length || 0 });
+                setDebugInfo({
+                    count: projects?.length || 0,
+                    projects: projects || []
+                });
 
                 // Filter logic (Case Insensitive)
                 const userEmail = user.email?.toLowerCase().trim() || '';
@@ -71,8 +74,24 @@ const ClientProjectRedirect = () => {
                 <p className="text-slate-400 text-xs uppercase font-bold">Diagnóstico:</p>
                 <p className="text-slate-300 text-sm">Usuario actual: <span className="text-cyan-400 font-mono">{user?.email}</span></p>
                 <p className="text-slate-300 text-sm">Proyectos cargados desde BD: <span className="text-white font-mono">{debugInfo.count}</span></p>
-                {debugInfo.count > 0 && <p className="text-emerald-400 text-xs">¡La base de datos devolvió proyectos! (El problema está en el filtrado)</p>}
-                {debugInfo.count === 0 && <p className="text-orange-400 text-xs">La base de datos NO devolvió proyectos. (El problema es permisos RLS o el email no coincide en BD)</p>}
+
+                {debugInfo.projects.length > 0 && (
+                    <div className="mt-4 border-t border-slate-800 pt-2">
+                        <p className="text-slate-500 text-xs uppercase font-bold mb-2">Proyectos Visibles (Debug):</p>
+                        <ul className="space-y-2 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+                            {debugInfo.projects.map((p, i) => (
+                                <li key={i} className="bg-slate-950 p-2 rounded border border-slate-800 text-xs font-mono text-slate-400">
+                                    <strong className="text-slate-200 block">{p.business_name}</strong>
+                                    Email Main: <span className="text-yellow-400">{p.team?.client_email || 'VACIO'}</span><br />
+                                    Contactos: <span className="text-emerald-400">{
+                                        Array.isArray(p.team?.client_contacts) ?
+                                            p.team.client_contacts.map((c: any) => c.email).join(', ') : 'Ninguno'
+                                    }</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
             </div>
 
             <p className="text-slate-400 text-sm mb-6">{error}</p>
