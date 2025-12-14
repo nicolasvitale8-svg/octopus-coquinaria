@@ -28,9 +28,6 @@ const AdminLayout = () => {
         navigate('/login');
     };
 
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    const [isSyncing, setIsSyncing] = useState(false);
-
     const navItems = [
         { path: '/admin/dashboard', icon: <LayoutDashboard size={20} />, label: 'Dashboard' },
         { path: '/admin/leads', icon: <Users size={20} />, label: 'CRM Leads', hidden: !isAdmin }, // Only Admins see Leads
