@@ -161,6 +161,17 @@ export interface ClientContact {
   notes?: string;
 }
 
+// --- External Systems ---
+export interface ExternalSystemAccess {
+  id: string;
+  name: string;
+  url: string;
+  type: 'POS' | 'Delivery' | 'ERP' | 'Web' | 'Backoffice' | 'Cámaras' | 'Otro';
+  username?: string;
+  password?: string; // Encripted or Hint
+  notes?: string;
+}
+
 export interface Project {
   // ... existing fields ...
   id: string;
@@ -174,8 +185,12 @@ export interface Project {
   next_action?: string;
   next_action_date?: string;
   notion_url?: string;
-  chatgpt_url?: string; // NEW
-  drive_url?: string; // NEW
+  chatgpt_url?: string;
+  drive_url?: string;
+
+  // New: Client External Systems
+  external_systems?: ExternalSystemAccess[];
+
   summary: {
     objective?: string;
     problem?: string;
@@ -185,8 +200,8 @@ export interface Project {
   team: {
     consultants?: string[];
     client_rep?: string;
-    client_email?: string; // NEW: Main contact email
-    client_location?: string; // Google Maps URL or string
+    client_email?: string;
+    client_location?: string;
     client_contacts?: ClientContact[];
     roles?: string;
   };

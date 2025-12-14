@@ -3,9 +3,10 @@ import { useParams, Link } from 'react-router-dom';
 import AdminLayout from '../components/AdminLayout';
 import { getProjectById, updateProject } from '../services/projectService';
 import { Project, ProjectMilestone, ProjectActivity, ClientContact } from '../types';
-import { ArrowLeft, ExternalLink, Calendar, CheckCircle, Circle, Clock, MessageSquare, PieChart, Users, Target, Activity, Edit2, X, Save, MapPin, Phone, Trash, Mail, User, Briefcase, Plus } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Calendar, CheckCircle, Circle, Clock, MessageSquare, PieChart, Users, Target, Activity, Edit2, X, Save, MapPin, Phone, Trash, Mail, User, Briefcase, Plus, Key } from 'lucide-react';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
+import SystemAccessManager from '../components/SystemAccessManager';
 
 const AdminProjectHub = () => {
     const { id } = useParams<{ id: string }>();
@@ -38,7 +39,8 @@ const AdminProjectHub = () => {
                 ...project.team,
                 client_contacts: project.team?.client_contacts || [] // Ensure array with safe access
             },
-            milestones: project.milestones ? [...project.milestones] : []
+            milestones: project.milestones ? [...project.milestones] : [],
+            external_systems: project.external_systems ? [...project.external_systems] : []
         });
         setIsEditModalOpen(true);
     };
@@ -57,6 +59,7 @@ const AdminProjectHub = () => {
                     ...project.summary,
                     ...(editForm.summary || {})
                 },
+                external_systems: editForm.external_systems || [],
                 team: {
                     ...project.team,
                     ...(editForm.team || {}),
@@ -615,6 +618,13 @@ const AdminProjectHub = () => {
                                         </div>
                                     ))}
                                 </div>
+                            </div>
+
+                            <div className="space-y-4">
+                                <SystemAccessManager
+                                    systems={editForm.external_systems || []}
+                                    onChange={(systems) => setEditForm({ ...editForm, external_systems: systems })}
+                                />
                             </div>
 
                             {/* SECCIÓN 3: ESTRATEGIA (Próx Acción) */}
