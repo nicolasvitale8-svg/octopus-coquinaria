@@ -37,6 +37,7 @@ const Layout: React.FC<LayoutProps> = ({ children, user: propUser }) => {
   const navLinks = [
     { name: 'Metodología', path: '/methodology' },
     { name: 'Casos y Servicios', path: '/services' },
+    { name: 'Calendario', path: '/calendar' },
     { name: 'Academia', path: '/resources' },
     { name: 'Sobre mí', path: '/about' },
   ];

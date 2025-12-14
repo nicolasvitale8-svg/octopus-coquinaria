@@ -29,7 +29,10 @@ const CalendarPage = () => {
 
   // Group events by Month
   const eventsByMonth = events.reduce((groups, event) => {
-    const date = new Date(event.fecha_inicio);
+    // Robust Fix: Force Local Date (YYYY-MM-DD T 00:00:00)
+    const datePart = event.fecha_inicio.split('T')[0];
+    const date = new Date(`${datePart}T00:00:00`);
+
     // Capitalize manually as toLocaleString might be lowercase in some browsers
     const rawMonth = date.toLocaleString('es-AR', { month: 'long', year: 'numeric' });
     const monthKey = rawMonth.charAt(0).toUpperCase() + rawMonth.slice(1);
@@ -104,8 +107,12 @@ const CalendarPage = () => {
                           {/* Date Block */}
                           <div className="flex-shrink-0 flex flex-col items-center justify-center bg-[#00344F]/30 rounded-lg w-20 h-20 border border-slate-700">
                             <span className="text-xs text-slate-400 uppercase font-bold">Día</span>
-                            <span className="text-2xl font-bold text-white font-mono">{new Date(evt.fecha_inicio).getDate() + 1}</span>
-                            {/* Added +1 because JS dates from ISO sometimes shift with timezone if not careful, but ideally use date-fns/UTC */}
+                            <span className="text-2xl font-bold text-white font-mono">
+                              {(() => {
+                                const datePart = evt.fecha_inicio.split('T')[0];
+                                return new Date(`${datePart}T00:00:00`).getDate();
+                              })()}
+                            </span>
                           </div>
 
                           {/* Content */}
