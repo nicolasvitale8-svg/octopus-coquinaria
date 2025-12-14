@@ -52,16 +52,15 @@ export const getResources = async (): Promise<Resource[]> => {
             // MAP SERVER DATA (Spanish -> Spanish Interface)
             const mappedServerData: Resource[] = data.map((r: any) => ({
                 id: r.id,
-                titulo: r.titulo, // standardized to Spanish
-                tipo: r.tipo,     // standardized to Spanish
+                titulo: r.titulo,
+                tipo: r.tipo,
                 url: r.url,
-                thumbnail_url: r.thumbnail_url,
-                descripcion: r.descripcion,
+                thumbnail_url: r.thumbnail_url || '',
+                descripcion: r.descripcion || '',
                 es_premium: r.es_premium,
                 created_at: r.created_at,
-                pilares: r.pilares || [], // Map back to local
-                // Optional fields mock
-                topics: [],
+                pilares: r.pilares || [],
+                topics: r.temas || []
             }));
 
             const serverIds = new Set(mappedServerData.map(r => r.id));

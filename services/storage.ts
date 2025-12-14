@@ -179,6 +179,9 @@ export const clearDiagnostic = () => {
 };
 
 export const syncLocalLeads = async (): Promise<void> => {
+  const SUPABASE_URL = (import.meta as any).env.VITE_SUPABASE_URL;
+  const SUPABASE_ANON_KEY = (import.meta as any).env.VITE_SUPABASE_ANON_KEY;
+
   // 1. Get Local Data
   const historyData = localStorage.getItem(HISTORY_KEY);
   if (!historyData) return;
