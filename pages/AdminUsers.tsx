@@ -41,26 +41,36 @@ const AdminUsers = () => {
             setIsLoading(true);
         }
 
-        if (!supabase) return;
-
-        // 2. Fetch Remote
-        const { data, error } = await supabase
-            .from('usuarios')
-            .select('*')
-            .order('created_at', { ascending: false });
-
-        if (data) {
-            // Mapeo de legacy 'premium' a 'client' si fuera necesario, o limpieza
-            const cleanedData = data.map((u: any) => ({
-                ...u,
-                role: u.role === 'premium' ? 'client' : u.role // Normalizar a 'client'
-            }));
-            setUsers(cleanedData as UserData[]);
-            localStorage.setItem('octopus_users_cache', JSON.stringify(cleanedData));
-        } else if (error) {
-            console.error("Error fetching users:", error);
+        if (!supabase) {
+            console.warn("Supabase client not initialized.");
+            setIsLoading(false);
+            return;
         }
-        setIsLoading(false);
+
+        try {
+            // 2. Fetch Remote
+            const { data, error } = await supabase
+                .from('usuarios')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (data) {
+                // Mapeo de legacy 'premium' a 'client' si fuera necesario, o limpieza
+                const cleanedData = data.map((u: any) => ({
+                    ...u,
+                    role: u.role === 'premium' ? 'client' : u.role // Normalizar a 'client'
+                }));
+                setUsers(cleanedData as UserData[]);
+                localStorage.setItem('octopus_users_cache', JSON.stringify(cleanedData));
+            } else if (error) {
+                console.error("Error fetching users:", error);
+                // alert("Error cargando usuarios: " + error.message); // Opcional
+            }
+        } catch (err) {
+            console.error("Unexpected error fetching users:", err);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     useEffect(() => {
