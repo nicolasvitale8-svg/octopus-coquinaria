@@ -4,7 +4,7 @@ import { MOCK_HISTORY } from '../constants';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
 import { PlusCircle, FileText, AlertTriangle } from 'lucide-react';
 import Button from '../components/ui/Button';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { formatCurrency, formatPercent } from '../services/calculations';
 import { getDiagnosticHistory, getLastDiagnostic } from '../services/storage';
 
@@ -16,7 +16,16 @@ const Dashboard = () => {
   const [history, setHistory] = useState<any[]>(MOCK_HISTORY);
   const [lastDiagnostic, setLastDiagnostic] = useState<any>(null);
 
+  const navigate = useNavigate(); // Add hook
+
   useEffect(() => {
+    // 1. Admin/Consultant Redirect
+    if (profile?.role === 'admin' || profile?.role === 'consultant') {
+      navigate('/admin/leads');
+      return;
+    }
+
+    // 2. Load Dashboard Data
     const storedHistory = getDiagnosticHistory();
     const storedLast = getLastDiagnostic();
 
@@ -35,7 +44,7 @@ const Dashboard = () => {
     if (storedLast) {
       setLastDiagnostic(storedLast);
     }
-  }, []);
+  }, [profile, navigate]);
 
   return (
     <Layout user={user}>
