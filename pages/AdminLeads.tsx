@@ -57,12 +57,17 @@ const AdminLeads = () => {
         setIsLoading(false);
       }
 
-      // 2. SLOW: Fetch from Supabase in background
-      if (localLeads.length === 0) setIsLoading(true);
+      try {
+        // 2. SLOW: Fetch from Supabase in background
+        if (localLeads.length === 0) setIsLoading(true);
 
-      const loadedLeads = await getAllLeads();
-      setLeads(loadedLeads);
-      setIsLoading(false);
+        const loadedLeads = await getAllLeads();
+        setLeads(loadedLeads);
+      } catch (e) {
+        console.error("Error loading leads:", e);
+      } finally {
+        setIsLoading(false);
+      }
     };
     fetchLeads();
   }, []);

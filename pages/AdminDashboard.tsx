@@ -14,7 +14,10 @@ const AdminDashboard = () => {
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                if (!supabase) return;
+                if (!supabase) {
+                    setLoading(false);
+                    return;
+                }
 
                 // Fetch leads count
                 const { count: total, error: errTotal } = await supabase
