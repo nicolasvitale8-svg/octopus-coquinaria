@@ -27,8 +27,8 @@ const Layout: React.FC<LayoutProps> = ({ children, user: propUser }) => {
 
     // Auto-fetch user if not provided (fixes "logged out" header on some pages)
     if (!propUser) {
-      // Sync with context
-      if (contextUser) setInternalUser(contextUser);
+      // Sync with context (EVEN IF NULL - fixes logout issue)
+      setInternalUser(contextUser);
     } else {
       setInternalUser(propUser);
     }
