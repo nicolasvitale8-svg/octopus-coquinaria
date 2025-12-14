@@ -11,7 +11,7 @@ interface LayoutProps {
 }
 
 const Layout: React.FC<LayoutProps> = ({ children, user: propUser }) => {
-  const { user: contextUser, profile, signOut } = useAuth();
+  const { user: contextUser, profile, signOut, isAdmin, isConsultant } = useAuth();
   const [internalUser, setInternalUser] = useState<any>(propUser || contextUser);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [logoError, setLogoError] = useState(false);
