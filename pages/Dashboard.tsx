@@ -12,15 +12,17 @@ import { supabase } from '../services/supabase';
 import { useAuth } from '../contexts/AuthContext';
 
 const Dashboard = () => {
-  const { user, profile } = useAuth(); // Use context instead of manual fetch
+  const { user, profile, isAdmin, isConsultant, isLoading } = useAuth(); // Use context instead of manual fetch
   const [history, setHistory] = useState<any[]>(MOCK_HISTORY);
   const [lastDiagnostic, setLastDiagnostic] = useState<any>(null);
 
   const navigate = useNavigate(); // Add hook
 
   useEffect(() => {
-    // 1. Admin/Consultant Redirect
-    if (profile?.role === 'admin' || profile?.role === 'consultant') {
+    if (isLoading) return; // Wait for auth check
+
+    // 1. Admin/Consultant Redirect (Using computed permissions)
+    if (isAdmin || isConsultant) {
       navigate('/admin/leads');
       return;
     }
