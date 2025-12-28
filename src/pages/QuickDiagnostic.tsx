@@ -21,7 +21,7 @@ const QuickDiagnostic = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [phoneError, setPhoneError] = useState('');
 
-  const [formData, setFormData] = useState<QuickDiagnosticData>({
+  const [formData, setFormData] = useState<QuickDiagnosticData & { password?: string }>({
     businessType: BusinessType.RESTAURANT,
     city: '',
     dailyCovers: 0,
@@ -36,7 +36,8 @@ const QuickDiagnostic = () => {
     rent: 0,
     utilitiesAndFixed: 0,
     primaryConcern: [],
-    methodologyScores: {}
+    methodologyScores: {},
+    password: ''
   });
 
   const [result, setResult] = useState<QuickDiagnosticResult | null>(null);
@@ -104,21 +105,59 @@ const QuickDiagnostic = () => {
 
       // Save to Supabase
       if (supabase) {
-        await supabase.from('diagnosticos_express').insert({
-          contact_name: formData.contactName,
-          contact_email: formData.contactEmail,
-          contact_phone: formData.contactPhone,
-          business_name: formData.businessName,
-          city: formData.city,
-          business_type: formData.businessType,
-          monthly_revenue: formData.monthlyRevenue,
-          score_global: finalResult.scoreGlobal,
-          score_financial: finalResult.scoreFinancial,
-          score_7p: finalResult.score7P,
-          profile_name: finalResult.profileName,
-          status: finalResult.status,
-          source: 'web_quick_diagnostic'
-        });
+        try {
+          // 1. Check if user wants to create account
+          if (formData.password && formData.password.length >= 6) {
+            console.log("🔐 Intentando crear cuenta para el lead...");
+            const { data: authData, error: authError } = await supabase.auth.signUp({
+              email: formData.contactEmail,
+              password: formData.password,
+              options: {
+                data: {
+                  full_name: formData.contactName,
+                  business_name: formData.businessName
+                }
+              }
+            });
+
+            if (authError) {
+              console.error("❌ Error en registro Auth:", authError.message);
+            } else if (authData.user) {
+              console.log("✅ Usuario auth creado:", authData.user.id);
+              // Crear perfil en tabla usuarios (trigger habitual, pero lo aseguramos)
+              await supabase.from('usuarios').upsert({
+                id: authData.user.id,
+                email: formData.contactEmail,
+                full_name: formData.contactName,
+                business_name: formData.businessName,
+                role: 'user', // Rol por defecto para leads que se registran
+                permissions: ['view_dashboard', 'view_finance_basic']
+              });
+            }
+          }
+
+          // 2. Save Express Diagnostic
+          const { error: diagError } = await supabase.from('diagnosticos_express').insert({
+            contact_name: formData.contactName,
+            contact_email: formData.contactEmail,
+            contact_phone: formData.contactPhone,
+            business_name: formData.businessName,
+            city: formData.city,
+            business_type: formData.businessType,
+            monthly_revenue: formData.monthlyRevenue,
+            score_global: finalResult.scoreGlobal,
+            score_financial: finalResult.scoreFinancial,
+            score_7p: finalResult.score7P,
+            profile_name: finalResult.profileName,
+            status: finalResult.status,
+            source: 'web_quick_diagnostic'
+          });
+
+          if (diagError) console.error("❌ Error guardando diagnóstico:", diagError);
+
+        } catch (e) {
+          console.error("❌ Error crítico en guardado de Supabase:", e);
+        }
       }
 
       // Keep local storage as backup/cache

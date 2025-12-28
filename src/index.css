@@ -5,16 +5,21 @@
 @tailwind utilities;
 
 :root {
-  --color-deep-blue: #021019;
-  --color-cyan-detail: #1FB6D5;
+  --color-deep-blue: #020c14;
+  --color-card-bg: #0b1420;
+  --color-cyan-detail: #22c5e5; /* Pulsing slightly brighter cyan */
+  --color-text-primary: #f8fafc;
+  --color-text-secondary: #94a3b8;
 }
 
 html, body {
   height: 100%;
   margin: 0;
   padding: 0;
-  background-color: #021019;
-  color: #E2E8F0;
+  background-color: var(--color-deep-blue);
+  color: var(--color-text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 #root {

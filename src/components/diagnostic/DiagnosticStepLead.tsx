@@ -30,13 +30,14 @@ const DiagnosticStepLead: React.FC<DiagnosticStepLeadProps> = ({ formData, handl
                 </p>
             </div>
 
-            <div className="space-y-4 bg-slate-900 p-6 rounded-xl border border-slate-700">
+            <div className="space-y-4 bg-slate-900/80 p-6 rounded-xl border border-slate-700 backdrop-blur-sm">
                 <Input
                     label="Nombre y Apellido"
                     name="contactName"
                     value={formData.contactName}
                     onChange={handleChange}
                     placeholder="Tu nombre"
+                    required
                 />
                 <Input
                     label="Nombre del Negocio"
@@ -44,6 +45,7 @@ const DiagnosticStepLead: React.FC<DiagnosticStepLeadProps> = ({ formData, handl
                     value={formData.businessName}
                     onChange={handleChange}
                     placeholder="Ej: Burger King"
+                    required
                 />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Input
@@ -53,6 +55,7 @@ const DiagnosticStepLead: React.FC<DiagnosticStepLeadProps> = ({ formData, handl
                         value={formData.contactEmail}
                         onChange={handleChange}
                         placeholder="nombre@ejemplo.com"
+                        required
                     />
                     <div>
                         <Input
@@ -62,15 +65,29 @@ const DiagnosticStepLead: React.FC<DiagnosticStepLeadProps> = ({ formData, handl
                             value={formData.contactPhone}
                             onChange={handleChange}
                             placeholder="+54 9 11..."
+                            required
                         />
                         {phoneError && <p className="text-red-400 text-xs mt-1">{phoneError}</p>}
                     </div>
+                </div>
+
+                <div className="pt-4 border-t border-slate-800">
+                    <p className="text-xs font-bold text-[#1FB6D5] uppercase tracking-widest mb-3">Opcional: Crea tu cuenta ahora</p>
+                    <Input
+                        label="Contraseña"
+                        type="password"
+                        name="password"
+                        value={(formData as any).password || ''}
+                        onChange={handleChange}
+                        placeholder="Mínimo 6 caracteres"
+                        helperText="Si ponés una contraseña, crearemos tu cuenta para que puedas entrar al Dashboard al instante."
+                    />
                 </div>
             </div>
 
             <div className="flex items-center gap-2 justify-center text-xs text-slate-500 mt-4">
                 <Lock className="w-3 h-3" />
-                Tus datos están seguros.
+                Tus datos están protegidos y cifrados.
             </div>
 
             <div className="flex gap-4 pt-6">

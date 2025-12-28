@@ -24,8 +24,11 @@ const AdminLeads = () => {
     if (!supabase) return;
 
     try {
+      // Intentar obtener email del lead si existe en full_data
+      const clientEmail = lead.leadData?.email || lead.full_data?.contactEmail;
+
       const { data, error } = await supabase.from('projects').insert([{
-        business_name: lead.leadData?.business || 'Nuevo Proyecto',
+        business_name: lead.leadData?.business || lead.business_name || 'Nuevo Proyecto',
         lead_id: lead.id,
         lead_consultant: 'Sin asignar',
         phase: 'Lead',
@@ -33,11 +36,16 @@ const AdminLeads = () => {
         summary: {
           problem: lead.full_data?.primaryConcern?.[0] || 'Derivado de diagnóstico',
           objective: 'Estandarización y rentabilidad inicial.'
+        },
+        team: {
+          client_email: clientEmail,
+          client_rep: lead.leadData?.name
         }
       }]).select().single();
 
       if (error) throw error;
 
+      alert("🎉 ¡Proyecto creado con éxito!");
       navigate(`/admin/projects/${data.id}`);
     } catch (e: any) {
       alert(`Error al crear proyecto: ${e.message}`);
@@ -179,11 +187,16 @@ const AdminLeads = () => {
                         onClick={async (e) => {
                           e.stopPropagation();
                           if (confirm('¿Estás seguro de que quieres eliminar este Lead? Esta acción no se puede deshacer.')) {
+                            // 1. Optimistic UI update
+                            setLeads(prev => prev.filter(l => l.id !== lead.id && l.date !== lead.date));
+
+                            // 2. Persistent delete
                             const { deleteLead } = await import('../services/storage');
                             await deleteLead(lead);
-                            // Refresh list
-                            const loadedLeads = await getAllLeads();
-                            setLeads(loadedLeads);
+
+                            // 3. Optional: Sync back just in case
+                            // const loadedLeads = await getAllLeads();
+                            // setLeads(loadedLeads);
                           }
                         }}
                         className="p-2 bg-red-900/30 hover:bg-red-600 text-red-400 hover:text-white rounded-lg transition-all"

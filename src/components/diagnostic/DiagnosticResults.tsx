@@ -13,10 +13,13 @@ interface DiagnosticResultsProps {
         contactName: string;
         businessName: string;
         contactEmail: string;
+        contactPhone: string;
+        password?: string;
     };
 }
 
 const DiagnosticResults: React.FC<DiagnosticResultsProps> = ({ result, formData }) => {
+    const hasAccount = formData.password && formData.password.length >= 6;
 
     const getStatusColor = (status: DiagnosticStatus) => {
         switch (status) {
@@ -192,21 +195,33 @@ const DiagnosticResults: React.FC<DiagnosticResultsProps> = ({ result, formData 
             {/* Block 6: CTA */}
             <div className="flex flex-col gap-4 pt-6">
                 <a href={getWhatsappLink()} target="_blank" rel="noreferrer" className="w-full">
-                    <Button className="w-full justify-center py-4 text-lg bg-[#1FA77A] hover:bg-[#15805d] shadow-lg shadow-green-900/10 border-0">
+                    <Button className="w-full justify-center py-4 text-lg bg-[#1FA77A] hover:bg-[#15805d] shadow-lg shadow-green-900/20 border-0 font-bold">
                         <MessageCircle className="w-5 h-5 mr-2" /> Quiero que revisemos estos números juntos
                     </Button>
                 </a>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <Button variant="outline" className="justify-center py-3" onClick={() => alert(`¡Listo! Te enviaremos el reporte detallado a ${formData.contactEmail} en los próximos minutos.`)}>
+                    <Button
+                        variant="outline"
+                        className="justify-center py-3 border-slate-600 text-slate-200 hover:bg-slate-800"
+                        onClick={() => alert(`¡Listo! Te enviaremos el reporte detallado a ${formData.contactEmail} en los próximos minutos.`)}
+                    >
                         <Download className="w-5 h-5 mr-2" /> Recibir reporte por Email
                     </Button>
 
-                    <Link to="/dashboard">
-                        <Button variant="secondary" className="w-full justify-center py-3">
-                            <Save className="w-5 h-5 mr-2" /> Ir al Dashboard
-                        </Button>
-                    </Link>
+                    {hasAccount ? (
+                        <Link to="/dashboard" className="w-full">
+                            <Button variant="secondary" className="w-full justify-center py-3 bg-[#1FB6D5] text-[#021019] hover:bg-white border-0 font-bold">
+                                <Save className="w-5 h-5 mr-2" /> Ir al Dashboard
+                            </Button>
+                        </Link>
+                    ) : (
+                        <div className="bg-slate-800/50 rounded-xl px-4 py-3 border border-slate-700/50 flex items-center justify-center text-center">
+                            <p className="text-slate-400 text-xs italic">
+                                🐙 <span className="text-[#1FB6D5] font-bold">¡Gracias!</span> Analizaremos tu caso y te contactaremos a <span className="text-white">{formData.contactPhone}</span>.
+                            </p>
+                        </div>
+                    )}
                 </div>
             </div>
 
