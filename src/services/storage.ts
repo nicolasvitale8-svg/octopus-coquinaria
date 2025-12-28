@@ -18,64 +18,28 @@ export const saveDiagnosticResult = async (result: QuickDiagnosticResult) => {
 
     const historyEntry = {
       ...result,
-      id: result.id, // Explicitly carry over
+      id: result.id,
       date: new Date().toISOString(),
       type: 'quick'
     };
 
     saveToHistory(historyEntry);
 
-    const client = supabase;
-    if (client) {
-      try {
-        const response = await runWithRetryAndTimeout(
-          () =>
-            new Promise((resolve, reject) => {
-              client
-                .from('diagnosticos_express')
-                .insert([
-                  {
-                    business_name: result.leadData?.business || 'Anonimo',
-                    contact_name: result.leadData?.name || 'Anonimo',
-                    contact_email: result.leadData?.email || '',
-                    contact_phone: result.leadData?.phone || '',
-                    profile_name: result.profileName,
-                    status: result.status,
-                    score_global: result.scoreGlobal,
-                    cogs_percentage: result.cogsPercentage,
-                    labor_percentage: result.laborPercentage,
-                    margin_percentage: result.marginPercentage,
-                    full_data: result
-                  }
-                ])
-                .then(resolve, reject);
-            }),
-          { timeoutMs: 8000, retries: 2, backoffMs: 1200, label: 'Guardar lead' }
-        ) as any;
-
-        if (response.error) {
-          console.error('? Supabase Save Error:', response.error);
-          if (response.error.code === '42P01') {
-            console.warn(
-              "?? LA TABLA 'diagnosticos_express' NO EXISTE. Copia el contenido de 'database_setup.sql' y ejecútalo en el SQL Editor de Supabase."
-            );
-          }
-        }
-      } catch (error) {
-        console.error('? Supabase Save Error (retry):', error);
-      }
-    }
+    // NOTE: Redundant Supabase insert removed here to avoid duplicates.
+    // QuickDiagnostic.tsx already performs the insert with full auth context.
   } catch (error) {
-    console.error('Error saving diagnostic', error);
+    console.error('Error saving diagnostic locally', error);
   }
 };
 
 export const saveDeepDiagnosticResult = (result: DeepDiagnosticResult) => {
+  // ... existing saveDeepDiagnosticResult ...
   try {
     const historyEntry = {
       date: new Date().toISOString(),
       monthLabel: result.month,
-      monthlyRevenue: result.totalSales,
+      monthlyDescription: result.totalSales,
+      monthlyRevenue: result.totalSales, // Ensure consistency
       cogsPercentage: result.cogsPercentage,
       laborPercentage: result.laborPercentage,
       marginPercentage: result.netResult > 0 ? (result.netResult / result.totalSales) * 100 : 0,
@@ -137,24 +101,29 @@ export const getMyLeads = async (email: string): Promise<any[]> => {
 
     if (error) throw error;
 
-    return (data || []).map((row: any) => ({
-      id: row.id,
-      date: row.created_at,
-      profileName: row.profile_name,
-      status: row.status,
-      scoreGlobal: row.score_global || 0,
-      cogsPercentage: row.cogs_percentage || 0,
-      laborPercentage: row.labor_percentage || 0,
-      marginPercentage: row.margin_percentage || row.marginPercentage || 0,
-      monthlyRevenue: row.monthly_revenue || (row.full_data?.monthlyRevenue) || 0,
-      leadData: {
-        business: row.business_name,
-        name: row.contact_name,
-        email: row.contact_email,
-        phone: row.contact_phone
-      },
-      ...(row.full_data || {})
-    }));
+    return (data || []).map((row: any) => {
+      // Prioritize data from full_data (most complete) but use columns as robust fallbacks
+      const fd = row.full_data || {};
+      return {
+        id: row.id,
+        date: row.created_at,
+        profileName: row.profile_name || fd.profileName || 'Diagnóstico',
+        profileDescription: row.profile_description || fd.profileDescription || '',
+        status: row.status || fd.status || 'Amarillo',
+        scoreGlobal: row.score_global ?? fd.scoreGlobal ?? 0,
+        cogsPercentage: row.cogs_percentage ?? fd.cogsPercentage ?? (fd.cogs / fd.monthlyRevenue * 100) ?? 0,
+        laborPercentage: row.labor_percentage ?? fd.laborPercentage ?? (fd.laborCost / fd.monthlyRevenue * 100) ?? 0,
+        marginPercentage: row.margin_percentage ?? fd.marginPercentage ?? 0,
+        monthlyRevenue: row.monthly_revenue ?? fd.monthlyRevenue ?? 0,
+        leadData: {
+          business: row.business_name || fd.leadData?.business || 'Anonimo',
+          name: row.contact_name || fd.leadData?.name || 'Anonimo',
+          email: row.contact_email || fd.leadData?.email || '',
+          phone: row.contact_phone || fd.leadData?.phone || ''
+        },
+        ...fd // Spread last to ensure all qualitative data is included
+      };
+    });
   } catch (error) {
     console.error("Error fetching my leads:", error);
     return [];
