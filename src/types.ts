@@ -1,0 +1,256 @@
+export enum BusinessType {
+  RESTAURANT = 'Restaurante',
+  BAR = 'Bar',
+  CAFE = 'Café',
+  PANADERIA = 'Panadería',
+  DARK_KITCHEN = 'Dark Kitchen',
+  HOTEL = 'Hotel',
+  OTRO = 'Otro'
+}
+
+export enum DiagnosticStatus {
+  GREEN = 'Verde',
+  YELLOW = 'Amarillo',
+  RED = 'Rojo'
+}
+
+export interface QuickDiagnosticData {
+  businessType: BusinessType;
+  city: string;
+  dailyCovers: number;
+  openDays: number;
+
+  // Lead / Contact Info
+  contactName: string;
+  contactEmail: string;
+  contactPhone: string;
+  businessName: string; // Explicit name of the venue
+
+  // Financials
+  monthlyRevenue: number;
+  cogs: number; // Cost of Goods Sold
+  laborCost: number;
+  rent: number;
+  utilitiesAndFixed: number;
+
+  // Qualitative
+  primaryConcern: string[];
+  methodologyScores: Record<string, number>; // 7P answers 1-5
+}
+
+export interface QuickDiagnosticResult {
+  id?: string; // New: UUID for sync
+  status: DiagnosticStatus;
+  scoreGlobal: number;
+  scoreFinancial: number;
+  score7P: number;
+
+  cogsPercentage: number;
+  laborPercentage: number;
+  fixedPercentage: number;
+  marginPercentage: number;
+
+  profileName: string;
+  profileDescription: string;
+
+  strengths: string[];
+  priorities: string[];
+
+  // Lead info passed through to result
+  leadData?: {
+    name: string;
+    email: string;
+    phone: string;
+    business: string;
+  };
+  date?: string;
+}
+
+export interface DeepDiagnosticInput {
+  month: string;
+  salesFood: number;
+  salesBeverage: number;
+  salesOther: number;
+  discounts: number;
+
+  costFood: number;
+  costBeverage: number;
+  inventoryAdjustment: number;
+
+  laborKitchen: number;
+  laborService: number;
+  laborSocial: number;
+  laborOther: number;
+
+  services: number;
+  rent: number;
+  taxes: number;
+  fees: number;
+  otherFixed: number;
+}
+
+export interface DeepDiagnosticResult extends DeepDiagnosticInput {
+  id: string;
+  totalSales: number;
+  totalCogs: number;
+  totalLabor: number;
+  totalFixed: number;
+  grossMargin: number;
+  netResult: number;
+  cogsPercentage: number;
+  laborPercentage: number;
+  fixedPercentage: number;
+  breakEvenPoint: number;
+}
+
+// --- SECURITY TYPES (V3) ---
+
+export type UserRole = 'admin' | 'consultant' | 'manager' | 'client' | 'user';
+
+export type Permission =
+  | 'view_dashboard'
+  | 'view_finance_basic'
+  | 'view_calendar'
+  | 'create_tasks'
+  | 'edit_calendar'
+  | 'edit_settings'
+  | 'super_admin'; // Special permission for safety
+
+export interface AppUser {
+  id: string;
+  email: string;
+  name: string;
+  role: UserRole;
+  permissions: Permission[];
+  businessIds: string[]; // memberships
+  businessName?: string; // Legacy/Display
+}
+
+
+// --- ACADEMY TYPES ---
+
+export type ResourceType = 'video' | 'guide' | 'template' | 'case';
+export type ResourceTopic = 'finanzas' | 'operaciones' | 'equipo' | 'marketing' | 'tecnologia' | 'cliente';
+
+export interface AcademyResource {
+  id: string;
+  title: string;
+  type: ResourceType;
+  duration: string; // "10 min", "Lectura 5 min"
+  topics: ResourceTopic[];
+  letters7p: string[]; // ['O', 'P']
+  summary: string; // The "short description"
+  description: string; // Full "En cristiano" text
+  idealFor: string[]; // List of user personas
+  actionSteps: string[]; // 3 bullet points
+  downloadUrl?: string; // If template/guide
+  youtubeId?: string; // If video
+  recommendedTrigger?: string[]; // Internal logic codes e.g. ['high_cogs', 'low_order']
+  es_premium?: boolean;
+}
+
+export interface LearningPath {
+  id: string;
+  title: string;
+  description: string;
+  resourceIds: string[];
+}
+
+// ... existing types ...
+
+export interface ProjectMilestone {
+  name: string;
+  date: string;
+  status: 'pending' | 'in_progress' | 'done';
+  note?: string;
+}
+
+export interface ProjectActivity {
+  date: string;
+  text: string;
+  author: string;
+}
+
+export interface ClientContact {
+  name: string;
+  role: string;
+  email: string;
+  phone: string;
+  notes?: string;
+  is_team_member?: boolean;
+}
+
+// --- External Systems ---
+export interface ExternalSystemAccess {
+  id: string;
+  name: string;
+  url: string;
+  type: 'POS' | 'Delivery' | 'ERP' | 'Web' | 'Backoffice' | 'Cámaras' | 'Otro';
+  username?: string;
+  password?: string; // Encripted or Hint
+  notes?: string;
+}
+
+export interface Project {
+  // ... existing fields ...
+  id: string;
+  created_at: string;
+  lead_id?: string;
+  business_name: string;
+  main_service?: string;
+  lead_consultant?: string;
+  phase: 'Lead' | 'Onboarding' | 'Diagnóstico' | 'Implementación' | 'Seguimiento' | 'Cerrado';
+  status: 'verde' | 'amarillo' | 'rojo';
+  next_action?: string;
+  next_action_date?: string;
+  notion_url?: string;
+  chatgpt_url?: string;
+  drive_url?: string;
+
+  // New: Client External Systems
+  external_systems?: ExternalSystemAccess[];
+
+  summary: {
+    objective?: string;
+    problem?: string;
+    pillars?: string[];
+    services?: string[];
+  };
+  team: {
+    consultants?: string[];
+    client_rep?: string;
+    client_email?: string;
+    client_location?: string;
+    client_contacts?: ClientContact[];
+    roles?: string;
+  };
+  milestones: ProjectMilestone[];
+  activity_log: ProjectActivity[];
+  // Members from business_memberships
+  business_memberships?: {
+    user_id: string;
+    usuarios: {
+      id: string;
+      full_name: string;
+      email: string;
+      role: string;
+      job_title?: string;
+    }
+  }[];
+}
+
+// --- TICKER TYPES ---
+
+export interface GastronomicEvent {
+  id: string;
+  tipo: 'feriado' | 'fecha_comercial' | 'clima' | 'precios_insumos' | 'tendencia_consumo' | 'operacion' | 'proveedores' | 'tip_gestion' | 'feriado_local' | 'feriado_nacional';
+  fecha_inicio: string;
+  fecha_fin: string;
+  mensaje?: string; // For simple format
+  titulo?: string; // For structured format
+  recomendacion?: string; // For structured format
+  prioridad: 1 | 2 | 3;
+  regiones?: string[];
+  visible_desde?: string;
+  visible_hasta?: string;
+}

@@ -1,0 +1,196 @@
+Plan de Autenticación y Permisos V3 (Final) — Supabase
+=====================================================
+
+Objetivo
+--------
+Implementar un calendario híbrido (global + privado por negocio) y un sistema de roles/permisos granulares
+persistidos en DB (Supabase/Postgres), con seguridad real vía RLS (Row Level Security).
+
+0) Supuestos mínimos
+-------------------
+- Se usa Supabase Auth (auth.users).
+- Existe tabla public.users (perfil) con id = auth.uid().
+- Un usuario puede pertenecer a 1 o más negocios (memberships).
+- Calendario:
+  - Global (Octopus): business_id IS NULL
+  - Privado (Cliente/Negocio): business_id = <uuid>
+
+1) Esquema de Base de Datos (Postgres/Supabase)
+----------------------------------------------
+
+1.1 Enum de roles
+- user_role: 'admin' | 'consultant' | 'manager' | 'client'
+
+1.2 Tabla users (perfil + permisos granulares)
+- public.users:
+  - id (uuid, PK, FK auth.users)
+  - role (user_role)
+  - permissions (jsonb array de strings)  // switches
+  - created_at, updated_at
+
+Ejemplo permissions:
+  ['view_dashboard', 'edit_calendar', 'view_finance_basic']
+
+1.3 Tabla businesses
+- public.businesses:
+  - id (uuid, PK)
+  - name (text)
+  - created_at
+
+1.4 Tabla business_memberships (vínculo usuario ↔ negocio)
+- public.business_memberships:
+  - business_id (uuid, FK businesses)
+  - user_id (uuid, FK users)
+  - member_role (user_role)   // opcional: rol por negocio
+  - created_at
+  - PK (business_id, user_id)
+
+1.5 Tabla events (global + privado en la misma tabla)
+- public.events:
+  - id (uuid, PK)
+  - business_id (uuid, nullable FK businesses)   // NULL = global
+  - title, description
+  - start_at, end_at
+  - created_by (uuid FK users)
+  - created_by_role (user_role)
+  - created_at, updated_at
+
+2) Seguridad: RLS (Row Level Security)
+--------------------------------------
+
+2.1 Función helper: is_member_of_business(bid)
+- Devuelve true si existe un membership (business_id=bid AND user_id=auth.uid()).
+
+2.2 Función helper: has_permission(p)
+- Devuelve true si:
+  - role del usuario actual ∈ {admin, consultant}  (bypass)
+  - o permissions contiene el string p
+
+2.3 RLS en events
+- SELECT:
+  - Permitir ver eventos globales (business_id IS NULL) a todos
+  - Permitir ver eventos privados SOLO si is_member_of_business(business_id)
+
+- INSERT:
+  - Global (business_id IS NULL): solo admin/consultant
+  - Privado (business_id IS NOT NULL): miembro + permiso ('edit_calendar' o 'create_tasks')
+
+- UPDATE:
+  - Global: solo admin/consultant
+  - Privado: miembro + permiso 'edit_calendar'
+
+- DELETE:
+  - Global: solo admin/consultant
+  - Privado: miembro + permiso 'edit_calendar'
+
+2.4 RLS en users (para UI Admin de permisos)
+- SELECT: cada usuario puede verse a sí mismo
+- UPDATE:
+  - usuario puede actualizarse (ideal: restringir columnas sensibles)
+  - admin puede actualizar role/permissions de otros
+
+NOTA DE SEGURIDAD IMPORTANTE:
+- Para evitar auto-escalado (manager se da permisos), conviene:
+  - bloquear updates a users.permissions y users.role para self (trigger o separar tabla),
+  - o aplicar policy específica que solo admin pueda cambiar esas columnas.
+
+3) Contrato TS (types.ts)
+-------------------------
+- UserRole = 'admin' | 'consultant' | 'manager' | 'client'
+- Permission:
+  - 'view_dashboard'
+  - 'view_finance_basic'
+  - 'view_calendar'
+  - 'create_tasks'
+  - 'edit_calendar'
+  - 'edit_settings'
+
+- AppUser:
+  - id: string
+  - role: UserRole
+  - permissions: Permission[]
+  - businessIds: string[]   // memberships
+
+4) AuthContext (leer role + permissions + memberships)
+------------------------------------------------------
+Al iniciar sesión:
+- Leer profile desde public.users por id = session.user.id:
+  - id, role, permissions
+- Leer memberships desde public.business_memberships por user_id:
+  - business_id
+
+Construir AppUser con:
+- permissions = (profile.permissions ?? []) as Permission[]
+- businessIds = memberships.map(m => m.business_id)
+
+Utilidades:
+- isPrivileged(u) = role === 'admin' || role === 'consultant'
+- hasPermission(u, p) = isPrivileged(u) || u.permissions.includes(p)
+
+5) AccessGuard / ProtectedRoute (permiso granular)
+--------------------------------------------------
+- Componente AccessGuard:
+  - si no hay user -> redirect/login
+  - require: Permission[] (tiene que cumplir todos)
+  - anyOf: Permission[] (cumple alguno)
+
+Uso típico:
+- Dashboard: require ['view_dashboard']
+- Finanzas: require ['view_finance_basic']
+- Calendario (ver): require ['view_calendar']
+- Crear tareas: require ['create_tasks']
+- Editar calendario: require ['edit_calendar']
+
+6) Calendario híbrido (mezcla global + privado)
+-----------------------------------------------
+Fetch (un solo query):
+- Traer global + privado del negocio:
+  - OR(business_id IS NULL, business_id = <businessId>)
+  - filtrar por rango de fechas
+  - order por start_at
+
+Crear evento privado:
+- business_id = <businessId>
+
+Crear evento global:
+- business_id = NULL  // solo admin/consultant (RLS lo impone)
+
+7) UI Admin — Gestión de permisos (checkboxes)
+----------------------------------------------
+- Pantalla para admin:
+  - listar gerentes por negocio (memberships + join users)
+  - renderizar switches (Permission[])
+  - guardar: update public.users.permissions = [...]
+
+Lista de permisos sugerida:
+- view_dashboard: Ver Dashboard
+- view_finance_basic: Ver Finanzas
+- view_calendar: Ver Calendario
+- create_tasks: Crear Tareas
+- edit_calendar: Editar Calendario
+- edit_settings: Editar Configuración
+
+8) Hoja de ruta (Roadmap)
+-------------------------
+Fase 1 — Cimientos de Seguridad (inmediato)
+- Actualizar types.ts con UserRole ('admin','client','manager','consultant')
+- Modificar AuthContext para leer roles/permisos desde DB
+- Crear AccessGuard (o mejorar ProtectedRoute) para verificar permisos puntuales
+
+Fase 2 — Calendario Privado
+- Modificar DB para soportar business_id (o tabla nueva; recomendado: misma tabla events con business_id nullable)
+- Actualizar vistas del calendario para mezclar global + privados por negocio
+
+Fase 3 — UI de Gestión de Permisos
+- Pantalla para Admin: prender/apagar permisos a Managers via checkboxes
+- Asegurar RLS/trigger para impedir auto-escalado de permisos
+
+Checklist anti-“hardcode”
+-------------------------
+1) No hardcodear permisos por rol (salvo bypass admin/consultant).
+2) Toda feature pasa por hasPermission().
+3) Global = business_id NULL.
+4) RLS habilitado + policies en events y users.
+5) AuthContext carga role + permissions + businessIds.
+6) Query del calendario mezcla con OR(NULL, eq businessId).
+7) UI Admin cambia users.permissions (solo admin).

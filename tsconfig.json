@@ -18,19 +18,16 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ]
+    },
     "outDir": "./dist"
   },
   "include": [
-    "components/**/*.ts",
-    "components/**/*.tsx",
-    "pages/**/*.ts",
-    "pages/**/*.tsx",
-    "services/**/*.ts",
-    "services/**/*.tsx",
-    "App.tsx",
-    "index.tsx",
-    "types.ts",
-    "constants.ts"
+    "src"
   ],
   "exclude": [
     "node_modules",
