@@ -54,8 +54,8 @@ const Dashboard = () => {
 
     const mapAndSetHistory = (data: any[]) => {
       const mappedHistory = data.map(d => ({
-        month: new Date(d.date).toLocaleDateString('es-AR', { month: 'short' }),
-        sales: d.monthlyRevenue || (d.full_data?.monthlyRevenue) || 0,
+        month: d.date ? new Date(d.date).toLocaleDateString('es-AR', { month: 'short' }) : 'Mes',
+        sales: d.monthlyRevenue || 0,
         cogs: d.cogsPercentage || 0,
         labor: d.laborPercentage || 0,
         result: d.marginPercentage || d.result || 0,

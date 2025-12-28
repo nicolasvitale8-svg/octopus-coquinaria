@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../services/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { Project } from '../types';
+import { WHATSAPP_NUMBER } from '../constants';
+import { MessageCircle, Rocket, ShieldCheck, ArrowRight } from 'lucide-react';
+import Button from '../components/ui/Button';
 
 const ClientProjectRedirect = () => {
     const { user, profile } = useAuth();
@@ -43,14 +46,9 @@ const ClientProjectRedirect = () => {
                 });
 
                 if (myProject) {
-                    // Found! Redirect to the Hub view
-                    // We can reuse AdminProjectHub path but we need to ensure permissions allow it.
-                    // Or we can render the view here. Redirect is cleaner URL-wise if we want deep linking.
-                    // But if AdminProjectHub checks 'isAdmin', it will block.
-                    // We need to unblock AdminProjectHub first.
                     navigate(`/hub/projects/${myProject.id}`);
                 } else {
-                    setError('No se encontró un proyecto asociado a tu cuenta. Contacta a tu consultor.');
+                    setError('PENDING_PROJECT');
                 }
 
             } catch (err: any) {
@@ -64,44 +62,59 @@ const ClientProjectRedirect = () => {
         findProject();
     }, [user, navigate]);
 
-    if (isLoading) return <div className="p-8 text-white text-center">Buscando tu proyecto...</div>;
+    const getWhatsappLink = () => {
+        const message = `Hola Octopus 🐙. Soy ${profile?.name || user?.email}.\n\n` +
+            `Ya registré mi cuenta en la plataforma y me gustaría saber cómo activar mi proyecto personalizado y comenzar la consultoría.`;
+        return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+    };
 
-    if (error) return (
-        <div className="p-8 text-center max-w-lg mx-auto">
-            <h2 className="text-xl text-red-400 mb-4 font-bold">No encontramos tu proyecto</h2>
+    if (isLoading) return (
+        <div className="min-h-screen bg-[#021019] flex flex-col items-center justify-center p-4">
+            <div className="w-12 h-12 border-4 border-[#1FB6D5] border-t-transparent rounded-full animate-spin mb-4"></div>
+            <p className="text-slate-400 font-medium animate-pulse">Buscando tu proyecto personalizado...</p>
+        </div>
+    );
 
-            <div className="bg-slate-900 p-4 rounded-lg border border-slate-800 text-left space-y-2 mb-6">
-                <p className="text-slate-400 text-xs uppercase font-bold">Diagnóstico:</p>
-                <p className="text-slate-300 text-sm">Usuario actual: <span className="text-cyan-400 font-mono">{user?.email}</span></p>
-                <p className="text-slate-300 text-sm">Proyectos cargados desde BD: <span className="text-white font-mono">{debugInfo.count}</span></p>
+    if (error === 'PENDING_PROJECT') return (
+        <div className="min-h-screen bg-[#021019] flex items-center justify-center p-4">
+            <div className="max-w-xl w-full bg-slate-900/50 backdrop-blur-xl p-8 rounded-2xl border border-slate-800 shadow-2xl text-center space-y-8 animate-fade-in">
 
-                {debugInfo.projects.length > 0 && (
-                    <div className="mt-4 border-t border-slate-800 pt-2">
-                        <p className="text-slate-500 text-xs uppercase font-bold mb-2">Proyectos Visibles (Debug):</p>
-                        <ul className="space-y-2 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
-                            {debugInfo.projects.map((p, i) => (
-                                <li key={i} className="bg-slate-950 p-2 rounded border border-slate-800 text-xs font-mono text-slate-400">
-                                    <strong className="text-slate-200 block">{p.business_name}</strong>
-                                    Email Main: <span className="text-yellow-400">{p.team?.client_email || 'VACIO'}</span><br />
-                                    Contactos: <span className="text-emerald-400">{
-                                        Array.isArray(p.team?.client_contacts) ?
-                                            p.team.client_contacts.map((c: any) => c.email).join(', ') : 'Ninguno'
-                                    }</span>
-                                </li>
-                            ))}
-                        </ul>
+                <div className="inline-flex h-20 w-20 items-center justify-center rounded-full bg-cyan-950/30 text-cyan-400 mb-2">
+                    <Rocket className="w-10 h-10" />
+                </div>
+
+                <div className="space-y-3">
+                    <h2 className="text-3xl font-extrabold text-white font-space">¡Hola {profile?.name || 'Gastronómico'}!</h2>
+                    <p className="text-lg text-slate-400 max-w-sm mx-auto">
+                        Tu proyecto se activará una vez que comiences tu ciclo de consultoría profesional con <span className="text-white font-bold">Octopus Coquinaria</span>.
+                    </p>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 text-left bg-slate-950/50 p-6 rounded-xl border border-slate-800/80">
+                    <div className="flex items-start gap-3">
+                        <ShieldCheck className="w-5 h-5 text-emerald-400 mt-0.5" />
+                        <div>
+                            <p className="text-sm font-bold text-white">Módulo Exclusivo</p>
+                            <p className="text-xs text-slate-500">Acceso a hitos, cronograma, archivos críticos y comunicación directa con tu consultor.</p>
+                        </div>
                     </div>
-                )}
+                </div>
+
+                <div className="flex flex-col gap-3">
+                    <a href={getWhatsappLink()} target="_blank" rel="noreferrer" className="w-full">
+                        <Button className="w-full justify-center py-4 bg-[#1FA77A] hover:bg-[#15805d] text-white font-bold text-lg shadow-xl shadow-green-900/10 border-0">
+                            <MessageCircle className="w-5 h-5 mr-2" /> Quiero activar mi proyecto
+                        </Button>
+                    </a>
+
+                    <button
+                        onClick={() => navigate('/dashboard')}
+                        className="flex items-center justify-center gap-2 text-slate-500 hover:text-slate-300 transition-colors text-sm font-medium py-2"
+                    >
+                        Volver al Tablero <ArrowRight className="w-4 h-4" />
+                    </button>
+                </div>
             </div>
-
-            <p className="text-slate-400 text-sm mb-6">{error}</p>
-
-            <button onClick={() => window.location.reload()} className="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded mr-4 transition">
-                Reintentar
-            </button>
-            <button onClick={() => navigate('/dashboard')} className="text-slate-500 hover:text-slate-300 ml-2">
-                Volver al Inicio
-            </button>
         </div>
     );
 

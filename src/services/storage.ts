@@ -142,17 +142,18 @@ export const getMyLeads = async (email: string): Promise<any[]> => {
       date: row.created_at,
       profileName: row.profile_name,
       status: row.status,
-      scoreGlobal: row.score_global,
-      cogsPercentage: row.cogs_percentage,
-      laborPercentage: row.labor_percentage,
-      margin_percentage: row.margin_percentage,
+      scoreGlobal: row.score_global || 0,
+      cogsPercentage: row.cogs_percentage || 0,
+      laborPercentage: row.labor_percentage || 0,
+      marginPercentage: row.margin_percentage || row.marginPercentage || 0,
+      monthlyRevenue: row.monthly_revenue || (row.full_data?.monthlyRevenue) || 0,
       leadData: {
         business: row.business_name,
         name: row.contact_name,
         email: row.contact_email,
         phone: row.contact_phone
       },
-      ...row.full_data
+      ...(row.full_data || {})
     }));
   } catch (error) {
     console.error("Error fetching my leads:", error);
@@ -187,10 +188,11 @@ export const getAllLeads = async (): Promise<any[]> => {
           profileName: row.profile_name,
           profileDescription: row.full_data?.profileDescription || '',
           status: row.status,
-          scoreGlobal: row.score_global,
-          cogsPercentage: row.cogs_percentage,
-          laborPercentage: row.labor_percentage,
-          marginPercentage: row.margin_percentage,
+          scoreGlobal: row.score_global || 0,
+          cogsPercentage: row.cogs_percentage || 0,
+          laborPercentage: row.labor_percentage || 0,
+          marginPercentage: row.margin_percentage || row.marginPercentage || 0,
+          monthlyRevenue: row.monthly_revenue || (row.full_data?.monthlyRevenue) || 0,
           leadData: {
             business: row.business_name,
             name: row.contact_name,
