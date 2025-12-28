@@ -127,8 +127,8 @@ const DiagnosticResults: React.FC<DiagnosticResultsProps> = ({ result, formData 
                                 <YAxis type="category" dataKey="name" stroke="#cbd5e1" width={80} style={{ fontSize: '12px', fontFamily: 'sans-serif' }} />
                                 <Tooltip
                                     formatter={(value: number) => `${value.toFixed(1)}%`}
-                                    contentStyle={{ backgroundColor: '#021019', borderColor: '#334155', color: '#fff' }}
-                                    cursor={{ fill: '#1e293b' }}
+                                    contentStyle={{ backgroundColor: '#0b1420', borderColor: '#334155', borderRadius: '8px', border: '1px solid #334155' }}
+                                    itemStyle={{ color: '#fff', fontWeight: 'bold' }}
                                 />
                                 <Legend wrapperStyle={{ fontFamily: 'sans-serif', fontSize: '12px', color: '#cbd5e1' }} />
                                 <Bar dataKey="Real" fill="#1FB6D5" radius={[0, 4, 4, 0]} />

@@ -226,7 +226,7 @@ const AdminLeads = () => {
                   <span className="flex items-center gap-1"><User className="w-3 h-3" /> {selectedLead.leadData?.name}</span>
                   <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {new Date(selectedLead.date).toLocaleDateString()}</span>
                   <span className={`px-2 py-0.5 rounded-full text-xs font-bold bg-slate-800 ${getStatusColor(selectedLead.scoreGlobal)} border border-slate-700`}>
-                    Score: {selectedLead.scoreGlobal}/100
+                    Score: {Math.round(selectedLead.scoreGlobal)}/100
                   </span>
                 </div>
               </div>
@@ -245,16 +245,16 @@ const AdminLeads = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700 text-center">
                   <span className="text-slate-400 text-xs uppercase tracking-wider block mb-1">Costo Mercadería</span>
-                  <span className="text-xl font-bold text-white font-mono">{formatPercent(selectedLead.cogsPercentage / 100)}</span>
+                  <span className="text-xl font-bold text-white font-mono">{formatPercent(selectedLead.cogsPercentage)}</span>
                 </div>
                 <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700 text-center">
                   <span className="text-slate-400 text-xs uppercase tracking-wider block mb-1">Costo Laboral</span>
-                  <span className="text-xl font-bold text-white font-mono">{formatPercent(selectedLead.laborPercentage / 100)}</span>
+                  <span className="text-xl font-bold text-white font-mono">{formatPercent(selectedLead.laborPercentage)}</span>
                 </div>
                 <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700 text-center">
                   <span className="text-slate-400 text-xs uppercase tracking-wider block mb-1">Margen Bruto</span>
                   <span className={`text-xl font-bold font-mono ${selectedLead.marginPercentage < 15 ? 'text-red-400' : 'text-green-400'}`}>
-                    {formatPercent(selectedLead.marginPercentage / 100)}
+                    {formatPercent(selectedLead.marginPercentage)}
                   </span>
                 </div>
               </div>

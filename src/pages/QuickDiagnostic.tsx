@@ -150,6 +150,10 @@ const QuickDiagnostic = () => {
             score_7p: finalResult.score7P,
             profile_name: finalResult.profileName,
             status: finalResult.status,
+            cogs_percentage: finalResult.cogsPercentage,
+            labor_percentage: finalResult.laborPercentage,
+            margin_percentage: finalResult.marginPercentage,
+            full_data: finalResult,
             source: 'web_quick_diagnostic'
           });
 
