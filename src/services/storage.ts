@@ -111,8 +111,8 @@ export const getMyLeads = async (email: string): Promise<any[]> => {
         profileDescription: row.profile_description || fd.profileDescription || '',
         status: row.status || fd.status || 'Amarillo',
         scoreGlobal: row.score_global ?? fd.scoreGlobal ?? 0,
-        cogsPercentage: row.cogs_percentage ?? fd.cogsPercentage ?? (fd.cogs / fd.monthlyRevenue * 100) ?? 0,
-        laborPercentage: row.labor_percentage ?? fd.laborPercentage ?? (fd.laborCost / fd.monthlyRevenue * 100) ?? 0,
+        cogsPercentage: row.cogs_percentage ?? fd.cogsPercentage ?? (fd.monthlyRevenue > 0 ? (fd.cogs / fd.monthlyRevenue * 100) : 0),
+        laborPercentage: row.labor_percentage ?? fd.laborPercentage ?? (fd.monthlyRevenue > 0 ? (fd.laborCost / fd.monthlyRevenue * 100) : 0),
         marginPercentage: row.margin_percentage ?? fd.marginPercentage ?? 0,
         monthlyRevenue: row.monthly_revenue ?? fd.monthlyRevenue ?? 0,
         leadData: {

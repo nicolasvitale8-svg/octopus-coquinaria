@@ -3,8 +3,8 @@ import React, { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
 import { getAllLeads } from '../services/storage';
 import { WHATSAPP_NUMBER } from '../constants';
-import { MessageCircle, Search, Download, Users, User, Calendar, FileText, X, PieChart as PieIcon, Activity, Briefcase, Trash2 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { MessageCircle, Search, Download, Users, User, Calendar, FileText, X, PieChart as PieIcon, Activity, Briefcase, Trash2, AlertTriangle } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../services/supabase';
 import Button from '../components/ui/Button';
 import { DiagnosticStatus } from '../types';
@@ -13,10 +13,19 @@ import { formatPercent, formatCurrency } from '../services/calculations';
 const AdminLeads = () => {
   const [leads, setLeads] = useState<any[]>([]);
   const [filter, setFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedLead, setSelectedLead] = useState<any>(null);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    // Check for status filter in navigation state
+    if (location.state?.filterStatus) {
+      setStatusFilter(location.state.filterStatus);
+    }
+  }, [location.state]);
 
   const createProjectFromLead = async (lead: any) => {
     if (!confirm(`¿Crear proyecto para ${lead.leadData?.business}?`)) return;
@@ -82,10 +91,14 @@ const AdminLeads = () => {
     fetchLeads();
   }, []);
 
-  const filteredLeads = leads.filter(lead =>
-    lead.leadData?.business?.toLowerCase().includes(filter.toLowerCase()) ||
-    lead.leadData?.name?.toLowerCase().includes(filter.toLowerCase())
-  );
+  const filteredLeads = leads.filter(lead => {
+    const matchesSearch = lead.leadData?.business?.toLowerCase().includes(filter.toLowerCase()) ||
+      lead.leadData?.name?.toLowerCase().includes(filter.toLowerCase());
+
+    const matchesStatus = statusFilter ? lead.status === statusFilter : true;
+
+    return matchesSearch && matchesStatus;
+  });
 
   const generateWhatsappLink = (lead: any) => {
     if (!lead) return '#';
@@ -123,6 +136,21 @@ const AdminLeads = () => {
           />
         </div>
       </div>
+
+      {statusFilter && (
+        <div className="flex items-center gap-2 bg-red-950/30 border border-red-900/50 p-3 rounded-lg animate-fade-in">
+          <AlertTriangle className="w-4 h-4 text-red-500" />
+          <p className="text-sm text-red-200">
+            Mostrando solo leads con estado <span className="font-bold uppercase">{statusFilter}</span>
+          </p>
+          <button
+            onClick={() => setStatusFilter(null)}
+            className="ml-auto text-xs font-bold text-red-400 hover:text-white transition-colors"
+          >
+            QUITAR FILTRO
+          </button>
+        </div>
+      )}
 
       <div className="bg-slate-800/50 rounded-xl border border-slate-700 overflow-hidden">
         <div className="overflow-x-auto">

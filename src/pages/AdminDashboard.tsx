@@ -62,16 +62,16 @@ const AdminDashboard = () => {
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Card 1 */}
-                <div className="bg-slate-800 p-6 rounded-xl border border-slate-700">
+                <Link to="/admin/leads" className="bg-slate-800 p-6 rounded-xl border border-slate-700 hover:border-blue-500/50 transition-colors group">
                     <div className="flex items-center justify-between mb-4">
-                        <div className="p-3 bg-blue-500/10 rounded-lg text-blue-400">
+                        <div className="p-3 bg-blue-500/10 rounded-lg text-blue-400 group-hover:bg-blue-500/20 transition-colors">
                             <Users size={24} />
                         </div>
                         <span className="text-xs font-medium text-slate-400 bg-slate-700/50 px-2 py-1 rounded">Total</span>
                     </div>
                     <p className="text-3xl font-bold text-white">{stats.totalLeads}</p>
                     <p className="text-sm text-slate-400 mt-1">Diagnósticos realizados</p>
-                </div>
+                </Link>
 
                 {/* Card 2 */}
                 <div className="bg-slate-800 p-6 rounded-xl border border-slate-700">
@@ -85,10 +85,14 @@ const AdminDashboard = () => {
                     <p className="text-sm text-slate-400 mt-1">Nuevos prospectos</p>
                 </div>
 
-                {/* Card 3 */}
-                <div className="bg-slate-800 p-6 rounded-xl border border-slate-700">
+                {/* Card 3 - Critical */}
+                <Link
+                    to="/admin/leads"
+                    state={{ filterStatus: 'Rojo' }}
+                    className="bg-slate-800 p-6 rounded-xl border border-slate-700 hover:border-red-500/50 transition-colors group cursor-pointer"
+                >
                     <div className="flex items-center justify-between mb-4">
-                        <div className="p-3 bg-red-500/10 rounded-lg text-red-400">
+                        <div className="p-3 bg-red-500/10 rounded-lg text-red-400 group-hover:bg-red-500/20 transition-colors">
                             <AlertTriangle size={24} />
                         </div>
                         <span className="text-xs font-medium text-slate-400 bg-slate-700/50 px-2 py-1 rounded">Acción</span>
@@ -97,8 +101,10 @@ const AdminDashboard = () => {
                         <p className="text-3xl font-bold text-white">{stats.criticalLeads}</p>
                         <span className="ml-2 text-sm text-slate-400">críticos</span>
                     </div>
-                    <p className="text-sm text-slate-400 mt-1">Requieren atención</p>
-                </div>
+                    <p className="text-sm text-slate-400 mt-1 font-medium group-hover:text-red-400 transition-colors flex items-center gap-1">
+                        Requieren atención <TrendingUp size={14} className="rotate-45" />
+                    </p>
+                </Link>
             </div>
 
             {/* Quick Actions / Recent */}
