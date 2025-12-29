@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { User, Shield, Lock, Save, AlertCircle, CheckCircle2, Loader2, Phone, Briefcase, Mail } from 'lucide-react';
+import { User, Shield, Lock, Save, AlertCircle, CheckCircle2, Loader2, Phone, Briefcase, Mail, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../services/supabase';
 import Button from '../components/ui/Button';
+import { useNavigate } from 'react-router-dom';
 
 const UserProfile = () => {
     const { profile, user } = useAuth();
+    const navigate = useNavigate();
     const [fullName, setFullName] = useState(profile?.name || '');
     const [jobTitle, setJobTitle] = useState(profile?.job_title || '');
     const [phone, setPhone] = useState(profile?.phone || '');
@@ -102,7 +104,18 @@ const UserProfile = () => {
     };
 
     return (
-        <div className="max-w-4xl mx-auto space-y-8 animate-fade-in">
+        <div className="max-w-4xl mx-auto space-y-8 animate-fade-in relative pb-12">
+            {/* Back Button */}
+            <button
+                onClick={() => navigate(-1)}
+                className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors group mb-2"
+            >
+                <div className="p-2 rounded-full bg-slate-800/50 group-hover:bg-slate-800">
+                    <ArrowLeft className="w-4 h-4" />
+                </div>
+                <span className="text-sm font-bold uppercase tracking-widest">Volver</span>
+            </button>
+
             {/* Header */}
             <div className="flex items-center gap-4 mb-2">
                 <div className="p-3 bg-cyan-500/10 rounded-2xl border border-cyan-500/20">
@@ -116,8 +129,8 @@ const UserProfile = () => {
 
             {message && (
                 <div className={`p-4 rounded-xl flex items-center gap-3 border animate-shake ${message.type === 'success'
-                        ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
-                        : 'bg-red-500/10 border-red-500/30 text-red-400'
+                    ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                    : 'bg-red-500/10 border-red-500/30 text-red-400'
                     }`}>
                     {message.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
                     <span className="text-sm font-medium">{message.text}</span>

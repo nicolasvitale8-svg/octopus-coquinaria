@@ -132,7 +132,14 @@ const AdminLayout = () => {
                         </button>
                     </div>
 
-                    <div className="pt-8 mt-8 border-t border-slate-800">
+                    <div className="pt-8 mt-8 border-t border-slate-800 space-y-2">
+                        <Link
+                            to="/dashboard"
+                            className="flex w-full items-center px-4 py-3 text-cyan-400 hover:bg-cyan-500/10 rounded-lg transition-colors font-bold"
+                        >
+                            <LayoutDashboard size={20} className="mr-3" />
+                            <span>Ver Sitio Público</span>
+                        </Link>
                         <button
                             onClick={handleLogout}
                             className="flex w-full items-center px-4 py-3 text-red-400 hover:bg-red-900/10 hover:text-red-300 rounded-lg transition-colors"

@@ -3,8 +3,9 @@ import { useParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { getProjectById, updateProject } from '../services/projectService';
 import { Project } from '../types';
-import { Activity } from 'lucide-react';
+import { Activity, ArrowLeft } from 'lucide-react';
 import Button from '../components/ui/Button';
+import { useNavigate } from 'react-router-dom';
 
 // Imported Components
 import ProjectHeader from '../components/project/ProjectHeader';
@@ -24,6 +25,7 @@ type ProjectHubTab = 'overview' | 'tasks' | 'deliverables' | 'journal';
 const AdminProjectHub = () => {
     const { profile } = useAuth();
     const { id } = useParams<{ id: string }>();
+    const navigate = useNavigate();
     const [project, setProject] = useState<Project | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -75,7 +77,18 @@ const AdminProjectHub = () => {
         return <ClientProjectView project={project} />;
     }
     return (
-        <div className="max-w-6xl mx-auto space-y-8 pb-12">
+        <div className="max-w-6xl mx-auto space-y-8 pb-12 animate-fade-in">
+            {/* Nav Context / Back Button */}
+            <button
+                onClick={() => navigate('/admin/projects')}
+                className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors group"
+            >
+                <div className="p-2 rounded-full bg-slate-800/50 group-hover:bg-slate-800">
+                    <ArrowLeft className="w-4 h-4" />
+                </div>
+                <span className="text-sm font-bold uppercase tracking-widest">Listado de Proyectos</span>
+            </button>
+
             <ProjectHeader
                 project={project}
                 userRole={profile?.role}

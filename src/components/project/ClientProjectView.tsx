@@ -7,16 +7,19 @@ import {
     Download,
     CheckCircle,
     XCircle,
-    Info
+    Info,
+    ArrowLeft
 } from 'lucide-react';
 import { Project, ProjectTask, Deliverable } from '../../types';
 import Button from '../ui/Button';
+import { useNavigate } from 'react-router-dom';
 
 interface ClientProjectViewProps {
     project: Project;
 }
 
 const ClientProjectView: React.FC<ClientProjectViewProps> = ({ project }) => {
+    const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState<'checklist' | 'approvals' | 'documents'>('checklist');
 
     // Filter tasks for client (only those with type CLIENT or specifically assigned to them)
@@ -30,7 +33,18 @@ const ClientProjectView: React.FC<ClientProjectViewProps> = ({ project }) => {
     const documents = (project.deliverables || []).filter(d => d.status === 'APPROVED');
 
     return (
-        <div className="max-w-4xl mx-auto space-y-8 animate-fade-in">
+        <div className="max-w-4xl mx-auto space-y-8 animate-fade-in relative pb-12">
+            {/* Back Button */}
+            <button
+                onClick={() => navigate('/dashboard')}
+                className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors group mb-2"
+            >
+                <div className="p-2 rounded-full bg-slate-800/50 group-hover:bg-slate-800">
+                    <ArrowLeft className="w-4 h-4" />
+                </div>
+                <span className="text-sm font-bold uppercase tracking-widest">Volver al Tablero</span>
+            </button>
+
             {/* Header simplified for client */}
             <div className="bg-slate-900 border border-slate-800 p-8 rounded-2xl shadow-2xl relative overflow-hidden">
                 <div className="absolute top-0 right-0 p-4 opacity-10">
