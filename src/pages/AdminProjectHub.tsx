@@ -14,6 +14,12 @@ import ProjectMilestonesCard from '../components/project/ProjectMilestonesCard';
 import ProjectActivityCard from '../components/project/ProjectActivityCard';
 import ProjectSystemsCard from '../components/project/ProjectSystemsCard';
 import ProjectEditModal from '../components/project/ProjectEditModal';
+import ProjectTasks from '../components/project/ProjectTasks';
+import ProjectDeliverables from '../components/project/ProjectDeliverables';
+import ProjectBitacora from '../components/project/ProjectBitacora';
+import ClientProjectView from '../components/project/ClientProjectView';
+
+type ProjectHubTab = 'overview' | 'tasks' | 'deliverables' | 'journal';
 
 const AdminProjectHub = () => {
     const { profile } = useAuth();
@@ -21,6 +27,7 @@ const AdminProjectHub = () => {
     const [project, setProject] = useState<Project | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [activeTab, setActiveTab] = useState<ProjectHubTab>('overview');
 
     useEffect(() => {
         if (id) fetchProject(id);
@@ -63,6 +70,10 @@ const AdminProjectHub = () => {
     if (isLoading) return <div className="p-8 text-center text-slate-500">Cargando Hub...</div>;
     if (!project) return <div className="p-8 text-center text-red-500">Proyecto no encontrado.</div>;
 
+    // --- PORTAL CLIENTE (VIEW REDIRECT) ---
+    if (profile?.role === 'client') {
+        return <ClientProjectView project={project} />;
+    }
     return (
         <div className="max-w-6xl mx-auto space-y-8 pb-12">
             <ProjectHeader
@@ -71,14 +82,57 @@ const AdminProjectHub = () => {
                 onEdit={() => setIsEditModalOpen(true)}
             />
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <ProjectSummaryCard project={project} />
-                <ProjectTeamCard project={project} />
-                <ProjectMilestonesCard project={project} />
-                <ProjectActivityCard project={project} />
+            {/* Tabs Navigation */}
+            <div className="flex border-b border-slate-800 gap-8">
+                <button
+                    onClick={() => setActiveTab('overview')}
+                    className={`pb-4 text-sm font-bold transition-all px-2 relative ${activeTab === 'overview' ? 'text-cyan-400' : 'text-slate-500 hover:text-slate-300'}`}
+                >
+                    Resumen Geral
+                    {activeTab === 'overview' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-cyan-400 rounded-full" />}
+                </button>
+                <button
+                    onClick={() => setActiveTab('tasks')}
+                    className={`pb-4 text-sm font-bold transition-all px-2 relative ${activeTab === 'tasks' ? 'text-cyan-400' : 'text-slate-500 hover:text-slate-300'}`}
+                >
+                    Tareas y Colaboración
+                    <span className="ml-2 bg-slate-800 text-slate-400 text-[10px] px-1.5 py-0.5 rounded-full">Pro</span>
+                    {activeTab === 'tasks' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-cyan-400 rounded-full" />}
+                </button>
+                <button
+                    onClick={() => setActiveTab('deliverables')}
+                    className={`pb-4 text-sm font-bold transition-all px-2 relative ${activeTab === 'deliverables' ? 'text-cyan-400' : 'text-slate-500 hover:text-slate-300'}`}
+                >
+                    Entregables
+                    {activeTab === 'deliverables' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-cyan-400 rounded-full" />}
+                </button>
+                <button
+                    onClick={() => setActiveTab('journal')}
+                    className={`pb-4 text-sm font-bold transition-all px-2 relative ${activeTab === 'journal' ? 'text-cyan-400' : 'text-slate-500 hover:text-slate-300'}`}
+                >
+                    Bitácora
+                    {activeTab === 'journal' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-cyan-400 rounded-full" />}
+                </button>
             </div>
 
-            <ProjectSystemsCard project={project} />
+            {activeTab === 'overview' ? (
+                <>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <ProjectSummaryCard project={project} />
+                        <ProjectTeamCard project={project} onUpdate={() => fetchProject(id!)} />
+                        <ProjectMilestonesCard project={project} />
+                        <ProjectActivityCard project={project} />
+                    </div>
+
+                    <ProjectSystemsCard project={project} />
+                </>
+            ) : activeTab === 'tasks' ? (
+                <ProjectTasks project={project} />
+            ) : activeTab === 'deliverables' ? (
+                <ProjectDeliverables project={project} />
+            ) : (
+                <ProjectBitacora project={project} />
+            )}
 
             <ProjectEditModal
                 project={project}

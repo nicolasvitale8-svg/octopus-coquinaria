@@ -29,18 +29,21 @@ const AdminLayout = () => {
     };
 
     const navItems = [
-        { path: '/admin/dashboard', icon: <LayoutDashboard size={20} />, label: 'Dashboard' },
-        { path: '/admin/leads', icon: <Users size={20} />, label: 'CRM Leads', hidden: !isAdmin }, // Only Admins see Leads
+        {
+            path: isAdmin ? '/admin/dashboard' : '/admin/consultant-dashboard',
+            icon: <LayoutDashboard size={20} />,
+            label: 'Dashboard'
+        },
+        { path: '/admin/leads', icon: <Users size={20} />, label: 'CRM Leads', hidden: !isAdmin },
         { path: '/admin/projects', icon: <Briefcase size={20} />, label: 'Hub Proyectos' },
-        { path: '/admin/users', icon: <Users size={20} />, label: 'Usuarios y Roles', hidden: !isAdmin }, // Only Admins
-        // Conditional Calendar Path
+        { path: '/admin/users', icon: <Users size={20} />, label: 'Usuarios y Roles', hidden: !isAdmin },
         {
             path: isAdmin ? '/admin/calendar' : '/hub/calendar',
             icon: <Calendar size={20} />,
             label: 'Calendario'
         },
         { path: '/admin/academy', icon: <GraduationCap size={20} />, label: 'Academia' },
-        { path: '/admin/config', icon: <Settings size={20} />, label: 'Configuración', hidden: !isAdmin }, // Only Admins
+        { path: '/admin/config', icon: <Settings size={20} />, label: 'Configuración', hidden: !isAdmin },
     ].filter(item => !item.hidden);
 
     const isActive = (path: string) => location.pathname === path;
@@ -61,17 +64,17 @@ const AdminLayout = () => {
                     }`}
             >
                 {/* Logo Area */}
-                <div className="h-16 flex items-center px-6 border-b border-slate-800">
+                <Link to="/admin/profile" className="h-16 flex items-center px-6 border-b border-slate-800 hover:bg-slate-800/50 transition-colors group">
                     <img src={LOGO_ADMIN_URL} alt="Octopus Admin" className="h-8 w-auto mr-3" />
                     <div className="flex flex-col justify-center">
-                        <span className="font-bold text-sm tracking-wide font-space text-white truncate max-w-[140px]" title={profile?.name || profile?.email}>
+                        <span className="font-bold text-sm tracking-wide font-space text-white truncate max-w-[140px] group-hover:text-[#1FB6D5] transition-colors" title={profile?.name || profile?.email}>
                             {profile?.name ? profile.name.toUpperCase() : (profile?.email?.split('@')[0].toUpperCase() || 'ADMIN')}
                         </span>
                         <span className="text-[10px] text-emerald-400 font-mono tracking-widest uppercase">
                             {isAdmin ? 'ADMIN' : (profile?.role || 'INVITADO')}
                         </span>
                     </div>
-                </div>
+                </Link>
 
                 {/* Nav Items */}
                 <nav className="p-4 space-y-2 overflow-y-auto max-h-[calc(100vh-4rem)]">

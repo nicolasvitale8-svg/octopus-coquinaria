@@ -20,6 +20,8 @@ import AdminAcademy from './pages/AdminAcademy';
 import AdminProjects from './pages/AdminProjects';
 import AdminProjectHub from './pages/AdminProjectHub';
 import AdminUsers from './pages/AdminUsers';
+import ConsultantDashboard from './pages/ConsultantDashboard';
+import UserProfile from './pages/UserProfile';
 import { AdminConfig } from './pages/AdminPages';
 
 
@@ -52,6 +54,7 @@ const App = () => {
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<Navigate to="/admin/dashboard" replace />} />
               <Route path="dashboard" element={<AdminDashboard />} />
+              <Route path="consultant-dashboard" element={<ConsultantDashboard />} />
               <Route path="leads" element={<AdminLeads />} />
               <Route path="projects" element={<AdminProjects />} />
               <Route path="projects/:id" element={<AdminProjectHub />} />
@@ -59,10 +62,16 @@ const App = () => {
               <Route path="calendar" element={<AdminCalendar />} />
               <Route path="academy" element={<AdminAcademy />} />
               <Route path="config" element={<AdminConfig />} />
+              <Route path="profile" element={<UserProfile />} />
             </Route>
           </Route>
 
           {/* New Hub Routes for Clients/Managers */}
+          <Route path="/hub/profile" element={
+            <ProtectedRoute>
+              <UserProfile />
+            </ProtectedRoute>
+          } />
           <Route path="/hub/calendar" element={
             <ProtectedRoute>
               <HubCalendar />

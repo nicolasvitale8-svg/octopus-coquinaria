@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import AdminLayout from '../components/AdminLayout';
 import { getAllProjects, createProject, deleteProject } from '../services/projectService';
 import { Project } from '../types';
-import { Search, Briefcase, Plus, AlertCircle, Calendar, ArrowRight, X, Trash2 } from 'lucide-react';
+import { Search, Briefcase, Plus, AlertCircle, Calendar, ArrowRight, X, Trash2, FileText, CheckSquare } from 'lucide-react';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import LoadingOverlay from '../components/ui/LoadingOverlay';
@@ -183,11 +183,29 @@ const AdminProjects = () => {
                                         {project.business_name}
                                     </td>
                                     <td className="px-6 py-4 text-center">
-                                        <Link to={`/admin/projects/${project.id}`}>
-                                            <Button size="sm" variant="outline" className="border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10 hover:border-cyan-400 py-1 px-3 text-xs h-auto">
-                                                Hub <ArrowRight className="w-3 h-3 ml-1" />
-                                            </Button>
-                                        </Link>
+                                        <div className="flex items-center justify-center gap-2">
+                                            <Link to={`/admin/projects/${project.id}`}>
+                                                <Button size="sm" variant="outline" className="border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10 hover:border-cyan-400 py-1 px-3 text-xs h-auto">
+                                                    Hub <ArrowRight className="w-3 h-3 ml-1" />
+                                                </Button>
+                                            </Link>
+
+                                            {/* V4 Indicators */}
+                                            <div className="flex flex-col gap-1 items-start min-w-[60px]">
+                                                {project.deliverables?.some(d => d.status === 'IN_REVIEW' || d.status === 'PENDING') && (
+                                                    <div className="flex items-center gap-1 text-[9px] font-bold text-orange-400 bg-orange-400/10 px-1.5 py-0.5 rounded border border-orange-400/20" title="Entregables para revisión">
+                                                        <FileText className="w-2.5 h-2.5" />
+                                                        {project.deliverables.filter(d => d.status === 'IN_REVIEW' || d.status === 'PENDING').length}
+                                                    </div>
+                                                )}
+                                                {project.tasks?.some(t => t.priority === 'urgent' && t.status !== 'DONE') && (
+                                                    <div className="flex items-center gap-1 text-[9px] font-bold text-red-500 bg-red-500/10 px-1.5 py-0.5 rounded border border-red-500/20 animate-pulse" title="Tareas urgentes">
+                                                        <CheckSquare className="w-2.5 h-2.5" />
+                                                        URGENTE
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
                                     </td>
                                     <td className="px-6 py-4 text-slate-300 whitespace-normal max-w-[180px] leading-tight">
                                         {project.main_service || '-'}

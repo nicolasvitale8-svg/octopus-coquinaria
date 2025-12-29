@@ -32,7 +32,11 @@ export const getAllProjects = async (filterIds?: string[]): Promise<Project[]> =
                 new Promise((resolve, reject) => {
                     let query = client
                         .from('projects')
-                        .select('*')
+                        .select(`
+                            *,
+                            tasks:tasks(status, priority),
+                            deliverables:deliverables(status)
+                        `)
                         .order('created_at', { ascending: false });
 
                     // Apply filter if provided
@@ -102,6 +106,23 @@ export const getProjectById = async (id: string): Promise<Project | null> => {
                                         email,
                                         role,
                                         job_title
+                                    )
+                                ),
+                                project_members (
+                                    user_id,
+                                    role_id,
+                                    specialties,
+                                    permissions_override,
+                                    usuarios (
+                                        id,
+                                        full_name,
+                                        email,
+                                        role,
+                                        job_title
+                                    ),
+                                    roles (
+                                        id,
+                                        name
                                     )
                                 )
                             `)

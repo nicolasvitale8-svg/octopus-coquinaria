@@ -143,6 +143,13 @@ const Layout: React.FC<LayoutProps> = ({ children, user: propUser }) => {
                       <BarChart2 className="w-4 h-4" />
                       Tablero ({internalUser.email?.split('@')[0]})
                     </Link>
+                    <Link
+                      to="/hub/profile"
+                      className="p-2 text-slate-400 hover:text-[#1FB6D5] hover:bg-slate-800 rounded-full transition-all"
+                      title="Mi Perfil"
+                    >
+                      <UserIcon className="w-5 h-5" />
+                    </Link>
                     <button
                       onClick={handleLogout}
                       className="text-slate-400 hover:text-white transition-colors"

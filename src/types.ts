@@ -111,7 +111,15 @@ export type Permission =
   | 'view_dashboard'
   | 'view_finance_basic'
   | 'view_calendar'
+  | 'view_tasks'
   | 'create_tasks'
+  | 'assign_tasks'
+  | 'edit_task_status'
+  | 'approve_task'
+  | 'upload_deliverable'
+  | 'approve_deliverable'
+  | 'view_finance_advanced'
+  | 'manage_members'
   | 'edit_calendar'
   | 'edit_settings'
   | 'super_admin'; // Special permission for safety
@@ -120,10 +128,37 @@ export interface AppUser {
   id: string;
   email: string;
   name: string;
+  full_name?: string; // Sync with DB
   role: UserRole;
   permissions: Permission[];
   businessIds: string[]; // memberships
   businessName?: string; // Legacy/Display
+  job_title?: string;
+  phone?: string;
+}
+
+export interface Role {
+  id: string;
+  name: string;
+  description?: string;
+}
+
+export interface ProjectMember {
+  project_id: string;
+  user_id: string;
+  role_id: string;
+  specialties: string[];
+  permissions_override: Permission[];
+  is_active: boolean;
+  joined_at: string;
+  usuarios?: {
+    id: string;
+    full_name: string;
+    email: string;
+    role: UserRole;
+    job_title?: string;
+  };
+  roles?: Role;
 }
 
 
@@ -191,6 +226,62 @@ export interface ExternalSystemAccess {
   notes?: string;
 }
 
+// --- Octopus V4: Tasks & Deliverables ---
+
+export type TaskType = 'INTERNAL' | 'CLIENT' | 'APPROVAL' | 'REQUEST';
+export type TaskStatus = 'TODO' | 'DOING' | 'BLOCKED' | 'DONE' | 'PENDING' | 'IN_REVIEW' | 'APPROVED' | 'REJECTED';
+export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent';
+export type TaskVisibility = 'INTERNAL_ONLY' | 'SHARED' | 'CLIENT_ONLY';
+
+export interface ProjectTask {
+  id: string;
+  project_id: string;
+  title: string;
+  description?: string;
+  type: TaskType;
+  status: TaskStatus;
+  priority: TaskPriority;
+  due_date?: string;
+  created_by: string;
+  assigned_to?: string;
+  visibility: TaskVisibility;
+  attachments?: string[];
+  comments_count?: number;
+  created_at: string;
+}
+
+export interface Deliverable {
+  id: string;
+  project_id: string;
+  title: string;
+  file_url?: string;
+  version: string;
+  status: 'PENDING' | 'IN_REVIEW' | 'APPROVED' | 'REJECTED';
+  assigned_approver?: string;
+  internal_notes?: string;
+  created_at: string;
+}
+
+export interface Specialty {
+  id: string;
+  name: string;
+  color?: string;
+}
+
+export interface ProjectNote {
+  id: string;
+  project_id: string;
+  user_id: string;
+  content: string;
+  category: 'GENERAL' | 'UPDATE' | 'ALERT' | 'MEETING' | 'INTERNAL';
+  visibility: 'INTERNAL' | 'CLIENT_SHARED';
+  created_at: string;
+  usuarios?: {
+    full_name: string;
+    role: UserRole;
+  };
+}
+
 export interface Project {
   // ... existing fields ...
   id: string;
@@ -226,17 +317,29 @@ export interface Project {
   };
   milestones: ProjectMilestone[];
   activity_log: ProjectActivity[];
-  // Members from business_memberships
-  business_memberships?: {
+
+  // V4 Extensions
+  tasks?: ProjectTask[];
+  deliverables?: Deliverable[];
+
+  // Members from project_members (Successor of business_memberships)
+  project_members?: {
     user_id: string;
+    role_id: UserRole;
+    specialties: string[];
+    permissions_override: Permission[];
+    is_active: boolean;
     usuarios: {
       id: string;
       full_name: string;
       email: string;
-      role: string;
+      role: UserRole;
       job_title?: string;
     }
   }[];
+
+  // Legacy compatibility
+  business_memberships?: any[];
 }
 
 // --- TICKER TYPES ---
