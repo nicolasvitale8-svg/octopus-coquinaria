@@ -14,12 +14,16 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Button from '../components/ui/Button';
+import AddTaskModal from '../components/project/AddTaskModal';
+import { Plus } from 'lucide-react';
 
 const ConsultantDashboard = () => {
     const { profile } = useAuth();
     const [myTasks, setMyTasks] = useState<ProjectTask[]>([]);
     const [myProjects, setMyProjects] = useState<Project[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+    const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false);
 
     useEffect(() => {
         if (profile?.id) {
@@ -143,21 +147,52 @@ const ConsultantDashboard = () => {
                     </h2>
                     <div className="grid grid-cols-1 gap-4">
                         {myProjects.map(project => (
-                            <Link
-                                key={project.id}
-                                to={`/admin/projects/${project.id}`}
-                                className="bg-slate-900 border border-slate-800 p-5 rounded-xl hover:border-cyan-500/50 transition-all group flex justify-between items-center"
-                            >
-                                <div>
-                                    <h3 className="text-white font-bold mb-1 group-hover:text-cyan-400">{project.business_name}</h3>
-                                    <p className="text-xs text-slate-500">{project.phase} • {project.status.toUpperCase()}</p>
+                            <div key={project.id} className="bg-slate-900 border border-slate-800 rounded-xl hover:border-cyan-500/50 transition-all group overflow-hidden">
+                                <div className="p-5 flex justify-between items-center">
+                                    <Link to={`/admin/projects/${project.id}`} className="flex-1">
+                                        <h3 className="text-white font-bold mb-1 group-hover:text-cyan-400">{project.business_name}</h3>
+                                        <p className="text-xs text-slate-500">{project.phase} • {project.status.toUpperCase()}</p>
+                                    </Link>
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            onClick={() => {
+                                                setSelectedProject(project);
+                                                setIsAddTaskModalOpen(true);
+                                            }}
+                                            className="p-2 text-slate-500 hover:text-cyan-400 hover:bg-cyan-500/10 rounded-lg transition-all flex items-center gap-1.5"
+                                            title="Nueva Tarea"
+                                        >
+                                            <Plus className="w-4 h-4" />
+                                            <span className="text-[10px] font-bold uppercase hidden md:inline">Tarea</span>
+                                        </button>
+                                        <Link
+                                            to={`/admin/projects/${project.id}`}
+                                            className="p-2 text-slate-500 hover:text-white hover:bg-slate-800 rounded-lg transition-all"
+                                        >
+                                            <ChevronRight className="w-5 h-5" />
+                                        </Link>
+                                    </div>
                                 </div>
-                                <ChevronRight className="w-5 h-5 text-slate-600 group-hover:text-cyan-400 group-hover:translate-x-1 transition-all" />
-                            </Link>
+                            </div>
                         ))}
                     </div>
                 </section>
             </div>
+
+            {isAddTaskModalOpen && selectedProject && (
+                <AddTaskModal
+                    project={selectedProject}
+                    onClose={() => {
+                        setIsAddTaskModalOpen(false);
+                        setSelectedProject(null);
+                    }}
+                    onSuccess={() => {
+                        fetchData();
+                        setIsAddTaskModalOpen(false);
+                        setSelectedProject(null);
+                    }}
+                />
+            )}
         </div>
     );
 };

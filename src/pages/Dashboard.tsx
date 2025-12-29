@@ -51,10 +51,10 @@ const Dashboard = () => {
     const mapAndSetHistory = (data: any[]) => {
       const mappedHistory = data.map(d => ({
         month: d.date ? new Date(d.date).toLocaleDateString('es-AR', { month: 'short' }) : 'Mes',
-        sales: d.monthlyRevenue || 0,
-        cogs: d.cogsPercentage || 0,
-        labor: d.laborPercentage || 0,
-        result: d.marginPercentage || d.result || 0,
+        sales: d.monthlyRevenue || d.monthly_revenue || d.totalSales || d.monthly_revenue || 0,
+        cogs: d.cogsPercentage || d.cogs_percentage || 0,
+        labor: d.laborPercentage || d.labor_percentage || 0,
+        result: d.marginPercentage || d.margin_percentage || d.result || 0,
         isReal: true
       }));
       setHistory(mappedHistory.reverse()); // Chronological order
@@ -108,7 +108,7 @@ const Dashboard = () => {
             </p>
             <div className="mt-4 flex items-baseline gap-2">
               <h2 className="text-4xl font-black text-white font-mono tracking-tighter">
-                {lastDiagnostic ? formatCurrency(lastDiagnostic.monthlyRevenue || lastDiagnostic.monthly_revenue || 0) : '$ --'}
+                {lastDiagnostic ? formatCurrency(lastDiagnostic.monthlyRevenue || lastDiagnostic.monthly_revenue || lastDiagnostic.totalSales || 0) : '$ --'}
               </h2>
             </div>
             <div className="mt-8 flex gap-3">
@@ -137,10 +137,11 @@ const Dashboard = () => {
               <TrendingDown className="w-4 h-4 text-emerald-400" />
             </div>
             <SemiCircleGauge
-              value={lastDiagnostic?.cogsPercentage || 0}
-              label="CMV (%)"
-              color={lastDiagnostic?.cogsPercentage > 35 ? '#D64747' : '#1FA77A'}
+              value={lastDiagnostic?.cogsPercentage || lastDiagnostic?.cogs_percentage || 0}
+              label="Insumos (%)"
+              color={(lastDiagnostic?.cogsPercentage || lastDiagnostic?.cogs_percentage) > 35 ? '#D64747' : '#1FA77A'}
             />
+            <p className="text-[10px] text-slate-600 font-bold mt-4 italic">* CMV: Costo de Mercadería Vendida</p>
           </div>
 
           {/* MIDDLE ROW: MAIN CHART */}
@@ -153,7 +154,7 @@ const Dashboard = () => {
               <div className="flex gap-6">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 bg-[#00344F] rounded-full"></div>
-                  <span className="text-xs text-slate-400">% Mercadería</span>
+                  <span className="text-xs text-slate-400">% Insumos (CMV)</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 bg-[#F2B350] rounded-full"></div>
@@ -161,7 +162,7 @@ const Dashboard = () => {
                 </div>
               </div>
             </div>
-            <div className="h-[400px] w-full">
+            <div className="h-[550px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={history}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ffffff0a" />
