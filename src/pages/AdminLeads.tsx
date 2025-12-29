@@ -172,7 +172,7 @@ const AdminLeads = () => {
                     </td>
                     <td className="p-4 text-center">
                       <div className={`font-bold font-mono ${getStatusColor(lead.scoreGlobal)}`}>
-                        {formatPercent(lead.scoreGlobal / 100)}
+                        {formatPercent(lead.scoreGlobal)}
                       </div>
                     </td>
                     <td className="p-4 text-center flex justify-center gap-2">
@@ -187,16 +187,14 @@ const AdminLeads = () => {
                         onClick={async (e) => {
                           e.stopPropagation();
                           if (confirm('¿Estás seguro de que quieres eliminar este Lead? Esta acción no se puede deshacer.')) {
-                            // 1. Optimistic UI update
-                            setLeads(prev => prev.filter(l => l.id !== lead.id && l.date !== lead.date));
+                            // 1. Optimistic UI update - Try matching by ID first, fallback to date
+                            setLeads(prev => prev.filter(l =>
+                              lead.id ? l.id !== lead.id : l.date !== lead.date
+                            ));
 
                             // 2. Persistent delete
                             const { deleteLead } = await import('../services/storage');
                             await deleteLead(lead);
-
-                            // 3. Optional: Sync back just in case
-                            // const loadedLeads = await getAllLeads();
-                            // setLeads(loadedLeads);
                           }
                         }}
                         className="p-2 bg-red-900/30 hover:bg-red-600 text-red-400 hover:text-white rounded-lg transition-all"
