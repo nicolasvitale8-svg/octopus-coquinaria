@@ -108,14 +108,11 @@ const Dashboard = () => {
             </p>
             <div className="mt-4 flex items-baseline gap-2">
               <h2 className="text-4xl font-black text-white font-mono tracking-tighter">
-                {lastDiagnostic ? formatCurrency(lastDiagnostic.monthlyRevenue || 0) : '$ --'}
+                {lastDiagnostic ? formatCurrency(lastDiagnostic.monthlyRevenue || lastDiagnostic.monthly_revenue || 0) : '$ --'}
               </h2>
-              <span className="text-emerald-500 text-xs font-bold flex items-center">
-                <ArrowUpRight className="w-3 h-3" /> 12%
-              </span>
             </div>
             <div className="mt-8 flex gap-3">
-              <MiniProgressRing value={85} label="Ventas" color="#1FB6D5" />
+              <MiniProgressRing value={lastDiagnostic?.scoreGlobal || 0} label="Salud Global" color="#1FB6D5" />
             </div>
           </div>
 
@@ -164,7 +161,7 @@ const Dashboard = () => {
                 </div>
               </div>
             </div>
-            <div className="h-72 w-full">
+            <div className="h-[400px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={history}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ffffff0a" />
@@ -204,10 +201,10 @@ const Dashboard = () => {
               <h3 className="text-2xl font-bold text-white font-space leading-tight pr-4">Tu Proyecto de Gestión Gastronómica</h3>
               <p className="text-slate-400 text-sm mt-4">Consulta el avance de tus hitos, descarga entregables y mira el estado de tus tareas.</p>
             </div>
-            <Link to="/hub/my-project" className="mt-8">
-              <Button className="w-full bg-white text-[#021019] hover:bg-[#1FB6D5] hover:text-white font-black py-4 transition-all flex items-center justify-center gap-2">
+            <Link to={profile?.businessIds?.[0] ? `/hub/project/${profile.businessIds[0]}` : '#'} className="mt-8">
+              <button className="w-full bg-white text-[#021019] hover:bg-[#1FB6D5] hover:text-white font-black py-4 rounded-xl transition-all flex items-center justify-center gap-2 shadow-xl">
                 IR AL PROYECTO <ChevronRight className="w-4 h-4 translate-x-0 group-hover:translate-x-1 transition-transform" />
-              </Button>
+              </button>
             </Link>
           </div>
 
