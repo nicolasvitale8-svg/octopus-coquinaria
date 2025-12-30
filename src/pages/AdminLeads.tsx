@@ -61,33 +61,33 @@ const AdminLeads = () => {
     }
   };
 
+  // Move fetchLeads to component scope
+  const fetchLeads = async () => {
+    // 1. FAST: Load from LocalStorage immediately
+    const { getDiagnosticHistory } = await import('../services/storage');
+    const history = getDiagnosticHistory();
+    const localLeads = history.filter((h: any) => h.type === 'quick' || !h.type);
+
+    if (localLeads.length > 0) {
+      setLeads(localLeads);
+      setIsLoading(false);
+    }
+
+    try {
+      // 2. SLOW: Fetch from Supabase in background
+      if (localLeads.length === 0) setIsLoading(true);
+
+      const loadedLeads = await getAllLeads();
+      setLeads(loadedLeads);
+    } catch (e: any) {
+      console.error("Error loading leads:", e);
+      setError(e.message || "Error desconocido al cargar leads.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    // Fetch leads async
-    // Fetch leads async
-    const fetchLeads = async () => {
-      // 1. FAST: Load from LocalStorage immediately
-      const { getDiagnosticHistory } = await import('../services/storage');
-      const history = getDiagnosticHistory();
-      const localLeads = history.filter((h: any) => h.type === 'quick' || !h.type);
-
-      if (localLeads.length > 0) {
-        setLeads(localLeads);
-        setIsLoading(false);
-      }
-
-      try {
-        // 2. SLOW: Fetch from Supabase in background
-        if (localLeads.length === 0) setIsLoading(true);
-
-        const loadedLeads = await getAllLeads();
-        setLeads(loadedLeads);
-      } catch (e: any) {
-        console.error("Error loading leads:", e);
-        setError(e.message || "Error desconocido al cargar leads.");
-      } finally {
-        setIsLoading(false);
-      }
-    };
     fetchLeads();
   }, []);
 
@@ -127,15 +127,29 @@ const AdminLeads = () => {
           <p className="text-slate-400 text-sm">Gestiona los diagnósticos y oportunidades.</p>
         </div>
 
-        <div className="relative w-full md:w-64">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500 w-4 h-4" />
-          <input
-            type="text"
-            placeholder="Buscar lead..."
-            className="w-full pl-10 pr-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white focus:ring-2 focus:ring-[#1FB6D5] focus:outline-none"
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-          />
+        <div className="flex items-center gap-3 w-full md:w-auto">
+          <div className="relative flex-1 md:w-64">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500 w-4 h-4" />
+            <input
+              type="text"
+              placeholder="Buscar lead..."
+              className="w-full pl-10 pr-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white focus:ring-2 focus:ring-[#1FB6D5] focus:outline-none"
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+            />
+          </div>
+          <Button
+            onClick={() => {
+              setIsLoading(true);
+              setLeads([]);
+              fetchLeads();
+            }}
+            variant="outline"
+            className="border-slate-700 text-slate-400 hover:text-white"
+            size="sm"
+          >
+            Sincronizar
+          </Button>
         </div>
       </div>
 

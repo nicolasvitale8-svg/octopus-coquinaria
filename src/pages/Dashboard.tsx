@@ -51,7 +51,7 @@ const Dashboard = () => {
     const mapAndSetHistory = (data: any[]) => {
       const mappedHistory = data.map(d => ({
         month: d.date ? new Date(d.date).toLocaleDateString('es-AR', { month: 'short' }) : 'Mes',
-        sales: d.monthlyRevenue || d.monthly_revenue || d.totalSales || d.monthly_revenue || 0,
+        sales: d.monthly_revenue || d.monthlyRevenue || d.totalSales || d.amount || 0,
         cogs: d.cogsPercentage || d.cogs_percentage || 0,
         labor: d.laborPercentage || d.labor_percentage || 0,
         result: d.marginPercentage || d.margin_percentage || d.result || 0,
@@ -72,7 +72,7 @@ const Dashboard = () => {
           <div className="space-y-1">
             <div className="flex items-center gap-2 text-[#1FB6D5] mb-2">
               <Zap className="w-5 h-5 fill-current" />
-              <span className="text-[10px] font-bold uppercase tracking-[0.3em] font-mono">Control de Gestión V4 (v4.1.2)</span>
+              <span className="text-[10px] font-bold uppercase tracking-[0.3em] font-mono">Control de Gestión V4 (v4.1.3)</span>
             </div>
             <h1 className="text-4xl md:text-5xl font-black text-white font-space tracking-tight">
               Hola, <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400">{profile?.name || "Gastronómico"}</span>
@@ -104,11 +104,11 @@ const Dashboard = () => {
               <TrendingUp className="w-16 h-16 text-cyan-400" />
             </div>
             <p className="text-slate-500 text-xs font-bold uppercase tracking-widest flex items-center gap-2">
-              <Activity className="w-3 h-3 text-cyan-500" /> Volumen de Ventas
+              <Activity className="w-3 h-3 text-[#1FB6D5]" /> Volumen de Ventas (Fuerza de Venta)
             </p>
             <div className="mt-4 flex items-baseline gap-2">
-              <h2 className="text-4xl font-black text-white font-mono tracking-tighter">
-                {lastDiagnostic ? formatCurrency(lastDiagnostic.monthlyRevenue || lastDiagnostic.monthly_revenue || lastDiagnostic.totalSales || lastDiagnostic.amount || 0) : '$ --'}
+              <h2 className="text-6xl md:text-7xl font-black text-white font-mono tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-500">
+                {lastDiagnostic ? formatCurrency(lastDiagnostic.monthly_revenue || lastDiagnostic.monthlyRevenue || lastDiagnostic.totalSales || lastDiagnostic.amount || 0) : '$ --'}
               </h2>
             </div>
             <div className="mt-8 flex gap-3">
@@ -162,7 +162,7 @@ const Dashboard = () => {
                 </div>
               </div>
             </div>
-            <div className="h-[550px] w-full">
+            <div className="h-[250px] w-full mt-4">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={history}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ffffff0a" />
