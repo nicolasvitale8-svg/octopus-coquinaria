@@ -30,7 +30,7 @@ export const SemiCircleGauge: React.FC<GaugeProps> = ({
 
     return (
         <div className={`relative flex flex-col items-center justify-center ${className}`}>
-            <div className="w-full h-48">
+            <div className="w-full h-64">
                 <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                         <Pie
@@ -53,8 +53,8 @@ export const SemiCircleGauge: React.FC<GaugeProps> = ({
                     </PieChart>
                 </ResponsiveContainer>
             </div>
-            <div className="absolute top-[60%] left-1/2 -translate-x-1/2 text-center">
-                <span className="text-5xl font-black text-white font-mono tracking-tighter shadow-sm">
+            <div className="absolute top-[65%] left-1/2 -translate-x-1/2 text-center">
+                <span className="text-6xl font-black text-white font-mono tracking-tighter shadow-sm">
                     {value.toFixed(1)}{unit}
                 </span>
                 <p className="text-xs text-slate-400 uppercase font-bold tracking-widest mt-2">{label}</p>

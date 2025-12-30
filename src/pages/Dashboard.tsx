@@ -72,7 +72,7 @@ const Dashboard = () => {
           <div className="space-y-1">
             <div className="flex items-center gap-2 text-[#1FB6D5] mb-2">
               <Zap className="w-5 h-5 fill-current" />
-              <span className="text-[10px] font-bold uppercase tracking-[0.3em] font-mono">Control de Gestión V4 (v4.1.5)</span>
+              <span className="text-[10px] font-bold uppercase tracking-[0.3em] font-mono">Control de Gestión V4 (v4.1.7)</span>
             </div>
             <h1 className="text-4xl md:text-5xl font-black text-white font-space tracking-tight">
               Hola, <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400">{profile?.name || "Gastronómico"}</span>
@@ -107,7 +107,7 @@ const Dashboard = () => {
               <Activity className="w-3 h-3 text-[#1FB6D5]" /> Volumen de Ventas (Fuerza de Venta)
             </p>
             <div className="mt-4 flex items-baseline gap-2">
-              <h2 className="text-6xl md:text-7xl font-black text-white font-mono tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-500">
+              <h2 className="text-5xl md:text-6xl font-black text-white font-mono tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-500">
                 {lastDiagnostic ? formatCurrency(lastDiagnostic.monthly_revenue || lastDiagnostic.monthlyRevenue || lastDiagnostic.totalSales || lastDiagnostic.amount || 0) : '$ --'}
               </h2>
             </div>
@@ -202,7 +202,7 @@ const Dashboard = () => {
               <h3 className="text-2xl font-bold text-white font-space leading-tight pr-4">Tu Proyecto de Gestión Gastronómica</h3>
               <p className="text-slate-400 text-sm mt-4">Consulta el avance de tus hitos, descarga entregables y mira el estado de tus tareas.</p>
             </div>
-            <Link to={profile?.businessIds?.[0] ? `/hub/project/${profile.businessIds[0]}` : '#'} className="mt-8">
+            <Link to={profile?.businessIds?.[0] ? `/hub/projects/${profile.businessIds[0]}` : '#'} className="mt-8">
               <button className="w-full bg-white text-[#021019] hover:bg-[#1FB6D5] hover:text-white font-black py-4 rounded-xl transition-all flex items-center justify-center gap-2 shadow-xl">
                 IR AL PROYECTO <ChevronRight className="w-4 h-4 translate-x-0 group-hover:translate-x-1 transition-transform" />
               </button>
