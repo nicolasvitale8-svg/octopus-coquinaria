@@ -72,7 +72,7 @@ const Dashboard = () => {
           <div className="space-y-1">
             <div className="flex items-center gap-2 text-[#1FB6D5] mb-2">
               <Zap className="w-5 h-5 fill-current" />
-              <span className="text-[10px] font-bold uppercase tracking-[0.3em] font-mono">Control de Gestión V4 (v4.1.3)</span>
+              <span className="text-[10px] font-bold uppercase tracking-[0.3em] font-mono">Control de Gestión V4 (v4.1.5)</span>
             </div>
             <h1 className="text-4xl md:text-5xl font-black text-white font-space tracking-tight">
               Hola, <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400">{profile?.name || "Gastronómico"}</span>
