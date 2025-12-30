@@ -140,12 +140,22 @@ const AdminLeads = () => {
           </div>
           <Button
             onClick={async () => {
+              const confirmSync = confirm("¿Sincronizar base de datos con Supabase?\n\nEsto buscará todos los leads guardados en la nube que quizás no aparecen en tu lista local.");
+              if (!confirmSync) return;
+
               setIsLoading(true);
               setLeads([]);
+              setError(null);
+
               try {
-                await fetchLeads();
-              } catch (e) {
+                // Mock a small wait for better UX
+                const loadedLeads = await getAllLeads();
+                setLeads(loadedLeads);
+                alert(`✅ Sincronización exitosa.\n\nSe encontraron ${loadedLeads.length} leads en la nube.`);
+              } catch (e: any) {
                 console.error("Manual sync failed", e);
+                setError(`Fallo en la sincronización: ${e.message}`);
+                alert(`❌ Error al sincronizar: ${e.message}`);
               } finally {
                 setIsLoading(false);
               }
