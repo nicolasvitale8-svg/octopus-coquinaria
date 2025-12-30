@@ -139,10 +139,16 @@ const AdminLeads = () => {
             />
           </div>
           <Button
-            onClick={() => {
+            onClick={async () => {
               setIsLoading(true);
               setLeads([]);
-              fetchLeads();
+              try {
+                await fetchLeads();
+              } catch (e) {
+                console.error("Manual sync failed", e);
+              } finally {
+                setIsLoading(false);
+              }
             }}
             variant="outline"
             className="border-slate-700 text-slate-400 hover:text-white"

@@ -137,7 +137,7 @@ const QuickDiagnostic = () => {
           }
 
           // 2. Save Express Diagnostic
-          const { error: diagError } = await supabase.from('diagnosticos_express').insert({
+          const diagPayload = {
             contact_name: formData.contactName,
             contact_email: formData.contactEmail,
             contact_phone: formData.contactPhone,
@@ -155,9 +155,22 @@ const QuickDiagnostic = () => {
             margin_percentage: finalResult.marginPercentage,
             full_data: finalResult,
             source: 'web_quick_diagnostic'
-          });
+          };
 
-          if (diagError) console.error("❌ Error guardando diagnóstico:", diagError);
+          const { error: diagError } = await supabase.from('diagnosticos_express').insert(diagPayload);
+
+          if (diagError) {
+            console.warn("⚠️ Fallo insert directo, reintentando solo con campos base + full_data...");
+            // Fallback: Si fallan las columnas nuevas, guardar solo lo básico + el JSON completo
+            const fallbackPayload = {
+              contact_name: formData.contactName,
+              contact_email: formData.contactEmail,
+              business_name: formData.businessName,
+              full_data: finalResult,
+              source: 'web_quick_diagnostic_fallback'
+            };
+            await supabase.from('diagnosticos_express').insert(fallbackPayload);
+          }
 
         } catch (e) {
           console.error("❌ Error crítico en guardado de Supabase:", e);
