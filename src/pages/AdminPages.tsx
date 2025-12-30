@@ -12,7 +12,7 @@ export const AdminConfig = () => (
         </div>
         <div className="mt-12 pt-8 border-t border-slate-800 w-full max-w-xs text-center">
             <p className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Versión del Sistema</p>
-            <p className="text-xl font-black text-[#1FB6D5] mt-1">v4.1.5</p>
+            <p className="text-xl font-black text-[#1FB6D5] mt-1">v4.1.7</p>
             <div className="mt-4 flex items-center justify-center gap-2">
                 <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
                 <span className="text-[10px] text-emerald-500 font-bold uppercase tracking-wider">Motor Octopus Activo</span>
