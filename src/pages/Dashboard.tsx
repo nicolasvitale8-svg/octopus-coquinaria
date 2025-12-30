@@ -72,7 +72,7 @@ const Dashboard = () => {
           <div className="space-y-1">
             <div className="flex items-center gap-2 text-[#1FB6D5] mb-2">
               <Zap className="w-5 h-5 fill-current" />
-              <span className="text-[10px] font-bold uppercase tracking-[0.3em] font-mono">Control de Gestión V4</span>
+              <span className="text-[10px] font-bold uppercase tracking-[0.3em] font-mono">Control de Gestión V4 (v4.1.2)</span>
             </div>
             <h1 className="text-4xl md:text-5xl font-black text-white font-space tracking-tight">
               Hola, <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400">{profile?.name || "Gastronómico"}</span>
@@ -108,7 +108,7 @@ const Dashboard = () => {
             </p>
             <div className="mt-4 flex items-baseline gap-2">
               <h2 className="text-4xl font-black text-white font-mono tracking-tighter">
-                {lastDiagnostic ? formatCurrency(lastDiagnostic.monthlyRevenue || lastDiagnostic.monthly_revenue || lastDiagnostic.totalSales || 0) : '$ --'}
+                {lastDiagnostic ? formatCurrency(lastDiagnostic.monthlyRevenue || lastDiagnostic.monthly_revenue || lastDiagnostic.totalSales || lastDiagnostic.amount || 0) : '$ --'}
               </h2>
             </div>
             <div className="mt-8 flex gap-3">
@@ -133,15 +133,15 @@ const Dashboard = () => {
           {/* KPI GAUGE: CMV COST */}
           <div className="md:col-span-4 bg-slate-900/60 border border-white/10 p-8 rounded-[2rem] backdrop-blur-md relative">
             <div className="flex justify-between items-center mb-4">
-              <p className="text-slate-500 text-xs font-bold uppercase tracking-widest">Costo Alimentos (CMV)</p>
+              <p className="text-slate-500 text-xs font-bold uppercase tracking-widest">Costo de Ventas (Insumos)</p>
               <TrendingDown className="w-4 h-4 text-emerald-400" />
             </div>
             <SemiCircleGauge
               value={lastDiagnostic?.cogsPercentage || lastDiagnostic?.cogs_percentage || 0}
-              label="Insumos (%)"
+              label="Costo %"
               color={(lastDiagnostic?.cogsPercentage || lastDiagnostic?.cogs_percentage) > 35 ? '#D64747' : '#1FA77A'}
             />
-            <p className="text-[10px] text-slate-600 font-bold mt-4 italic">* CMV: Costo de Mercadería Vendida</p>
+            <p className="text-[10px] text-slate-600 font-bold mt-4 italic">* El CMV representa el impacto de tus insumos sobre el total vendido.</p>
           </div>
 
           {/* MIDDLE ROW: MAIN CHART */}

@@ -92,10 +92,12 @@ const AdminLeads = () => {
   }, []);
 
   const filteredLeads = leads.filter(lead => {
-    const matchesSearch = lead.leadData?.business?.toLowerCase().includes(filter.toLowerCase()) ||
-      lead.leadData?.name?.toLowerCase().includes(filter.toLowerCase());
+    const searchLower = filter.toLowerCase();
+    const business = (lead.leadData?.business || lead.business_name || '').toLowerCase();
+    const name = (lead.leadData?.name || lead.contact_name || '').toLowerCase();
 
-    const matchesStatus = statusFilter ? lead.status === statusFilter : true;
+    const matchesSearch = !filter || business.includes(searchLower) || name.includes(searchLower);
+    const matchesStatus = !statusFilter || lead.status === statusFilter;
 
     return matchesSearch && matchesStatus;
   });
