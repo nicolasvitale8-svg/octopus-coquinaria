@@ -17,8 +17,7 @@ export const APP_NAME = "Octopus Coquinaria";
 export const LINKEDIN_URL = "https://www.linkedin.com/";
 
 // --- ASSETS VISUALES (URLs Externas) ---
-// --- ASSETS VISUALES (URLs Externas) ---
-export const GLOBAL_LOGO_URL = "https://i.postimg.cc/C1240jfz/logo_completo.png"; // Fallback legacy
+export const GLOBAL_LOGO_URL = "https://i.postimg.cc/C1240jfz/logo_completo.png";
 export const LOGO_ADMIN_URL = "https://i.postimg.cc/6pJzVPf7/pulpo-admin-transparente.png";
 export const LOGO_USER_URL = "https://i.postimg.cc/90wtZP42/pulpo-usuario-transparente.png";
 export const LOGO_PREMIUM_URL = "https://i.postimg.cc/sXGbDNPF/pulpo-premium-dorado-transparente-v3.png";
@@ -31,10 +30,6 @@ export const NICOLAS_PHOTO_URL = "https://i.postimg.cc/ht9zPVN8/Generated_Image_
 export const COLIFA_MENU_URL = "https://drive.google.com/file/d/12x0CoM4lYMKMNSQWtNxPEEtT2eAMiCX4/view?usp=drive_link";
 export const TECHNICAL_SHEETS_EXAMPLE_URL = "https://drive.google.com/file/d/1vfOyn2-cQ2ZKH6EDxbrL6RhCCbR65QEe/view?usp=sharing";
 export const PROCESS_EXAMPLE_URL = "https://drive.google.com/file/d/18--dvReEprD_5RN3Q2llxn6Nw8giqeFt/view?usp=sharing";
-
-// --- SUPABASE CONFIGURATION ---
-// Configuración inyectada automáticamente.
-// (Ignored to avoid duplicates with lines 5-6)
 
 // --- METHODOLOGY DATA ---
 export const METHODOLOGY_7P = [
@@ -122,43 +117,52 @@ export const ACADEMY_RESOURCES: AcademyResource[] = [
   {
     id: '1',
     title: 'Cómo calcular tu Costo de Mercadería (CMV) Real',
-    type: 'video',
-    duration: '12 min',
-    topics: ['finanzas', 'operaciones'],
-    letters7p: ['O', 'T'],
-    summary: 'Dejá de adivinar. Aprendé la fórmula exacta para saber cuánto te cuesta cada plato.',
-    description: 'La mayoría de los gastronómicos confunde compras con costo. En este video explicamos la diferencia vital entre lo que pagás y lo que realmente consumís (Inventario Inicial + Compras - Inventario Final). Incluye planilla descargable.',
-    idealFor: ['Dueños', 'Gerentes', 'Jefes de Cocina'],
+    outcome: 'Dominar la fórmula exacta para saber cuánto te cuesta cada plato y dejar de adivinar.',
+    description: 'La mayoría de los gastronómicos confunde compras con costo. Explicamos la diferencia vital entre compras y consumo real.',
+    category: 'COSTOS',
+    format: 'VIDEO',
+    impactTag: 'HERRAMIENTA',
+    level: 1,
+    durationMinutes: 12,
+    access: 'PUBLIC',
+    isPinned: true,
+    createdAt: new Date().toISOString(),
+    youtubeId: '7k1iPypNCBw',
     actionSteps: ['Hacé un inventario general hoy.', 'Registrá todas las compras del mes.', 'Aplicá la fórmula (II + C - IF) / Venta.'],
-    recommendedTrigger: ['high_cogs'],
-    youtubeId: '7k1iPypNCBw'
+    pilares: ['orden', 'tecnologia']
   },
   {
     id: '2',
-    title: 'Checklist de Apertura y Cierre: Tu salvavidas',
-    type: 'template',
-    duration: 'Lectura 5 min',
-    topics: ['operaciones', 'equipo'],
-    letters7p: ['O', 'U'],
-    summary: 'Plantilla lista para imprimir que asegura que tu local abra y cierre perfecto siempre.',
-    description: 'El caos operativo empieza cuando cada uno hace las cosas "a su manera". Estandarizá el inicio y fin del día con esta herramienta simple pero poderosa. Si no está tildado, no está hecho.',
-    idealFor: ['Encargados', 'Camareros', 'Cocineros'],
+    title: 'Checklist de Apertura y Cierre',
+    outcome: 'Estandarizar la operación diaria para asegurar que tu local abra y cierre perfecto siempre.',
+    description: 'El caos operativo empieza cuando cada uno hace las cosas "a su manera". Estandarizá el inicio y fin del día.',
+    category: 'OPERACIONES',
+    format: 'TEMPLATE',
+    impactTag: 'HERRAMIENTA',
+    level: 1,
+    durationMinutes: 5,
+    access: 'PUBLIC',
+    isPinned: true,
+    createdAt: new Date().toISOString(),
+    downloadUrl: '/files/checklist-apertura.pdf',
     actionSteps: ['Descargá el PDF.', 'Adaptalo a tus horarios.', 'Pegalo en una tabla y usalo mañana.'],
-    recommendedTrigger: ['low_order'],
-    downloadUrl: '/files/checklist-apertura.pdf'
+    pilares: ['orden', 'universalidad']
   },
   {
     id: '3',
     title: 'Ingeniería de Menú: Vendé lo que te conviene',
-    type: 'guide',
-    duration: 'Lectura 15 min',
-    topics: ['marketing', 'finanzas'],
-    letters7p: ['C', 'P'],
-    summary: 'Cómo diseñar tu carta para dirigir la venta hacia tus platos más rentables (Estrellas).',
-    description: 'Tu carta no es una lista de precios, es tu principal herramienta de venta. Aprendé a clasificar tus platos en Estrellas, Caballitos de Batalla, Puzzles y Perros, y qué hacer con cada uno.',
-    idealFor: ['Dueños', 'Chefs'],
-    actionSteps: ['Calculá el margen de cada plato.', 'Mide la popularidad (cantidad vendida).', 'Rediseñá el menú destacando los Estrellas.'],
-    recommendedTrigger: ['low_margin']
+    outcome: 'Diseñar tu carta para dirigir la venta hacia tus platos más rentables (Estrellas).',
+    description: 'Tu carta no es una lista de precios, es tu principal herramienta de venta estratégica.',
+    category: 'MARKETING',
+    format: 'GUIDE',
+    impactTag: 'MARCO',
+    level: 2,
+    durationMinutes: 15,
+    access: 'PRO',
+    isPinned: false,
+    createdAt: new Date().toISOString(),
+    actionSteps: ['Calculá el margen de cada plato.', 'Mide la popularidad.', 'Rediseñá el menú destacando los Estrellas.'],
+    pilares: ['creatividad', 'pragmatismo']
   }
 ];
 
@@ -166,14 +170,28 @@ export const LEARNING_PATHS: LearningPath[] = [
   {
     id: 'finanzas-basicas',
     title: 'Finanzas para no Financieros',
-    description: 'Ordená los números de tu restaurante en 3 pasos simples.',
-    resourceIds: ['1', '3']
+    subtitle: 'Ordená los números de tu restaurante',
+    audience: 'DUENO',
+    category: 'COSTOS',
+    estimatedMinutes: 30,
+    resourceIds: ['1', '3'],
+    access: 'PUBLIC',
+    order: 1,
+    isPublished: true,
+    description: 'Ordená los números de tu restaurante en 3 pasos simples.'
   },
   {
     id: 'operacion-blindada',
     title: 'Operación Blindada',
-    description: 'Sistemas para que el negocio funcione sin que estés encima.',
-    resourceIds: ['2']
+    subtitle: 'Sistemas infalibles',
+    audience: 'DUENO',
+    category: 'OPERACIONES',
+    estimatedMinutes: 20,
+    resourceIds: ['2'],
+    access: 'PRO',
+    order: 2,
+    isPublished: true,
+    description: 'Sistemas para que el negocio funcione sin que estés encima.'
   }
 ];
 
