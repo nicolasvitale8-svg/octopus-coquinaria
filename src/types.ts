@@ -173,7 +173,7 @@ export interface ProjectMember {
 
 // --- ACADEMY TYPES v2 ---
 
-export type ResourceFormat = 'VIDEO' | 'PDF' | 'GUIDE' | 'TIP' | 'TEMPLATE';
+export type ResourceFormat = 'VIDEO' | 'PDF' | 'GUIDE' | 'TIP' | 'TEMPLATE' | 'FORM';
 export type ResourceCategory = 'COSTOS' | 'OPERACIONES' | 'EQUIPO' | 'MARKETING' | 'TECNOLOGIA' | 'CLIENTE';
 export type ResourceImpactTag = 'QUICK_WIN' | 'HERRAMIENTA' | 'MARCO' | 'LECTURA' | 'CASO';
 export type ResourceAccess = 'PUBLIC' | 'PRO';

@@ -144,6 +144,7 @@ const AcademyResourceModal: React.FC<AcademyResourceModalProps> = ({ isOpen, onC
                                 <option value="TEMPLATE">PLANTILLA</option>
                                 <option value="TIP">MICROTIP</option>
                                 <option value="PDF">PDF</option>
+                                <option value="FORM">FORMULARIO</option>
                             </select>
                         </div>
                         <div>

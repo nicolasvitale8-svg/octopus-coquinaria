@@ -1,5 +1,5 @@
 import React from 'react';
-import { Video, FileSpreadsheet, FileText, Lock, ExternalLink, Trash2, Zap, Layout as LayoutIcon, Edit } from 'lucide-react';
+import { Video, FileSpreadsheet, FileText, Lock, ExternalLink, Trash2, Zap, Layout as LayoutIcon, Edit, ClipboardList } from 'lucide-react';
 import { AcademyResource } from '../../types';
 
 interface AcademyResourceTableProps {
@@ -16,6 +16,7 @@ const AcademyResourceTable: React.FC<AcademyResourceTableProps> = ({ resources, 
             case 'VIDEO': return <Video className="w-5 h-5 text-red-500" />;
             case 'TEMPLATE': return <FileSpreadsheet className="w-5 h-5 text-green-500" />;
             case 'TIP': return <Zap className="w-5 h-5 text-amber-500" />;
+            case 'FORM': return <ClipboardList className="w-5 h-5 text-blue-400" />;
             default: return <FileText className="w-5 h-5 text-[#1FB6D5]" />;
         }
     };
