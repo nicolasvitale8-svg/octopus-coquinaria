@@ -114,8 +114,42 @@ export const getRecommendedContent = (
 };
 
 /** 
- * Legacy cleanup - Replaced by getResources v2 
+ * Delete resource
  */
-export const syncLocalResources = async () => { };
-export const deleteResource = async (id: string) => { };
-export const createResource = async (r: any) => { return r; };
+export const deleteResource = async (id: string) => {
+    if (!supabase) return;
+    const { error } = await supabase.from('recursos_academia').delete().eq('id', id);
+    if (error) throw error;
+};
+
+/** 
+ * Create/Update resource
+ */
+export const createResource = async (r: any) => {
+    if (!supabase) return;
+
+    const dbPayload = {
+        titulo: r.titulo || r.title,
+        descripcion: r.description,
+        outcome: r.outcome,
+        category: r.category,
+        format: r.format,
+        impact_tag: r.impactTag,
+        level: r.level,
+        duration_minutes: r.durationMinutes,
+        access: r.access,
+        is_pinned: r.isPinned,
+        url: r.url,
+        youtube_id: r.youtube_id,
+        action_steps: r.actionSteps,
+        pilares: r.pilares
+    };
+
+    const { data, error } = await supabase
+        .from('recursos_academia')
+        .upsert([dbPayload])
+        .select();
+
+    if (error) throw error;
+    return data;
+};
