@@ -71,5 +71,22 @@ export const taskService = {
             .eq('id', taskId);
 
         return !error;
+    },
+
+    /**
+     * Delete a task
+     */
+    deleteTask: async (id: string): Promise<boolean> => {
+        if (!supabase) return false;
+        const { error } = await supabase
+            .from('tasks')
+            .delete()
+            .eq('id', id);
+
+        if (error) {
+            console.error("Error deleting task:", error);
+            return false;
+        }
+        return true;
     }
 };

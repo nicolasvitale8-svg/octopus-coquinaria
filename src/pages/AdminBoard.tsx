@@ -357,6 +357,24 @@ const AdminBoard = () => {
                                 />
                             </div>
 
+                            {/* URL Presets */}
+                            <div className="pt-2">
+                                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-3 tracking-widest">Accesos Rápidos</label>
+                                <div className="flex flex-wrap gap-2">
+                                    {URL_PRESETS.map((preset, idx) => (
+                                        <button
+                                            key={idx}
+                                            type="button"
+                                            onClick={() => applyPreset(preset)}
+                                            className="flex items-center gap-2 px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-xs text-slate-300 hover:border-[#1FB6D5] hover:text-[#1FB6D5] transition-all"
+                                        >
+                                            {preset.icon}
+                                            {preset.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
                             <div className="flex justify-end gap-3 mt-6">
                                 <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>Cancelar</Button>
                                 <Button type="submit" className="bg-[#1FB6D5] text-[#021019] font-bold">Guardar Cambios</Button>

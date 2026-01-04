@@ -10,7 +10,8 @@ import {
     AlertCircle,
     User as UserIcon,
     Paperclip,
-    MessageSquare
+    MessageSquare,
+    Trash2
 } from 'lucide-react';
 import { Project, ProjectTask, TaskStatus, TaskPriority, TaskType } from '../../types';
 import { taskService } from '../../services/taskService';
@@ -39,6 +40,14 @@ const ProjectTasks: React.FC<ProjectTasksProps> = ({ project }) => {
         const data = await taskService.getTasksByProject(project.id);
         setTasks(data);
         setIsLoading(false);
+    };
+
+    const handleDeleteTask = async (taskId: string) => {
+        if (!confirm('¿Eliminar esta tarea definitivamente?')) return;
+        const success = await taskService.deleteTask(taskId);
+        if (success) {
+            fetchTasks();
+        }
     };
 
     const filteredTasks = tasks.filter(t => {
@@ -158,6 +167,15 @@ const ProjectTasks: React.FC<ProjectTasksProps> = ({ project }) => {
                                     <button className="p-1.5 text-slate-500 hover:text-white hover:bg-slate-800 rounded-lg transition-all">
                                         <MoreVertical className="w-4 h-4" />
                                     </button>
+                                    {(isAdmin || profile?.role === 'admin') && (
+                                        <button
+                                            onClick={() => handleDeleteTask(task.id)}
+                                            className="p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
+                                            title="Eliminar Tarea"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         </div>

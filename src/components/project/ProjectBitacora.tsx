@@ -134,8 +134,8 @@ const ProjectBitacora: React.FC<ProjectBitacoraProps> = ({ project }) => {
                         {notes.map(note => (
                             <div key={note.id} className="relative pl-10 group">
                                 <div className={`absolute left-[13.5px] top-4 w-2 h-2 rounded-full border-2 border-slate-900 z-10 ${note.category === 'ALERT' ? 'bg-red-500' :
-                                        note.category === 'UPDATE' ? 'bg-cyan-500' :
-                                            'bg-slate-700'
+                                    note.category === 'UPDATE' ? 'bg-cyan-500' :
+                                        'bg-slate-700'
                                     }`} />
 
                                 <div className={`border rounded-2xl p-5 hover:border-slate-600 transition-all ${getCategoryStyles(note.category)}`}>
@@ -152,7 +152,7 @@ const ProjectBitacora: React.FC<ProjectBitacoraProps> = ({ project }) => {
                                         </div>
                                         <button
                                             onClick={() => handleDelete(note.id)}
-                                            className="opacity-0 group-hover:opacity-100 p-1.5 text-slate-600 hover:text-red-400 transition-all"
+                                            className={`${profile?.role === 'admin' ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} p-1.5 text-slate-600 hover:text-red-400 transition-all`}
                                         >
                                             <Trash2 className="w-4 h-4" />
                                         </button>

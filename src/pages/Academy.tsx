@@ -3,8 +3,8 @@ import Layout from '../components/Layout';
 import { supabase } from '../services/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { ResourceTopic, ResourceType, AcademyResource } from '../types';
-import { Play, FileText, LayoutTemplate, Clock, ArrowRight, BookOpen, AlertCircle, Lock } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Play, FileText, LayoutTemplate, Clock, ArrowRight, BookOpen, AlertCircle, Lock, ArrowLeft } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import Button from '../components/ui/Button';
 
 // Helper components defined before Academy to ensure types are resolved correctly
@@ -83,6 +83,7 @@ const FilterButton: React.FC<FilterButtonProps> = ({ active, children, onClick }
 
 const Academy = () => {
   const { user, isAdmin, isConsultant } = useAuth();
+  const navigate = useNavigate();
   const [resources, setResources] = useState<AcademyResource[]>([]);
   const [loading, setLoading] = useState(true);
   const [topicFilter, setTopicFilter] = useState<ResourceTopic | 'all'>('all');
@@ -148,13 +149,25 @@ const Academy = () => {
     <Layout>
       <div className="bg-slate-1000 min-h-screen pb-24">
         {/* Header - Modern Dark Style */}
-        <div className="relative bg-[#021019] border-b border-slate-800 pt-32 pb-20 overflow-hidden">
+        <div className="relative bg-[#021019] border-b border-slate-800 pt-24 pb-16 overflow-hidden">
           <div className="absolute top-0 right-0 w-96 h-96 bg-[#1FB6D5]/10 rounded-full blur-[100px] -z-0"></div>
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-            <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-6 font-space tracking-tight">Academia Octopus</h1>
-            <p className="text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed">
-              Herramientas, guías y masterclasses exclusivas para dueños y gerentes que buscan dominar su operación.
-            </p>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            {/* Back Button */}
+            <button
+              onClick={() => navigate('/')}
+              className="flex items-center gap-2 text-slate-500 hover:text-white transition-colors mb-8 group"
+            >
+              <div className="p-1.5 rounded-full bg-slate-900/50 border border-slate-800 group-hover:border-[#1FB6D5]/30 transition-all">
+                <ArrowLeft className="w-3.5 h-3.5" />
+              </div>
+              <span className="text-[10px] font-bold uppercase tracking-[0.2em]">Volver al Inicio</span>
+            </button>
+            <div className="text-center">
+              <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-6 font-space tracking-tight">Academia Octopus</h1>
+              <p className="text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed">
+                Herramientas, guías y masterclasses exclusivas para dueños y gerentes que buscan dominar su operación.
+              </p>
+            </div>
           </div>
         </div>
 
