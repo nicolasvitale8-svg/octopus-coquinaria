@@ -4,6 +4,8 @@ import { BusinessType, QuickDiagnosticData, QuickDiagnosticResult } from '../typ
 import { calculateQuickDiagnostic } from '../services/calculations';
 import { saveDiagnosticResult } from '../services/storage';
 import { supabase } from '../services/supabase';
+import { ChevronLeft } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 // Components
 import DiagnosticHeader from '../components/diagnostic/DiagnosticHeader';
@@ -188,7 +190,13 @@ const QuickDiagnostic = () => {
 
   return (
     <Layout>
-      <div className="max-w-4xl mx-auto px-4 py-12">
+      <div className="max-w-4xl mx-auto px-4 pt-8 pb-12">
+        <div className="mb-8">
+          <Link to="/" className="inline-flex items-center text-slate-500 hover:text-cyan-400 transition-colors text-sm font-bold uppercase tracking-widest group">
+            <ChevronLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
+            Volver al Inicio
+          </Link>
+        </div>
         <DiagnosticHeader step={step} steps={STEPS} showTitle={!result} />
 
         <div className="bg-[#0b1b26] border border-slate-700 rounded-2xl p-6 md:p-10 shadow-2xl relative overflow-hidden">

@@ -102,7 +102,7 @@ const CalendarPage = () => {
 
   return (
     <Layout>
-      <div className="bg-[#021019] min-h-screen py-12">
+      <div className="bg-[#021019] min-h-screen pt-8 pb-12">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
 
           <Link to="/" className="inline-flex items-center text-slate-400 hover:text-white mb-8 text-sm transition-colors">

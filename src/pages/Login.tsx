@@ -64,26 +64,6 @@ const Login = () => {
               </Button>
             </form>
 
-            <div className="text-center pt-4 border-t border-slate-800">
-              <p className="text-xs text-slate-500 mb-2">¿Primera vez?</p>
-              <button type="button" onClick={async () => {
-                const email = prompt("Ingrese email para Alta de Admin:");
-                const password = prompt("Ingrese contraseña deseada:");
-                if (email && password && supabase) {
-                  const { error } = await supabase.auth.signUp({
-                    email,
-                    password,
-                    options: {
-                      data: { full_name: 'Admin Inicial' } // Metadata básica
-                    }
-                  });
-                  if (error) alert("Error: " + error.message);
-                  else alert("Usuario creado. Por favor confirme su email si es necesario, o intente loguearse.");
-                }
-              }} className="text-xs text-[#1FB6D5] hover:text-white underline">
-                Alta de Usuario (Solo Setup)
-              </button>
-            </div>
           </div>
 
           <p className="mt-4 text-center text-sm text-slate-400">

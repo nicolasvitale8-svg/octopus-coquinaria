@@ -8,8 +8,8 @@ import { DeepDiagnosticInput } from '../types';
 import { calculateDeepDiagnostic } from '../services/calculations';
 import { saveDeepDiagnosticResult } from '../services/storage';
 import { supabase } from '../services/supabase';
-import { Save, AlertCircle } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Save, AlertCircle, ChevronLeft } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
 
 const DeepDiagnostic = () => {
   const navigate = useNavigate();
@@ -81,7 +81,13 @@ const DeepDiagnostic = () => {
 
   return (
     <Layout user={{ name: "User" }}>
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="max-w-4xl mx-auto px-4 pt-8 pb-12">
+        <div className="mb-8">
+          <Link to="/" className="inline-flex items-center text-slate-500 hover:text-cyan-400 transition-colors text-sm font-bold uppercase tracking-widest group">
+            <ChevronLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
+            Volver al Inicio
+          </Link>
+        </div>
         <div className="mb-6 flex justify-between items-end">
           <div>
             <h1 className="text-2xl font-bold text-white">Nuevo Diagnóstico Profundo</h1>

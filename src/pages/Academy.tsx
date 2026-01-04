@@ -149,7 +149,7 @@ const Academy = () => {
     <Layout>
       <div className="bg-slate-1000 min-h-screen pb-24">
         {/* Header - Modern Dark Style */}
-        <div className="relative bg-[#021019] border-b border-slate-800 pt-24 pb-16 overflow-hidden">
+        <div className="relative bg-[#021019] border-b border-slate-800 pt-8 pb-16 overflow-hidden">
           <div className="absolute top-0 right-0 w-96 h-96 bg-[#1FB6D5]/10 rounded-full blur-[100px] -z-0"></div>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             {/* Back Button */}

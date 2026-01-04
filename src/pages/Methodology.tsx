@@ -3,7 +3,8 @@ import React, { useState, useMemo, useEffect } from 'react';
 import Layout from '../components/Layout';
 import { METHODOLOGY_7P } from '../constants';
 import { getResources, Resource } from '../services/academyService';
-import { ArrowRight, CheckCircle, AlertTriangle, Zap, X, Video, FileText, BarChart2 } from 'lucide-react';
+import { ArrowRight, CheckCircle, AlertTriangle, Zap, X, Video, FileText, BarChart2, ChevronLeft } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import Button from '../components/ui/Button';
 
 // Level 3: Dynamic Pill Component
@@ -66,8 +67,14 @@ const Methodology = () => {
 
   return (
     <Layout>
-      <div className="bg-slate-950 py-16 min-h-screen">
+      <div className="bg-slate-950 pt-8 pb-16 min-h-screen">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-8">
+            <Link to="/" className="inline-flex items-center text-slate-500 hover:text-cyan-400 transition-colors text-sm font-bold uppercase tracking-widest group">
+              <ChevronLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
+              Volver al Inicio
+            </Link>
+          </div>
 
           {/* Header - Level 1 */}
           <div className="text-center mb-16 animate-fade-in">
