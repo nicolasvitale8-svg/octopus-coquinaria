@@ -342,6 +342,25 @@ export interface Project {
   business_memberships?: any[];
 }
 
+// --- PUBLIC BOARD TYPES ---
+
+export type NewsBoardItemType = 'TIP' | 'DESCUENTO' | 'NOVEDAD_APP' | 'RADAR';
+
+export interface NewsBoardItem {
+  id: string;
+  title: string;
+  type: NewsBoardItemType;
+  summary: string;
+  start_date: string;
+  end_date: string;
+  priority: 1 | 2 | 3;
+  is_visible: boolean;
+  cta_label?: string;
+  cta_url?: string;
+  tag?: string;
+  created_at: string;
+}
+
 // --- TICKER TYPES ---
 
 export interface GastronomicEvent {

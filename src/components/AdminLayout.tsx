@@ -9,7 +9,8 @@ import {
     LogOut,
     Menu,
     X,
-    Briefcase
+    Briefcase,
+    Megaphone
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { LOGO_ADMIN_URL } from '../constants';
@@ -43,6 +44,7 @@ const AdminLayout = () => {
             label: 'Calendario'
         },
         { path: '/admin/academy', icon: <GraduationCap size={20} />, label: 'Academia' },
+        { path: '/admin/board', icon: <Megaphone size={20} />, label: 'Pizarra Home' },
         { path: '/admin/config', icon: <Settings size={20} />, label: 'Configuración', hidden: !isAdmin },
     ].filter(item => !item.hidden);
 

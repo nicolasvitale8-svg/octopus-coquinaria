@@ -20,6 +20,7 @@ import AdminAcademy from './pages/AdminAcademy';
 import AdminProjects from './pages/AdminProjects';
 import AdminProjectHub from './pages/AdminProjectHub';
 import AdminUsers from './pages/AdminUsers';
+import AdminBoard from './pages/AdminBoard';
 import ConsultantDashboard from './pages/ConsultantDashboard';
 import UserProfile from './pages/UserProfile';
 import { AdminConfig } from './pages/AdminPages';
@@ -61,6 +62,7 @@ const App = () => {
               <Route path="users" element={<AdminUsers />} />
               <Route path="calendar" element={<AdminCalendar />} />
               <Route path="academy" element={<AdminAcademy />} />
+              <Route path="board" element={<AdminBoard />} />
               <Route path="config" element={<AdminConfig />} />
               <Route path="profile" element={<UserProfile />} />
             </Route>
