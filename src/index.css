@@ -7,12 +7,14 @@
 :root {
   --color-deep-blue: #020c14;
   --color-card-bg: #0b1420;
-  --color-cyan-detail: #22c5e5; /* Pulsing slightly brighter cyan */
+  --color-cyan-detail: #22c5e5;
+  /* Pulsing slightly brighter cyan */
   --color-text-primary: #f8fafc;
   --color-text-secondary: #94a3b8;
 }
 
-html, body {
+html,
+body {
   height: 100%;
   margin: 0;
   padding: 0;
@@ -33,7 +35,12 @@ body {
   font-family: 'Inter', sans-serif;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: 'Space Grotesk', sans-serif;
 }
 
@@ -45,64 +52,144 @@ h1, h2, h3, h4, h5, h6 {
 ::-webkit-scrollbar {
   width: 8px;
 }
+
 ::-webkit-scrollbar-track {
-  background: #021019; 
+  background: #021019;
 }
+
 ::-webkit-scrollbar-thumb {
-  background: #334155; 
+  background: #334155;
   border-radius: 4px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
-  background: #1FB6D5; 
+  background: #1FB6D5;
 }
 
 /* --- KEYFRAME ANIMATIONS (Required for Tailwind Config references) --- */
 
 @keyframes faulty-flicker {
-  0% { opacity: 1; }
-  3% { opacity: 0.4; }
-  6% { opacity: 1; }
-  7% { opacity: 0.4; }
-  8% { opacity: 1; }
-  9% { opacity: 1; }
-  10% { opacity: 0.1; }
-  11% { opacity: 1; }
-  40% { opacity: 1; }
-  41% { opacity: 0.6; }
-  42% { opacity: 1; }
-  43% { opacity: 0.2; }
-  46% { opacity: 1; }
-  70% { opacity: 1; }
-  72% { opacity: 0.4; }
-  74% { opacity: 1; }
-  100% { opacity: 1; }
+  0% {
+    opacity: 1;
+  }
+
+  3% {
+    opacity: 0.4;
+  }
+
+  6% {
+    opacity: 1;
+  }
+
+  7% {
+    opacity: 0.4;
+  }
+
+  8% {
+    opacity: 1;
+  }
+
+  9% {
+    opacity: 1;
+  }
+
+  10% {
+    opacity: 0.1;
+  }
+
+  11% {
+    opacity: 1;
+  }
+
+  40% {
+    opacity: 1;
+  }
+
+  41% {
+    opacity: 0.6;
+  }
+
+  42% {
+    opacity: 1;
+  }
+
+  43% {
+    opacity: 0.2;
+  }
+
+  46% {
+    opacity: 1;
+  }
+
+  70% {
+    opacity: 1;
+  }
+
+  72% {
+    opacity: 0.4;
+  }
+
+  74% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 1;
+  }
 }
 
 @keyframes shine-effect {
-  0% { background-position: -200% center; }
-  20% { background-position: 200% center; }
-  100% { background-position: 200% center; }
+  0% {
+    background-position: -200% center;
+  }
+
+  20% {
+    background-position: 200% center;
+  }
+
+  100% {
+    background-position: 200% center;
+  }
 }
 
 @keyframes marquee {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .animate-marquee {
   display: inline-flex;
   white-space: nowrap;
-  animation: marquee 60s linear infinite; 
+  animation: marquee 60s linear infinite;
   will-change: transform;
 }
 
@@ -115,9 +202,36 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .no-scrollbar::-webkit-scrollbar {
-    display: none;
+  display: none;
 }
+
 .no-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Modal Open state: Hide header and footer to maximize focus */
+body.modal-open {
+  overflow: hidden;
+  /* Stop background scrolling */
+}
+
+body.modal-open nav {
+  transform: translateY(-100%);
+  transition: transform 0.3s ease-in-out;
+}
+
+body.modal-open footer {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease-in-out;
+}
+
+/* Ensure nice transition even when closing */
+nav {
+  transition: transform 0.3s ease-in-out;
+}
+
+footer {
+  transition: opacity 0.3s ease-in-out;
 }

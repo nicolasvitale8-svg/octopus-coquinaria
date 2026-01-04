@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Layout from '../components/Layout';
 import { METHODOLOGY_7P } from '../constants';
 import { getResources, Resource } from '../services/academyService';
@@ -25,6 +25,16 @@ const Methodology = () => {
   const [activeSection, setActiveSection] = useState<'videos' | 'notes' | null>(null);
   const [resources, setResources] = useState<Resource[]>([]);
   const [loadingResources, setLoadingResources] = useState(false);
+
+  // Handle body class for modal focus
+  useEffect(() => {
+    if (selectedId) {
+      document.body.classList.add('modal-open');
+    } else {
+      document.body.classList.remove('modal-open');
+    }
+    return () => document.body.classList.remove('modal-open');
+  }, [selectedId]);
 
   // Fetch resources on mount
   React.useEffect(() => {

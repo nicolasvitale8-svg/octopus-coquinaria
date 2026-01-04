@@ -23,6 +23,7 @@ import AdminUsers from './pages/AdminUsers';
 import AdminBoard from './pages/AdminBoard';
 import ConsultantDashboard from './pages/ConsultantDashboard';
 import UserProfile from './pages/UserProfile';
+import ScrollToTop from './components/ScrollToTop';
 import { AdminConfig } from './pages/AdminPages';
 
 
@@ -42,6 +43,7 @@ const App = () => {
   return (
     <AuthProvider>
       <Router>
+        <ScrollToTop />
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/quick-diagnostic" element={<QuickDiagnostic />} />

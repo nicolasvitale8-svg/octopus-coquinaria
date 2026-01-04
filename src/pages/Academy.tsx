@@ -90,6 +90,16 @@ const Academy = () => {
   const [selectedResource, setSelectedResource] = useState<AcademyResource | null>(null);
 
   useEffect(() => {
+    // Handle body class for modal focus
+    if (selectedResource) {
+      document.body.classList.add('modal-open');
+    } else {
+      document.body.classList.remove('modal-open');
+    }
+    return () => document.body.classList.remove('modal-open');
+  }, [selectedResource]);
+
+  useEffect(() => {
     const fetchResources = async () => {
       if (!supabase) return;
       const { data, error } = await supabase
