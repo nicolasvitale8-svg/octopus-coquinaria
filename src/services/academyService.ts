@@ -35,6 +35,7 @@ export const getResources = async (): Promise<AcademyResource[]> => {
             createdAt: r.created_at,
             downloadUrl: r.url, // Legacy map
             youtubeId: r.youtube_id,
+            actionSteps: r.action_steps || [],
             pilares: r.pilares || []
         }));
     } catch (e) {
