@@ -1,5 +1,5 @@
 import React from 'react';
-import { Video, FileSpreadsheet, FileText, Lock, ExternalLink, Trash2, Zap, LayOut as LayoutIcon } from 'lucide-react';
+import { Video, FileSpreadsheet, FileText, Lock, ExternalLink, Trash2, Zap, Layout as LayoutIcon } from 'lucide-react';
 import { AcademyResource } from '../../types';
 
 interface AcademyResourceTableProps {

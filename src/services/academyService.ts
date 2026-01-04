@@ -153,3 +153,5 @@ export const createResource = async (r: any) => {
     if (error) throw error;
     return data;
 };
+
+export const syncLocalResources = async () => { };
