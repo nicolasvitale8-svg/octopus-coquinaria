@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import Button from '../ui/Button';
+import { AcademyResource } from '../../types';
 
 interface AcademyResourceModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSave: (data: any) => Promise<void>;
+    initialData?: AcademyResource | null;
 }
 
-const AcademyResourceModal: React.FC<AcademyResourceModalProps> = ({ isOpen, onClose, onSave }) => {
+const AcademyResourceModal: React.FC<AcademyResourceModalProps> = ({ isOpen, onClose, onSave, initialData }) => {
     const [formData, setFormData] = useState({
+        id: '',
         titulo: '',
         description: '',
         outcome: '',
@@ -28,11 +31,52 @@ const AcademyResourceModal: React.FC<AcademyResourceModalProps> = ({ isOpen, onC
 
     const [stepsInput, setStepsInput] = useState('');
 
+    useEffect(() => {
+        if (initialData) {
+            setFormData({
+                id: initialData.id,
+                titulo: initialData.title,
+                description: initialData.description,
+                outcome: initialData.outcome,
+                category: initialData.category,
+                format: initialData.format,
+                impactTag: initialData.impactTag,
+                level: initialData.level,
+                durationMinutes: initialData.durationMinutes,
+                access: initialData.access,
+                isPinned: initialData.isPinned,
+                url: initialData.downloadUrl || '',
+                youtube_id: initialData.youtubeId || '',
+                actionSteps: initialData.actionSteps || [],
+                pilares: initialData.pilares || []
+            });
+            setStepsInput((initialData.actionSteps || []).join('\n'));
+        } else {
+            setFormData({
+                id: '',
+                titulo: '',
+                description: '',
+                outcome: '',
+                category: 'OPERACIONES',
+                format: 'VIDEO',
+                impactTag: 'HERRAMIENTA',
+                level: 1,
+                durationMinutes: 5,
+                access: 'PUBLIC',
+                isPinned: false,
+                url: '',
+                youtube_id: '',
+                actionSteps: [],
+                pilares: []
+            });
+            setStepsInput('');
+        }
+    }, [initialData, isOpen]);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         const steps = stepsInput.split('\n').filter(s => s.trim() !== '');
         await onSave({ ...formData, actionSteps: steps });
-        onClose();
     };
 
     if (!isOpen) return null;
@@ -41,7 +85,9 @@ const AcademyResourceModal: React.FC<AcademyResourceModalProps> = ({ isOpen, onC
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
             <div className="bg-slate-900 rounded-xl border border-slate-700 w-full max-w-lg shadow-2xl animate-fade-in-up">
                 <div className="flex justify-between items-center p-6 border-b border-slate-800">
-                    <h3 className="text-xl font-bold text-white">Nuevo Recurso</h3>
+                    <h3 className="text-xl font-bold text-white">
+                        {formData.id ? 'Editar Recurso' : 'Nuevo Recurso'}
+                    </h3>
                     <button onClick={onClose} className="text-slate-400 hover:text-white">
                         <X className="w-5 h-5" />
                     </button>

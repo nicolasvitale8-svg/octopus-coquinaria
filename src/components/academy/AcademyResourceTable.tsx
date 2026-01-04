@@ -1,14 +1,15 @@
 import React from 'react';
-import { Video, FileSpreadsheet, FileText, Lock, ExternalLink, Trash2, Zap, Layout as LayoutIcon } from 'lucide-react';
+import { Video, FileSpreadsheet, FileText, Lock, ExternalLink, Trash2, Zap, Layout as LayoutIcon, Edit } from 'lucide-react';
 import { AcademyResource } from '../../types';
 
 interface AcademyResourceTableProps {
     resources: AcademyResource[];
     isLoading: boolean;
     onDelete: (id: string) => void;
+    onEdit: (resource: AcademyResource) => void;
 }
 
-const AcademyResourceTable: React.FC<AcademyResourceTableProps> = ({ resources, isLoading, onDelete }) => {
+const AcademyResourceTable: React.FC<AcademyResourceTableProps> = ({ resources, isLoading, onDelete, onEdit }) => {
 
     const getIcon = (format: string) => {
         switch (format) {
@@ -76,6 +77,13 @@ const AcademyResourceTable: React.FC<AcademyResourceTableProps> = ({ resources, 
                                                     <ExternalLink className="w-4 h-4" />
                                                 </a>
                                             )}
+                                            <button
+                                                onClick={() => onEdit(resource)}
+                                                className="text-slate-500 hover:text-[#1FB6D5] transition-colors p-2"
+                                                title="Editar"
+                                            >
+                                                <Edit className="w-4 h-4" />
+                                            </button>
                                             <button
                                                 onClick={() => onDelete(resource.id)}
                                                 className="text-slate-500 hover:text-red-400 transition-colors p-2"

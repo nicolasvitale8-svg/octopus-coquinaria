@@ -14,6 +14,7 @@ const AdminAcademy = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingResource, setEditingResource] = useState<AcademyResource | null>(null);
     const [processingAction, setProcessingAction] = useState<string | null>(null);
 
     const fetchResources = async () => {
@@ -38,12 +39,18 @@ const AdminAcademy = () => {
             await createResource(formData);
             await fetchResources();
             setIsModalOpen(false);
+            setEditingResource(null);
         } catch (error) {
             console.error("Error saving resource:", error);
             alert("Error al guardar el recurso. Verifica la consola.");
         } finally {
             setProcessingAction(null);
         }
+    };
+
+    const handleEdit = (resource: AcademyResource) => {
+        setEditingResource(resource);
+        setIsModalOpen(true);
     };
 
     const handleDelete = async (id: string) => {
@@ -68,7 +75,10 @@ const AdminAcademy = () => {
 
     return (
         <div className="space-y-6">
-            <AcademyHeader onNewResource={() => setIsModalOpen(true)} />
+            <AcademyHeader onNewResource={() => {
+                setEditingResource(null);
+                setIsModalOpen(true);
+            }} />
 
             <div className="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden shadow-xl">
                 {/* Search Bar Inline */}
@@ -87,12 +97,17 @@ const AdminAcademy = () => {
                     resources={filteredResources}
                     isLoading={isLoading}
                     onDelete={handleDelete}
+                    onEdit={handleEdit}
                 />
             </div>
 
             <AcademyResourceModal
                 isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
+                initialData={editingResource}
+                onClose={() => {
+                    setIsModalOpen(false);
+                    setEditingResource(null);
+                }}
                 onSave={handleSaveResource}
             />
 
