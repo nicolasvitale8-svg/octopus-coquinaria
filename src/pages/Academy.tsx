@@ -12,9 +12,10 @@ interface ResourceCardProps {
   resource: AcademyResource;
   highlighted?: boolean;
   hasAccess: boolean;
+  onClick: (resource: AcademyResource) => void;
 }
 
-const ResourceCard: React.FC<ResourceCardProps> = ({ resource, highlighted = false, hasAccess }) => {
+const ResourceCard: React.FC<ResourceCardProps> = ({ resource, highlighted = false, hasAccess, onClick }) => {
   const getIcon = (type: ResourceType) => {
     switch (type) {
       case 'video': return <Play className="w-3 h-3 ml-1" fill="currentColor" />;
@@ -23,57 +24,45 @@ const ResourceCard: React.FC<ResourceCardProps> = ({ resource, highlighted = fal
     }
   };
 
-  const Content = (
-    <div className={`h-full flex flex-col bg-slate-900 rounded-xl border transition-all duration-300 ${hasAccess ? 'hover:-translate-y-1 hover:border-slate-600' : 'opacity-75'} ${highlighted ? 'border-cyan-500/50 shadow-lg shadow-cyan-900/10' : 'border-slate-800'}`}>
-      {/* Type Badge */}
+  return (
+    <div
+      onClick={() => onClick(resource)}
+      className={`group h-full flex flex-col bg-slate-900 rounded-xl border transition-all duration-300 cursor-pointer ${hasAccess ? 'hover:-translate-y-1 hover:border-[#1FB6D5]/40 active:translate-y-0 active:scale-[0.98]' : 'opacity-75'} ${highlighted ? 'border-[#1FB6D5]/50 shadow-lg shadow-[#1FB6D5]/10' : 'border-slate-800'}`}
+    >
       <div className="p-5 flex-grow relative">
         {!hasAccess && (
-          <div className="absolute top-4 right-4 bg-amber-500/20 text-amber-500 px-2 py-1 rounded-full text-xs font-bold border border-amber-500/30 flex items-center z-10">
-            <Lock className="w-3 h-3 mr-1" /> Premium
+          <div className="absolute top-4 right-4 bg-amber-500/20 text-amber-500 px-2 py-1 rounded-full text-xs font-bold border border-amber-500/30 flex items-center z-10 transition-transform group-hover:scale-110">
+            <Lock className="w-2.5 h-2.5 mr-1" /> Premium
           </div>
         )}
 
         <div className="flex justify-between items-start mb-4">
-          <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-bold uppercase tracking-wider ${highlighted ? 'bg-cyan-900 text-cyan-200' : 'bg-slate-800 text-slate-400'}`}>
+          <span className={`inline-flex items-center px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${highlighted ? 'bg-[#1FB6D5]/20 text-[#1FB6D5]' : 'bg-slate-800 text-slate-400'}`}>
             {resource.type} {getIcon(resource.type)}
           </span>
           {resource.duration && (
-            <span className="text-xs text-slate-500 flex items-center">
-              <Clock className="w-3 h-3 mr-1" /> {resource.duration}
+            <span className="text-[10px] font-bold text-slate-500 flex items-center uppercase tracking-tight">
+              <Clock className="w-3 h-3 mr-1 text-slate-600" /> {resource.duration}
             </span>
           )}
         </div>
 
-        <h3 className="text-lg font-bold text-white mb-2 group-hover:text-cyan-400 transition-colors line-clamp-2">
+        <h3 className="text-lg font-bold text-white mb-2 group-hover:text-[#1FB6D5] transition-colors line-clamp-2 leading-tight font-space">
           {resource.title}
         </h3>
-        <p className="text-sm text-slate-400 line-clamp-3">
+        <p className="text-sm text-slate-400 line-clamp-3 leading-relaxed">
           {resource.summary || resource.description}
         </p>
       </div>
 
-      <div className="px-5 py-4 border-t border-slate-800/50 flex gap-2">
+      <div className="px-5 py-4 border-t border-slate-800/50 flex flex-wrap gap-2">
         {(resource.letters7p || ['O']).map(l => (
-          <span key={l} className="w-6 h-6 rounded bg-slate-800 text-slate-500 text-xs font-bold flex items-center justify-center">
+          <span key={l} title={`Pilar: ${l}`} className="w-6 h-6 rounded bg-slate-800 text-slate-500 text-[10px] font-bold flex items-center justify-center border border-slate-700/50">
             {l.charAt(0)}
           </span>
         ))}
       </div>
     </div>
-  );
-
-  if (!hasAccess) {
-    return (
-      <div className="h-full cursor-not-allowed group relative">
-        {Content}
-      </div>
-    );
-  }
-
-  return (
-    <a href={resource.downloadUrl || '#'} target="_blank" rel="noopener noreferrer" className="group h-full block">
-      {Content}
-    </a>
   );
 };
 
@@ -86,7 +75,7 @@ interface FilterButtonProps {
 const FilterButton: React.FC<FilterButtonProps> = ({ active, children, onClick }) => (
   <button
     onClick={onClick}
-    className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${active ? 'bg-cyan-600 text-white' : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'}`}
+    className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-300 ${active ? 'bg-[#1FB6D5] text-[#021019] shadow-lg shadow-[#1FB6D5]/20' : 'bg-slate-900 text-slate-500 border border-slate-800 hover:text-white hover:border-slate-700'}`}
   >
     {children}
   </button>
@@ -98,6 +87,7 @@ const Academy = () => {
   const [loading, setLoading] = useState(true);
   const [topicFilter, setTopicFilter] = useState<ResourceTopic | 'all'>('all');
   const [typeFilter, setTypeFilter] = useState<ResourceType | 'all'>('all');
+  const [selectedResource, setSelectedResource] = useState<AcademyResource | null>(null);
 
   useEffect(() => {
     const fetchResources = async () => {
@@ -112,12 +102,12 @@ const Academy = () => {
           id: r.id,
           title: r.titulo,
           type: r.tipo === 'plantilla' ? 'template' : r.tipo === 'guia' ? 'guide' : 'video',
-          duration: '5 min', // Default
-          topics: r.topics || ['general'], // Traer de DB
-          letters7p: ['O'], // Default
+          duration: r.duracion || '5 min',
+          topics: r.topics || ['general'],
+          letters7p: r.pilares ? (Array.isArray(r.pilares) ? r.pilares : [r.pilares]) : ['O'],
           summary: r.descripcion,
           description: r.descripcion,
-          idealFor: ['Todos'],
+          idealFor: r.publico_ideal ? [r.publico_ideal] : ['Todos'],
           actionSteps: [],
           recommendedTrigger: [],
           downloadUrl: r.url,
@@ -133,7 +123,6 @@ const Academy = () => {
 
   const hasAccess = (resource: AcademyResource) => {
     if (!resource.es_premium) return true;
-    // Premium access logic: Admins and Consultants have access
     return isAdmin || isConsultant;
   };
 
@@ -147,78 +136,158 @@ const Academy = () => {
 
   return (
     <Layout>
-      <div className="bg-slate-950 min-h-screen pb-16">
-        {/* Header */}
-        <div className="bg-slate-900 border-b border-slate-800 pt-16 pb-12">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h1 className="text-4xl font-extrabold text-white mb-4">Academia Octopus</h1>
-            <p className="text-xl text-slate-400 max-w-2xl mx-auto">
-              Recursos exclusivos, guías y herramientas para escalar.
+      <div className="bg-slate-1000 min-h-screen pb-24">
+        {/* Header - Modern Dark Style */}
+        <div className="relative bg-[#021019] border-b border-slate-800 pt-32 pb-20 overflow-hidden">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-[#1FB6D5]/10 rounded-full blur-[100px] -z-0"></div>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+            <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-6 font-space tracking-tight">Academia Octopus</h1>
+            <p className="text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed">
+              Herramientas, guías y masterclasses exclusivas para dueños y gerentes que buscan dominar su operación.
             </p>
           </div>
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
 
-          {/* Filters */}
-          <div className="mb-8 flex flex-col lg:flex-row gap-6 justify-between items-center border-b border-slate-800 pb-6">
-            {/* Topic Pills */}
-            <div className="flex flex-wrap justify-center gap-2">
-              <FilterButton
-                active={topicFilter === 'all'}
-                onClick={() => setTopicFilter('all')}
-              >
-                Todos
-              </FilterButton>
+          {/* Filters Bar */}
+          <div className="mb-12 flex flex-col lg:flex-row gap-6 justify-between items-center bg-slate-900/40 p-6 rounded-2xl border border-slate-800 backdrop-blur-sm">
+            <div className="flex flex-wrap justify-center gap-3">
+              <FilterButton active={topicFilter === 'all'} onClick={() => setTopicFilter('all')}>Todos</FilterButton>
               {topics.map(topic => (
-                <FilterButton
-                  key={topic}
-                  active={topicFilter === topic}
-                  onClick={() => setTopicFilter(topic)}
-                >
-                  {topic.charAt(0).toUpperCase() + topic.slice(1)}
+                <FilterButton key={topic} active={topicFilter === topic} onClick={() => setTopicFilter(topic)}>
+                  {topic}
                 </FilterButton>
               ))}
             </div>
 
-            {/* Type Dropdown */}
-            <div className="flex gap-2 min-w-[200px]">
+            <div className="flex gap-2 min-w-[220px]">
               <select
-                className="w-full bg-slate-900 border border-slate-700 text-slate-300 rounded-md text-sm p-2 focus:ring-cyan-500"
+                className="w-full bg-slate-800 border-slate-700 text-slate-300 rounded-xl text-xs font-bold uppercase tracking-wider p-3 focus:ring-2 focus:ring-[#1FB6D5] outline-none transition-all"
                 value={typeFilter}
                 onChange={(e) => setTypeFilter(e.target.value as ResourceType | 'all')}
               >
-                <option value="all">Cualquier formato</option>
-                <option value="video">Videos</option>
-                <option value="guide">Guías</option>
-                <option value="template">Plantillas</option>
+                <option value="all">TODOS LOS FORMATOS</option>
+                <option value="video">VIDEOS</option>
+                <option value="guide">GUÍAS</option>
+                <option value="template">PLANTILLAS</option>
               </select>
             </div>
           </div>
 
           {/* Resources Grid */}
           {loading ? (
-            <div className="text-center py-12 text-slate-500">Cargando biblioteca...</div>
+            <div className="flex flex-col items-center justify-center py-32 space-y-4">
+              <div className="w-12 h-12 border-4 border-[#1FB6D5]/20 border-t-[#1FB6D5] rounded-full animate-spin"></div>
+              <p className="text-slate-500 font-bold uppercase text-[10px] tracking-[0.2em]">Cargando Biblioteca</p>
+            </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
               {filteredResources.length > 0 ? (
                 filteredResources.map(res => (
                   <ResourceCard
                     key={res.id}
                     resource={res}
                     hasAccess={hasAccess(res)}
+                    onClick={(resource) => setSelectedResource(resource)}
                   />
                 ))
               ) : (
-                <div className="col-span-full text-center py-12 text-slate-500">
-                  No hay recursos cargados aún.
+                <div className="col-span-full text-center py-32 border-2 border-dashed border-slate-800 rounded-3xl">
+                  <BookOpen className="w-12 h-12 text-slate-700 mx-auto mb-4" />
+                  <p className="text-slate-500 font-medium">No se encontraron recursos con estos filtros.</p>
                 </div>
               )}
             </div>
           )}
-
         </div>
       </div>
+
+      {/* DETALLE MODAL */}
+      {selectedResource && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
+          <div className="bg-[#021019] border border-slate-800 rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col animate-scale-up">
+
+            {/* Header Badge & Image Placeholder */}
+            <div className="h-2 bg-[#1FB6D5]"></div>
+
+            <div className="p-8 md:p-10">
+              <div className="flex justify-between items-start mb-6">
+                <div className="flex items-center gap-3">
+                  <span className="bg-slate-800 text-slate-400 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-[0.1em]">
+                    {selectedResource.type}
+                  </span>
+                  {selectedResource.duration && (
+                    <span className="text-slate-500 text-[10px] font-bold uppercase tracking-[0.1em] flex items-center">
+                      <Clock size={12} className="mr-1" /> {selectedResource.duration}
+                    </span>
+                  )}
+                </div>
+                {!hasAccess(selectedResource) && (
+                  <div className="bg-amber-500 text-[#021019] px-3 py-1 rounded-full text-[10px] font-bold uppercase flex items-center shadow-lg shadow-amber-500/10">
+                    <Lock size={12} className="mr-1" /> Contenido Premium
+                  </div>
+                )}
+              </div>
+
+              <h2 className="text-2xl md:text-3xl font-bold text-white mb-6 font-space leading-tight">
+                {selectedResource.title}
+              </h2>
+
+              <div className="prose prose-invert max-w-none">
+                <p className="text-slate-400 text-lg leading-relaxed mb-8">
+                  {selectedResource.description || selectedResource.summary}
+                </p>
+
+                {selectedResource.idealFor && selectedResource.idealFor.length > 0 && (
+                  <div className="mb-6">
+                    <h4 className="text-[#1FB6D5] text-xs font-bold uppercase tracking-widest mb-3 flex items-center gap-2">
+                      <ArrowRight size={14} /> Ideal para
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedResource.idealFor.map(target => (
+                        <span key={target} className="bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-lg text-xs text-slate-300">
+                          {target}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-10 pt-8 border-t border-slate-800 flex flex-col sm:flex-row gap-4">
+                {hasAccess(selectedResource) ? (
+                  <a
+                    href={selectedResource.downloadUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex-grow"
+                  >
+                    <Button className="w-full bg-[#1FB6D5] text-[#021019] hover:bg-white font-bold py-4 rounded-2xl group">
+                      Acceder al Recurso
+                      <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" />
+                    </Button>
+                  </a>
+                ) : (
+                  <div className="flex-grow bg-slate-900/50 border border-slate-700/50 p-4 rounded-2xl text-center">
+                    <p className="text-xs text-slate-500 mb-2">Este recurso requiere una suscripción activa o rol administrativo.</p>
+                    <Button variant="outline" className="w-full border-amber-500/50 text-amber-500 hover:bg-amber-500/10 font-bold py-3 rounded-xl">
+                      Consultar Acceso Premium
+                    </Button>
+                  </div>
+                )}
+                <Button
+                  variant="outline"
+                  onClick={() => setSelectedResource(null)}
+                  className="sm:px-10 py-4 border-slate-700 rounded-2xl font-bold hover:bg-slate-800"
+                >
+                  Volver
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 };
