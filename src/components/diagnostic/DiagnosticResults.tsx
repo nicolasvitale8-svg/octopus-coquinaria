@@ -5,7 +5,7 @@ import { WHATSAPP_NUMBER } from '../../constants';
 import { formatPercent } from '../../services/calculations';
 import Button from '../ui/Button';
 import { CheckCircle, AlertTriangle, XCircle, Download, Save, MessageCircle, Star, ArrowRight, TrendingUp } from 'lucide-react';
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts';
 
 interface DiagnosticResultsProps {
     result: QuickDiagnosticResult;
@@ -14,6 +14,7 @@ interface DiagnosticResultsProps {
         businessName: string;
         contactEmail: string;
         contactPhone: string;
+        methodologyScores: Record<string, number>;
         password?: string;
     };
 }
@@ -60,6 +61,17 @@ const DiagnosticResults: React.FC<DiagnosticResultsProps> = ({ result, formData 
         { name: 'Mano de Obra', Real: result.laborPercentage, Ideal: 25 },
         { name: 'Fijos', Real: result.fixedPercentage, Ideal: 20 },
         { name: 'Margen', Real: result.marginPercentage, Ideal: 23 },
+    ];
+
+    // Radar Data for 7 Pillars (Scaled from 1-5 to 1-10)
+    const radarData = [
+        { subject: 'Orden', A: (formData.methodologyScores['O'] || 0) * 2, fullMark: 10 },
+        { subject: 'Creatividad', A: (formData.methodologyScores['C'] || 0) * 2, fullMark: 10 },
+        { subject: 'Tecnología', A: (formData.methodologyScores['T'] || 0) * 2, fullMark: 10 },
+        { subject: 'Observación', A: (formData.methodologyScores['O_obs'] || 0) * 2, fullMark: 10 },
+        { subject: 'Pragmatismo', A: (formData.methodologyScores['P'] || 0) * 2, fullMark: 10 },
+        { subject: 'Universalidad', A: (formData.methodologyScores['U'] || 0) * 2, fullMark: 10 },
+        { subject: 'Sutileza', A: (formData.methodologyScores['S'] || 0) * 2, fullMark: 10 },
     ];
 
     return (
@@ -135,6 +147,50 @@ const DiagnosticResults: React.FC<DiagnosticResultsProps> = ({ result, formData 
                                 <Bar dataKey="Ideal" fill="#475569" radius={[0, 4, 4, 0]} />
                             </BarChart>
                         </ResponsiveContainer>
+                    </div>
+                </div>
+            </div>
+
+            {/* Block 2.5: Radar Chart for 7P */}
+            <div className="bg-slate-900 p-8 rounded-2xl border border-slate-700 shadow-xl relative overflow-hidden group hover:border-[#1FB6D5]/30 transition-all">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-[#1FB6D5]/5 rounded-full blur-3xl -z-0"></div>
+                <h3 className="text-xl font-bold text-white text-center mb-8 font-space">ADN de Gestión: <span className="text-[#1FB6D5]">Tus 7 Pilares</span></h3>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                    <div className="h-[350px] w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
+                                <PolarGrid stroke="#334155" />
+                                <PolarAngleAxis dataKey="subject" tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 'bold' }} />
+                                <PolarRadiusAxis angle={30} domain={[0, 10]} tick={false} axisLine={false} />
+                                <Radar
+                                    name="Puntaje"
+                                    dataKey="A"
+                                    stroke="#1FB6D5"
+                                    fill="#1FB6D5"
+                                    fillOpacity={0.6}
+                                />
+                            </RadarChart>
+                        </ResponsiveContainer>
+                    </div>
+
+                    <div className="space-y-4">
+                        <div className="bg-[#021019] p-5 rounded-xl border border-slate-800">
+                            <h4 className="text-[#1FB6D5] font-bold text-sm uppercase mb-2 flex items-center">
+                                <TrendingUp className="w-4 h-4 mr-2" /> Lectura del ADN
+                            </h4>
+                            <p className="text-slate-400 text-sm leading-relaxed">
+                                Este gráfico muestra el equilibrio de tu negocio. Una "mancha" equilibrada indica un negocio robusto.
+                                Las puntas que sobresalen son tus fortalezas, mientras que los hundimientos marcan riesgos operativos inminentes.
+                            </p>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                            {radarData.map(item => (
+                                <span key={item.subject} className={`px-2 py-1 rounded text-[10px] font-bold uppercase transition-all ${item.A >= 7 ? 'bg-green-500/20 text-green-400 border border-green-500/30' : (item.A >= 4 ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/30')}`}>
+                                    {item.subject}: {item.A}/10
+                                </span>
+                            ))}
+                        </div>
                     </div>
                 </div>
             </div>

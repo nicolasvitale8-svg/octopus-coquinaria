@@ -130,6 +130,15 @@ export interface AppUser {
   name: string;
   full_name?: string; // Sync with DB
   role: UserRole;
+  plan: 'FREE' | 'PRO';
+  diagnostic_scores?: {
+    costos?: number;
+    operaciones?: number;
+    equipo?: number;
+    marketing?: number;
+    tecnologia?: number;
+    cliente?: number;
+  };
   permissions: Permission[];
   businessIds: string[]; // memberships
   businessName?: string; // Legacy/Display
@@ -162,33 +171,50 @@ export interface ProjectMember {
 }
 
 
-// --- ACADEMY TYPES ---
+// --- ACADEMY TYPES v2 ---
 
-export type ResourceType = 'video' | 'guide' | 'template' | 'case';
-export type ResourceTopic = 'finanzas' | 'operaciones' | 'equipo' | 'marketing' | 'tecnologia' | 'cliente';
+export type ResourceFormat = 'VIDEO' | 'PDF' | 'GUIDE' | 'TIP' | 'TEMPLATE';
+export type ResourceCategory = 'COSTOS' | 'OPERACIONES' | 'EQUIPO' | 'MARKETING' | 'TECNOLOGIA' | 'CLIENTE';
+export type ResourceImpactTag = 'QUICK_WIN' | 'HERRAMIENTA' | 'MARCO' | 'LECTURA' | 'CASO';
+export type ResourceAccess = 'PUBLIC' | 'PRO';
+export type ResourceTopic = 'finanzas' | 'operaciones' | 'equipo' | 'marketing' | 'tecnologia' | 'cliente' | 'general';
 
 export interface AcademyResource {
   id: string;
   title: string;
-  type: ResourceType;
-  duration: string; // "10 min", "Lectura 5 min"
-  topics: ResourceTopic[];
-  letters7p: string[]; // ['O', 'P']
-  summary: string; // The "short description"
-  description: string; // Full "En cristiano" text
-  idealFor: string[]; // List of user personas
-  actionSteps: string[]; // 3 bullet points
-  downloadUrl?: string; // If template/guide
-  youtubeId?: string; // If video
-  recommendedTrigger?: string[]; // Internal logic codes e.g. ['high_cogs', 'low_order']
-  es_premium?: boolean;
+  description: string;
+  outcome: string; // "max 120 chars"
+  category: ResourceCategory;
+  format: ResourceFormat;
+  impactTag: ResourceImpactTag;
+  level: 1 | 2 | 3;
+  durationMinutes: number;
+  access: ResourceAccess;
+  isPinned: boolean;
+  pinnedOrder?: number;
+  expiresAt?: string | null; // For TIPS
+  createdAt: string;
+
+  // UI/Legacy compatibility
+  downloadUrl?: string;
+  youtubeId?: string;
+  actionSteps?: string[];
+  idealFor?: string[];
+  pilares?: string[]; // Para vincular con los 7 Pilares OCTOPUS
 }
 
 export interface LearningPath {
   id: string;
   title: string;
-  description: string;
+  subtitle?: string;
+  audience: 'DUENO' | 'ENCARGADO' | 'PRODUCCION' | 'APERTURA';
+  category: ResourceCategory;
+  estimatedMinutes: number;
   resourceIds: string[];
+  access: ResourceAccess;
+  order: number;
+  isPublished: boolean;
+  description?: string; // Legacy comp
 }
 
 // ... existing types ...

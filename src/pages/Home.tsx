@@ -187,7 +187,9 @@ const Home = () => {
               <Link to="/quick-diagnostic">
                 <Button className="py-3 px-8 text-lg bg-[#1FB6D5] text-[#021019] hover:bg-white hover:text-[#021019]">Probar el autodiagnóstico ahora</Button>
               </Link>
-              <Button variant="outline" className="py-3 px-8 text-lg border-slate-600 text-slate-300">Agendar videollamada</Button>
+              <a href={`https://wa.me/${WHATSAPP_NUMBER}?text=Hola!%20Me%20gustar%C3%ADa%20agendar%20una%20videollamada%20para%20mi%20negocio`} target="_blank" rel="noreferrer">
+                <Button variant="outline" className="py-3 px-8 text-lg border-slate-600 text-slate-300 hover:bg-slate-800 hover:text-white w-full">Agendar videollamada</Button>
+              </a>
             </div>
           </div>
         </div>

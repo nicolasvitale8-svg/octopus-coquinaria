@@ -2,7 +2,8 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import Layout from '../components/Layout';
 import { METHODOLOGY_7P } from '../constants';
-import { getResources, Resource } from '../services/academyService';
+import { getResources } from '../services/academyService';
+import { AcademyResource } from '../types';
 import { ArrowRight, CheckCircle, AlertTriangle, Zap, X, Video, FileText, BarChart2, ChevronLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Button from '../components/ui/Button';
@@ -24,7 +25,7 @@ const DynamicPill = ({ pills }: { pills: string[] }) => {
 const Methodology = () => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState<'videos' | 'notes' | null>(null);
-  const [resources, setResources] = useState<Resource[]>([]);
+  const [resources, setResources] = useState<AcademyResource[]>([]);
   const [loadingResources, setLoadingResources] = useState(false);
 
   // Handle body class for modal focus
@@ -60,8 +61,8 @@ const Methodology = () => {
     const relevant = resources.filter(r => r.pilares?.includes(selectedId));
 
     return {
-      videos: relevant.filter(r => r.tipo === 'video'),
-      notes: relevant.filter(r => r.tipo !== 'video') // Templates, guides, etc.
+      videos: relevant.filter(r => r.format === 'VIDEO'),
+      notes: relevant.filter(r => r.format !== 'VIDEO')
     };
   }, [selectedId, resources]);
 
@@ -250,11 +251,11 @@ const Methodology = () => {
                       {pillarResources.videos.length > 0 ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           {pillarResources.videos.map((vid, idx) => (
-                            <a key={idx} href={vid.url} target="_blank" rel="noreferrer" className="flex items-center p-3 bg-slate-900 rounded-lg hover:bg-slate-800 transition-colors group">
+                            <a key={idx} href={vid.downloadUrl} target="_blank" rel="noreferrer" className="flex items-center p-3 bg-slate-900 rounded-lg hover:bg-slate-800 transition-colors group">
                               <div className="w-10 h-10 bg-red-500/10 rounded-full flex items-center justify-center mr-3 group-hover:bg-red-500/20 text-red-500">
                                 <Video className="w-5 h-5" />
                               </div>
-                              <span className="text-slate-300 group-hover:text-white text-sm font-medium">{vid.titulo}</span>
+                              <span className="text-slate-300 group-hover:text-white text-sm font-medium">{vid.title}</span>
                             </a>
                           ))}
                         </div>
@@ -275,11 +276,11 @@ const Methodology = () => {
                           {pillarResources.notes.map((note, idx) => (
                             <div key={idx} className="bg-slate-900 p-4 rounded-lg border-l-4 border-[#1FB6D5] flex justify-between items-center group">
                               <div>
-                                <h5 className="text-white font-bold text-sm mb-1">{note.titulo}</h5>
-                                <p className="text-slate-400 text-sm line-clamp-2">{note.descripcion}</p>
+                                <h5 className="text-white font-bold text-sm mb-1">{note.title}</h5>
+                                <p className="text-slate-400 text-sm line-clamp-2">{note.description}</p>
                               </div>
-                              {note.url && (
-                                <a href={note.url} target="_blank" rel="noreferrer" className="text-xs text-[#1FB6D5] opacity-0 group-hover:opacity-100 transition-opacity uppercase font-bold ml-4 whitespace-nowrap">
+                              {note.downloadUrl && (
+                                <a href={note.downloadUrl} target="_blank" rel="noreferrer" className="text-xs text-[#1FB6D5] opacity-0 group-hover:opacity-100 transition-opacity uppercase font-bold ml-4 whitespace-nowrap">
                                   Ver Recurso &rarr;
                                 </a>
                               )}

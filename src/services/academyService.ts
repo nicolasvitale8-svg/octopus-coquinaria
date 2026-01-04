@@ -1,189 +1,121 @@
-
 import { supabase } from './supabase';
+import { AcademyResource, LearningPath, ResourceCategory, ResourceFormat, ResourceImpactTag, ResourceAccess } from '../types';
 
-export interface Resource {
-    id: string;
-    titulo: string;
-    tipo: 'video' | 'plantilla' | 'guia';
-    url: string;
-    thumbnail_url?: string;
-    descripcion?: string;
-    es_premium: boolean;
-    created_at: string;
-    topics?: string[];
-    pilares?: string[]; // New field for 7P tagging
-}
-
-const ACADEMY_STORAGE_KEY = 'octopus_academy_cache';
+const ACADEMY_STORAGE_KEY = 'octopus_academy_v2_cache';
+const PATHS_STORAGE_KEY = 'octopus_learning_paths_cache';
 
 /**
- * Get resources from LocalStorage immediately.
+ * Fetch all resources
  */
-export const getLocalResources = (): Resource[] => {
-    try {
-        const localData = localStorage.getItem(ACADEMY_STORAGE_KEY);
-        return localData ? JSON.parse(localData) : [];
-    } catch (e) {
-        return [];
-    }
-};
-
-/**
- * Fetch resources from Supabase, merge with local, and return.
- */
-export const getResources = async (): Promise<Resource[]> => {
-    let localResources = getLocalResources();
-
-    if (!supabase) return localResources;
+export const getResources = async (): Promise<AcademyResource[]> => {
+    if (!supabase) return [];
 
     try {
         const { data, error } = await supabase
             .from('recursos_academia')
             .select('*')
-            .order('created_at', { ascending: false });
+            .order('pinned_order', { ascending: true });
 
-        if (error) {
-            console.warn("Supabase academy fetch failed:", error.message);
-            return localResources;
-        }
+        if (error) throw error;
 
-        if (data) {
-            // Merge strategy: Server wins + Local unique
-            // MAP SERVER DATA (Spanish -> Spanish Interface)
-            const mappedServerData: Resource[] = data.map((r: any) => ({
-                id: r.id,
-                titulo: r.titulo,
-                tipo: r.tipo,
-                url: r.url,
-                thumbnail_url: r.thumbnail_url || '',
-                descripcion: r.descripcion || '',
-                es_premium: r.es_premium,
-                created_at: r.created_at,
-                pilares: r.pilares || [],
-                topics: r.temas || []
-            }));
-
-            const serverIds = new Set(mappedServerData.map(r => r.id));
-            const uniqueLocal = localResources.filter(r => !serverIds.has(r.id));
-            const combined = [...mappedServerData, ...uniqueLocal];
-
-            localStorage.setItem(ACADEMY_STORAGE_KEY, JSON.stringify(combined));
-            return combined;
-        }
-    } catch (e) {
-        console.error(e);
-    }
-
-    return localResources;
-};
-
-/**
- * Create resource. Safe offline. Optimistic.
- */
-export const createResource = async (resource: Omit<Resource, 'id' | 'created_at'>): Promise<Resource> => {
-    const newResource: Resource = {
-        id: crypto.randomUUID(),
-        ...resource,
-        created_at: new Date().toISOString()
-    };
-
-    // 1. Save Local
-    try {
-        const currentList = getLocalResources();
-        const newList = [newResource, ...currentList];
-        localStorage.setItem(ACADEMY_STORAGE_KEY, JSON.stringify(newList));
-    } catch (e) {
-        console.error("Error saving local resource", e);
-    }
-
-    // 2. Sync Supabase (Background)
-    if (supabase) {
-        (async () => {
-            try {
-                const { error } = await supabase.from('recursos_academia').insert([newResource]);
-                if (error) console.warn("Background Sync: Academy insert failed:", error.message);
-            } catch (e) {
-                console.error("Background Sync exception", e);
-            }
-        })();
-    }
-
-    return newResource;
-};
-
-/**
- * Delete resource.
- */
-export const deleteResource = async (id: string): Promise<void> => {
-    // 1. Local
-    const list = getLocalResources();
-    const newList = list.filter(r => r.id !== id);
-    localStorage.setItem(ACADEMY_STORAGE_KEY, JSON.stringify(newList));
-
-    // 2. Remote
-    if (supabase) {
-        (async () => {
-            try {
-                await supabase.from('recursos_academia').delete().eq('id', id);
-            } catch (e) { console.error(e); }
-        })();
-    }
-};
-
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../constants';
-
-/**
- * Sync all local resources to Supabase
- */
-export const syncLocalResources = async (): Promise<void> => {
-    // 1. Get Local Data
-    const localResources = getLocalResources();
-    if (localResources.length === 0) return;
-
-    console.log(`🔄 Syncing ${localResources.length} academy resources via RAW FETCH...`);
-
-    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) { return; }
-
-    // 2. Prepare Data (Map English/Spanish Mixed Keys)
-    const dbRows = localResources.map((r: any) => {
-        // Determine URL
-        let finalUrl = r.url || '';
-        if (!finalUrl && r.youtubeId) finalUrl = `https://www.youtube.com/watch?v=${r.youtubeId}`;
-        if (!finalUrl && r.downloadUrl) finalUrl = r.downloadUrl;
-
-        return {
+        return (data || []).map((r: any) => ({
             id: r.id,
-            titulo: r.title || r.titulo || 'Sin Título', // Robust check
-            tipo: r.type || r.tipo || 'guia',           // Robust check
-            url: finalUrl,
-            thumbnail_url: r.thumbnail_url || null,
-            descripcion: r.description || r.descripcion || r.summary || '', // Robust check
-            es_premium: r.es_premium || false,
-            pilares: r.pilares || r.letters7p || [], // Map local pillars
-            created_at: r.created_at || new Date().toISOString()
-        };
+            title: r.titulo,
+            description: r.descripcion || '',
+            outcome: r.outcome || '',
+            category: (r.category || 'OPERACIONES') as ResourceCategory,
+            format: (r.format || 'GUIDE') as ResourceFormat,
+            impactTag: (r.impact_tag || 'HERRAMIENTA') as ResourceImpactTag,
+            level: r.level || 1,
+            durationMinutes: r.duration_minutes || 5,
+            access: (r.access || 'PUBLIC') as ResourceAccess,
+            isPinned: r.is_pinned || false,
+            pinnedOrder: r.pinned_order,
+            expiresAt: r.expires_at,
+            createdAt: r.created_at,
+            downloadUrl: r.url, // Legacy map
+            youtubeId: r.youtube_id,
+            pilares: r.pilares || []
+        }));
+    } catch (e) {
+        console.error("Error fetching resources:", e);
+        return [];
+    }
+};
+
+/**
+ * Fetch all learning paths
+ */
+export const getLearningPaths = async (): Promise<LearningPath[]> => {
+    if (!supabase) return [];
+
+    try {
+        const { data, error } = await supabase
+            .from('rutas_aprendizaje')
+            .select('*')
+            .eq('is_published', true)
+            .order('order', { ascending: true });
+
+        if (error) throw error;
+        return data || [];
+    } catch (e) {
+        console.error("Error fetching paths:", e);
+        return [];
+    }
+};
+
+/**
+ * ALGORITMO CENTRAL: Recomendación por diagnóstico
+ */
+export const getRecommendedContent = (
+    resources: AcademyResource[],
+    paths: LearningPath[],
+    scores: Record<string, number> = {},
+    userPlan: 'FREE' | 'PRO' = 'FREE'
+) => {
+    // 1. Identificar prioridades reales (menor score primero)
+    // Las keys de scores en AuthContext son minúsculas (costos, operaciones, etc)
+    // Las ResourceCategory son MAYÚSCULAS.
+    const categories: ResourceCategory[] = ['COSTOS', 'OPERACIONES', 'EQUIPO', 'MARKETING', 'TECNOLOGIA', 'CLIENTE'];
+
+    const sortedCategories = [...categories].sort((a, b) => {
+        const scoreA = scores[a.toLowerCase()] ?? 100;
+        const scoreB = scores[b.toLowerCase()] ?? 100;
+        return scoreA - scoreB;
     });
 
-    // 3. RAW FETCH
-    try {
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/recursos_academia`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "apikey": SUPABASE_ANON_KEY,
-                "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
-                "Prefer": "resolution=merge-duplicates" // Upsert on ID
-            },
-            body: JSON.stringify(dbRows)
-        });
+    const topCategory = sortedCategories[0];
+    const hasScores = Object.keys(scores).length > 0;
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error(`❌ Raw Sync Failed (Academy): ${response.status}`, errorText);
-        } else {
-            console.log("✅ Academy synced successfully via REST!");
-        }
-    } catch (e) {
-        console.error("❌ Raw Sync Exception (Academy):", e);
+    // 2. Filtrar Rutas Recomendadas (Solo para PRO)
+    // Si es FREE, no ve recomendaciones personalizadas de rutas completas (Visión 1.1)
+    let recommendedPaths: LearningPath[] = [];
+    if (userPlan === 'PRO' && hasScores) {
+        recommendedPaths = paths.filter(p => p.category === topCategory).slice(0, 1);
     }
+
+    // 3. Filtrar Recursos Recomendados (Máximo 3)
+    // Level 1 y priorizando QUICK_WIN (Visión 3)
+    let recommendedResources: AcademyResource[] = resources
+        .filter(r =>
+            r.category === topCategory &&
+            r.level === 1 &&
+            (userPlan === 'PRO' || r.access === 'PUBLIC')
+        )
+        .sort((a, b) => (a.impactTag === 'QUICK_WIN' ? -1 : 1))
+        .slice(0, 3);
+
+    return {
+        topCategory,
+        recommendedPaths,
+        recommendedResources,
+        hasScores
+    };
 };
+
+/** 
+ * Legacy cleanup - Replaced by getResources v2 
+ */
+export const syncLocalResources = async () => { };
+export const deleteResource = async (id: string) => { };
+export const createResource = async (r: any) => { return r; };

@@ -59,7 +59,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             // 1. Fetch User (Profile + Permissions) con timeout
             const userPromise = supabase
                 .from('usuarios')
-                .select('id, role, permissions, full_name, business_name')
+                .select('id, role, permissions, full_name, business_name, plan, diagnostic_scores')
                 .eq('id', userId)
                 .single();
 
@@ -78,6 +78,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     email: email || '',
                     name: email?.split('@')[0] || 'Usuario',
                     role: isOwner ? 'admin' : 'client',
+                    plan: isOwner ? 'PRO' : 'FREE',
+                    diagnostic_scores: {},
                     permissions: isOwner ? ['super_admin'] : [],
                     businessIds: []
                 } as AppUser);
@@ -105,6 +107,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     email: email || '',
                     name: userData.full_name || email?.split('@')[0] || 'Usuario',
                     role: userData.role as UserRole,
+                    plan: (userData.plan || 'FREE') as 'FREE' | 'PRO',
+                    diagnostic_scores: userData.diagnostic_scores || {},
                     permissions: (userData.permissions || []) as Permission[],
                     businessIds: (membershipData || []).map((m: any) => m.business_id),
                     businessName: userData.business_name
@@ -120,6 +124,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     email: email || '',
                     name: email?.split('@')[0] || 'Usuario',
                     role: isOwner ? 'admin' : 'client',
+                    plan: isOwner ? 'PRO' : 'FREE',
+                    diagnostic_scores: {},
                     permissions: isOwner ? ['super_admin'] : [],
                     businessIds: []
                 } as AppUser);
@@ -133,6 +139,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 email: email || '',
                 name: email?.split('@')[0] || 'Usuario',
                 role: isOwner ? 'admin' : 'client',
+                plan: isOwner ? 'PRO' : 'FREE',
+                diagnostic_scores: {},
                 permissions: isOwner ? ['super_admin'] : [],
                 businessIds: []
             } as AppUser);
@@ -232,6 +240,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             role: 'admin', // ¡Siempre Admin!
             businessName: 'Local Dev Corp',
             permissions: ['super_admin'],
+            plan: 'PRO',
+            diagnostic_scores: {
+                costos: 45,
+                operaciones: 70,
+                equipo: 60,
+                marketing: 50,
+                tecnologia: 30,
+                cliente: 80
+            },
             businessIds: []
         };
 
@@ -256,7 +273,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isManager: role === 'manager',
         isClient: role === 'client' && !isOwner,
         isPrivileged: isPrivileged,
-        isPremium: isPrivileged || role === 'manager', // Privileged roles or manager are premium
+        isPremium: isPrivileged || profile?.plan === 'PRO', // Privileged roles or PRO plan are premium
         hasPermission: (permission: Permission) => {
             // 1. Privileged users (Admin/Consultant) bypass checks
             if (isPrivileged) return true;

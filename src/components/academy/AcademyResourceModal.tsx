@@ -11,27 +11,28 @@ interface AcademyResourceModalProps {
 const AcademyResourceModal: React.FC<AcademyResourceModalProps> = ({ isOpen, onClose, onSave }) => {
     const [formData, setFormData] = useState({
         titulo: '',
-        tipo: 'video' as 'video' | 'plantilla' | 'guia',
+        description: '',
+        outcome: '',
+        category: 'OPERACIONES',
+        format: 'VIDEO',
+        impactTag: 'HERRAMIENTA',
+        level: 1,
+        durationMinutes: 5,
+        access: 'PUBLIC',
+        isPinned: false,
         url: '',
-        descripcion: '',
-        es_premium: false,
-        topics: [] as string[],
+        youtube_id: '',
+        actionSteps: [] as string[],
         pilares: [] as string[]
     });
 
+    const [stepsInput, setStepsInput] = useState('');
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        await onSave(formData);
-        // Reset form handled by parent or here? keeping it simple here for now
-        setFormData({
-            titulo: '',
-            tipo: 'video',
-            url: '',
-            descripcion: '',
-            es_premium: false,
-            topics: [],
-            pilares: []
-        });
+        const steps = stepsInput.split('\n').filter(s => s.trim() !== '');
+        await onSave({ ...formData, actionSteps: steps });
+        onClose();
     };
 
     if (!isOpen) return null;
@@ -46,118 +47,178 @@ const AcademyResourceModal: React.FC<AcademyResourceModalProps> = ({ isOpen, onC
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                    <div>
-                        <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Título</label>
-                        <input
-                            type="text"
-                            required
-                            className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white focus:border-[#1FB6D5] focus:outline-none"
-                            placeholder="Ej: Plantilla de Costos 2024"
-                            value={formData.titulo}
-                            onChange={e => setFormData({ ...formData, titulo: e.target.value })}
-                        />
+                <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Título</label>
+                            <input
+                                type="text" required
+                                className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white focus:border-[#1FB6D5] focus:outline-none"
+                                value={formData.titulo}
+                                onChange={e => setFormData({ ...formData, titulo: e.target.value })}
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Logro / Resultado (Outcome)</label>
+                            <input
+                                type="text" required maxLength={120}
+                                className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-[#1FB6D5] focus:border-[#1FB6D5] focus:outline-none text-sm italic"
+                                placeholder="Ej: Dominar los costos de tu plato estrella"
+                                value={formData.outcome}
+                                onChange={e => setFormData({ ...formData, outcome: e.target.value })}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-4">
+                        <div>
+                            <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Categoría</label>
+                            <select
+                                className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white text-xs"
+                                value={formData.category}
+                                onChange={e => setFormData({ ...formData, category: e.target.value as any })}
+                            >
+                                <option value="COSTOS">COSTOS</option>
+                                <option value="OPERACIONES">OPERACIONES</option>
+                                <option value="EQUIPO">EQUIPO</option>
+                                <option value="MARKETING">MARKETING</option>
+                                <option value="TECNOLOGIA">TECNOLOGIA</option>
+                                <option value="CLIENTE">CLIENTE</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Formato</label>
+                            <select
+                                className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white text-xs"
+                                value={formData.format}
+                                onChange={e => setFormData({ ...formData, format: e.target.value as any })}
+                            >
+                                <option value="VIDEO">VIDEO</option>
+                                <option value="GUIDE">GUIA</option>
+                                <option value="TEMPLATE">PLANTILLA</option>
+                                <option value="TIP">MICROTIP</option>
+                                <option value="PDF">PDF</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Impacto</label>
+                            <select
+                                className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white text-xs"
+                                value={formData.impactTag}
+                                onChange={e => setFormData({ ...formData, impactTag: e.target.value as any })}
+                            >
+                                <option value="QUICK_WIN">QUICK WIN</option>
+                                <option value="HERRAMIENTA">HERRAMIENTA</option>
+                                <option value="MARCO">MARCO TEORICO</option>
+                                <option value="LECTURA">LECTURA</option>
+                                <option value="CASO">CASO DE EXITO</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-4">
+                        <div>
+                            <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Nivel</label>
+                            <select
+                                className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white text-xs"
+                                value={formData.level}
+                                onChange={e => setFormData({ ...formData, level: parseInt(e.target.value) as any })}
+                            >
+                                <option value={1}>1 - Básico</option>
+                                <option value={2}>2 - Intermedio</option>
+                                <option value={3}>3 - Avanzado</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Minutos</label>
+                            <input
+                                type="number"
+                                className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white text-xs"
+                                value={formData.durationMinutes}
+                                onChange={e => setFormData({ ...formData, durationMinutes: parseInt(e.target.value) })}
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Acceso</label>
+                            <select
+                                className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white text-xs"
+                                value={formData.access}
+                                onChange={e => setFormData({ ...formData, access: e.target.value as any })}
+                            >
+                                <option value="PUBLIC">PUBLIC (Free)</option>
+                                <option value="PRO">PRO (Suscripción)</option>
+                            </select>
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Tipo</label>
-                            <select
-                                className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white focus:border-[#1FB6D5] focus:outline-none"
-                                value={formData.tipo}
-                                onChange={e => setFormData({ ...formData, tipo: e.target.value as any })}
-                            >
-                                <option value="video">Desafío (Video)</option>
-                                <option value="plantilla">Herramienta (Excel)</option>
-                                <option value="guia">Documento (PDF/Guía)</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-xs font-bold text-slate-400 uppercase mb-1">URL del Recurso</label>
+                            <label className="block text-xs font-bold text-slate-400 uppercase mb-1">URL / Descarga</label>
                             <input
-                                type="url"
-                                required
-                                className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white focus:border-[#1FB6D5] focus:outline-none placeholder-slate-600"
-                                placeholder="https://..."
+                                type="text"
+                                className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white text-xs"
                                 value={formData.url}
                                 onChange={e => setFormData({ ...formData, url: e.target.value })}
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-slate-400 uppercase mb-1">YouTube ID (opcional)</label>
+                            <input
+                                type="text"
+                                className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white text-xs"
+                                value={formData.youtube_id}
+                                onChange={e => setFormData({ ...formData, youtube_id: e.target.value })}
                             />
                         </div>
                     </div>
 
                     <div>
-                        <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Descripción corta</label>
+                        <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Descripción</label>
                         <textarea
-                            className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white focus:border-[#1FB6D5] focus:outline-none h-20 resize-none"
-                            placeholder="¿De qué trata este recurso?"
-                            value={formData.descripcion}
-                            onChange={e => setFormData({ ...formData, descripcion: e.target.value })}
+                            className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white focus:border-[#1FB6D5] focus:outline-none h-20 resize-none text-sm"
+                            value={formData.description}
+                            onChange={e => setFormData({ ...formData, description: e.target.value })}
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Passos de Acción (Uno por línea)</label>
+                        <textarea
+                            className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white focus:border-[#1FB6D5] focus:outline-none h-20 resize-none text-sm"
+                            placeholder="Revisar stock&#10;Hacer pedido&#10;Cargar factura"
+                            value={stepsInput}
+                            onChange={e => setStepsInput(e.target.value)}
                         />
                     </div>
 
                     <div className="flex items-center gap-2 pt-2">
                         <input
                             type="checkbox"
-                            id="premium"
+                            id="pinned"
                             className="w-4 h-4 rounded border-slate-700 bg-slate-950 text-[#1FB6D5] focus:ring-[#1FB6D5]"
-                            checked={formData.es_premium}
-                            onChange={e => setFormData({ ...formData, es_premium: e.target.checked })}
+                            checked={formData.isPinned}
+                            onChange={e => setFormData({ ...formData, isPinned: e.target.checked })}
                         />
-                        <label htmlFor="premium" className="text-sm text-white cursor-pointer select-none">
-                            Marcar como contenido <strong>Premium</strong> (solo clientes)
+                        <label htmlFor="pinned" className="text-sm text-white cursor-pointer select-none">
+                            Fijar arriba (Bloque "Por dónde empezar")
                         </label>
                     </div>
 
                     <div>
-                        <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Pilar(es) Metodología 7P (Se vincula con web)</label>
-                        <div className="grid grid-cols-4 gap-2">
-                            {[
-                                { id: 'orden', label: 'O - Orden' },
-                                { id: 'creatividad', label: 'C - Creatividad' },
-                                { id: 'tecnologia', label: 'T - Tecnología' },
-                                { id: 'observacion', label: 'O - Observación' },
-                                { id: 'pragmatismo', label: 'P - Pragmatismo' },
-                                { id: 'universalidad', label: 'U - Universalidad' },
-                                { id: 'sutileza', label: 'S - Sutileza' }
-                            ].map((pilar) => (
-                                <label key={pilar.id} className="flex items-center space-x-2 bg-slate-950 p-2 rounded border border-slate-800 cursor-pointer hover:border-[#1FB6D5]/50 transition-colors">
-                                    <input
-                                        type="checkbox"
-                                        className="rounded border-slate-700 bg-slate-900 text-[#1FB6D5] focus:ring-[#1FB6D5]"
-                                        checked={formData.pilares?.includes(pilar.id) || false}
-                                        onChange={(e) => {
-                                            const current = formData.pilares || [];
-                                            const updated = e.target.checked
-                                                ? [...current, pilar.id]
-                                                : current.filter(p => p !== pilar.id);
-                                            setFormData({ ...formData, pilares: updated });
-                                        }}
-                                    />
-                                    <span className="text-xs text-slate-300 font-bold">{pilar.label}</span>
-                                </label>
-                            ))}
-                        </div>
-                    </div>
-
-                    <div>
-                        <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Rubros / Categorías</label>
-                        <div className="grid grid-cols-2 gap-2">
-                            {['finanzas', 'operaciones', 'equipo', 'marketing', 'tecnologia', 'cliente'].map((topic) => (
-                                <label key={topic} className="flex items-center space-x-2 bg-slate-950 p-2 rounded border border-slate-800 cursor-pointer hover:border-slate-600">
-                                    <input
-                                        type="checkbox"
-                                        className="rounded border-slate-700 bg-slate-900 text-[#1FB6D5] focus:ring-[#1FB6D5]"
-                                        checked={formData.topics?.includes(topic) || false}
-                                        onChange={(e) => {
-                                            const currentTopics = formData.topics || [];
-                                            const newTopics = e.target.checked
-                                                ? [...currentTopics, topic]
-                                                : currentTopics.filter(t => t !== topic);
-                                            setFormData({ ...formData, topics: newTopics });
-                                        }}
-                                    />
-                                    <span className="text-sm text-slate-300 capitalize">{topic}</span>
-                                </label>
+                        <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Vincular con Pilares Octopus (O-C-T-O-P-U-S)</label>
+                        <div className="flex flex-wrap gap-2">
+                            {['orden', 'creatividad', 'tecnologia', 'observacion', 'pragmatismo', 'universalidad', 'sutileza'].map(pilar => (
+                                <button
+                                    key={pilar}
+                                    type="button"
+                                    onClick={() => {
+                                        const cur = formData.pilares;
+                                        setFormData({ ...formData, pilares: cur.includes(pilar) ? cur.filter(x => x !== pilar) : [...cur, pilar] });
+                                    }}
+                                    className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase border transition-all ${formData.pilares.includes(pilar) ? 'bg-[#1FB6D5] text-[#021019] border-[#1FB6D5]' : 'bg-slate-950 text-slate-500 border-slate-800'}`}
+                                >
+                                    {pilar.charAt(0)}
+                                </button>
                             ))}
                         </div>
                     </div>
