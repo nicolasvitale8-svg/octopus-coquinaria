@@ -128,7 +128,8 @@ export const deleteResource = async (id: string) => {
 export const createResource = async (r: any) => {
     if (!supabase) return;
 
-    const dbPayload = {
+    // Mapping payload to DB columns (snake_case)
+    const dbPayload: any = {
         titulo: r.titulo || r.title,
         descripcion: r.description,
         outcome: r.outcome,
@@ -141,16 +142,27 @@ export const createResource = async (r: any) => {
         is_pinned: r.isPinned,
         url: r.url,
         youtube_id: r.youtube_id,
-        action_steps: r.actionSteps,
-        pilares: r.pilares
+        action_steps: r.actionSteps || [],
+        pilares: r.pilares || [],
+        // Legacy check for backward compatibility
+        tipo: r.format ? r.format.toLowerCase() : 'video',
+        es_premium: r.access === 'PRO'
     };
+
+    // If ID exists and is valid, include it for update
+    if (r.id && r.id.length > 5) {
+        dbPayload.id = r.id;
+    }
 
     const { data, error } = await supabase
         .from('recursos_academia')
         .upsert([dbPayload])
         .select();
 
-    if (error) throw error;
+    if (error) {
+        console.error("Supabase direct error:", error);
+        throw error;
+    }
     return data;
 };
 
