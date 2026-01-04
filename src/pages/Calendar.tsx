@@ -129,6 +129,7 @@ const CalendarPage = () => {
             ) : Object.keys(eventsByMonth).length > 0 ? (
               Object.entries(eventsByMonth).map(([month, monthEvents]) => {
                 const isExpanded = expandedMonths[month];
+                const eventsList = monthEvents as any[];
                 return (
                   <div key={month} className="animate-fade-in border-b border-slate-800 pb-4">
                     <button
@@ -140,7 +141,7 @@ const CalendarPage = () => {
                         {month}
                       </span>
                       <span className="text-xs font-mono text-slate-500 group-hover:text-slate-400">
-                        {monthEvents.length} {monthEvents.length === 1 ? 'evento' : 'eventos'}
+                        {eventsList.length} {eventsList.length === 1 ? 'evento' : 'eventos'}
                       </span>
                     </button>
 
