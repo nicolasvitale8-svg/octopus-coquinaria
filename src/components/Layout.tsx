@@ -245,7 +245,7 @@ const Layout: React.FC<LayoutProps> = ({ children, user: propUser }) => {
             <div>
               <h3 className="text-white font-semibold mb-4 font-space">Plataforma</h3>
               <ul className="space-y-2 text-sm text-slate-500">
-                <li><Link to="/quick-diagnostic" className="hover:text-[#1FB6D5] transition-colors">Diagnóstico Madame Oracle</Link></li>
+                <li><Link to="/quick-diagnostic" className="hover:text-[#1FB6D5] transition-colors">Diagnóstico Rápido</Link></li>
                 <li><Link to="/login" className="hover:text-[#1FB6D5] transition-colors">Iniciar Sesión</Link></li>
                 <li><Link to="/admin/leads" className="hover:text-[#1FB6D5] transition-colors">Acceso Consultor</Link></li>
               </ul>

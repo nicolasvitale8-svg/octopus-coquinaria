@@ -39,7 +39,7 @@ const DiagnosticResults: React.FC<DiagnosticResultsProps> = ({ result, formData 
 
     const getWhatsappLink = () => {
         const message = `Hola Octopus 🐙. Soy ${formData.contactName} de ${formData.businessName}.\n\n` +
-            `Acabo de hacer el diagnóstico con Madame Oracle:\n` +
+            `Acabo de hacer el diagnóstico express:\n` +
             `📊 *Resultado:* ${result.status}\n` +
             `🏷️ *Perfil:* ${result.profileName}\n` +
             `📉 *Costos:* CMV ${result.cogsPercentage.toFixed(1)}% | Mano de Obra ${result.laborPercentage.toFixed(1)}%\n\n` +

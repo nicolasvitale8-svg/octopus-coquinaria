@@ -15,7 +15,7 @@ const DiagnosticStepFinance: React.FC<DiagnosticStepFinanceProps> = ({ formData,
         <div className="space-y-6 animate-fade-in">
             <div>
                 <h2 className="text-2xl font-bold text-white mb-2 font-space">Números del último mes</h2>
-                <p className="text-slate-400">Usá números aproximados. La <span className="font-mono font-bold text-[#1FB6D5]">Madame Oracle</span> necesita datos para predecir.</p>
+                <p className="text-slate-400">Usá números aproximados. El sistema necesita datos reales para analizar tu rentabilidad.</p>
             </div>
 
             <div className="space-y-4">

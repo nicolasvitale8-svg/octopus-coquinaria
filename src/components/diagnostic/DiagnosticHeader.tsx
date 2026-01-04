@@ -12,9 +12,6 @@ const DiagnosticHeader: React.FC<DiagnosticHeaderProps> = ({ step, steps, showTi
         <>
             {showTitle && (
                 <div className="text-center mb-10">
-                    <div className="inline-flex items-center gap-2 bg-[#00344F] text-[#1FB6D5] px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-2 border border-[#1FB6D5]/30">
-                        <Sparkles className="w-4 h-4" /> Módulo Madame Oracle
-                    </div>
                     <h1 className="text-3xl font-bold text-white font-space">Diagnóstico Express</h1>
                 </div>
             )}
