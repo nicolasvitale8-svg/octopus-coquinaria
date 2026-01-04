@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import { WHATSAPP_NUMBER } from '../constants';
-import { Calendar as CalendarIcon, AlertTriangle, TrendingUp, Sun, ShoppingCart, Info, ArrowLeft, MessageCircle } from 'lucide-react';
+import { Calendar as CalendarIcon, AlertTriangle, TrendingUp, Sun, ShoppingCart, Info, ArrowLeft, MessageCircle, ChevronDown, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Button from '../components/ui/Button';
 import { supabase } from '../services/supabase';
@@ -10,6 +10,7 @@ import { supabase } from '../services/supabase';
 const CalendarPage = () => {
   const [events, setEvents] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [expandedMonths, setExpandedMonths] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -18,12 +19,37 @@ const CalendarPage = () => {
         return;
       }
 
+      // Calculate start of current week (Monday)
+      const now = new Date();
+      const startOfCurrentWeek = new Date(now);
+      const day = startOfCurrentWeek.getDay();
+      const diff = startOfCurrentWeek.getDate() - day + (day === 0 ? -6 : 1);
+      startOfCurrentWeek.setDate(diff);
+      startOfCurrentWeek.setHours(0, 0, 0, 0);
+
       const { data, error } = await supabase
         .from('eventos_calendario')
         .select('*')
+        .gte('fecha_inicio', startOfCurrentWeek.toISOString()) // Filter past events at DB level or frontend? DB is better.
         .order('fecha_inicio', { ascending: true });
 
-      if (data) setEvents(data);
+      if (data) {
+        setEvents(data);
+
+        // Group and set initial expansion (first month expanded)
+        const months = data.reduce((acc: string[], event: any) => {
+          const datePart = event.fecha_inicio.split('T')[0];
+          const date = new Date(`${datePart}T00:00:00`);
+          const rawMonth = date.toLocaleString('es-AR', { month: 'long', year: 'numeric' });
+          const monthKey = rawMonth.charAt(0).toUpperCase() + rawMonth.slice(1);
+          if (!acc.includes(monthKey)) acc.push(monthKey);
+          return acc;
+        }, []);
+
+        if (months.length > 0) {
+          setExpandedMonths({ [months[0]]: true });
+        }
+      }
       setIsLoading(false);
     };
 
@@ -46,6 +72,13 @@ const CalendarPage = () => {
     groups[monthKey].push(event);
     return groups;
   }, {} as Record<string, any[]>);
+
+  const toggleMonth = (month: string) => {
+    setExpandedMonths(prev => ({
+      ...prev,
+      [month]: !prev[month]
+    }));
+  };
 
   const getEventIcon = (type: string) => {
     switch (type) {
@@ -90,67 +123,82 @@ const CalendarPage = () => {
             </a>
           </div>
 
-          <div className="space-y-12">
+          <div className="space-y-6">
             {isLoading ? (
               <div className="text-center py-20 text-slate-500">Cargando eventos...</div>
             ) : Object.keys(eventsByMonth).length > 0 ? (
-              Object.entries(eventsByMonth).map(([month, events]) => (
-                <div key={month} className="animate-fade-in">
-                  <h2 className="text-2xl font-bold text-white mb-6 capitalize border-b border-slate-800 pb-2 font-space sticky top-24 bg-[#021019]/95 backdrop-blur py-2 z-10">
-                    {month}
-                  </h2>
+              Object.entries(eventsByMonth).map(([month, monthEvents]) => {
+                const isExpanded = expandedMonths[month];
+                return (
+                  <div key={month} className="animate-fade-in border-b border-slate-800 pb-4">
+                    <button
+                      onClick={() => toggleMonth(month)}
+                      className="w-full flex items-center justify-between text-2xl font-bold text-white mb-4 capitalize font-space sticky top-24 bg-[#021019]/95 backdrop-blur py-4 z-10 hover:text-[#1FB6D5] transition-colors group"
+                    >
+                      <span className="flex items-center">
+                        {isExpanded ? <ChevronDown className="w-6 h-6 mr-3 text-[#1FB6D5]" /> : <ChevronRight className="w-6 h-6 mr-3 text-slate-600" />}
+                        {month}
+                      </span>
+                      <span className="text-xs font-mono text-slate-500 group-hover:text-slate-400">
+                        {monthEvents.length} {monthEvents.length === 1 ? 'evento' : 'eventos'}
+                      </span>
+                    </button>
 
-                  <div className="grid grid-cols-1 gap-4">
-                    {(events as any[]).map((evt: any) => (
-                      <div key={evt.id} className="bg-slate-900 rounded-xl border border-slate-800 p-6 hover:border-[#1FB6D5]/30 transition-all group relative overflow-hidden">
-                        {/* Left accent border based on PRIORITY */}
-                        <div className={`absolute left-0 top-0 bottom-0 w-1 ${evt.prioridad === 3 ? 'bg-red-500' : (evt.prioridad === 2 ? 'bg-[#1FB6D5]' : 'bg-slate-700')}`}></div>
+                    {isExpanded && (
+                      <div className="grid grid-cols-1 gap-4 animate-slide-down">
+                        {(monthEvents as any[]).map((evt: any) => (
+                          <div key={evt.id} className="bg-slate-900 rounded-xl border border-slate-800 p-6 hover:border-[#1FB6D5]/30 transition-all group relative overflow-hidden">
+                            {/* Left accent border based on PRIORITY */}
+                            <div className={`absolute left-0 top-0 bottom-0 w-1 ${evt.prioridad === 3 ? 'bg-red-500' : (evt.prioridad === 2 ? 'bg-[#1FB6D5]' : 'bg-slate-700')}`}></div>
 
-                        <div className="flex flex-col md:flex-row gap-6">
-                          {/* Date Block */}
-                          <div className="flex-shrink-0 flex flex-col items-center justify-center bg-[#00344F]/30 rounded-lg w-20 h-20 border border-slate-700">
-                            <span className="text-xs text-slate-400 uppercase font-bold">Día</span>
-                            <span className="text-2xl font-bold text-white font-mono">
-                              {(() => {
-                                const datePart = evt.fecha_inicio.split('T')[0];
-                                return new Date(`${datePart}T00:00:00`).getDate();
-                              })()}
-                            </span>
-                          </div>
-
-                          {/* Content */}
-                          <div className="flex-grow">
-                            <div className="flex flex-wrap items-center gap-3 mb-2">
-                              {getPriorityBadge(evt.prioridad)}
-                              <span className="flex items-center text-xs font-bold uppercase text-slate-400 tracking-wider bg-slate-800 px-2 py-0.5 rounded">
-                                {getEventIcon(evt.tipo)}
-                                <span className="ml-1">{evt.tipo.replace('_', ' ')}</span>
-                              </span>
-                            </div>
-
-                            <h3 className="text-xl font-bold text-white mb-2">
-                              {evt.titulo}
-                            </h3>
-
-                            {evt.prioridad >= 2 && evt.mensaje ? (
-                              <div className="bg-[#00344F]/20 p-3 rounded border border-[#1FB6D5]/20 flex items-start gap-3 mt-2">
-                                <AlertTriangle className="w-4 h-4 text-[#1FB6D5] mt-0.5 flex-shrink-0" />
-                                <p className="text-xs text-[#1FB6D5] font-medium">
-                                  Recomendación: {evt.mensaje}
-                                </p>
+                            <div className="flex flex-col md:flex-row gap-6">
+                              {/* Date Block */}
+                              <div className="flex-shrink-0 flex flex-col items-center justify-center bg-[#00344F]/30 rounded-lg w-20 h-20 border border-slate-700">
+                                <span className="text-xs text-slate-400 uppercase font-bold">Día</span>
+                                <span className="text-2xl font-bold text-white font-mono">
+                                  {(() => {
+                                    const datePart = evt.fecha_inicio.split('T')[0];
+                                    return new Date(`${datePart}T00:00:00`).getDate();
+                                  })()}
+                                </span>
                               </div>
-                            ) : (
-                              <p className="text-slate-300 text-sm mb-3">
-                                {evt.mensaje || "Sin detalles adicionales."}
-                              </p>
-                            )}
+
+                              {/* Content */}
+                              <div className="flex-grow">
+                                <div className="flex flex-wrap items-center gap-3 mb-2">
+                                  {getPriorityBadge(evt.prioridad)}
+                                  <span className="flex items-center text-xs font-bold uppercase text-slate-400 tracking-wider bg-slate-800 px-2 py-0.5 rounded">
+                                    {getEventIcon(evt.tipo)}
+                                    <span className="ml-1">{evt.tipo.replace('_', ' ')}</span>
+                                  </span>
+                                </div>
+
+                                <h3 className="text-xl font-bold text-white mb-2">
+                                  {evt.titulo}
+                                </h3>
+
+                                {evt.prioridad >= 2 && evt.mensaje ? (
+                                  <div className="bg-[#00344F]/20 p-3 rounded border border-[#1FB6D5]/20 flex items-start gap-3 mt-2">
+                                    <AlertTriangle className="w-4 h-4 text-[#1FB6D5] mt-0.5 flex-shrink-0" />
+                                    <p className="text-xs text-[#1FB6D5] font-medium">
+                                      Recomendación: {evt.mensaje}
+                                    </p>
+                                  </div>
+                                ) : (
+                                  <p className="text-slate-300 text-sm mb-3">
+                                    {evt.mensaje || "Sin detalles adicionales."}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
                           </div>
-                        </div>
+                        ))}
                       </div>
-                    ))}
+                    )}
                   </div>
-                </div>
-              ))) : (
+                );
+              })
+            ) : (
               <div className="text-center py-20">
                 <p className="text-slate-400 mb-4">No hay eventos próximos cargados.</p>
                 <Link to="/admin/calendar">
