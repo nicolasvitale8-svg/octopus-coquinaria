@@ -4,10 +4,12 @@ import { NewsBoardItem, NewsBoardItemType } from '../types';
 import {
     Plus, Search, Edit2, Trash2, Eye, EyeOff,
     ExternalLink, Calendar, ChevronRight, Filter,
-    Megaphone, Clock, CheckCircle, AlertCircle
+    Megaphone, Clock, CheckCircle, AlertCircle,
+    Zap, MessageCircle, Instagram, Youtube, LayoutDashboard, GraduationCap, Calendar as CalendarIcon
 } from 'lucide-react';
 import Button from '../components/ui/Button';
 import LoadingOverlay from '../components/ui/LoadingOverlay';
+import { WHATSAPP_NUMBER, INSTAGRAM_URL, YOUTUBE_URL } from '../constants';
 
 const AdminBoard = () => {
     const [items, setItems] = useState<NewsBoardItem[]>([]);
@@ -19,6 +21,25 @@ const AdminBoard = () => {
     // Modal State
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingItem, setEditingItem] = useState<Partial<NewsBoardItem> | null>(null);
+
+    // URL Presets
+    const URL_PRESETS = [
+        { label: 'WhatsApp', icon: <MessageCircle size={14} />, cta: 'Hablar por WhatsApp', url: `https://wa.me/${WHATSAPP_NUMBER}` },
+        { label: 'Instagram', icon: <Instagram size={14} />, cta: 'Ver Instagram', url: INSTAGRAM_URL },
+        { label: 'YouTube', icon: <Youtube size={14} />, cta: 'Ver Video', url: YOUTUBE_URL },
+        { label: 'Diagnóstico', icon: <Zap size={14} />, cta: 'Hacer Diagnóstico', url: '/quick-diagnostic' },
+        { label: 'Academia', icon: <GraduationCap size={14} />, cta: 'Ver Academia', url: '/resources' },
+        { label: 'Calendario', icon: <CalendarIcon size={14} />, cta: 'Ver Calendario', url: '/calendar' },
+        { label: 'Metodología', icon: <LayoutDashboard size={14} />, cta: 'Ver 7 Pilares', url: '/methodology' },
+    ];
+
+    const applyPreset = (preset: typeof URL_PRESETS[0]) => {
+        setEditingItem(prev => ({
+            ...prev,
+            cta_label: preset.cta,
+            cta_url: preset.url
+        }));
+    };
 
     const fetchItems = async () => {
         if (!supabase) return;
