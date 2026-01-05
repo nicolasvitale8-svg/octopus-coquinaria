@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { AcademyResource, LearningPath, ResourceCategory, ResourceFormat, ResourceAccess } from '../types';
 import {
   Play, FileText, LayoutTemplate, Clock, ArrowRight, BookOpen,
-  Lock, ArrowLeft, Target, GraduationCap, Zap, Star, ChevronRight
+  Lock, ArrowLeft, Target, GraduationCap, Zap, Star, ChevronRight, ClipboardList
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import Button from '../components/ui/Button';
@@ -25,6 +25,7 @@ const ResourceCard: React.FC<ResourceCardProps> = ({ resource, highlighted = fal
       case 'VIDEO': return <Play className="w-3 h-3 ml-1" fill="currentColor" />;
       case 'TEMPLATE': return <LayoutTemplate className="w-3 h-3 ml-1" />;
       case 'TIP': return <Zap className="w-3 h-3 ml-1" />;
+      case 'FORM': return <ClipboardList className="w-3 h-3 ml-1" />;
       default: return <FileText className="w-3 h-3 ml-1" />;
     }
   };
@@ -277,6 +278,29 @@ const Academy = () => {
                   ))}
                   {paths.length === 0 && (
                     <p className="col-span-full text-slate-600 italic">No hay rutas de aprendizaje publicadas.</p>
+                  )}
+                </div>
+              </section>
+
+              {/* BLOQUE EXTRA: BIBLIOTECA DE HERRAMIENTAS */}
+              <section className="animate-fade-in">
+                <div className="flex items-center gap-3 mb-8">
+                  <LayoutTemplate className="text-[#1FB6D5] w-6 h-6" />
+                  <h2 className="text-2xl font-bold text-white font-space tracking-tight">Biblioteca de Herramientas</h2>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {resources.filter(r => !r.isPinned && r.format !== 'TIP').map(res => (
+                    <ResourceCard
+                      key={res.id}
+                      resource={res}
+                      hasAccess={canAccess(res.access)}
+                      onClick={setSelectedResource}
+                    />
+                  ))}
+                  {resources.filter(r => !r.isPinned && r.format !== 'TIP').length === 0 && (
+                    <div className="col-span-full py-12 text-center bg-slate-900/20 rounded-3xl border border-slate-800/50">
+                      <p className="text-slate-500 italic">Próximamente más herramientas...</p>
+                    </div>
                   )}
                 </div>
               </section>
