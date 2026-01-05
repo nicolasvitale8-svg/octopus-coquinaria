@@ -4,16 +4,16 @@ import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
 import Button from '../components/ui/Button';
 import { METHODOLOGY_7P, WHATSAPP_NUMBER, INSTAGRAM_URL, YOUTUBE_URL, BRAND_ILLUSTRATION_URL } from '../constants';
-import { ArrowRight, Video, MessageCircle, AlertTriangle, Instagram } from 'lucide-react';
+import { ArrowRight, Video, MessageCircle, AlertTriangle, Instagram, TrendingUp, TrendingDown, Activity, ShieldCheck, Zap } from 'lucide-react';
 import TickerGastronomico from '../components/TickerGastronomico';
 import NewsBoard from '../components/NewsBoard';
 
 const Home = () => {
   const [imgError, setImgError] = useState(false);
+  const [isOctopusMode, setIsOctopusMode] = useState(true);
 
   return (
     <Layout>
-      {/* Hero Section - Split Layout Dark Mode */}
       <div className="relative overflow-hidden min-h-[90vh] flex items-center">
 
         {/* DESKTOP OCTOPUS IMAGE: Absolute positioning relative to SCREEN (viewport), not container */}
@@ -160,36 +160,120 @@ const Home = () => {
       {/* NEWS BOARD */}
       <NewsBoard />
 
-      {/* Benefits / Results - Deep Blue Alternative */}
-      <div className="bg-[#00344F]/90 backdrop-blur-sm py-24 border-t border-slate-800 relative overflow-hidden z-20">
+      {/* Benefits / Results - Chaos vs Octopus Toggle */}
+      <div className={`py-24 border-t transition-all duration-1000 relative overflow-hidden z-20 ${isOctopusMode
+        ? 'bg-[#001a2c] border-slate-900'
+        : 'bg-[#0a0505] border-red-900/30'
+        }`}>
         {/* Pattern overlay */}
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10"></div>
+        <div className={`absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] transition-opacity duration-1000 ${isOctopusMode ? 'opacity-10' : 'opacity-20 flex grayscale invert'
+          }`}></div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-            <div className="p-6">
-              <div className="text-5xl font-bold text-white mb-2 font-mono">–7 pts</div>
-              <p className="text-cyan-200 font-medium">en costo de mercadería promedio</p>
-            </div>
-            <div className="p-6 md:border-l md:border-r border-white/10">
-              <div className="text-5xl font-bold text-white mb-2 font-mono">+18%</div>
-              <p className="text-cyan-200 font-medium">de incremento en ticket promedio</p>
-            </div>
-            <div className="p-6">
-              <div className="text-5xl font-bold text-white mb-2 font-mono">0</div>
-              <p className="text-cyan-200 font-medium">quiebres de stock críticos</p>
+
+          {/* SECLECTOR DE MODO */}
+          <div className="flex flex-col items-center mb-16">
+            <h3 className="text-white font-space text-xs tracking-[0.3em] uppercase mb-6 opacity-30">Visualizador de Impacto Octopus</h3>
+            <div className="flex items-center gap-4 bg-black/40 p-1.5 rounded-full border border-slate-800 backdrop-blur-md shadow-2xl">
+              <button
+                onClick={() => setIsOctopusMode(false)}
+                className={`px-6 py-2 rounded-full text-[10px] font-black tracking-widest uppercase transition-all duration-500 ${!isOctopusMode
+                  ? 'bg-red-600 text-white shadow-[0_0_20px_rgba(220,38,38,0.5)]'
+                  : 'text-slate-500 hover:text-slate-300'
+                  }`}
+              >
+                Operación Caos
+              </button>
+              <button
+                onClick={() => setIsOctopusMode(true)}
+                className={`px-6 py-2 rounded-full text-[10px] font-black tracking-widest uppercase transition-all duration-500 ${isOctopusMode
+                  ? 'bg-[#1FB6D5] text-[#021019] shadow-[0_0_20px_rgba(31,182,213,0.5)]'
+                  : 'text-slate-500 hover:text-slate-300'
+                  }`}
+              >
+                Método Octopus
+              </button>
             </div>
           </div>
 
-          <div className="mt-16 text-center bg-[#021019] p-10 rounded-2xl border border-[#1FB6D5]/30 shadow-2xl max-w-4xl mx-auto">
-            <h3 className="text-2xl font-bold text-white mb-6 font-space">¿Querés saber dónde estás parado?</h3>
-            <div className="flex flex-col sm:flex-row justify-center gap-4">
-              <Link to="/quick-diagnostic">
-                <Button className="py-3 px-8 text-lg bg-[#1FB6D5] text-[#021019] hover:bg-white hover:text-[#021019]">Probar el autodiagnóstico ahora</Button>
-              </Link>
-              <a href={`https://wa.me/${WHATSAPP_NUMBER}?text=Hola!%20Me%20gustar%C3%ADa%20agendar%20una%20videollamada%20para%20mi%20negocio`} target="_blank" rel="noreferrer">
-                <Button variant="outline" className="py-3 px-8 text-lg border-slate-600 text-slate-300 hover:bg-slate-800 hover:text-white w-full">Agendar videollamada</Button>
-              </a>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-center items-start">
+            {/* Metric 1 */}
+            <div className={`group transition-all duration-700 transform ${!isOctopusMode ? 'scale-100' : 'scale-100'}`}>
+              <div className={`text-6xl font-black mb-4 font-mono transition-all duration-700 ${isOctopusMode ? 'text-white' : 'text-red-500/80 text-5xl italic translate-y-2'}`}>
+                {isOctopusMode ? '–7 pts' : '+38%'}
+              </div>
+              <div className={`flex items-center justify-center gap-2 mb-4 transition-colors duration-700 ${isOctopusMode ? 'text-[#1FB6D5]' : 'text-red-700'}`}>
+                {isOctopusMode ? <TrendingDown size={20} /> : <Activity size={20} className="animate-pulse" />}
+                <span className="font-bold uppercase tracking-widest text-[10px]">
+                  {isOctopusMode ? 'Costo Mercadería' : 'Fugas de Stock'}
+                </span>
+              </div>
+              <p className={`text-xs leading-relaxed transition-colors duration-700 ${isOctopusMode ? 'text-cyan-200/50' : 'text-slate-400 italic'}`}>
+                {isOctopusMode
+                  ? 'Reducción directa al implementar ingeniería de menú y control de compras.'
+                  : 'Pérdidas constantes por falta de procesos y recetas estandarizadas.'}
+              </p>
+            </div>
+
+            {/* Metric 2 */}
+            <div className={`group transition-all duration-700 transform md:border-l md:border-r border-white/10 ${!isOctopusMode ? 'scale-100' : 'scale-100'}`}>
+              <div className={`text-6xl font-black mb-4 font-mono transition-all duration-700 ${isOctopusMode ? 'text-white' : 'text-red-500/80 text-5xl italic translate-y-2'}`}>
+                {isOctopusMode ? '+18%' : 'Estancado'}
+              </div>
+              <div className={`flex items-center justify-center gap-2 mb-4 transition-colors duration-700 ${isOctopusMode ? 'text-[#1FB6D5]' : 'text-red-700'}`}>
+                {isOctopusMode ? <TrendingUp size={20} /> : <TrendingDown size={20} />}
+                <span className="font-bold uppercase tracking-widest text-[10px]">
+                  {isOctopusMode ? 'Venta x Cubierto' : 'Ticket Promedio'}
+                </span>
+              </div>
+              <p className={`text-xs px-4 leading-relaxed transition-colors duration-700 ${isOctopusMode ? 'text-cyan-200/50' : 'text-slate-400 italic'}`}>
+                {isOctopusMode
+                  ? 'Incremento logrado mediante capacitación de salón y arquitectura web.'
+                  : 'Sin estrategia de up-selling ni optimización de rotación de mesas.'}
+              </p>
+            </div>
+
+            {/* Metric 3 */}
+            <div className={`group transition-all duration-700 transform ${!isOctopusMode ? 'scale-100' : 'scale-100'}`}>
+              <div className={`text-6xl font-black mb-4 font-mono transition-all duration-700 ${isOctopusMode ? 'text-white' : 'text-red-500/80 text-5xl italic translate-y-2'}`}>
+                {isOctopusMode ? '0' : 'Incierto'}
+              </div>
+              <div className={`flex items-center justify-center gap-2 mb-4 transition-colors duration-700 ${isOctopusMode ? 'text-[#1FB6D5]' : 'text-red-700'}`}>
+                {isOctopusMode ? <ShieldCheck size={20} /> : <AlertTriangle size={20} className="animate-bounce" />}
+                <span className="font-bold uppercase tracking-widest text-[10px]">
+                  {isOctopusMode ? 'Errores Operativos' : 'Caos Diario'}
+                </span>
+              </div>
+              <p className={`text-xs leading-relaxed transition-colors duration-700 ${isOctopusMode ? 'text-cyan-200/50' : 'text-slate-400 italic'}`}>
+                {isOctopusMode
+                  ? 'Continuidad operativa garantizada. Dueños con tiempo libre real.'
+                  : 'Compras reactivas de último momento que matan el margen neto.'}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-20 text-center relative max-w-4xl mx-auto">
+            <div className={`absolute inset-0 bg-[#1FB6D5]/5 blur-3xl rounded-full transition-opacity duration-1000 ${isOctopusMode ? 'opacity-100' : 'opacity-0'}`}></div>
+            <div className={`relative z-10 p-10 md:p-14 rounded-[3rem] border transition-all duration-1000 ${isOctopusMode
+              ? 'bg-[#021019] border-[#1FB6D5]/30 shadow-[0_0_50px_rgba(31,182,213,0.15)]'
+              : 'bg-black/50 border-red-900/10 grayscale'
+              }`}>
+              <h3 className="text-3xl md:text-4xl font-bold text-white mb-8 font-space">
+                {isOctopusMode ? '¿Querés saber dónde estás parado?' : '¿Hasta cuándo vas a trabajar así?'}
+              </h3>
+              <div className="flex flex-col sm:flex-row justify-center gap-5">
+                <Link to="/quick-diagnostic">
+                  <Button className={`py-4 px-10 text-lg font-bold transition-all duration-700 shadow-2xl ${isOctopusMode
+                    ? 'bg-[#1FB6D5] text-[#021019] hover:bg-white'
+                    : 'bg-red-600 text-white hover:bg-white hover:text-red-600'
+                    }`}>
+                    {isOctopusMode ? 'Comenzar autodiagnóstico' : 'Detectar mis fugas hoy'}
+                  </Button>
+                </Link>
+                <a href={`https://wa.me/${WHATSAPP_NUMBER}?text=Hola!%20Me%20gustar%C3%ADa%20agendar%20una%20videollamada%20para%20mi%20negocio`} target="_blank" rel="noreferrer" className="w-full sm:w-auto">
+                  <Button variant="outline" className="py-4 px-10 text-lg border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white w-full rounded-xl">Agendar videollamada</Button>
+                </a>
+              </div>
             </div>
           </div>
         </div>
