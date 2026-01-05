@@ -357,6 +357,19 @@ const AdminBoard = () => {
                                 />
                             </div>
 
+                            <div className="flex items-center gap-2 pt-2">
+                                <input
+                                    type="checkbox"
+                                    id="visible"
+                                    className="w-4 h-4 rounded border-slate-700 bg-slate-800 text-[#1FB6D5] focus:ring-[#1FB6D5]"
+                                    checked={editingItem?.is_visible || false}
+                                    onChange={e => setEditingItem({ ...editingItem, is_visible: e.target.checked })}
+                                />
+                                <label htmlFor="visible" className="text-sm text-white cursor-pointer select-none font-bold">
+                                    Publicar (Visibilidad en la Home)
+                                </label>
+                            </div>
+
                             {/* URL Presets */}
                             <div className="pt-2">
                                 <label className="block text-[10px] font-bold text-slate-500 uppercase mb-3 tracking-widest">Accesos Rápidos</label>
