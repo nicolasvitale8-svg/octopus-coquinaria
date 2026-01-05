@@ -34,9 +34,14 @@ export const getResources = async (): Promise<AcademyResource[]> => {
             expiresAt: r.expires_at,
             createdAt: r.created_at,
             downloadUrl: r.url, // Legacy map
+            url2: r.url_2,
+            url3: r.url_3,
             youtubeId: r.youtube_id,
             actionSteps: r.action_steps || [],
-            pilares: r.pilares || []
+            pilares: r.pilares || [],
+            impactOutcome: r.impact_outcome,
+            impactFormat: r.impact_format,
+            impactProgram: r.impact_program
         }));
     } catch (e) {
         console.error("Error fetching resources:", e);
@@ -142,9 +147,14 @@ export const createResource = async (r: any) => {
         access: r.access,
         is_pinned: r.isPinned,
         url: r.url,
+        url_2: r.url2,
+        url_3: r.url3,
         youtube_id: r.youtube_id,
         action_steps: r.actionSteps || [],
         pilares: r.pilares || [],
+        impact_outcome: r.impactOutcome,
+        impact_format: r.impactFormat,
+        impact_program: r.impactProgram,
         // Legacy check for backward compatibility
         tipo: r.format ? r.format.toLowerCase() : 'video',
         es_premium: r.access === 'PRO'

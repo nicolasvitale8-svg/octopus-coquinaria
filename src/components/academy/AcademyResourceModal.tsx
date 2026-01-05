@@ -24,9 +24,14 @@ const AcademyResourceModal: React.FC<AcademyResourceModalProps> = ({ isOpen, onC
         access: 'PUBLIC',
         isPinned: false,
         url: '',
+        url2: '',
+        url3: '',
         youtube_id: '',
         actionSteps: [] as string[],
-        pilares: [] as string[]
+        pilares: [] as string[],
+        impactOutcome: '',
+        impactFormat: '',
+        impactProgram: ''
     });
 
     const [stepsInput, setStepsInput] = useState('');
@@ -46,9 +51,14 @@ const AcademyResourceModal: React.FC<AcademyResourceModalProps> = ({ isOpen, onC
                 access: initialData.access,
                 isPinned: initialData.isPinned,
                 url: initialData.downloadUrl || '',
+                url2: initialData.url2 || '',
+                url3: initialData.url3 || '',
                 youtube_id: initialData.youtubeId || '',
                 actionSteps: initialData.actionSteps || [],
-                pilares: initialData.pilares || []
+                pilares: initialData.pilares || [],
+                impactOutcome: initialData.impactOutcome || '',
+                impactFormat: initialData.impactFormat || '',
+                impactProgram: initialData.impactProgram || ''
             });
             setStepsInput((initialData.actionSteps || []).join('\n'));
         } else {
@@ -65,9 +75,14 @@ const AcademyResourceModal: React.FC<AcademyResourceModalProps> = ({ isOpen, onC
                 access: 'PUBLIC',
                 isPinned: false,
                 url: '',
+                url2: '',
+                url3: '',
                 youtube_id: '',
                 actionSteps: [],
-                pilares: []
+                pilares: [],
+                impactOutcome: '',
+                impactFormat: '',
+                impactProgram: ''
             });
             setStepsInput('');
         }
@@ -200,7 +215,7 @@ const AcademyResourceModal: React.FC<AcademyResourceModalProps> = ({ isOpen, onC
 
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-xs font-bold text-slate-400 uppercase mb-1">URL / Descarga</label>
+                            <label className="block text-xs font-bold text-slate-400 uppercase mb-1">URL 1 / Descarga</label>
                             <input
                                 type="text"
                                 className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white text-xs"
@@ -216,6 +231,66 @@ const AcademyResourceModal: React.FC<AcademyResourceModalProps> = ({ isOpen, onC
                                 value={formData.youtube_id}
                                 onChange={e => setFormData({ ...formData, youtube_id: e.target.value })}
                             />
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-xs font-bold text-slate-400 uppercase mb-1">URL 2 (opcional)</label>
+                            <input
+                                type="text"
+                                className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white text-xs"
+                                value={formData.url2}
+                                onChange={e => setFormData({ ...formData, url2: e.target.value })}
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-slate-400 uppercase mb-1">URL 3 (opcional)</label>
+                            <input
+                                type="text"
+                                className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white text-xs"
+                                value={formData.url3}
+                                onChange={e => setFormData({ ...formData, url3: e.target.value })}
+                            />
+                        </div>
+                    </div>
+
+                    {/* SECCIÓN IMPACTO */}
+                    <div className="pt-4 border-t border-slate-800">
+                        <h4 className="text-xs font-bold text-[#1FB6D5] uppercase mb-4 tracking-widest">Sección Impacto</h4>
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Resultado (Impacto)</label>
+                                <input
+                                    type="text"
+                                    className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white text-xs"
+                                    placeholder="Ej: Ahorro de 10hs mensuales"
+                                    value={formData.impactOutcome}
+                                    onChange={e => setFormData({ ...formData, impactOutcome: e.target.value })}
+                                />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Formato Impacto</label>
+                                    <input
+                                        type="text"
+                                        className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white text-xs"
+                                        placeholder="Ej: Plan Maestro"
+                                        value={formData.impactFormat}
+                                        onChange={e => setFormData({ ...formData, impactFormat: e.target.value })}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Programa / Ruta / Sprint</label>
+                                    <input
+                                        type="text"
+                                        className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white text-xs"
+                                        placeholder="Ej: Sprint de Costos"
+                                        value={formData.impactProgram}
+                                        onChange={e => setFormData({ ...formData, impactProgram: e.target.value })}
+                                    />
+                                </div>
+                            </div>
                         </div>
                     </div>
 

@@ -197,10 +197,17 @@ export interface AcademyResource {
 
   // UI/Legacy compatibility
   downloadUrl?: string;
+  url2?: string;
+  url3?: string;
   youtubeId?: string;
   actionSteps?: string[];
   idealFor?: string[];
   pilares?: string[]; // Para vincular con los 7 Pilares OCTOPUS
+
+  // Impacto
+  impactOutcome?: string;
+  impactFormat?: string;
+  impactProgram?: string;
 }
 
 export interface LearningPath {
