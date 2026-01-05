@@ -338,9 +338,9 @@ const Academy = () => {
       {/* DETAIL MODAL */}
       {selectedResource && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-sm">
-          <div className="bg-[#021019] border border-slate-800 rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden animate-scale-up">
-            <div className="h-2 bg-[#1FB6D5]"></div>
-            <div className="p-8 md:p-10">
+          <div className="bg-[#021019] border border-slate-800 rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden animate-scale-up flex flex-col max-h-[90vh]">
+            <div className="h-2 bg-[#1FB6D5] flex-shrink-0"></div>
+            <div className="p-8 md:p-10 overflow-y-auto custom-scrollbar">
               <div className="flex justify-between items-start mb-8">
                 <div className="flex items-center gap-3">
                   <span className="bg-slate-800 text-slate-400 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">
