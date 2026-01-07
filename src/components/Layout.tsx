@@ -39,7 +39,6 @@ const Layout: React.FC<LayoutProps> = ({ children, user: propUser }) => {
     { name: 'Casos y Servicios', path: '/services' },
     { name: 'Calendario', path: '/calendar' },
     { name: 'Academia', path: '/resources' },
-    { name: 'Finanzas', path: '/finance' },
     { name: 'Sobre mí', path: '/about' },
   ];
 

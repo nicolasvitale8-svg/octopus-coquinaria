@@ -11,13 +11,13 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
   const navItems = [
-    { to: "/", icon: <LayoutDashboard size={18} />, label: "Dashboard" },
-    { to: "/transactions", icon: <Receipt size={18} />, label: "Movimientos" },
-    { to: "/budget", icon: <Scale size={18} />, label: "Presupuesto" },
-    { to: "/jars", icon: <PiggyBank size={18} />, label: "Inversiones" },
-    { to: "/import", icon: <UploadCloud size={18} />, label: "Importar OCR" },
-    { to: "/accounts", icon: <Wallet size={18} />, label: "Administración" },
-    { to: "/settings", icon: <Settings size={18} />, label: "Configuración" },
+    { to: "/finance", icon: <LayoutDashboard size={18} />, label: "Dashboard" },
+    { to: "/finance/transactions", icon: <Receipt size={18} />, label: "Movimientos" },
+    { to: "/finance/budget", icon: <Scale size={18} />, label: "Presupuesto" },
+    { to: "/finance/jars", icon: <PiggyBank size={18} />, label: "Inversiones" },
+    { to: "/finance/import", icon: <UploadCloud size={18} />, label: "Importar OCR" },
+    { to: "/finance/accounts", icon: <Wallet size={18} />, label: "Administración" },
+    { to: "/finance/settings", icon: <Settings size={18} />, label: "Configuración" },
   ];
 
   return (
@@ -30,17 +30,16 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           </div>
           <span className="text-xl font-black tracking-tight text-white uppercase">FinanzaFlow</span>
         </div>
-        
+
         <nav className="flex-1 px-6 space-y-2 mt-4">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
               className={({ isActive }) =>
-                `flex items-center justify-between px-5 py-4 rounded-2xl transition-all group ${
-                  isActive
-                    ? "bg-brand/10 text-brand border border-brand/20 shadow-lg shadow-brand/5"
-                    : "text-fin-muted hover:text-white hover:bg-fin-card/40"
+                `flex items-center justify-between px-5 py-4 rounded-2xl transition-all group ${isActive
+                  ? "bg-brand/10 text-brand border border-brand/20 shadow-lg shadow-brand/5"
+                  : "text-fin-muted hover:text-white hover:bg-fin-card/40"
                 }`
               }
             >
@@ -57,7 +56,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             </NavLink>
           ))}
         </nav>
-        
+
         <div className="p-8 space-y-6">
           <div className="bg-fin-card/40 rounded-3xl p-6 border border-fin-border space-y-4">
             <div className="flex items-center gap-4">
@@ -70,13 +69,13 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               </div>
             </div>
             <div className="pt-4 border-t border-fin-border/50">
-               <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-fin-muted mb-1">
-                 <span>DB Storage</span>
-                 <span className="text-white">84%</span>
-               </div>
-               <div className="h-1.5 w-full bg-fin-bg rounded-full overflow-hidden">
-                 <div className="h-full bg-brand w-[84%] rounded-full shadow-[0_0_10px_#3B82F6]"></div>
-               </div>
+              <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-fin-muted mb-1">
+                <span>DB Storage</span>
+                <span className="text-white">84%</span>
+              </div>
+              <div className="h-1.5 w-full bg-fin-bg rounded-full overflow-hidden">
+                <div className="h-full bg-brand w-[84%] rounded-full shadow-[0_0_10px_#3B82F6]"></div>
+              </div>
             </div>
           </div>
         </div>
@@ -86,8 +85,8 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       <div className="flex-1 flex flex-col min-w-0">
         <header className="lg:hidden h-16 flex items-center justify-between px-6 bg-fin-bg border-b border-fin-border z-30">
           <div className="flex items-center gap-3">
-             <div className="w-8 h-8 bg-brand rounded-xl flex items-center justify-center text-white"><Wallet size={16} /></div>
-             <span className="font-black text-xs uppercase tracking-widest">FinanzaFlow</span>
+            <div className="w-8 h-8 bg-brand rounded-xl flex items-center justify-center text-white"><Wallet size={16} /></div>
+            <span className="font-black text-xs uppercase tracking-widest">FinanzaFlow</span>
           </div>
           <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2.5 bg-fin-card border border-fin-border rounded-xl text-white">
             {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}

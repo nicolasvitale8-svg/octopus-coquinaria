@@ -140,9 +140,9 @@ export const Dashboard: React.FC = () => {
       {/* Quick Action Center */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
         {[
-          { label: 'Importar con OCR', icon: <UploadCloud />, path: '/import', color: 'bg-brand/10 text-brand border-brand/20' },
-          { label: 'Nueva Operación', icon: <PlusCircle />, path: '/transactions', color: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' },
-          { label: 'Configurar Respaldo', icon: <Settings />, path: '/settings', color: 'bg-amber-500/10 text-amber-500 border-amber-500/20' }
+          { label: 'Importar con OCR', icon: <UploadCloud />, path: '/finance/import', color: 'bg-brand/10 text-brand border-brand/20' },
+          { label: 'Nueva Operación', icon: <PlusCircle />, path: '/finance/transactions', color: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' },
+          { label: 'Configurar Respaldo', icon: <Settings />, path: '/finance/settings', color: 'bg-amber-500/10 text-amber-500 border-amber-500/20' }
         ].map((action, i) => (
           <button
             key={i}
@@ -213,7 +213,7 @@ export const Dashboard: React.FC = () => {
                 <Wallet size={20} className="text-brand" />
                 <h3 className="font-black text-xl">Saldos Disponibles</h3>
               </div>
-              <button onClick={() => navigate('/accounts')} className="text-[10px] font-black text-brand uppercase tracking-widest hover:underline">Gestionar</button>
+              <button onClick={() => navigate('/finance/accounts')} className="text-[10px] font-black text-brand uppercase tracking-widest hover:underline">Gestionar</button>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm border-collapse">
@@ -248,7 +248,7 @@ export const Dashboard: React.FC = () => {
               <h3 className="font-black text-xl flex items-center gap-4">
                 <List size={20} className="text-brand" /> Recientes
               </h3>
-              <button onClick={() => navigate('/transactions')} className="p-2.5 bg-fin-bg rounded-xl border border-fin-border hover:text-brand transition-all">
+              <button onClick={() => navigate('/finance/transactions')} className="p-2.5 bg-fin-bg rounded-xl border border-fin-border hover:text-brand transition-all">
                 <ArrowUpRight size={18} />
               </button>
             </div>
