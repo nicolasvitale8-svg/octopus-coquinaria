@@ -24,7 +24,10 @@
         "./src/*"
       ]
     },
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "types": [
+      "vite/client"
+    ]
   },
   "include": [
     "src"
