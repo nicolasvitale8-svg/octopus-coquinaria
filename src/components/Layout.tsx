@@ -39,6 +39,7 @@ const Layout: React.FC<LayoutProps> = ({ children, user: propUser }) => {
     { name: 'Casos y Servicios', path: '/services' },
     { name: 'Calendario', path: '/calendar' },
     { name: 'Academia', path: '/resources' },
+    { name: 'Finanzas', path: '/finance' },
     { name: 'Sobre mí', path: '/about' },
   ];
 
@@ -139,8 +140,11 @@ const Layout: React.FC<LayoutProps> = ({ children, user: propUser }) => {
               <div className="flex items-center md:ml-6 gap-4">
                 {internalUser ? (
                   <>
-                    <Link to="/dashboard" className="flex items-center gap-2 bg-[#00344F] hover:bg-[#1FB6D5]/20 hover:text-[#1FB6D5] border border-[#1FB6D5]/30 px-4 py-2 rounded-md transition-all text-white text-sm font-medium shadow-md">
+                    <Link to="/finance" className="flex items-center gap-2 bg-[#00344F] hover:bg-[#1FB6D5]/20 hover:text-[#1FB6D5] border border-[#1FB6D5]/30 px-4 py-2 rounded-md transition-all text-white text-sm font-medium shadow-md">
                       <BarChart2 className="w-4 h-4" />
+                      Finanzas
+                    </Link>
+                    <Link to="/dashboard" className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 px-4 py-2 rounded-md transition-all text-white text-sm font-medium shadow-md">
                       Tablero ({internalUser.email?.split('@')[0]})
                     </Link>
                     <Link
