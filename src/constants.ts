@@ -7,6 +7,13 @@ import { AcademyResource, LearningPath, GastronomicEvent } from './types';
 export const WHATSAPP_NUMBER = "5493517736981";
 export const DISPLAY_PHONE = "+54 9 351 773-6981";
 export const CONTACT_EMAIL = "octopuscoquinaria@gmail.com";
+
+// --- SUPABASE CONFIG ---
+export const SUPABASE_URL = "https://svyzpvgfsqizvovsvyzp.supabase.co";
+export const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN2eXpwdmdmc3FpenZvdnN2eXpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTU5NjU2MjMsImV4cCI6MjAzMTU0MTYyM30.4M3N8P_s3F7B0682189689f2a033507dIJuxjdGPCTWrQ";
+
+// APP CONFIG
+export const ACADEMY_ENABLED = true;
 export const INSTAGRAM_URL = "https://www.instagram.com/octopuscuquinaria/";
 export const YOUTUBE_URL = "https://www.youtube.com/@octopuscoquinaria";
 export const APP_NAME = "Octopus Coquinaria";
