@@ -1,7 +1,6 @@
 import { QuickDiagnosticResult, DeepDiagnosticResult } from '../types';
 import { supabase } from './supabase';
 import { runWithRetryAndTimeout } from './network';
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../constants';
 
 const STORAGE_KEY = 'octopus_diagnostic_result';
 const HISTORY_KEY = 'octopus_diagnostic_history';

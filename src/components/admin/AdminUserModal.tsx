@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { X, Save, Shield, User, Briefcase, Check, AlertCircle, Loader2, Phone, FileText, Lock } from 'lucide-react';
 import { supabase } from '../../services/supabase';
 import { createClient } from '@supabase/supabase-js';
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../../constants';
 import Button from '../ui/Button';
 import { UserRole, Permission } from '../../types';
 
@@ -172,14 +171,18 @@ export const AdminUserModal: React.FC<AdminUserModalProps> = ({ isOpen, onClose,
 
                 // Cliente temporal aislado
                 // INSTANCIADO SOLO AL MOMENTO DE USAR
-                const shadowSupabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-                    auth: {
-                        persistSession: false,
-                        autoRefreshToken: false,
-                        detectSessionInUrl: false,
-                        storage: dummyStorage
+                const shadowSupabase = createClient(
+                    import.meta.env.VITE_SUPABASE_URL,
+                    import.meta.env.VITE_SUPABASE_ANON_KEY,
+                    {
+                        auth: {
+                            persistSession: false,
+                            autoRefreshToken: false,
+                            detectSessionInUrl: false,
+                            storage: dummyStorage
+                        }
                     }
-                });
+                );
 
                 // Wrapper con Timeout para signUp
                 const signUpWithTimeout = async () => {

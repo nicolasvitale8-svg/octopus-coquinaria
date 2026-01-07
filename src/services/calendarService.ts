@@ -145,7 +145,6 @@ export const deleteEvent = async (id: string): Promise<void> => {
     }
 };
 
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../constants';
 
 /**
  * Sync all local events to Supabase
@@ -156,6 +155,9 @@ export const syncLocalEvents = async (): Promise<void> => {
     if (localEvents.length === 0) return;
 
     console.log(`🔄 Syncing ${localEvents.length} calendar events via RAW FETCH...`);
+
+    const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+    const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
     if (!SUPABASE_URL || !SUPABASE_ANON_KEY) { return; }
 

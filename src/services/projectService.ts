@@ -1,7 +1,6 @@
 
 import { Project } from '../types';
 import { createClient } from '@supabase/supabase-js';
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../constants';
 import { supabase } from './supabase';
 import { runWithRetryAndTimeout } from './network';
 
@@ -367,6 +366,9 @@ export const syncLocalProjects = async (): Promise<void> => {
 
         const localProjects: Project[] = JSON.parse(localData);
         if (localProjects.length === 0) return;
+
+        const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+        const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
         console.log(`🔄 Syncing ${localProjects.length} projects via RAW FETCH (No Client)...`);
 
