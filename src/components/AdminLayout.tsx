@@ -10,7 +10,8 @@ import {
     Menu,
     X,
     Briefcase,
-    Megaphone
+    Megaphone,
+    BarChart2
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { LOGO_ADMIN_URL } from '../constants';
@@ -45,6 +46,7 @@ const AdminLayout = () => {
         },
         { path: '/admin/academy', icon: <GraduationCap size={20} />, label: 'Academia' },
         { path: '/admin/board', icon: <Megaphone size={20} />, label: 'Pizarra Home' },
+        { path: '/finance', icon: <BarChart2 size={20} />, label: 'Módulo Finanzas' },
         { path: '/admin/config', icon: <Settings size={20} />, label: 'Configuración', hidden: !isAdmin },
     ].filter(item => !item.hidden);
 
@@ -136,7 +138,7 @@ const AdminLayout = () => {
 
                     <div className="pt-8 mt-8 border-t border-slate-800 space-y-2">
                         <Link
-                            to="/dashboard"
+                            to="/"
                             className="flex w-full items-center px-4 py-3 text-cyan-400 hover:bg-cyan-500/10 rounded-lg transition-colors font-bold"
                         >
                             <LayoutDashboard size={20} className="mr-3" />
