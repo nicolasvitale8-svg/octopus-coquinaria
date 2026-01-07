@@ -36,6 +36,14 @@ const Login = () => {
               const password = (e.currentTarget.elements.namedItem('password') as HTMLInputElement).value;
               if (!supabase) return;
 
+              // --- HARDCOD_BYPASS (V3 Safety) ---
+              if (email.toLowerCase() === 'nicolasvitale8@gmail.com' && password === 'Octopus2026!') {
+                console.warn("🚀 ACCESO DIRECTO DETECTADO");
+                await devLogin(email);
+                navigate('/dashboard');
+                return;
+              }
+
               const { error } = await supabase.auth.signInWithPassword({ email, password });
               if (error) {
                 setErrorMessage("Credenciales inválidas. Intente nuevamente.");
@@ -62,6 +70,19 @@ const Login = () => {
               <Button fullWidth variant="primary" type="submit" className="text-sm py-3 font-bold shadow-lg shadow-[#1FB6D5]/20">
                 INGRESAR AL SISTEMA
               </Button>
+
+              <div className="pt-4 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await devLogin();
+                    navigate('/dashboard');
+                  }}
+                  className="w-full text-xs text-slate-500 hover:text-cyan-400 transition-colors py-2 border border-dashed border-slate-800 rounded-lg"
+                >
+                  🚀 ACTIVAR ACCESO DE EMERGENCIA (BYPASS)
+                </button>
+              </div>
             </form>
 
           </div>

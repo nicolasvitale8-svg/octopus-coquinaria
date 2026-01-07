@@ -25,7 +25,7 @@ interface AuthContextType {
     isPremium: boolean;
     hasPermission: (permission: Permission) => boolean;
     signOut: () => Promise<void>;
-    devLogin: () => Promise<void>;
+    devLogin: (email?: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -40,7 +40,7 @@ const AuthContext = createContext<AuthContextType>({
     isPremium: false,
     hasPermission: () => false,
     signOut: async () => { },
-    devLogin: async () => { },
+    devLogin: async (_email?: string) => { },
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -218,36 +218,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
-    // MOCK LOGIN PARA DESARROLLO LOCAL
-    const devLogin = async () => {
-        console.warn("⚠️ USANDO LOGIN DE DESARROLLO (BYPASS SUPABASE) ⚠️");
+    // MOCK LOGIN PARA DESARROLLO LOCAL / EMERGENCIA
+    const devLogin = async (email: string = 'nicolasvitale8@gmail.com') => {
+        console.warn("⚠️ USANDO LOGIN DE EMERGENCIA (BYPASS SUPABASE) ⚠️");
+
+        const isOwner = email.toLowerCase() === 'nicolasvitale8@gmail.com';
+
         const mockUser = {
-            id: 'dev-admin-id',
+            id: isOwner ? 'owner-id' : 'dev-admin-id',
             aud: 'authenticated',
             role: 'authenticated',
-            email: 'admin@local.dev',
+            email: email,
             confirmed_at: new Date().toISOString(),
             app_metadata: { provider: 'email' },
-            user_metadata: {},
+            user_metadata: { full_name: isOwner ? 'Nicolas Vitale' : 'Desarrollador' },
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
         } as User;
 
         const mockProfile: AppUser = {
-            id: 'dev-admin-id',
-            email: 'admin@local.dev',
-            name: 'Desarrollador Local',
-            role: 'admin', // ¡Siempre Admin!
-            businessName: 'Local Dev Corp',
+            id: mockUser.id,
+            email: email,
+            name: isOwner ? 'Nicolas Vitale' : 'Desarrollador Local',
+            role: 'admin',
+            businessName: 'Octopus Admin',
             permissions: ['super_admin'],
             plan: 'PRO',
             diagnostic_scores: {
-                costos: 45,
-                operaciones: 70,
-                equipo: 60,
-                marketing: 50,
-                tecnologia: 30,
-                cliente: 80
+                costos: 100,
+                operaciones: 100,
+                equipo: 100,
+                marketing: 100,
+                tecnologia: 100,
+                cliente: 100
             },
             businessIds: []
         };
