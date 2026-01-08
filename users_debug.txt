@@ -1,0 +1,32 @@
+[
+  {
+    "id": "630d9bf4-ceed-49ea-8b26-b47ba1f7719d",
+    "email": "juanpablogerchunoff@gmail.com",
+    "role": "client"
+  },
+  {
+    "id": "cd53ec04-5c74-4330-899c-f71aaaca3202",
+    "email": "Cristianimola@gmail.com",
+    "role": "client"
+  },
+  {
+    "id": "9c38163b-6b85-4418-b62a-625c6580aa74",
+    "email": "otisdeled@gmail.com",
+    "role": "consultant"
+  },
+  {
+    "id": "0cfeb414-5857-4b2a-9071-a58c72fdd7c2",
+    "email": "vicentevitale2202@gmail.com",
+    "role": "consultant"
+  },
+  {
+    "id": "9427762f-2b79-4b2a-a728-5163040c0054",
+    "email": "nicolasvitale8@gmail.com",
+    "role": "admin"
+  },
+  {
+    "id": "0490a64e-27d8-4fbc-9e69-f727371f99b5",
+    "email": "octopuscoquinaria@gmail.com",
+    "role": "admin"
+  }
+]

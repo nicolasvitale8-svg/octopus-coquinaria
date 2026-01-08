@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS public.fin_account_types (
     description TEXT,
     include_in_cashflow BOOLEAN DEFAULT true,
     is_active BOOLEAN DEFAULT true,
-    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES public.usuarios(id) ON DELETE CASCADE,
     business_id UUID REFERENCES public.businesses(id) ON DELETE CASCADE, -- Optional: for business-specific types
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS public.fin_accounts (
     account_type_id TEXT REFERENCES public.fin_account_types(id),
     currency TEXT DEFAULT 'ARS',
     is_active BOOLEAN DEFAULT true,
-    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES public.usuarios(id) ON DELETE CASCADE,
     business_id UUID REFERENCES public.businesses(id) ON DELETE CASCADE, -- NULL = Personal, Set = Business Box
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS public.fin_categories (
     name TEXT NOT NULL,
     type TEXT CHECK (type IN ('IN', 'OUT', 'MIX')),
     is_active BOOLEAN DEFAULT true,
-    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES public.usuarios(id) ON DELETE CASCADE,
     business_id UUID REFERENCES public.businesses(id) ON DELETE CASCADE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS public.fin_subcategories (
     category_id TEXT REFERENCES public.fin_categories(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
     is_active BOOLEAN DEFAULT true,
-    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES public.usuarios(id) ON DELETE CASCADE,
     business_id UUID REFERENCES public.businesses(id) ON DELETE CASCADE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS public.fin_monthly_balances (
     year INTEGER NOT NULL,
     month INTEGER NOT NULL, -- 0-11
     amount NUMERIC(15,2) DEFAULT 0,
-    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES public.usuarios(id) ON DELETE CASCADE,
     business_id UUID REFERENCES public.businesses(id) ON DELETE CASCADE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
     UNIQUE(account_id, year, month)
@@ -71,7 +71,7 @@ CREATE TABLE IF NOT EXISTS public.fin_transactions (
     amount NUMERIC(15,2) NOT NULL,
     type TEXT CHECK (type IN ('IN', 'OUT')),
     account_id TEXT REFERENCES public.fin_accounts(id) ON DELETE CASCADE,
-    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES public.usuarios(id) ON DELETE CASCADE,
     business_id UUID REFERENCES public.businesses(id) ON DELETE CASCADE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
@@ -87,7 +87,7 @@ CREATE TABLE IF NOT EXISTS public.fin_budget_items (
     type TEXT CHECK (type IN ('IN', 'OUT')),
     planned_amount NUMERIC(15,2) NOT NULL,
     planned_date INTEGER, -- Day of month
-    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES public.usuarios(id) ON DELETE CASCADE,
     business_id UUID REFERENCES public.businesses(id) ON DELETE CASCADE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
@@ -101,7 +101,7 @@ CREATE TABLE IF NOT EXISTS public.fin_jars (
     end_date DATE NOT NULL,
     principal NUMERIC(15,2) NOT NULL,
     annual_rate NUMERIC(10,4) NOT NULL, -- percentage
-    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES public.usuarios(id) ON DELETE CASCADE,
     business_id UUID REFERENCES public.businesses(id) ON DELETE CASCADE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
@@ -115,7 +115,7 @@ CREATE TABLE IF NOT EXISTS public.fin_rules (
     sub_category_id TEXT REFERENCES public.fin_subcategories(id),
     direction TEXT CHECK (direction IN ('IN', 'OUT')),
     is_active BOOLEAN DEFAULT true,
-    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES public.usuarios(id) ON DELETE CASCADE,
     business_id UUID REFERENCES public.businesses(id) ON DELETE CASCADE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
