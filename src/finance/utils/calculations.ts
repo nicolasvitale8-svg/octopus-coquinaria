@@ -1,4 +1,4 @@
-import { Jar, JarCalculation, Transaction, TransactionType, Account, MonthlyBalance } from '../financeTypes';
+import { Jar, JarCalculation, Transaction, TransactionType, Account, MonthlyBalance, BudgetItem } from '../financeTypes';
 
 export const calculateJar = (jar: Jar): JarCalculation => {
   const start = new Date(jar.startDate);
@@ -146,4 +146,44 @@ export const formatCurrency = (amount: number, currency: string = 'ARS') => {
 
 export const formatPercentage = (val: number) => {
   return `${(val * 100).toFixed(1)}%`;
+};
+
+export const calculateBudgetAlerts = (
+  budgetItems: BudgetItem[],
+  transactions: Transaction[],
+  month: number,
+  year: number
+) => {
+  const today = new Date();
+  const currentMonth = today.getMonth();
+  const currentYear = today.getFullYear();
+  const currentDay = today.getDate();
+
+  const isPastMonth = year < currentYear || (year === currentYear && month < currentMonth);
+  const isCurrentMonth = year === currentYear && month === currentMonth;
+
+  if (!isPastMonth && !isCurrentMonth) return [];
+
+  return budgetItems.filter(item => {
+    if (item.month !== month || item.year !== year) return false;
+
+    const targetDay = item.plannedDate || 1;
+
+    // Only show if it's already due or due within 3 days
+    if (isCurrentMonth && targetDay > currentDay + 3) return false;
+
+    // Check for matching transactions
+    const hasMatch = transactions.some(t => {
+      const transDate = new Date(t.date);
+      // We look for transactions in the same month/year
+      // NOTE: We could be more strict with dates if needed
+      return transDate.getMonth() === month &&
+        transDate.getFullYear() === year &&
+        t.categoryId === item.categoryId &&
+        (!item.subCategoryId || t.subCategoryId === item.subCategoryId) &&
+        Math.abs(t.amount - item.plannedAmount) / item.plannedAmount < 0.2;
+    });
+
+    return !hasMatch;
+  });
 };

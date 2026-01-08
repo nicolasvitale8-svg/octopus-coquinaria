@@ -1,9 +1,9 @@
 
 import React, { useEffect, useState } from 'react';
 import { SupabaseService } from '../services/supabaseService';
-import { calculatePeriodBalance, calculateJar, formatCurrency } from '../utils/calculations';
-import { Account, Transaction, Jar, MonthlyBalance, Category, SubCategory } from '../financeTypes';
-import { TrendingUp, TrendingDown, DollarSign, Lock, ChevronRight, LayoutGrid, List, Wallet, ArrowUpRight, UploadCloud, PlusCircle, Settings, Sparkles, User, Building2, PieChart as PieIcon, X } from 'lucide-react';
+import { calculatePeriodBalance, calculateJar, formatCurrency, calculateBudgetAlerts } from '../utils/calculations';
+import { Account, Transaction, Jar, MonthlyBalance, Category, SubCategory, BudgetItem } from '../financeTypes';
+import { TrendingUp, TrendingDown, DollarSign, Lock, ChevronRight, LayoutGrid, List, Wallet, ArrowUpRight, UploadCloud, PlusCircle, Settings, Sparkles, User, Building2, PieChart as PieIcon, X, Bell, AlertTriangle } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
 import { useNavigate } from 'react-router-dom';
 import { useFinanza } from '../context/FinanzaContext';
@@ -138,7 +138,7 @@ const DetailModal: React.FC<{
 
 export const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { context, setContext, businessId } = useFinanza();
+  const { context, setContext, businessId, setAlertCount } = useFinanza();
   const [loading, setLoading] = useState(true);
 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -150,6 +150,7 @@ export const Dashboard: React.FC = () => {
   const [periodStates, setPeriodStates] = useState<PeriodAccountState[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
+  const [budgetItems, setBudgetItems] = useState<BudgetItem[]>([]);
   const [activeDetail, setActiveDetail] = useState<'IN' | 'OUT' | 'BALANCE' | 'INVESTED' | null>(null);
 
   useEffect(() => { loadData(); }, [context, businessId]);
@@ -159,13 +160,14 @@ export const Dashboard: React.FC = () => {
     setLoading(true);
     try {
       const bId = context === 'octopus' ? businessId : undefined;
-      const [t, acc, j, mb, cat, subCat] = await Promise.all([
+      const [t, acc, j, mb, cat, subCat, budget] = await Promise.all([
         SupabaseService.getTransactions(bId),
         SupabaseService.getAccounts(bId),
         SupabaseService.getJars(bId),
         SupabaseService.getMonthlyBalances(bId),
         SupabaseService.getCategories(bId),
-        SupabaseService.getAllSubCategories(bId)
+        SupabaseService.getAllSubCategories(bId),
+        SupabaseService.getBudgetItems(bId)
       ]);
 
       setTransactions(t);
@@ -174,6 +176,7 @@ export const Dashboard: React.FC = () => {
       setMonthlyBalances(mb);
       setCategories(cat);
       setSubCategories(subCat);
+      setBudgetItems(budget);
     } catch (error) {
       console.error("Error loading dashboard data:", error);
     } finally {
@@ -198,6 +201,16 @@ export const Dashboard: React.FC = () => {
     { name: 'Salidas', amount: totalOut, color: '#EF4444' },
     { name: 'Neto', amount: totalFinal, color: '#3B82F6' },
   ];
+
+  // Logic for Alerts (V2 Phase 1)
+  const alerts = React.useMemo(() => {
+    return calculateBudgetAlerts(budgetItems, transactions, currentMonth, currentYear);
+  }, [budgetItems, transactions, currentMonth, currentYear]);
+
+  // Sync alert count with context
+  useEffect(() => {
+    setAlertCount(alerts.length);
+  }, [alerts.length]);
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -392,7 +405,57 @@ export const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Activity Feed */}
+        {/* Alerts Section (V2 Phase 1) */}
+        {alerts.length > 0 && (
+          <div className="bg-red-500/5 border border-red-500/20 rounded-3xl p-6 backdrop-blur-sm">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 bg-red-500/20 rounded-xl text-red-500 animate-pulse">
+                <Bell size={18} />
+              </div>
+              <div>
+                <h3 className="text-sm font-black text-white uppercase tracking-widest">Pendientes de {new Date(currentYear, currentMonth).toLocaleDateString('es-ES', { month: 'long' })}</h3>
+                <p className="text-[10px] font-bold text-red-500/60 uppercase tracking-tighter">Acciones requeridas ({alerts.length})</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {alerts.slice(0, 3).map((alert, i) => {
+                const cat = categories.find(c => c.id === alert.categoryId);
+                const sub = subCategories.find(s => s.id === alert.subCategoryId);
+                const isPast = (alert.plannedDate || 1) < new Date().getDate();
+
+                return (
+                  <div key={i} className="bg-[#0b1221]/40 border border-white/5 p-4 rounded-2xl flex items-center justify-between group hover:border-red-500/30 transition-all">
+                    <div className="flex items-center gap-4">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isPast ? 'bg-red-500/10 text-red-500' : 'bg-amber-500/10 text-amber-500'}`}>
+                        {alert.type === 'OUT' ? <TrendingDown size={18} /> : <TrendingUp size={18} />}
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black text-white uppercase tracking-tight line-clamp-1">{alert.label}</p>
+                        <p className="text-[9px] font-bold text-fin-muted uppercase">{cat?.name} {sub ? `• ${sub.name}` : ''}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs font-black text-white">{formatCurrency(alert.plannedAmount)}</p>
+                      <p className={`text-[8px] font-black uppercase tracking-widest ${isPast ? 'text-red-500' : 'text-amber-500'}`}>
+                        {isPast ? 'Atrasado' : `Día ${alert.plannedDate}`}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+              {alerts.length > 3 && (
+                <button
+                  onClick={() => navigate('/budget')}
+                  className="bg-white/5 border border-dashed border-white/10 rounded-2xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-fin-muted hover:text-white transition-all"
+                >
+                  Ver {alerts.length - 3} más <ChevronRight size={14} />
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Hero Stats */}
         <div className="lg:col-span-1">
           <div className="bg-fin-card rounded-[32px] border border-fin-border h-full flex flex-col shadow-2xl overflow-hidden">
             <div className="px-10 py-8 border-b border-fin-border flex items-center justify-between bg-fin-bg/20">

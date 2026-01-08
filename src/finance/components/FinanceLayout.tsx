@@ -12,12 +12,13 @@ import {
     Menu,
     ChevronLeft,
     PieChart,
-    Banknote
+    Banknote,
+    Bell
 } from 'lucide-react';
 import { useFinanza } from '../context/FinanzaContext';
 
 const FinanceLayout = () => {
-    const { context } = useFinanza();
+    const { context, alertCount } = useFinanza();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const location = useLocation();
     const navigate = useNavigate();
@@ -63,8 +64,8 @@ const FinanceLayout = () => {
                             to={item.path}
                             onClick={() => setIsSidebarOpen(false)}
                             className={`flex items-center px-4 py-3.5 rounded-2xl transition-all group ${isActive(item.path)
-                                    ? 'bg-cyan-500 text-white shadow-lg shadow-cyan-500/20 font-bold translate-x-1'
-                                    : 'text-slate-400 hover:bg-white/5 hover:text-white'
+                                ? 'bg-cyan-500 text-white shadow-lg shadow-cyan-500/20 font-bold translate-x-1'
+                                : 'text-slate-400 hover:bg-white/5 hover:text-white'
                                 }`}
                         >
                             <span className={`mr-3 transition-transform group-hover:scale-110 ${isActive(item.path) ? 'text-white' : 'text-cyan-500/70'}`}>
@@ -114,6 +115,29 @@ const FinanceLayout = () => {
                     </div>
 
                     <div className="flex items-center gap-4">
+                        {/* Notifications Bell (V2 Phase 1) */}
+                        <div className="relative group">
+                            <button
+                                onClick={() => navigate('/finance')}
+                                className={`p-2.5 rounded-xl border transition-all relative ${alertCount > 0 ? 'bg-red-500/10 border-red-500/30 text-red-500 shadow-[0_0_15px_rgba(239,68,68,0.2)]' : 'bg-white/5 border-white/10 text-white/40 hover:text-white'}`}
+                            >
+                                <Bell size={20} className={alertCount > 0 ? 'animate-swing' : ''} />
+                                {alertCount > 0 && (
+                                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center shadow-lg border-2 border-[#050f1a]">
+                                        {alertCount}
+                                    </span>
+                                )}
+                            </button>
+
+                            <div className="absolute top-full mt-2 right-0 hidden group-hover:block z-50">
+                                <div className="bg-[#0b1221] border border-white/10 p-3 rounded-xl shadow-2xl whitespace-nowrap">
+                                    <p className="text-[10px] font-black text-white uppercase tracking-widest">
+                                        {alertCount > 0 ? `${alertCount} Pendientes Detectados` : 'Sin notificaciones'}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
                         <button
                             onClick={() => navigate('/')}
                             className="p-2.5 bg-white/5 text-white/40 hover:text-white hover:bg-white/10 rounded-xl transition-all border border-white/5 group shadow-inner"
@@ -160,6 +184,19 @@ const FinanceLayout = () => {
                 }
                 .animate-fade-in {
                     animation: fade-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+                }
+                @keyframes swing {
+                    0% { transform: rotate(0deg); }
+                    10% { transform: rotate(10deg); }
+                    20% { transform: rotate(-10deg); }
+                    30% { transform: rotate(10deg); }
+                    40% { transform: rotate(-5deg); }
+                    50% { transform: rotate(5deg); }
+                    100% { transform: rotate(0deg); }
+                }
+                .animate-swing {
+                    animation: swing 2s ease infinite;
+                    transform-origin: top center;
                 }
             ` }} />
         </div>

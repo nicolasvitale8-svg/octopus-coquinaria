@@ -8,6 +8,8 @@ interface FinanzaContextProps {
     setContext: (context: FinanceContextType) => void;
     businessId: string | undefined;
     setBusinessId: (id: string | undefined) => void;
+    alertCount: number;
+    setAlertCount: (n: number) => void;
 }
 
 const FinanzaContext = createContext<FinanzaContextProps | undefined>(undefined);
@@ -15,9 +17,10 @@ const FinanzaContext = createContext<FinanzaContextProps | undefined>(undefined)
 export const FinanzaProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [context, setContext] = useState<FinanceContextType>('personal');
     const [businessId, setBusinessId] = useState<string | undefined>(undefined);
+    const [alertCount, setAlertCount] = useState(0);
 
     return (
-        <FinanzaContext.Provider value={{ context, setContext, businessId, setBusinessId }}>
+        <FinanzaContext.Provider value={{ context, setContext, businessId, setBusinessId, alertCount, setAlertCount }}>
             {children}
         </FinanzaContext.Provider>
     );

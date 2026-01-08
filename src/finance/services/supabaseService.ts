@@ -30,7 +30,13 @@ export const SupabaseService = {
             .or(`business_id.is.null,business_id.eq.${businessId || 'null'}`);
 
         if (error) throw error;
-        return data as AccountType[];
+        return (data || []).map((d: any) => ({
+            id: d.id,
+            name: d.name,
+            description: d.description,
+            includeInCashflow: d.include_in_cashflow,
+            isActive: d.is_active
+        }));
     },
 
     // --- ACCOUNTS (CAJAS) ---
@@ -43,23 +49,43 @@ export const SupabaseService = {
         }
         const { data, error } = await query;
         if (error) throw error;
-        return data as Account[];
+        return (data || []).map((d: any) => ({
+            id: d.id,
+            name: d.name,
+            accountTypeId: d.account_type_id,
+            currency: d.currency,
+            isActive: d.is_active
+        }));
     },
 
     addAccount: async (acc: Partial<Account>, businessId?: string) => {
         const userId = await SupabaseService.private.getUserId();
+        const dbObj = {
+            name: acc.name,
+            account_type_id: acc.accountTypeId,
+            currency: acc.currency,
+            is_active: acc.isActive,
+            user_id: userId,
+            business_id: businessId || null
+        };
         const { data, error } = await supabase
             .from('fin_accounts')
-            .insert([{ ...acc, user_id: userId, business_id: businessId || null }])
+            .insert([dbObj])
             .select();
         if (error) throw error;
         return data[0];
     },
 
     updateAccount: async (acc: Account) => {
+        const dbObj = {
+            name: acc.name,
+            account_type_id: acc.accountTypeId,
+            currency: acc.currency,
+            is_active: acc.isActive
+        };
         const { error } = await supabase
             .from('fin_accounts')
-            .update(acc)
+            .update(dbObj)
             .eq('id', acc.id);
         if (error) throw error;
     },
@@ -80,14 +106,29 @@ export const SupabaseService = {
 
         const { data, error } = await query;
         if (error) throw error;
-        return data as MonthlyBalance[];
+        return (data || []).map((d: any) => ({
+            id: d.id,
+            accountId: d.account_id,
+            year: d.year,
+            month: d.month,
+            amount: d.amount
+        }));
     },
 
     saveMonthlyBalance: async (balance: Partial<MonthlyBalance>, businessId?: string) => {
         const userId = await SupabaseService.private.getUserId();
+        const dbObj = {
+            id: balance.id,
+            account_id: balance.accountId,
+            year: balance.year,
+            month: balance.month,
+            amount: balance.amount,
+            user_id: userId,
+            business_id: businessId || null
+        };
         const { error } = await supabase
             .from('fin_monthly_balances')
-            .upsert({ ...balance, user_id: userId, business_id: businessId || null });
+            .upsert(dbObj);
         if (error) throw error;
     },
 
@@ -98,23 +139,40 @@ export const SupabaseService = {
             .select('*')
             .or(`business_id.is.null,business_id.eq.${businessId || 'null'}`);
         if (error) throw error;
-        return data as Category[];
+        return (data || []).map((d: any) => ({
+            id: d.id,
+            name: d.name,
+            type: d.type,
+            isActive: d.is_active
+        }));
     },
 
     addCategory: async (cat: Partial<Category>, businessId?: string) => {
         const userId = await SupabaseService.private.getUserId();
+        const dbObj = {
+            name: cat.name,
+            type: cat.type,
+            is_active: cat.isActive ?? true,
+            user_id: userId,
+            business_id: businessId || null
+        };
         const { data, error } = await supabase
             .from('fin_categories')
-            .insert([{ ...cat, user_id: userId, business_id: businessId || null }])
+            .insert([dbObj])
             .select();
         if (error) throw error;
         return data[0];
     },
 
     updateCategory: async (cat: Category) => {
+        const dbObj = {
+            name: cat.name,
+            type: cat.type,
+            is_active: cat.isActive
+        };
         const { error } = await supabase
             .from('fin_categories')
-            .update(cat)
+            .update(dbObj)
             .eq('id', cat.id);
         if (error) throw error;
     },
@@ -133,7 +191,12 @@ export const SupabaseService = {
             .select('*')
             .eq('category_id', categoryId);
         if (error) throw error;
-        return data as SubCategory[];
+        return (data || []).map((d: any) => ({
+            id: d.id,
+            categoryId: d.category_id,
+            name: d.name,
+            isActive: d.is_active
+        }));
     },
 
     getAllSubCategories: async (businessId?: string): Promise<SubCategory[]> => {
@@ -142,14 +205,26 @@ export const SupabaseService = {
             .select('*, fin_categories!inner(business_id)')
             .or(`fin_categories.business_id.is.null,fin_categories.business_id.eq.${businessId || 'null'}`);
         if (error) throw error;
-        return data as any[];
+        return (data || []).map((d: any) => ({
+            id: d.id,
+            categoryId: d.category_id,
+            name: d.name,
+            isActive: d.is_active
+        }));
     },
 
     addSubCategory: async (sub: Partial<SubCategory>, businessId?: string) => {
         const userId = await SupabaseService.private.getUserId();
+        const dbObj = {
+            category_id: sub.categoryId,
+            name: sub.name,
+            is_active: sub.isActive ?? true,
+            user_id: userId,
+            business_id: businessId || null
+        };
         const { data, error } = await supabase
             .from('fin_subcategories')
-            .insert([{ ...sub, user_id: userId, business_id: businessId || null }])
+            .insert([dbObj])
             .select();
         if (error) throw error;
         return data[0];
@@ -171,14 +246,36 @@ export const SupabaseService = {
 
         const { data, error } = await query.order('date', { ascending: false });
         if (error) throw error;
-        return data as Transaction[];
+        return (data || []).map((d: any) => ({
+            id: d.id,
+            date: d.date,
+            categoryId: d.category_id,
+            subCategoryId: d.sub_category_id,
+            description: d.description,
+            note: d.note,
+            amount: d.amount,
+            type: d.type,
+            accountId: d.account_id
+        }));
     },
 
     addTransaction: async (t: Partial<Transaction>, businessId?: string) => {
         const userId = await SupabaseService.private.getUserId();
+        const dbObj = {
+            date: t.date,
+            category_id: t.categoryId,
+            sub_category_id: t.subCategoryId || null,
+            description: t.description,
+            note: t.note,
+            amount: t.amount,
+            type: t.type,
+            account_id: t.accountId,
+            user_id: userId,
+            business_id: businessId || null
+        };
         const { data, error } = await supabase
             .from('fin_transactions')
-            .insert([{ ...t, user_id: userId, business_id: businessId || null }])
+            .insert([dbObj])
             .select();
         if (error) throw error;
         return data[0];
@@ -192,14 +289,37 @@ export const SupabaseService = {
 
         const { data, error } = await query;
         if (error) throw error;
-        return data as BudgetItem[];
+        return (data || []).map((d: any) => ({
+            id: d.id,
+            year: d.year,
+            month: d.month,
+            categoryId: d.category_id,
+            subCategoryId: d.sub_category_id,
+            label: d.label,
+            type: d.type,
+            plannedAmount: d.planned_amount,
+            plannedDate: d.planned_date
+        }));
     },
 
     saveBudgetItem: async (item: Partial<BudgetItem>, businessId?: string) => {
         const userId = await SupabaseService.private.getUserId();
+        const dbObj = {
+            id: item.id,
+            year: item.year,
+            month: item.month,
+            category_id: item.categoryId,
+            sub_category_id: item.subCategoryId || null,
+            label: item.label,
+            type: item.type,
+            planned_amount: item.plannedAmount,
+            planned_date: item.plannedDate,
+            user_id: userId,
+            business_id: businessId || null
+        };
         const { error } = await supabase
             .from('fin_budget_items')
-            .upsert({ ...item, user_id: userId, business_id: businessId || null });
+            .upsert(dbObj);
         if (error) throw error;
     },
 
@@ -211,14 +331,33 @@ export const SupabaseService = {
 
         const { data, error } = await query;
         if (error) throw error;
-        return data as Jar[];
+        return (data || []).map((d: any) => ({
+            id: d.id,
+            accountId: d.account_id,
+            name: d.name,
+            startDate: d.start_date,
+            endDate: d.end_date,
+            principal: d.principal,
+            annualRate: d.annual_rate
+        }));
     },
 
     saveJar: async (jar: Partial<Jar>, businessId?: string) => {
         const userId = await SupabaseService.private.getUserId();
+        const dbObj = {
+            id: jar.id,
+            account_id: jar.accountId,
+            name: jar.name,
+            start_date: jar.startDate,
+            end_date: jar.endDate,
+            principal: jar.principal,
+            annual_rate: jar.annualRate,
+            user_id: userId,
+            business_id: businessId || null
+        };
         const { error } = await supabase
             .from('fin_jars')
-            .upsert({ ...jar, user_id: userId, business_id: businessId || null });
+            .upsert(dbObj);
         if (error) throw error;
     },
 
@@ -230,14 +369,33 @@ export const SupabaseService = {
 
         const { data, error } = await query;
         if (error) throw error;
-        return data as TextCategoryRule[];
+        return (data || []).map((d: any) => ({
+            id: d.id,
+            pattern: d.pattern,
+            matchType: d.match_type,
+            categoryId: d.category_id,
+            subCategoryId: d.sub_category_id,
+            direction: d.direction,
+            isActive: d.is_active
+        }));
     },
 
     saveRule: async (rule: Partial<TextCategoryRule>, businessId?: string) => {
         const userId = await SupabaseService.private.getUserId();
+        const dbObj = {
+            id: rule.id,
+            pattern: rule.pattern,
+            match_type: rule.matchType,
+            category_id: rule.categoryId,
+            sub_category_id: rule.subCategoryId || null,
+            direction: rule.direction,
+            is_active: rule.isActive ?? true,
+            user_id: userId,
+            business_id: businessId || null
+        };
         const { error } = await supabase
             .from('fin_rules')
-            .upsert({ ...rule, user_id: userId, business_id: businessId || null });
+            .upsert(dbObj);
         if (error) throw error;
     },
 
