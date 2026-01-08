@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Receipt, PiggyBank, Scale, Menu, X, Wallet, UploadCloud, ChevronRight, Settings, User } from 'lucide-react';
+import { LayoutDashboard, Receipt, PiggyBank, Scale, Menu, X, Wallet, UploadCloud, ChevronRight, Settings, User, ArrowLeft } from 'lucide-react';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -11,6 +11,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
   const navItems = [
+    { to: "/admin/dashboard", icon: <ArrowLeft size={18} />, label: "Volver a Octopus", isBack: true },
     { to: "/finance", icon: <LayoutDashboard size={18} />, label: "Dashboard" },
     { to: "/finance/transactions", icon: <Receipt size={18} />, label: "Movimientos" },
     { to: "/finance/budget", icon: <Scale size={18} />, label: "Presupuesto" },
@@ -39,7 +40,9 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               className={({ isActive }) =>
                 `flex items-center justify-between px-5 py-4 rounded-2xl transition-all group ${isActive
                   ? "bg-brand/10 text-brand border border-brand/20 shadow-lg shadow-brand/5"
-                  : "text-fin-muted hover:text-white hover:bg-fin-card/40"
+                  : item.isBack
+                    ? "text-[#1FB6D5] bg-[#1FB6D5]/5 hover:bg-[#1FB6D5]/10 border border-[#1FB6D5]/10 mb-6"
+                    : "text-fin-muted hover:text-white hover:bg-fin-card/40"
                 }`
               }
             >

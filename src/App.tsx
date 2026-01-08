@@ -33,6 +33,7 @@ import { Jars as FinanceJars } from './finance/pages/Jars';
 import { Accounts as FinanceAccounts } from './finance/pages/Accounts';
 import { ImportPage as FinanceImport } from './finance/pages/Import';
 import { SettingsPage as FinanceSettings } from './finance/pages/Settings';
+import FinanceLayout from './finance/components/FinanceLayout';
 
 
 import { AuthProvider } from './contexts/AuthContext';
@@ -114,13 +115,15 @@ const App = () => {
             <Route path="/calendar" element={<CalendarPage />} />
 
             {/* Finance Module Routes */}
-            <Route path="/finance" element={<ProtectedRoute><FinanceDashboard /></ProtectedRoute>} />
-            <Route path="/finance/transactions" element={<ProtectedRoute><FinanceTransactions /></ProtectedRoute>} />
-            <Route path="/finance/budget" element={<ProtectedRoute><FinanceBudget /></ProtectedRoute>} />
-            <Route path="/finance/jars" element={<ProtectedRoute><FinanceJars /></ProtectedRoute>} />
-            <Route path="/finance/accounts" element={<ProtectedRoute><FinanceAccounts /></ProtectedRoute>} />
-            <Route path="/finance/import" element={<ProtectedRoute><FinanceImport /></ProtectedRoute>} />
-            <Route path="/finance/settings" element={<ProtectedRoute><FinanceSettings /></ProtectedRoute>} />
+            <Route element={<ProtectedRoute><FinanceLayout /></ProtectedRoute>}>
+              <Route path="/finance" element={<FinanceDashboard />} />
+              <Route path="/finance/transactions" element={<FinanceTransactions />} />
+              <Route path="/finance/budget" element={<FinanceBudget />} />
+              <Route path="/finance/jars" element={<FinanceJars />} />
+              <Route path="/finance/accounts" element={<FinanceAccounts />} />
+              <Route path="/finance/import" element={<FinanceImport />} />
+              <Route path="/finance/settings" element={<FinanceSettings />} />
+            </Route>
 
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

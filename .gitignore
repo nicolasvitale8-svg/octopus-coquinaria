@@ -24,3 +24,7 @@ dist-ssr
 *.sw?
 
 .vercel
+scripts/*.ts
+scripts/*.txt
+!scripts/analyze_excel.py
+!scripts/migrate_excel_v2.py

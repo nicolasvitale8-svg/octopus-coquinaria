@@ -37,6 +37,23 @@ export const calculateJar = (jar: Jar): JarCalculation => {
 };
 
 /**
+ * Calculates the nearest working day for a given day/month/year.
+ * If fallbackToFriday is true, it moves back to the preceding Friday; otherwise, it moves to Monday.
+ */
+export const getAdjustedWorkingDay = (day: number, month: number, year: number, fallbackToFriday = false): Date => {
+  const date = new Date(year, month, day);
+  const dayOfWeek = date.getDay(); // 0: Sunday, 6: Saturday
+
+  if (dayOfWeek === 0) { // Sunday
+    date.setDate(date.getDate() + (fallbackToFriday ? -2 : 1));
+  } else if (dayOfWeek === 6) { // Saturday
+    date.setDate(date.getDate() + (fallbackToFriday ? -1 : 2));
+  }
+
+  return date;
+};
+
+/**
  * Calculates account balances for a specific period (Month/Year).
  * If no monthly balance exists for the start of the period, it returns 0 as start.
  */
@@ -118,10 +135,10 @@ export const calculateAccountBalances = (accounts: Account[], transactions: Tran
   });
 };
 
-export const formatCurrency = (amount: number) => {
+export const formatCurrency = (amount: number, currency: string = 'ARS') => {
   return new Intl.NumberFormat('es-AR', {
     style: 'currency',
-    currency: 'ARS',
+    currency: currency,
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   }).format(amount);

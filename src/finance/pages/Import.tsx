@@ -154,7 +154,7 @@ export const ImportPage: React.FC = () => {
               <select
                 value={selectedAccountId}
                 onChange={e => setSelectedAccountId(e.target.value)}
-                className="w-full bg-fin-bg border border-fin-border rounded-2xl p-4 text-white font-bold focus:border-brand outline-none appearance-none cursor-pointer transition-all"
+                className="w-full bg-[#020b14] border border-white/10 rounded-2xl p-4 text-white font-bold focus:border-brand outline-none appearance-none cursor-pointer transition-all"
               >
                 <option value="">Seleccionar cuenta destino...</option>
                 {accounts.filter(a => a.isActive).map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
@@ -204,9 +204,9 @@ export const ImportPage: React.FC = () => {
                 value={rawText}
                 onChange={e => setRawText(e.target.value)}
                 placeholder="Pega texto directamente o sube una imagen..."
-                className="w-full h-44 bg-fin-bg border border-fin-border rounded-2xl p-5 text-xs text-fin-muted font-mono focus:text-white focus:border-brand outline-none resize-none transition-all scrollbar-hide"
+                className="w-full h-44 bg-[#020b14] border border-white/10 rounded-2xl p-5 text-xs text-white/70 font-mono focus:text-white focus:border-brand outline-none resize-none transition-all scrollbar-hide"
               />
-              <FileText className="absolute bottom-5 right-5 text-fin-border/30" size={20} />
+              <FileText className="absolute bottom-5 right-5 text-white/10" size={20} />
             </div>
           </div>
 
@@ -292,7 +292,7 @@ export const ImportPage: React.FC = () => {
                   </td>
                   <td className="px-10 py-7">
                     <select
-                      className="bg-fin-bg border border-fin-border rounded-xl px-4 py-2.5 text-[11px] font-black text-white focus:border-brand outline-none w-full min-w-[140px] appearance-none cursor-pointer hover:border-brand/50 transition-all"
+                      className="bg-[#020b14] border border-white/10 rounded-xl px-4 py-2.5 text-[11px] font-black text-white focus:border-brand outline-none w-full min-w-[140px] appearance-none cursor-pointer hover:border-brand/50 transition-all"
                       value={line.categoryId || ''}
                       onChange={e => setImportedLines(lines => lines.map(l => l.id === line.id ? { ...l, categoryId: e.target.value } : l))}
                     >

@@ -22,6 +22,14 @@ export default {
         'status-green': '#1FA77A',
         'status-yellow': '#F2B350',
         'status-red': '#D64747',
+        // FinanzaFlow specific palette
+        'fin-bg': '#020b14',
+        'fin-card': '#050f1a',
+        'fin-border': 'rgba(255, 255, 255, 0.05)',
+        'fin-text': '#f1f5f9',
+        'fin-muted': '#94a3b8',
+        'brand': '#1fb6d5',
+        'brand-hover': '#1fa7c4',
       },
       animation: {
         'faulty-flicker': 'faulty-flicker 4s infinite linear',

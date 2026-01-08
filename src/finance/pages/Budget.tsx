@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { SupabaseService } from '../services/supabaseService';
 import { BudgetItem, Category, SubCategory, Transaction, TransactionType } from '../financeTypes';
-import { formatCurrency, formatPercentage } from '../utils/calculations';
-import { Plus, Trash2, Pencil, ChevronRight, PieChart, Sparkles } from 'lucide-react';
+import { formatCurrency, formatPercentage, getAdjustedWorkingDay } from '../utils/calculations';
+import { Plus, Trash2, Pencil, ChevronRight, PieChart, Sparkles, Calendar as CalendarIcon, Clock } from 'lucide-react';
 import { useFinanza } from '../context/FinanzaContext';
 
 export const Budget: React.FC = () => {
@@ -12,10 +12,11 @@ export const Budget: React.FC = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
-  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
-  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+  const [currentMonth, setCurrentMonth] = useState(10); // Noviembre
+  const [currentYear, setCurrentYear] = useState(2025);
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [activeBudgetTab, setActiveBudgetTab] = useState<TransactionType>(TransactionType.OUT);
 
   const [newItem, setNewItem] = useState<Partial<BudgetItem>>({ type: TransactionType.OUT, plannedAmount: 0 });
 
@@ -100,7 +101,8 @@ export const Budget: React.FC = () => {
           <table className="w-full text-left text-xs">
             <thead className="text-[9px] text-fin-muted uppercase tracking-widest border-b border-fin-border">
               <tr>
-                <th className="px-8 py-4 font-black">Día</th>
+                <th className="px-8 py-4 font-black">Plan</th>
+                <th className="px-8 py-4 font-black">Ajuste</th>
                 <th className="px-8 py-4 font-black">Concepto</th>
                 <th className="px-8 py-4 text-right font-black">Previsto</th>
                 <th className="px-8 py-4 text-right font-black">Real</th>
@@ -118,10 +120,26 @@ export const Budget: React.FC = () => {
 
                 return (
                   <tr key={item.id} className="hover:bg-fin-bg transition-colors">
-                    <td className="px-8 py-5 opacity-40 font-bold">{item.plannedDate || '-'}</td>
                     <td className="px-8 py-5">
-                      <p className="font-bold text-fin-text">{item.label}</p>
-                      <p className="text-[9px] text-fin-muted mt-0.5 uppercase tracking-tighter">
+                      <div className="flex flex-col">
+                        <span className="text-fin-text font-black text-sm">{item.plannedDate || '-'}</span>
+                        <span className="text-[8px] text-fin-muted uppercase tracking-widest font-black">Estimado</span>
+                      </div>
+                    </td>
+                    <td className="px-8 py-5">
+                      {item.plannedDate ? (
+                        <div className="flex flex-col">
+                          <span className="text-cyan-400 font-black text-sm">
+                            {getAdjustedWorkingDay(item.plannedDate, item.month, item.year).getDate()}
+                          </span>
+                          <span className="text-[8px] text-cyan-500/50 uppercase tracking-widest font-black">Hábil</span>
+                        </div>
+                      ) : '-'}
+                    </td>
+                    <td className="px-8 py-5">
+                      <p className="font-bold text-fin-text leading-tight">{item.label}</p>
+                      <p className="text-[9px] text-fin-muted mt-1 uppercase tracking-widest font-black flex items-center gap-1.5 px-2 py-0.5 bg-fin-bg rounded-lg w-fit border border-fin-border/50">
+                        <div className="w-1 h-1 rounded-full bg-cyan-500"></div>
                         {categories.find(c => c.id === item.categoryId)?.name}
                       </p>
                     </td>
@@ -137,8 +155,16 @@ export const Budget: React.FC = () => {
                     </td>
                     <td className="px-8 py-5 text-right">
                       <div className="flex justify-end gap-3 opacity-20 hover:opacity-100 transition-opacity">
-                        <button onClick={() => { setEditingId(item.id); setNewItem(item); setIsAdding(true); }} className="text-fin-text hover:text-brand"><Pencil size={14} /></button>
-                        <button onClick={async () => { if (confirm('Eliminar ítem?')) { await SupabaseService.deleteBudgetItem(item.id); await loadData(); } }} className="text-fin-text hover:text-red-500"><Trash2 size={14} /></button>
+                        <button onClick={() => {
+                          setEditingId(item.id);
+                          setNewItem({
+                            ...item,
+                            categoryId: item.categoryId,
+                            subCategoryId: item.subCategoryId
+                          });
+                          setIsAdding(true);
+                        }} className="p-2 bg-fin-bg rounded-lg text-fin-text hover:text-brand border border-fin-border transition-all"><Pencil size={14} /></button>
+                        <button onClick={async () => { if (confirm('¿Eliminar proyección definitivamente?')) { await SupabaseService.deleteBudgetItem(item.id); await loadData(); } }} className="p-2 bg-fin-bg rounded-lg text-fin-text hover:text-red-500 border border-fin-border transition-all"><Trash2 size={14} /></button>
                       </div>
                     </td>
                   </tr>
@@ -188,47 +214,71 @@ export const Budget: React.FC = () => {
         </div>
       </div>
 
+      <div className="bg-fin-card p-1 rounded-2xl border border-fin-border w-fit">
+        <button
+          onClick={() => setActiveBudgetTab(TransactionType.OUT)}
+          className={`px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeBudgetTab === TransactionType.OUT ? 'bg-red-500 text-white shadow-lg shadow-red-500/20' : 'text-fin-muted hover:text-white'}`}
+        >
+          Salidas
+        </button>
+        <button
+          onClick={() => setActiveBudgetTab(TransactionType.IN)}
+          className={`px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeBudgetTab === TransactionType.IN ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'text-fin-muted hover:text-white'}`}
+        >
+          Ingresos
+        </button>
+      </div>
+
       {isAdding && (
-        <div className="bg-fin-card p-10 rounded-2xl border border-fin-border animate-fade-in mb-8 shadow-2xl">
-          <h3 className="text-lg font-black mb-10 text-fin-text uppercase tracking-tight">{editingId ? 'Editar Item' : 'Nueva Proyección'}</h3>
-          <form onSubmit={handleSaveItem} className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-8">
-            <div className="space-y-1">
-              <label className="text-[10px] font-black uppercase tracking-widest text-fin-muted">Tipo</label>
-              <select value={newItem.type} onChange={e => setNewItem({ ...newItem, type: e.target.value as TransactionType })} className="w-full bg-fin-bg border border-fin-border rounded-xl p-3 text-sm text-fin-text">
+        <div className="bg-fin-card p-10 rounded-[32px] border border-fin-border animate-fade-in mb-8 shadow-2xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-brand/5 rounded-full -mr-16 -mt-16 blur-3xl"></div>
+          <h3 className="text-xl font-black mb-10 text-white uppercase tracking-tight flex items-center gap-3">
+            <Plus className="text-brand" size={24} />
+            {editingId ? 'Modificar Proyección' : 'Nueva Planificación Mensual'}
+          </h3>
+          <form onSubmit={handleSaveItem} className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-8 relative z-10">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-fin-muted ml-1">Tipo de Flujo</label>
+              <select value={newItem.type} onChange={e => setNewItem({ ...newItem, type: e.target.value as TransactionType })} className="w-full bg-[#050f1a] border border-white/10 rounded-2xl p-4 text-sm text-white font-bold outline-none focus:border-brand transition-all appearance-none cursor-pointer">
                 <option value={TransactionType.IN}>Ingreso</option>
-                <option value={TransactionType.OUT}>Gasto</option>
+                <option value={TransactionType.OUT}>Salida</option>
               </select>
             </div>
-            <div className="space-y-1">
-              <label className="text-[10px] font-black uppercase tracking-widest text-fin-muted">Concepto</label>
-              <input type="text" value={newItem.label || ''} onChange={e => setNewItem({ ...newItem, label: e.target.value })} placeholder="Ej. Alquiler" className="w-full bg-fin-bg border border-fin-border rounded-xl p-3 text-sm text-fin-text" required />
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-fin-muted ml-1">Concepto / Detalle</label>
+              <input type="text" value={newItem.label || ''} onChange={e => setNewItem({ ...newItem, label: e.target.value })} placeholder="Ej. Alquiler Octubre" className="w-full bg-[#050f1a] border border-white/10 rounded-2xl p-4 text-sm text-white font-bold outline-none focus:border-brand transition-all placeholder:text-white/20" required />
             </div>
-            <div className="space-y-1">
-              <label className="text-[10px] font-black uppercase tracking-widest text-fin-muted">Rubro</label>
-              <select value={newItem.categoryId || ''} onChange={e => setNewItem({ ...newItem, categoryId: e.target.value, subCategoryId: undefined })} className="w-full bg-fin-bg border border-fin-border rounded-xl p-3 text-sm text-fin-text" required>
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-fin-muted ml-1">Rubro Principal</label>
+              <select value={newItem.categoryId || ''} onChange={e => setNewItem({ ...newItem, categoryId: e.target.value, subCategoryId: undefined })} className="w-full bg-[#050f1a] border border-white/10 rounded-2xl p-4 text-sm text-white font-bold outline-none focus:border-brand transition-all appearance-none cursor-pointer" required>
                 <option value="">Seleccionar...</option>
                 {categories.filter(c => c.type === newItem.type || c.type === 'MIX').map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
             </div>
-            <div className="space-y-1">
-              <label className="text-[10px] font-black uppercase tracking-widest text-fin-muted">Día Previsto</label>
-              <input type="number" max="31" min="1" value={newItem.plannedDate || ''} onChange={e => setNewItem({ ...newItem, plannedDate: Number(e.target.value) })} className="w-full bg-fin-bg border border-fin-border rounded-xl p-3 text-sm text-fin-text" />
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-fin-muted ml-1">Día Estimado</label>
+              <input type="number" max="31" min="1" value={newItem.plannedDate || ''} onChange={e => setNewItem({ ...newItem, plannedDate: Number(e.target.value) })} className="w-full bg-[#050f1a] border border-white/10 rounded-2xl p-4 text-sm text-white font-bold outline-none focus:border-brand transition-all" />
             </div>
-            <div className="space-y-1">
-              <label className="text-[10px] font-black uppercase tracking-widest text-fin-muted">Monto Proyectado</label>
-              <input type="number" step="0.01" value={newItem.plannedAmount || ''} onChange={e => setNewItem({ ...newItem, plannedAmount: Number(e.target.value) })} className="w-full bg-fin-bg border border-fin-border rounded-xl p-3 text-sm text-fin-text font-bold" required />
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-fin-muted ml-1">Monto Proyectado</label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-fin-muted font-bold">$</span>
+                <input type="number" step="0.01" value={newItem.plannedAmount || ''} onChange={e => setNewItem({ ...newItem, plannedAmount: Number(e.target.value) })} className="w-full bg-[#050f1a] border border-white/10 rounded-2xl p-4 pl-8 text-sm text-white font-black outline-none focus:border-brand transition-all" required />
+              </div>
             </div>
             <div className="flex items-end">
-              <button type="submit" className="w-full bg-brand text-fin-bg rounded-xl py-4 font-black text-xs uppercase tracking-widest hover:bg-brand-hover">
-                {editingId ? 'ACTUALIZAR' : 'GUARDAR PROYECCIÓN'}
+              <button type="submit" className="w-full bg-brand text-fin-bg rounded-2xl py-4 font-black text-xs uppercase tracking-[0.2em] hover:bg-brand-hover transition-all shadow-xl shadow-brand/20 active:scale-95">
+                {editingId ? 'ACTUALIZAR DATOS' : 'CREAR PROYECCIÓN'}
               </button>
             </div>
           </form>
         </div>
       )}
 
-      {renderBudgetTable(TransactionType.IN, 'Ingresos Planificados')}
-      {renderBudgetTable(TransactionType.OUT, 'Gastos Planificados')}
+      {activeBudgetTab === TransactionType.IN
+        ? renderBudgetTable(TransactionType.IN, 'Planificación de Ingresos')
+        : renderBudgetTable(TransactionType.OUT, 'Planificación de Gastos')
+      }
     </div>
   );
 };

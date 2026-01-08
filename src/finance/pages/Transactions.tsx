@@ -15,8 +15,8 @@ export const Transactions: React.FC = () => {
   const [showFilters, setShowFilters] = useState(false);
 
   // ... (Filter states remain same)
-  const [filterStartDate, setFilterStartDate] = useState('');
-  const [filterEndDate, setFilterEndDate] = useState('');
+  const [filterStartDate, setFilterStartDate] = useState('2025-11-01');
+  const [filterEndDate, setFilterEndDate] = useState('2025-11-30');
   const [filterCategory, setFilterCategory] = useState('');
   const [filterAccount, setFilterAccount] = useState('');
   const [filterType, setFilterType] = useState<TransactionType | ''>('');
@@ -155,7 +155,7 @@ export const Transactions: React.FC = () => {
                 placeholder="Descripción..."
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                className="w-full bg-fin-bg border border-fin-border rounded-xl p-3 text-xs text-white focus:border-brand outline-none"
+                className="w-full bg-[#020b14] border border-white/10 rounded-xl p-3 text-xs text-white focus:border-brand outline-none transition-all placeholder:text-white/20"
               />
             </div>
 
@@ -168,7 +168,7 @@ export const Transactions: React.FC = () => {
                 type="date"
                 value={filterStartDate}
                 onChange={e => setFilterStartDate(e.target.value)}
-                className="w-full bg-fin-bg border border-fin-border rounded-xl p-3 text-xs text-white focus:border-brand outline-none"
+                className="w-full bg-[#020b14] border border-white/10 rounded-xl p-3 text-xs text-white focus:border-brand outline-none transition-all"
               />
             </div>
             <div className="space-y-2">
@@ -179,7 +179,7 @@ export const Transactions: React.FC = () => {
                 type="date"
                 value={filterEndDate}
                 onChange={e => setFilterEndDate(e.target.value)}
-                className="w-full bg-fin-bg border border-fin-border rounded-xl p-3 text-xs text-white focus:border-brand outline-none"
+                className="w-full bg-[#020b14] border border-white/10 rounded-xl p-3 text-xs text-white focus:border-brand outline-none transition-all"
               />
             </div>
 
@@ -191,7 +191,7 @@ export const Transactions: React.FC = () => {
               <select
                 value={filterCategory}
                 onChange={e => setFilterCategory(e.target.value)}
-                className="w-full bg-fin-bg border border-fin-border rounded-xl p-3 text-xs text-white focus:border-brand outline-none appearance-none cursor-pointer"
+                className="w-full bg-[#020b14] border border-white/10 rounded-xl p-3 text-xs text-white focus:border-brand outline-none appearance-none cursor-pointer transition-all"
               >
                 <option value="">Todos los rubros</option>
                 {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -205,7 +205,7 @@ export const Transactions: React.FC = () => {
               <select
                 value={filterAccount}
                 onChange={e => setFilterAccount(e.target.value)}
-                className="w-full bg-fin-bg border border-fin-border rounded-xl p-3 text-xs text-white focus:border-brand outline-none appearance-none cursor-pointer"
+                className="w-full bg-[#020b14] border border-white/10 rounded-xl p-3 text-xs text-white focus:border-brand outline-none appearance-none cursor-pointer transition-all"
               >
                 <option value="">Todas las cuentas</option>
                 {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
@@ -220,7 +220,7 @@ export const Transactions: React.FC = () => {
                 <select
                   value={filterType}
                   onChange={e => setFilterType(e.target.value as any)}
-                  className="flex-1 bg-fin-bg border border-fin-border rounded-xl p-3 text-xs text-white focus:border-brand outline-none appearance-none cursor-pointer"
+                  className="flex-1 bg-[#020b14] border border-white/10 rounded-xl p-3 text-xs text-white focus:border-brand outline-none appearance-none cursor-pointer transition-all"
                 >
                   <option value="">Ambos</option>
                   <option value={TransactionType.IN}>Ingresos</option>
@@ -343,19 +343,19 @@ export const Transactions: React.FC = () => {
             </button>
             <h2 className="text-2xl font-black text-white mb-10 tracking-tight">Nueva Operación</h2>
 
-            <form onSubmit={handleSubmit} className="space-y-8">
+            <form onSubmit={handleSubmit} className="space-y-8 text-left">
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-fin-muted flex items-center gap-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-fin-muted flex items-center gap-2 ml-1">
                     <Calendar size={12} /> Fecha
                   </label>
-                  <input type="date" value={formData.date} onChange={e => setFormData({ ...formData, date: e.target.value })} className="w-full bg-fin-bg border border-fin-border rounded-xl p-3 text-sm text-white focus:border-brand outline-none" required />
+                  <input type="date" value={formData.date} onChange={e => setFormData({ ...formData, date: e.target.value })} className="w-full bg-[#020b14] border border-white/10 rounded-xl p-3 text-sm text-white focus:border-brand outline-none transition-all" required />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-fin-muted flex items-center gap-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-fin-muted flex items-center gap-2 ml-1">
                     <Wallet size={12} /> Cuenta
                   </label>
-                  <select value={formData.accountId || ''} onChange={e => setFormData({ ...formData, accountId: e.target.value })} className="w-full bg-fin-bg border border-fin-border rounded-xl p-3 text-sm text-white focus:border-brand outline-none appearance-none cursor-pointer" required>
+                  <select value={formData.accountId || ''} onChange={e => setFormData({ ...formData, accountId: e.target.value })} className="w-full bg-[#020b14] border border-white/10 rounded-xl p-3 text-sm text-white focus:border-brand outline-none appearance-none cursor-pointer transition-all" required>
                     <option value="">Seleccionar...</option>
                     {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
                   </select>
@@ -363,31 +363,31 @@ export const Transactions: React.FC = () => {
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-fin-muted">Categoría</label>
-                <select value={formData.categoryId || ''} onChange={e => setFormData({ ...formData, categoryId: e.target.value })} className="w-full bg-fin-bg border border-fin-border rounded-xl p-3 text-sm text-white focus:border-brand outline-none appearance-none cursor-pointer" required>
+                <label className="text-[10px] font-black uppercase tracking-widest text-fin-muted ml-1">Categoría</label>
+                <select value={formData.categoryId || ''} onChange={e => setFormData({ ...formData, categoryId: e.target.value })} className="w-full bg-[#020b14] border border-white/10 rounded-xl p-3 text-sm text-white focus:border-brand outline-none appearance-none cursor-pointer transition-all" required>
                   <option value="">Elegir rubro...</option>
                   {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-fin-muted">Monto (ARS)</label>
-                <input type="number" step="0.01" value={formData.amount || ''} onChange={e => setFormData({ ...formData, amount: Number(e.target.value) })} className="w-full bg-fin-bg border border-fin-border rounded-xl p-4 text-3xl font-black text-white tabular-nums focus:border-brand outline-none" placeholder="0.00" required />
+                <label className="text-[10px] font-black uppercase tracking-widest text-fin-muted ml-1">Monto (ARS)</label>
+                <input type="number" step="0.01" value={formData.amount || ''} onChange={e => setFormData({ ...formData, amount: Number(e.target.value) })} className="w-full bg-[#020b14] border border-white/10 rounded-xl p-4 text-3xl font-black text-white tabular-nums focus:border-brand outline-none transition-all" placeholder="0.00" required />
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-fin-muted">Concepto</label>
-                <input type="text" value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} className="w-full bg-fin-bg border border-fin-border rounded-xl p-3 text-sm text-white focus:border-brand outline-none" placeholder="¿En qué gastaste?" required />
+                <label className="text-[10px] font-black uppercase tracking-widest text-fin-muted ml-1">Concepto</label>
+                <input type="text" value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} className="w-full bg-[#020b14] border border-white/10 rounded-xl p-3 text-sm text-white focus:border-brand outline-none transition-all placeholder:text-white/20" placeholder="¿En qué gastaste?" required />
               </div>
 
               <div className="flex gap-4">
-                <div className="flex-1 flex bg-fin-bg border border-fin-border rounded-xl p-1">
+                <div className="flex-1 flex bg-[#020b14] border border-white/10 rounded-xl p-1">
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, type: TransactionType.OUT })}
                     className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${formData.type === TransactionType.OUT ? 'bg-red-500 text-white' : 'text-fin-muted'}`}
                   >
-                    Gasto
+                    Salida
                   </button>
                   <button
                     type="button"

@@ -101,6 +101,32 @@ export const SupabaseService = {
         return data as Category[];
     },
 
+    addCategory: async (cat: Partial<Category>, businessId?: string) => {
+        const userId = await SupabaseService.private.getUserId();
+        const { data, error } = await supabase
+            .from('fin_categories')
+            .insert([{ ...cat, user_id: userId, business_id: businessId || null }])
+            .select();
+        if (error) throw error;
+        return data[0];
+    },
+
+    updateCategory: async (cat: Category) => {
+        const { error } = await supabase
+            .from('fin_categories')
+            .update(cat)
+            .eq('id', cat.id);
+        if (error) throw error;
+    },
+
+    deleteCategory: async (id: string) => {
+        const { error } = await supabase
+            .from('fin_categories')
+            .delete()
+            .eq('id', id);
+        if (error) throw error;
+    },
+
     getSubCategories: async (categoryId: string): Promise<SubCategory[]> => {
         const { data, error } = await supabase
             .from('fin_subcategories')
@@ -117,6 +143,24 @@ export const SupabaseService = {
             .or(`fin_categories.business_id.is.null,fin_categories.business_id.eq.${businessId || 'null'}`);
         if (error) throw error;
         return data as any[];
+    },
+
+    addSubCategory: async (sub: Partial<SubCategory>, businessId?: string) => {
+        const userId = await SupabaseService.private.getUserId();
+        const { data, error } = await supabase
+            .from('fin_subcategories')
+            .insert([{ ...sub, user_id: userId, business_id: businessId || null }])
+            .select();
+        if (error) throw error;
+        return data[0];
+    },
+
+    deleteSubCategory: async (id: string) => {
+        const { error } = await supabase
+            .from('fin_subcategories')
+            .delete()
+            .eq('id', id);
+        if (error) throw error;
     },
 
     // --- TRANSACTIONS ---
