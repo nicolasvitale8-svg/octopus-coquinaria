@@ -24,10 +24,13 @@ export const SupabaseService = {
 
     // --- ACCOUNT TYPES ---
     getAccountTypes: async (businessId?: string): Promise<AccountType[]> => {
-        const { data, error } = await supabase
-            .from('fin_account_types')
-            .select('*')
-            .or(`business_id.is.null,business_id.eq.${businessId || 'null'}`);
+        const query = supabase.from('fin_account_types').select('*');
+        if (businessId) {
+            query.or(`business_id.is.null,business_id.eq.${businessId}`);
+        } else {
+            query.is('business_id', null);
+        }
+        const { data, error } = await query;
 
         if (error) throw error;
         return (data || []).map((d: any) => ({
@@ -134,10 +137,13 @@ export const SupabaseService = {
 
     // --- CATEGORIES ---
     getCategories: async (businessId?: string): Promise<Category[]> => {
-        const { data, error } = await supabase
-            .from('fin_categories')
-            .select('*')
-            .or(`business_id.is.null,business_id.eq.${businessId || 'null'}`);
+        const query = supabase.from('fin_categories').select('*');
+        if (businessId) {
+            query.or(`business_id.is.null,business_id.eq.${businessId}`);
+        } else {
+            query.is('business_id', null);
+        }
+        const { data, error } = await query;
         if (error) throw error;
         return (data || []).map((d: any) => ({
             id: d.id,
@@ -200,10 +206,13 @@ export const SupabaseService = {
     },
 
     getAllSubCategories: async (businessId?: string): Promise<SubCategory[]> => {
-        const { data, error } = await supabase
-            .from('fin_subcategories')
-            .select('*, fin_categories!inner(business_id)')
-            .or(`fin_categories.business_id.is.null,fin_categories.business_id.eq.${businessId || 'null'}`);
+        const query = supabase.from('fin_subcategories').select('*, fin_categories!inner(business_id)');
+        if (businessId) {
+            query.or(`fin_categories.business_id.is.null,fin_categories.business_id.eq.${businessId}`);
+        } else {
+            query.is('fin_categories.business_id', null);
+        }
+        const { data, error } = await query;
         if (error) throw error;
         return (data || []).map((d: any) => ({
             id: d.id,

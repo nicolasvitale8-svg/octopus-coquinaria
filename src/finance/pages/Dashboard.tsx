@@ -7,6 +7,7 @@ import { TrendingUp, TrendingDown, DollarSign, Lock, ChevronRight, LayoutGrid, L
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
 import { useNavigate } from 'react-router-dom';
 import { useFinanza } from '../context/FinanzaContext';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface PeriodAccountState {
   account: Account;
@@ -139,6 +140,7 @@ const DetailModal: React.FC<{
 export const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const { context, setContext, businessId, setAlertCount } = useFinanza();
+  const { profile } = useAuth();
   const [loading, setLoading] = useState(true);
 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -238,7 +240,7 @@ export const Dashboard: React.FC = () => {
           <div className="flex items-center gap-2 text-brand text-[10px] font-black uppercase tracking-[0.3em]">
             <Sparkles size={12} /> {context === 'personal' ? 'Caja Personal' : 'Caja Octopus'}
           </div>
-          <h1 className="text-4xl font-black text-white tracking-tight">{getGreeting()}, Usuario.</h1>
+          <h1 className="text-4xl font-black text-white tracking-tight">{getGreeting()}, {profile?.name || 'Usuario'}.</h1>
 
           {/* Context Selector Toggle */}
           <div className="flex bg-fin-card/50 p-1 rounded-2xl border border-fin-border w-fit">
