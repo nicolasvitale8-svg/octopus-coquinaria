@@ -10,7 +10,7 @@ import { useFinanza } from '../context/FinanzaContext';
 declare const Tesseract: any;
 
 export const ImportPage: React.FC = () => {
-  const { context, businessId } = useFinanza();
+  const { activeEntity } = useFinanza();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [step, setStep] = useState<1 | 2>(1);
@@ -25,12 +25,12 @@ export const ImportPage: React.FC = () => {
   const [rules, setRules] = useState<TextCategoryRule[]>([]);
   const [existingTransactions, setExistingTransactions] = useState<Transaction[]>([]);
 
-  useEffect(() => { loadData(); }, [context, businessId]);
+  useEffect(() => { loadData(); }, [activeEntity]);
 
   const loadData = async () => {
     setLoading(true);
     try {
-      const bId = context === 'octopus' ? businessId : undefined;
+      const bId = activeEntity.id || undefined;
       const [a, c, r, t] = await Promise.all([
         SupabaseService.getAccounts(bId),
         SupabaseService.getCategories(bId),
@@ -96,7 +96,7 @@ export const ImportPage: React.FC = () => {
     }
 
     try {
-      const bId = context === 'octopus' ? businessId : undefined;
+      const bId = activeEntity.id || undefined;
       await Promise.all(toImport.map(line =>
         SupabaseService.addTransaction({
           date: line.date,

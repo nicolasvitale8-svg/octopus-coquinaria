@@ -19,7 +19,7 @@ import {
 import { useFinanza } from '../context/FinanzaContext';
 
 const FinanceLayout = () => {
-    const { context, alertCount } = useFinanza();
+    const { activeEntity, alertCount } = useFinanza();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const location = useLocation();
     const navigate = useNavigate();
@@ -111,7 +111,7 @@ const FinanceLayout = () => {
                         <div className="hidden md:flex items-center gap-2">
                             <span className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em]">Contexto</span>
                             <div className="px-3 py-1 bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 rounded-lg text-[9px] font-black uppercase tracking-widest">
-                                {context === 'octopus' ? 'Empresa / Octopus' : 'Personal / Finanzas'}
+                                {activeEntity.name}
                             </div>
                         </div>
                     </div>

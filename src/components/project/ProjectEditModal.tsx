@@ -39,8 +39,9 @@ const ProjectEditModal: React.FC<ProjectEditModalProps> = ({ project, isOpen, on
                 external_systems: project.external_systems ? [...project.external_systems] : []
             });
 
-            // Extract current member IDs
-            const currentMemberIds = (project.business_memberships || [])
+            // Extract current member IDs (Favor project_members V4)
+            const currentMembers = project.project_members || project.business_memberships || [];
+            const currentMemberIds = currentMembers
                 .filter(m => m.usuarios?.role !== 'client')
                 .map(m => m.user_id);
             setSelectedConsultants(currentMemberIds);
@@ -84,8 +85,9 @@ const ProjectEditModal: React.FC<ProjectEditModalProps> = ({ project, isOpen, on
                 // Let's just use the selected list. 
                 // Caution: This is a destructive sync. 
 
-                // Better approach: Identificar quién sobra y quién falta
-                const currentIds = (project.business_memberships || [])
+                // Better approach: Identificar quién sobra y quién falta (V4)
+                const currentMembers = project.project_members || project.business_memberships || [];
+                const currentIds = currentMembers
                     .filter(m => m.usuarios?.role !== 'client')
                     .map(m => m.user_id);
 
@@ -93,19 +95,19 @@ const ProjectEditModal: React.FC<ProjectEditModalProps> = ({ project, isOpen, on
                 const toRemove = currentIds.filter(id => !selectedConsultants.includes(id));
 
                 if (toRemove.length > 0) {
-                    await supabase.from('business_memberships')
+                    await supabase.from('project_members')
                         .delete()
-                        .eq('business_id', project.id)
+                        .eq('project_id', project.id)
                         .in('user_id', toRemove);
                 }
 
                 if (toAdd.length > 0) {
                     const newRows = toAdd.map(uid => ({
-                        business_id: project.id,
+                        project_id: project.id,
                         user_id: uid,
-                        member_role: 'consultant' // Default role in project context
+                        role_id: 'consultant' // Default role in V4 schema
                     }));
-                    await supabase.from('business_memberships').insert(newRows);
+                    await supabase.from('project_members').insert(newRows);
                 }
             }
 
@@ -314,8 +316,8 @@ const ProjectEditModal: React.FC<ProjectEditModalProps> = ({ project, isOpen, on
                                             key={c.id}
                                             onClick={() => toggleConsultant(c.id)}
                                             className={`flex items-center gap-2 p-2 rounded-lg border text-xs transition-all ${selectedConsultants.includes(c.id)
-                                                    ? 'bg-cyan-500/10 border-cyan-500/50 text-cyan-400 font-bold'
-                                                    : 'bg-slate-950 border-slate-800 text-slate-500 hover:border-slate-700'
+                                                ? 'bg-cyan-500/10 border-cyan-500/50 text-cyan-400 font-bold'
+                                                : 'bg-slate-950 border-slate-800 text-slate-500 hover:border-slate-700'
                                                 }`}
                                         >
                                             <div className={`w-2 h-2 rounded-full ${selectedConsultants.includes(c.id) ? 'bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.5)]' : 'bg-slate-800'}`} />

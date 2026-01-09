@@ -307,7 +307,10 @@ export const SupabaseService = {
             label: d.label,
             type: d.type,
             plannedAmount: d.planned_amount,
-            plannedDate: d.planned_date
+            plannedDate: d.planned_date,
+            isRecurring: d.is_recurring,
+            totalInstallments: d.total_installments,
+            currentInstallment: d.current_installment
         }));
     },
 
@@ -323,6 +326,9 @@ export const SupabaseService = {
             type: item.type,
             planned_amount: item.plannedAmount,
             planned_date: item.plannedDate,
+            is_recurring: item.isRecurring || false,
+            total_installments: item.totalInstallments || 1,
+            current_installment: item.currentInstallment || 1,
             user_id: userId,
             business_id: businessId || null
         };

@@ -13,8 +13,8 @@ interface UserData {
     role: UserRole;
     created_at: string;
     permissions?: string[];
-    // memberships con nombre de proyecto
-    business_memberships?: {
+    // memberships con nombre de proyecto (V4)
+    project_members?: {
         projects: {
             business_name: string;
             id: string;
@@ -42,7 +42,7 @@ const AdminUsers = () => {
                 .from('usuarios')
                 .select(`
                     *,
-                    business_memberships (
+                    project_members (
                         projects (
                             id,
                             business_name
@@ -193,8 +193,8 @@ const AdminUsers = () => {
                                             <span className="text-purple-500 text-xs font-medium">✨ Acceso Total</span>
                                         ) : (
                                             <div className="flex flex-wrap gap-1 max-w-[200px]">
-                                                {user.business_memberships && user.business_memberships.length > 0 ? (
-                                                    user.business_memberships.map((m, idx) => (
+                                                {user.project_members && user.project_members.length > 0 ? (
+                                                    user.project_members.map((m, idx) => (
                                                         <span key={idx} className="bg-slate-800 text-slate-300 px-2 py-0.5 rounded text-[10px] border border-slate-700 whitespace-nowrap">
                                                             {m.projects?.business_name || 'Proyecto'}
                                                         </span>

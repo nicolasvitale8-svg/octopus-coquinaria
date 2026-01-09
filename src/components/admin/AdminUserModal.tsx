@@ -253,17 +253,17 @@ export const AdminUserModal: React.FC<AdminUserModalProps> = ({ isOpen, onClose,
             // --- ACTUALIZACIÓN DE MEMBRESÍAS ---
             if (['consultant', 'client', 'manager'].includes(formData.role) && userId) {
                 // Limpiar existentes previos
-                await supabase.from('business_memberships').delete().eq('user_id', userId);
+                await supabase.from('project_members').delete().eq('user_id', userId);
 
                 if (formData.businessIds && formData.businessIds.length > 0) {
                     const memberships = formData.businessIds.map(bid => ({
                         user_id: userId,
-                        business_id: bid,
-                        member_role: 'manager'
+                        project_id: bid,
+                        role_id: 'manager' // Default for client/manager in project_members
                     }));
 
                     const { error: memberError } = await supabase
-                        .from('business_memberships')
+                        .from('project_members')
                         .insert(memberships);
 
                     if (memberError) throw memberError;

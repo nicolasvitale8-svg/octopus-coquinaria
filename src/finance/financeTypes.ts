@@ -65,6 +65,9 @@ export interface BudgetItem {
   type: TransactionType;
   plannedAmount: number;
   plannedDate?: number; // Day of month
+  isRecurring?: boolean;
+  totalInstallments?: number;
+  currentInstallment?: number;
 }
 
 export interface Jar {
@@ -106,11 +109,11 @@ export interface ImportLine {
   description: string;
   amount: number;
   type: TransactionType;
-  
+
   // Classification
   categoryId?: string;
   subCategoryId?: string;
-  
+
   // UI State
   isSelected: boolean;
   isDuplicate: boolean;

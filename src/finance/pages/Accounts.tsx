@@ -6,7 +6,7 @@ import { Wallet, Plus, Edit2, X, Trash2, Check, AlertCircle, Info, Zap, Settings
 import { useFinanza } from '../context/FinanzaContext';
 
 export const Accounts: React.FC = () => {
-  const { context, businessId } = useFinanza();
+  const { activeEntity } = useFinanza();
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'BALANCES' | 'ACCOUNTS' | 'CATEGORIES' | 'RULES'>('BALANCES');
   const [accounts, setAccounts] = useState<Account[]>([]);
@@ -16,8 +16,8 @@ export const Accounts: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
 
-  const [currentYear, setCurrentYear] = useState(2025);
-  const [currentMonth, setCurrentMonth] = useState(10); // Noviembre
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
 
   // Modal State for Accounts
   const [isAccModalOpen, setIsAccModalOpen] = useState(false);
@@ -35,12 +35,12 @@ export const Accounts: React.FC = () => {
   const [isRuleModalOpen, setIsRuleModalOpen] = useState(false);
   const [editingRule, setEditingRule] = useState<Partial<TextCategoryRule> | null>(null);
 
-  useEffect(() => { loadData(); }, [context, businessId]);
+  useEffect(() => { loadData(); }, [activeEntity]);
 
   const loadData = async () => {
     setLoading(true);
     try {
-      const bId = context === 'octopus' ? businessId : undefined;
+      const bId = activeEntity.id || undefined;
       const [acc, accTypes, mb, r, cat, subCat] = await Promise.all([
         SupabaseService.getAccounts(bId),
         SupabaseService.getAccountTypes(bId),
@@ -64,7 +64,7 @@ export const Accounts: React.FC = () => {
 
   const updateOpeningBalance = async (accountId: string, amount: number) => {
     try {
-      const bId = context === 'octopus' ? businessId : undefined;
+      const bId = activeEntity.id || undefined;
       const balance = monthlyBalances.find(mb => mb.accountId === accountId && mb.month === currentMonth && mb.year === currentYear);
       await SupabaseService.saveMonthlyBalance({
         id: balance?.id,
@@ -84,7 +84,7 @@ export const Accounts: React.FC = () => {
     if (!editingAccount?.name || !editingAccount?.accountTypeId) return;
 
     try {
-      const bId = context === 'octopus' ? businessId : undefined;
+      const bId = activeEntity.id || undefined;
       if (editingAccount.id) {
         await SupabaseService.updateAccount(editingAccount as Account);
       } else {
@@ -103,7 +103,7 @@ export const Accounts: React.FC = () => {
     if (!editingRule?.pattern || !editingRule?.categoryId) return;
 
     try {
-      const bId = context === 'octopus' ? businessId : undefined;
+      const bId = activeEntity.id || undefined;
       await SupabaseService.saveRule(editingRule, bId);
       await loadData();
       setIsRuleModalOpen(false);
@@ -350,7 +350,7 @@ export const Accounts: React.FC = () => {
             <h2 className="text-2xl font-black text-white mb-8 uppercase tracking-tight">{editingCategory?.id ? 'Editar Rubro' : 'Nuevo Rubro'}</h2>
             <form onSubmit={async (e) => {
               e.preventDefault();
-              const bId = context === 'octopus' ? businessId : undefined;
+              const bId = activeEntity.id || undefined;
               if (editingCategory?.id) await SupabaseService.updateCategory(editingCategory as Category);
               else await SupabaseService.addCategory(editingCategory as Category, bId);
               await loadData(); setIsCatModalOpen(false);
@@ -381,7 +381,7 @@ export const Accounts: React.FC = () => {
             <h2 className="text-2xl font-black text-white mb-8 uppercase tracking-tight">Nuevo Sub-Rubro</h2>
             <form onSubmit={async (e) => {
               e.preventDefault();
-              const bId = context === 'octopus' ? businessId : undefined;
+              const bId = activeEntity.id || undefined;
               await SupabaseService.addSubCategory(editingSubCategory as SubCategory, bId);
               await loadData(); setIsSubCatModalOpen(false);
             }} className="space-y-6 relative z-10 text-left">

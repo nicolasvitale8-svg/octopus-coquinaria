@@ -141,36 +141,31 @@ const DetailModal: React.FC<{
 
 export const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { context, setContext, businessId, setBusinessId, setAlertCount } = useFinanza();
+  const { activeEntity, setActiveEntity, availableEntities, setAlertCount, isLoading: isContextLoading } = useFinanza();
   const { profile } = useAuth();
   const [loading, setLoading] = useState(true);
 
-  // Auto-select business if needed
-  useEffect(() => {
-    if (context === 'octopus' && !businessId && profile?.businessIds?.length) {
-      setBusinessId(profile.businessIds[0]);
-    }
-  }, [context, businessId, profile]);
+  // Auto-selection is now handled by FinanzaContext initialization
 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [jars, setJars] = useState<Jar[]>([]);
   const [monthlyBalances, setMonthlyBalances] = useState<MonthlyBalance[]>([]);
-  const [currentMonth, setCurrentMonth] = useState(10); // Noviembre
-  const [currentYear, setCurrentYear] = useState(2025);
+  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [periodStates, setPeriodStates] = useState<PeriodAccountState[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
   const [budgetItems, setBudgetItems] = useState<BudgetItem[]>([]);
   const [activeDetail, setActiveDetail] = useState<'IN' | 'OUT' | 'BALANCE' | 'INVESTED' | null>(null);
 
-  useEffect(() => { loadData(); }, [context, businessId]);
+  useEffect(() => { loadData(); }, [activeEntity]);
   useEffect(() => { calculateDashboardData(); }, [currentMonth, currentYear, transactions, monthlyBalances, accounts]);
 
   const loadData = async () => {
     setLoading(true);
     try {
-      const bId = context === 'octopus' ? businessId : undefined;
+      const bId = activeEntity.id || undefined;
       const [t, acc, j, mb, cat, subCat, budget] = await Promise.all([
         SupabaseService.getTransactions(bId),
         SupabaseService.getAccounts(bId),
@@ -246,25 +241,17 @@ export const Dashboard: React.FC = () => {
       {/* Welcome & Context Picker */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
         <div className="space-y-4">
-          <div className="flex items-center gap-2 text-brand text-[10px] font-black uppercase tracking-[0.3em]">
-            <Sparkles size={12} /> {context === 'personal' ? 'Caja Personal' : 'Caja Octopus'}
-          </div>
-          <h1 className="text-4xl font-black text-white tracking-tight">{getGreeting()}, {profile?.name || 'Usuario'}.</h1>
-
-          {/* Context Selector Toggle */}
-          <div className="flex bg-fin-card/50 p-1 rounded-2xl border border-fin-border w-fit">
-            <button
-              onClick={() => setContext('personal')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${context === 'personal' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-fin-muted hover:text-white'}`}
-            >
-              <User size={14} /> Personal
-            </button>
-            <button
-              onClick={() => setContext('octopus')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${context === 'octopus' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-fin-muted hover:text-white'}`}
-            >
-              <Building2 size={14} /> Octopus
-            </button>
+          <div className="flex bg-fin-card/50 p-1 rounded-2xl border border-fin-border w-fit max-w-full overflow-x-auto scrollbar-hide">
+            {availableEntities.map(entity => (
+              <button
+                key={entity.id || 'personal'}
+                onClick={() => setActiveEntity(entity)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeEntity.id === entity.id ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-fin-muted hover:text-white'}`}
+              >
+                {entity.type === 'personal' ? <User size={14} /> : <Building2 size={14} />}
+                {entity.name}
+              </button>
+            ))}
           </div>
         </div>
 

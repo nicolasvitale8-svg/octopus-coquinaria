@@ -371,7 +371,7 @@ export interface Project {
     }
   }[];
 
-  // Legacy compatibility
+  /** @deprecated Use project_members (V4) */
   business_memberships?: any[];
 }
 

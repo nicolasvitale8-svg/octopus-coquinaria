@@ -6,7 +6,7 @@ import { formatCurrency } from '../utils/calculations';
 import { useFinanza } from '../context/FinanzaContext';
 
 export const Transactions: React.FC = () => {
-  const { context, businessId } = useFinanza();
+  const { activeEntity } = useFinanza();
   const [loading, setLoading] = useState(true);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
@@ -16,8 +16,12 @@ export const Transactions: React.FC = () => {
   const [showFilters, setShowFilters] = useState(false);
 
   // ... (Filter states remain same)
-  const [filterStartDate, setFilterStartDate] = useState('2025-11-01');
-  const [filterEndDate, setFilterEndDate] = useState('2025-11-30');
+  const now = new Date();
+  const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+  const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+
+  const [filterStartDate, setFilterStartDate] = useState(firstDay);
+  const [filterEndDate, setFilterEndDate] = useState(lastDay);
   const [filterCategory, setFilterCategory] = useState('');
   const [filterAccount, setFilterAccount] = useState('');
   const [filterType, setFilterType] = useState<TransactionType | ''>('');
@@ -28,12 +32,12 @@ export const Transactions: React.FC = () => {
     type: TransactionType.OUT, amount: 0, description: '',
   });
 
-  useEffect(() => { loadData(); }, [context, businessId]);
+  useEffect(() => { loadData(); }, [activeEntity]);
 
   const loadData = async () => {
     setLoading(true);
     try {
-      const bId = context === 'octopus' ? businessId : undefined;
+      const bId = activeEntity.id || undefined;
       const [t, acc, cat, subCat] = await Promise.all([
         SupabaseService.getTransactions(bId),
         SupabaseService.getAccounts(bId),
@@ -56,7 +60,7 @@ export const Transactions: React.FC = () => {
     if (!formData.amount || !formData.categoryId || !formData.accountId) return;
 
     try {
-      const bId = context === 'octopus' ? businessId : undefined;
+      const bId = activeEntity.id || undefined;
       await SupabaseService.addTransaction(formData, bId);
       await loadData();
       setIsModalOpen(false);
@@ -117,8 +121,8 @@ export const Transactions: React.FC = () => {
         <div>
           <h1 className="text-4xl font-extrabold text-white tracking-tight">Movimientos</h1>
           <div className="flex items-center gap-2 mt-3">
-            <span className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest ${context === 'personal' ? 'bg-brand/10 text-brand border border-brand/20' : 'bg-amber-500/10 text-amber-500 border border-amber-500/20'}`}>
-              {context === 'personal' ? 'Caja Personal' : 'Caja Octopus'}
+            <span className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest ${activeEntity.type === 'personal' ? 'bg-brand/10 text-brand border border-brand/20' : 'bg-amber-500/10 text-amber-500 border border-amber-500/20'}`}>
+              {activeEntity.name}
             </span>
             <p className="text-fin-muted text-sm font-medium">Analiza y filtra tu actividad financiera</p>
           </div>

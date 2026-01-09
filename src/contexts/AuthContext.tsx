@@ -90,8 +90,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
             // 2. Fetch Memberships (Business IDs) - también con timeout
             const membershipPromise = supabase
-                .from('business_memberships')
-                .select('business_id')
+                .from('project_members')
+                .select('project_id')
                 .eq('user_id', userId);
 
             const memberResult = await Promise.race([membershipPromise, new Promise<{ timeout: true }>((resolve) =>
@@ -110,7 +110,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     plan: (userData.plan || 'FREE') as 'FREE' | 'PRO',
                     diagnostic_scores: userData.diagnostic_scores || {},
                     permissions: (userData.permissions || []) as Permission[],
-                    businessIds: (membershipData || []).map((m: any) => m.business_id),
+                    businessIds: (membershipData || []).map((m: any) => m.project_id),
                     businessName: userData.business_name
                 };
 

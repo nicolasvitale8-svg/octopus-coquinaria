@@ -6,19 +6,19 @@ import { Plus, Trash2, PiggyBank, Clock, TrendingUp, ChevronRight, Sparkles } fr
 import { useFinanza } from '../context/FinanzaContext';
 
 export const Jars: React.FC = () => {
-   const { context, businessId } = useFinanza();
+   const { activeEntity } = useFinanza();
    const [loading, setLoading] = useState(true);
    const [jars, setJars] = useState<Jar[]>([]);
    const [accounts, setAccounts] = useState<Account[]>([]);
    const [isAdding, setIsAdding] = useState(false);
    const [newJar, setNewJar] = useState<Partial<Jar>>({ annualRate: 40 });
 
-   useEffect(() => { loadData(); }, [context, businessId]);
+   useEffect(() => { loadData(); }, [activeEntity]);
 
    const loadData = async () => {
       setLoading(true);
       try {
-         const bId = context === 'octopus' ? businessId : undefined;
+         const bId = activeEntity.id || undefined;
          const [j, acc] = await Promise.all([
             SupabaseService.getJars(bId),
             SupabaseService.getAccounts(bId)
@@ -37,7 +37,7 @@ export const Jars: React.FC = () => {
       if (!newJar.name || !newJar.principal || !newJar.startDate || !newJar.endDate) return;
 
       try {
-         const bId = context === 'octopus' ? businessId : undefined;
+         const bId = activeEntity.id || undefined;
          await SupabaseService.saveJar(newJar, bId);
          await loadData();
          setIsAdding(false); setNewJar({ annualRate: 40 });

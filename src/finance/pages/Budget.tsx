@@ -6,26 +6,26 @@ import { Plus, Trash2, Pencil, ChevronRight, PieChart, Sparkles, Calendar as Cal
 import { useFinanza } from '../context/FinanzaContext';
 
 export const Budget: React.FC = () => {
-  const { context, businessId } = useFinanza();
+  const { activeEntity } = useFinanza();
   const [loading, setLoading] = useState(true);
   const [budgetItems, setBudgetItems] = useState<BudgetItem[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
-  const [currentMonth, setCurrentMonth] = useState(10); // Noviembre
-  const [currentYear, setCurrentYear] = useState(2025);
+  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [activeBudgetTab, setActiveBudgetTab] = useState<TransactionType>(TransactionType.OUT);
 
   const [newItem, setNewItem] = useState<Partial<BudgetItem>>({ type: TransactionType.OUT, plannedAmount: 0 });
 
-  useEffect(() => { loadData(); }, [context, businessId]);
+  useEffect(() => { loadData(); }, [activeEntity]);
 
   const loadData = async () => {
     setLoading(true);
     try {
-      const bId = context === 'octopus' ? businessId : undefined;
+      const bId = activeEntity.id || undefined;
       const [items, t, cat, subCat] = await Promise.all([
         SupabaseService.getBudgetItems(bId),
         SupabaseService.getTransactions(bId),
@@ -43,10 +43,47 @@ export const Budget: React.FC = () => {
     }
   };
 
-  const changeMonth = (increment: number) => {
+  const changeMonth = async (increment: number) => {
     const newDate = new Date(currentYear, currentMonth + increment, 1);
-    setCurrentMonth(newDate.getMonth());
-    setCurrentYear(newDate.getFullYear());
+    const m = newDate.getMonth();
+    const y = newDate.getFullYear();
+
+    // Check if there's any budget for the target month
+    const targetItems = budgetItems.filter(i => i.month === m && i.year === y);
+
+    if (targetItems.length === 0) {
+      // Logic to copy recurring and installments
+      const prevDate = new Date(y, m - 1, 1);
+      const pm = prevDate.getMonth();
+      const py = prevDate.getFullYear();
+      const prevItems = budgetItems.filter(i => i.month === pm && i.year === py);
+
+      const bId = activeEntity.id || undefined;
+      let hasCopied = false;
+
+      for (const item of prevItems) {
+        if (item.isRecurring) {
+          const newItem = { ...item, id: undefined, month: m, year: y };
+          await SupabaseService.saveBudgetItem(newItem, bId);
+          hasCopied = true;
+        } else if ((item.totalInstallments || 1) > (item.currentInstallment || 1)) {
+          const newItem = {
+            ...item,
+            id: undefined,
+            month: m,
+            year: y,
+            currentInstallment: (item.currentInstallment || 1) + 1
+          };
+          await SupabaseService.saveBudgetItem(newItem, bId);
+          hasCopied = true;
+        }
+      }
+
+      if (hasCopied) await loadData();
+    }
+
+    setCurrentMonth(m);
+    setCurrentYear(y);
   };
 
   const handleSaveItem = async (e: React.FormEvent) => {
@@ -54,7 +91,7 @@ export const Budget: React.FC = () => {
     if (!newItem.categoryId || !newItem.plannedAmount || !newItem.label) return;
 
     try {
-      const bId = context === 'octopus' ? businessId : undefined;
+      const bId = activeEntity.id || undefined;
       const itemToSave = {
         ...newItem,
         id: editingId || undefined,
@@ -137,11 +174,23 @@ export const Budget: React.FC = () => {
                       ) : '-'}
                     </td>
                     <td className="px-8 py-5">
-                      <p className="font-bold text-fin-text leading-tight">{item.label}</p>
-                      <p className="text-[9px] text-fin-muted mt-1 uppercase tracking-widest font-black flex items-center gap-1.5 px-2 py-0.5 bg-fin-bg rounded-lg w-fit border border-fin-border/50">
-                        <div className="w-1 h-1 rounded-full bg-cyan-500"></div>
-                        {categories.find(c => c.id === item.categoryId)?.name}
-                      </p>
+                      <div className="flex flex-col gap-1">
+                        <p className="font-bold text-fin-text leading-tight">{item.label}</p>
+                        <div className="flex flex-wrap gap-2">
+                          <p className="text-[9px] text-fin-muted uppercase tracking-widest font-black flex items-center gap-1.5 px-2 py-0.5 bg-fin-bg rounded-lg w-fit border border-fin-border/50">
+                            <div className="w-1 h-1 rounded-full bg-cyan-500"></div>
+                            {categories.find(c => c.id === item.categoryId)?.name}
+                          </p>
+                          {item.isRecurring && (
+                            <span className="text-[8px] font-black text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded-md uppercase tracking-tighter border border-emerald-500/20">Fijo</span>
+                          )}
+                          {(item.totalInstallments || 1) > 1 && (
+                            <span className="text-[8px] font-black text-brand bg-brand/10 px-1.5 py-0.5 rounded-md uppercase tracking-tighter border border-brand/20">
+                              {item.currentInstallment} / {item.totalInstallments}
+                            </span>
+                          )}
+                        </div>
+                      </div>
                     </td>
                     <td className="px-8 py-5 text-right tabular-nums text-fin-muted">{formatCurrency(item.plannedAmount)}</td>
                     <td className="px-8 py-5 text-right tabular-nums font-black">{formatCurrency(actual)}</td>
@@ -291,6 +340,41 @@ export const Budget: React.FC = () => {
                 <input type="number" step="0.01" value={newItem.plannedAmount || ''} onChange={e => setNewItem({ ...newItem, plannedAmount: Number(e.target.value) })} className="w-full bg-[#050f1a] border border-white/10 rounded-2xl p-4 pl-8 text-sm text-white font-black outline-none focus:border-brand transition-all" required />
               </div>
             </div>
+            <div className="space-y-4 pt-4 border-l border-white/5 pl-8">
+              <label className="flex items-center gap-3 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={newItem.isRecurring || false}
+                  onChange={e => setNewItem({ ...newItem, isRecurring: e.target.checked })}
+                  className="w-5 h-5 rounded-lg bg-[#050f1a] border-white/10 text-brand focus:ring-brand"
+                />
+                <span className="text-[10px] font-black uppercase tracking-widest text-fin-muted group-hover:text-white transition-colors">Gasto Fijo (Mensual)</span>
+              </label>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-fin-muted ml-1">Cuotas / Pagos</label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="number"
+                    min="1"
+                    value={newItem.currentInstallment || 1}
+                    onChange={e => setNewItem({ ...newItem, currentInstallment: Number(e.target.value) })}
+                    className="w-16 bg-[#050f1a] border border-white/10 rounded-xl p-2 text-xs text-white font-bold outline-none focus:border-brand"
+                    placeholder="Cuota"
+                  />
+                  <span className="text-fin-muted text-[10px] font-black uppercase">de</span>
+                  <input
+                    type="number"
+                    min="1"
+                    value={newItem.totalInstallments || 1}
+                    onChange={e => setNewItem({ ...newItem, totalInstallments: Number(e.target.value) })}
+                    className="w-16 bg-[#050f1a] border border-white/10 rounded-xl p-2 text-xs text-white font-bold outline-none focus:border-brand"
+                    placeholder="Total"
+                  />
+                </div>
+              </div>
+            </div>
+
             <div className="flex items-end">
               <button type="submit" className="w-full bg-brand text-fin-bg rounded-2xl py-4 font-black text-xs uppercase tracking-[0.2em] hover:bg-brand-hover transition-all shadow-xl shadow-brand/20 active:scale-95">
                 {editingId ? 'ACTUALIZAR DATOS' : 'CREAR PROYECCIÓN'}

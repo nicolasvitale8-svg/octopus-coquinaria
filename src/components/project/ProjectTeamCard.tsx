@@ -34,57 +34,32 @@ const ProjectTeamCard: React.FC<ProjectTeamCardProps> = ({ project, onUpdate }) 
                 </div>
 
                 {/* V4 Team Members */}
-                {project.project_members && project.project_members.length > 0 && (
+                {(project.project_members || project.business_memberships) && (
                     <div className="space-y-2 pt-2">
                         <p className="text-[10px] text-cyan-500 uppercase font-bold tracking-wider flex items-center gap-1">
-                            Equipo Octopus (V4)
+                            Equipo Octopus
                         </p>
-                        {project.project_members.map((m, i) => (
-                            <div key={i} className="flex justify-between items-center p-3 bg-slate-900/50 border border-slate-800/50 rounded-lg hover:border-slate-700 transition-colors">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-xs font-bold text-cyan-400">
-                                        {m.usuarios?.full_name?.charAt(0) || '?'}
-                                    </div>
-                                    <div>
-                                        <p className="text-white text-sm font-medium">{m.usuarios?.full_name || 'Sin nombre'}</p>
-                                        <div className="flex items-center gap-1.5">
-                                            <span className="text-[10px] text-slate-500 uppercase font-bold">{m.role_id}</span>
-                                            {m.specialties && m.specialties.length > 0 && (
-                                                <span className="w-1 h-1 bg-slate-700 rounded-full" />
-                                            )}
-                                            <div className="flex gap-1">
-                                                {m.specialties?.map((s: string) => (
-                                                    <span key={s} className="text-[8px] text-cyan-500/70">{s}</span>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="flex flex-col items-end gap-1">
-                                    <a href={`mailto:${m.usuarios?.email}`} className="text-slate-500 hover:text-cyan-400">
-                                        <Mail className="w-3 h-3" />
-                                    </a>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                )}
-
-                {/* Legacy Team Members (Omit if V4 exists for clean UI, or keep for transition) */}
-                {(!project.project_members || project.project_members.length === 0) && project.business_memberships && project.business_memberships.length > 0 && (
-                    <div className="space-y-2 pt-2">
-                        <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Colaboradores (Legacy)</p>
-                        {project.business_memberships
-                            .filter(m => m.usuarios?.role !== 'client') // Omit customers from team list
+                        {(project.project_members || project.business_memberships || [])
+                            .filter((m: any) => m.usuarios?.role !== 'client') // Omit customers from team list
                             .map((m, i) => (
                                 <div key={i} className="flex justify-between items-center p-3 bg-slate-900/50 border border-slate-800/50 rounded-lg hover:border-slate-700 transition-colors">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-xs font-bold text-slate-400">
+                                        <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-xs font-bold text-cyan-400">
                                             {m.usuarios?.full_name?.charAt(0) || '?'}
                                         </div>
                                         <div>
                                             <p className="text-white text-sm font-medium">{m.usuarios?.full_name || 'Sin nombre'}</p>
-                                            <p className="text-[10px] text-slate-500">{m.usuarios?.role}</p>
+                                            <div className="flex items-center gap-1.5">
+                                                <span className="text-[10px] text-slate-500 uppercase font-bold">{m.role_id || m.usuarios?.role}</span>
+                                                {(m.specialties && m.specialties.length > 0) && (
+                                                    <span className="w-1 h-1 bg-slate-700 rounded-full" />
+                                                )}
+                                                <div className="flex gap-1">
+                                                    {m.specialties?.map((s: string) => (
+                                                        <span key={s} className="text-[8px] text-cyan-500/70">{s}</span>
+                                                    ))}
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                     <div className="flex flex-col items-end gap-1">
