@@ -236,25 +236,50 @@ export const Budget: React.FC = () => {
             <Plus className="text-brand" size={24} />
             {editingId ? 'Modificar Proyección' : 'Nueva Planificación Mensual'}
           </h3>
-          <form onSubmit={handleSaveItem} className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-8 relative z-10">
+          <form onSubmit={handleSaveItem} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 relative z-10">
             <div className="space-y-2">
               <label className="text-[10px] font-black uppercase tracking-[0.2em] text-fin-muted ml-1">Tipo de Flujo</label>
-              <select value={newItem.type} onChange={e => setNewItem({ ...newItem, type: e.target.value as TransactionType })} className="w-full bg-[#050f1a] border border-white/10 rounded-2xl p-4 text-sm text-white font-bold outline-none focus:border-brand transition-all appearance-none cursor-pointer">
+              <select value={newItem.type} onChange={e => setNewItem({ ...newItem, type: e.target.value as TransactionType, categoryId: undefined, subCategoryId: undefined })} className="w-full bg-[#050f1a] border border-white/10 rounded-2xl p-4 text-sm text-white font-bold outline-none focus:border-brand transition-all appearance-none cursor-pointer">
                 <option value={TransactionType.IN}>Ingreso</option>
-                <option value={TransactionType.OUT}>Salida</option>
+                <option value={TransactionType.OUT}>Gasto (Salida)</option>
               </select>
             </div>
+
             <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-fin-muted ml-1">Concepto / Detalle</label>
-              <input type="text" value={newItem.label || ''} onChange={e => setNewItem({ ...newItem, label: e.target.value })} placeholder="Ej. Alquiler Octubre" className="w-full bg-[#050f1a] border border-white/10 rounded-2xl p-4 text-sm text-white font-bold outline-none focus:border-brand transition-all placeholder:text-white/20" required />
-            </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-fin-muted ml-1">Rubro Principal</label>
+              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-fin-muted ml-1">1. Rubro Principal</label>
               <select value={newItem.categoryId || ''} onChange={e => setNewItem({ ...newItem, categoryId: e.target.value, subCategoryId: undefined })} className="w-full bg-[#050f1a] border border-white/10 rounded-2xl p-4 text-sm text-white font-bold outline-none focus:border-brand transition-all appearance-none cursor-pointer" required>
-                <option value="">Seleccionar...</option>
-                {categories.filter(c => c.type === newItem.type || c.type === 'MIX').map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                <option value="">Seleccionar rubro...</option>
+                {categories
+                  .filter(c => c.type === newItem.type || c.type === 'MIX')
+                  .sort((a, b) => a.name.localeCompare(b.name))
+                  .map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
             </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-fin-muted ml-1">2. Item Sugerido</label>
+              <select
+                value={newItem.subCategoryId || ''}
+                onChange={e => {
+                  const sub = subCategories.find(s => s.id === e.target.value);
+                  setNewItem({ ...newItem, subCategoryId: e.target.value, label: sub ? sub.name : newItem.label });
+                }}
+                className="w-full bg-[#050f1a] border border-white/10 rounded-2xl p-4 text-sm text-white font-bold outline-none focus:border-brand transition-all appearance-none cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                disabled={!newItem.categoryId}
+              >
+                <option value="">Elegir de la lista...</option>
+                {subCategories
+                  .filter(s => s.categoryId === newItem.categoryId)
+                  .sort((a, b) => a.name.localeCompare(b.name))
+                  .map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-fin-muted ml-1">Concepto Personalizado</label>
+              <input type="text" value={newItem.label || ''} onChange={e => setNewItem({ ...newItem, label: e.target.value })} placeholder="Ej. Pago de luz" className="w-full bg-[#050f1a] border border-white/10 rounded-2xl p-4 text-sm text-white font-bold outline-none focus:border-brand transition-all placeholder:text-white/20" required />
+            </div>
+
             <div className="space-y-2">
               <label className="text-[10px] font-black uppercase tracking-[0.2em] text-fin-muted ml-1">Día Estimado</label>
               <input type="number" max="31" min="1" value={newItem.plannedDate || ''} onChange={e => setNewItem({ ...newItem, plannedDate: Number(e.target.value) })} className="w-full bg-[#050f1a] border border-white/10 rounded-2xl p-4 text-sm text-white font-bold outline-none focus:border-brand transition-all" />

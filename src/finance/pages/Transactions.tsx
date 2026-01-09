@@ -11,6 +11,7 @@ export const Transactions: React.FC = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
 
@@ -33,14 +34,16 @@ export const Transactions: React.FC = () => {
     setLoading(true);
     try {
       const bId = context === 'octopus' ? businessId : undefined;
-      const [t, acc, cat] = await Promise.all([
+      const [t, acc, cat, subCat] = await Promise.all([
         SupabaseService.getTransactions(bId),
         SupabaseService.getAccounts(bId),
-        SupabaseService.getCategories(bId)
+        SupabaseService.getCategories(bId),
+        SupabaseService.getAllSubCategories(bId)
       ]);
       setTransactions(t);
       setAccounts(acc);
       setCategories(cat);
+      setSubCategories(subCat);
     } catch (error) {
       console.error("Error loading transactions:", error);
     } finally {
@@ -344,6 +347,25 @@ export const Transactions: React.FC = () => {
             <h2 className="text-2xl font-black text-white mb-10 tracking-tight">Nueva Operación</h2>
 
             <form onSubmit={handleSubmit} className="space-y-8 text-left">
+              <div className="flex gap-4">
+                <div className="flex-1 flex bg-[#020b14] border border-white/10 rounded-2xl p-1">
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, type: TransactionType.OUT, categoryId: undefined, subCategoryId: undefined })}
+                    className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${formData.type === TransactionType.OUT ? 'bg-red-500 text-white shadow-lg' : 'text-fin-muted'}`}
+                  >
+                    Salida / Gasto
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, type: TransactionType.IN, categoryId: undefined, subCategoryId: undefined })}
+                    className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${formData.type === TransactionType.IN ? 'bg-emerald-500 text-white shadow-lg' : 'text-fin-muted'}`}
+                  >
+                    Ingreso
+                  </button>
+                </div>
+              </div>
+
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase tracking-widest text-fin-muted flex items-center gap-2 ml-1">
@@ -362,41 +384,50 @@ export const Transactions: React.FC = () => {
                 </div>
               </div>
 
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-fin-muted ml-1">1. Rubro</label>
+                  <select
+                    value={formData.categoryId || ''}
+                    onChange={e => setFormData({ ...formData, categoryId: e.target.value, subCategoryId: undefined })}
+                    className="w-full bg-[#020b14] border border-white/10 rounded-xl p-3 text-sm text-white focus:border-brand outline-none appearance-none cursor-pointer transition-all" required
+                  >
+                    <option value="">Elegir rubro...</option>
+                    {categories
+                      .filter(c => c.type === formData.type || c.type === 'MIX')
+                      .sort((a, b) => a.name.localeCompare(b.name))
+                      .map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-fin-muted ml-1">2. Ítem</label>
+                  <select
+                    value={formData.subCategoryId || ''}
+                    onChange={e => {
+                      const sub = subCategories.find(s => s.id === e.target.value);
+                      setFormData({ ...formData, subCategoryId: e.target.value, description: sub ? sub.name : formData.description });
+                    }}
+                    className="w-full bg-[#020b14] border border-white/10 rounded-xl p-3 text-sm text-white focus:border-brand outline-none appearance-none cursor-pointer transition-all disabled:opacity-30"
+                    disabled={!formData.categoryId}
+                  >
+                    <option value="">Sugeridos...</option>
+                    {subCategories
+                      .filter(s => s.categoryId === formData.categoryId)
+                      .sort((a, b) => a.name.localeCompare(b.name))
+                      .map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                  </select>
+                </div>
+              </div>
+
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-fin-muted ml-1">Categoría</label>
-                <select value={formData.categoryId || ''} onChange={e => setFormData({ ...formData, categoryId: e.target.value })} className="w-full bg-[#020b14] border border-white/10 rounded-xl p-3 text-sm text-white focus:border-brand outline-none appearance-none cursor-pointer transition-all" required>
-                  <option value="">Elegir rubro...</option>
-                  {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                </select>
+                <label className="text-[10px] font-black uppercase tracking-widest text-fin-muted ml-1">Detalle / Concepto</label>
+                <input type="text" value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} className="w-full bg-[#020b14] border border-white/10 rounded-xl p-3 text-sm text-white focus:border-brand outline-none transition-all placeholder:text-white/20" placeholder="¿En qué consistió la operación?" required />
               </div>
 
               <div className="space-y-2">
                 <label className="text-[10px] font-black uppercase tracking-widest text-fin-muted ml-1">Monto (ARS)</label>
                 <input type="number" step="0.01" value={formData.amount || ''} onChange={e => setFormData({ ...formData, amount: Number(e.target.value) })} className="w-full bg-[#020b14] border border-white/10 rounded-xl p-4 text-3xl font-black text-white tabular-nums focus:border-brand outline-none transition-all" placeholder="0.00" required />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-fin-muted ml-1">Concepto</label>
-                <input type="text" value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} className="w-full bg-[#020b14] border border-white/10 rounded-xl p-3 text-sm text-white focus:border-brand outline-none transition-all placeholder:text-white/20" placeholder="¿En qué gastaste?" required />
-              </div>
-
-              <div className="flex gap-4">
-                <div className="flex-1 flex bg-[#020b14] border border-white/10 rounded-xl p-1">
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, type: TransactionType.OUT })}
-                    className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${formData.type === TransactionType.OUT ? 'bg-red-500 text-white' : 'text-fin-muted'}`}
-                  >
-                    Salida
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, type: TransactionType.IN })}
-                    className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${formData.type === TransactionType.IN ? 'bg-emerald-500 text-white' : 'text-fin-muted'}`}
-                  >
-                    Ingreso
-                  </button>
-                </div>
               </div>
 
               <button type="submit" className="w-full py-5 bg-brand text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-lg shadow-brand/20 hover:bg-brand-hover transition-all">

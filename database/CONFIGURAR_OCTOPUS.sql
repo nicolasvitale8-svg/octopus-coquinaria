@@ -1,48 +1,54 @@
 
 -- ==============================================================================
--- 🐙 CONFIGURACIÓN DE CONTEXTO EMPRESARIAL (OCTOPUS)
--- Este script crea la entidad Octopus y separa sus datos de los personales.
+-- 🐙 CONFIGURACIÓN DE OCTOPUS (SOLUCIÓN GARANTIZADA)
+-- Este script elimina residuos huérfanos y configura el negocio limpiamente.
 -- ==============================================================================
 
-DO $$
+-- 1. REPARAR ESTRUCTURA Y LIMPIAR HUÉRFANOS (Fuera de bloques para asegurar éxito)
+-- Desactivar la restricción temporalmente
+ALTER TABLE public.business_memberships 
+DROP CONSTRAINT IF EXISTS business_memberships_business_id_fkey;
+
+-- ELIMINAR CUALQUIER DATO QUE NO TENGA EMPRESA (Esto es lo que causaba el error 23503)
+DELETE FROM public.business_memberships 
+WHERE business_id NOT IN (SELECT id FROM public.businesses);
+
+-- Volver a crear la restricción apuntando correctamente
+ALTER TABLE public.business_memberships 
+ADD CONSTRAINT business_memberships_business_id_fkey 
+FOREIGN KEY (business_id) REFERENCES public.businesses(id) ON DELETE CASCADE;
+
+
+-- 2. CONFIGURAR DATOS
+DO $final_setup$
 DECLARE
     v_user_id UUID := 'dc1e06af-002f-46ec-900c-c6bef40af35e';
     v_business_id UUID;
 BEGIN
-    -- 1. Crear el negocio 'Octopus' si no existe
-    -- Nota: La tabla public.businesses NO tiene owner_id, solo name.
-    INSERT INTO public.businesses (name)
-    VALUES ('Octopus')
-    ON CONFLICT (id) DO NOTHING; -- No podemos usar ON CONFLICT (name) si no hay un índice único
+    -- A. Limpiar cualquier registro previo de Octopus para empezar de cero
+    DELETE FROM public.business_memberships WHERE business_id IN (SELECT id FROM public.businesses WHERE name = 'Octopus');
+    DELETE FROM public.businesses WHERE name = 'Octopus';
 
-    -- Si ya existe por nombre, no insertamos duplicados (check manual)
-    IF NOT EXISTS (SELECT 1 FROM public.businesses WHERE name = 'Octopus') THEN
-        INSERT INTO public.businesses (name) VALUES ('Octopus');
-    END IF;
+    -- B. Crear el negocio 'Octopus'
+    INSERT INTO public.businesses (name) 
+    VALUES ('Octopus') 
+    RETURNING id INTO v_business_id;
 
-    -- Obtener el ID del negocio Octopus
-    SELECT id INTO v_business_id FROM public.businesses WHERE name = 'Octopus' LIMIT 1;
-
-    -- 2. Vincular a Nicolás como dueño si no está vinculado
-    -- Nota: La columna se llama member_role, no role.
+    -- C. Vincular a Nicolás (owner)
     INSERT INTO public.business_memberships (business_id, user_id, member_role)
-    VALUES (v_business_id, v_user_id, 'owner')
-    ON CONFLICT (business_id, user_id) DO UPDATE SET member_role = 'owner';
+    VALUES (v_business_id, v_user_id, 'owner');
 
-    -- 3. Mover Cuentas Empresariales
-    -- Todo lo que tenga 'Octopus' en el nombre se considera empresa
+    -- D. Migrar Cuentas, Categorías y Transacciones
     UPDATE public.fin_accounts 
     SET business_id = v_business_id 
-    WHERE (name ILIKE '%Octopus%' OR name ILIKE '%Empresa%') AND user_id = v_user_id;
+    WHERE (name ILIKE '%Octopus%' OR name ILIKE '%Empresa%') 
+    AND user_id = v_user_id;
 
-    -- 4. Mover Categorías Empresariales
     UPDATE public.fin_categories 
     SET business_id = v_business_id
     WHERE name IN ('Sueldos y Colaboradores', 'Gastos Operativos', 'Herramientas y Apps', 'Marketing', 'Ventas Octopus')
     AND user_id = v_user_id;
 
-    -- 5. Mover Transacciones asociadas
-    -- Movemos transacciones que pertenezcan a las cuentas de empresa o categorías de empresa
     UPDATE public.fin_transactions
     SET business_id = v_business_id
     WHERE (
@@ -52,5 +58,5 @@ BEGIN
     )
     AND user_id = v_user_id;
 
-    RAISE NOTICE '✅ Contexto Octopus configurado con ID: %', v_business_id;
-END $$;
+    RAISE NOTICE '✅ Octopus configurado con éxito. ID: %', v_business_id;
+END $final_setup$;
