@@ -118,7 +118,7 @@ const FinanceLayout = () => {
                         {/* Notifications Bell (V2 Phase 1) */}
                         <div className="relative group">
                             <button
-                                onClick={() => navigate('/finance')}
+                                onClick={() => navigate('/finance/budget')}
                                 className={`p-2.5 rounded-xl border transition-all relative ${alertCount > 0 ? 'bg-red-500/10 border-red-500/30 text-red-500 shadow-[0_0_15px_rgba(239,68,68,0.2)]' : 'bg-white/5 border-white/10 text-white/40 hover:text-white'}`}
                             >
                                 <Bell size={20} className={alertCount > 0 ? 'animate-swing' : ''} />

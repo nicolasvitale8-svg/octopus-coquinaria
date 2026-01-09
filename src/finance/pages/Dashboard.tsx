@@ -65,70 +65,72 @@ const DetailModal: React.FC<{
 
   return (
     <div className="fixed inset-0 bg-fin-bg/40 backdrop-blur-[20px] flex items-center justify-center z-50 p-4 animate-in fade-in duration-500">
-      <div className="bg-[#0b1221]/90 backdrop-blur-3xl rounded-[40px] w-full max-w-4xl border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.8)] p-12 animate-in zoom-in-95 duration-300 relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-brand to-transparent opacity-80"></div>
-        <button onClick={onClose} className="absolute top-8 right-8 p-3 bg-fin-bg rounded-2xl text-fin-muted hover:text-white transition-all border border-fin-border">
+      <div className="bg-[#0b1221]/90 backdrop-blur-3xl rounded-[40px] w-full max-w-4xl border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.8)] p-6 md:p-12 animate-in zoom-in-95 duration-300 relative overflow-hidden flex flex-col max-h-[90vh]">
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-brand to-transparent opacity-80 z-10"></div>
+        <button onClick={onClose} className="absolute top-4 right-4 md:top-8 md:right-8 p-3 bg-fin-bg rounded-2xl text-fin-muted hover:text-white transition-all border border-fin-border z-20">
           <X size={20} />
         </button>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          <div>
-            <h2 className="text-3xl font-black text-white mb-2 tracking-tight uppercase italic">{getTitle()}</h2>
-            <p className="text-fin-muted text-sm font-bold tracking-widest uppercase mb-12 flex items-center gap-2">
-              <div className="w-1.5 h-1.5 rounded-full bg-brand"></div>
-              {new Date(year, month).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
-            </p>
-
-            <div className="space-y-4 max-h-[350px] overflow-y-auto pr-4 CustomScrollbar">
-              {data.sort((a, b) => b.value - a.value).map((item, i) => (
-                <div key={i} className="flex items-center justify-between p-4 bg-fin-bg/50 rounded-2xl border border-white/5 group hover:border-brand/30 transition-all">
-                  <div className="flex items-center gap-4">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }}></div>
-                    <span className="text-[11px] font-black text-white uppercase tracking-wider">{item.name}</span>
-                  </div>
-                  <span className="text-sm font-black text-brand tabular-nums">{formatCurrency(item.value)}</span>
-                </div>
-              ))}
-              {data.length === 0 && (
-                <div className="py-20 text-center opacity-30">
-                  <LayoutGrid size={40} className="mx-auto mb-4" />
-                  <p className="text-[10px] font-black uppercase tracking-widest">Sin datos registrados</p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="h-[400px] flex items-center justify-center relative">
-            <div className="absolute inset-0 bg-brand/5 rounded-full blur-[100px]"></div>
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={data}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={110}
-                  outerRadius={150}
-                  paddingAngle={8}
-                  dataKey="value"
-                  stroke="none"
-                  animationBegin={0}
-                  animationDuration={1500}
-                >
-                  {data.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  contentStyle={{ backgroundColor: '#141C2F', borderRadius: '24px', border: '1px solid #1F2937', padding: '16px' }}
-                  itemStyle={{ fontSize: '12px', fontWeight: '900', color: '#fff', textTransform: 'uppercase' }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="absolute text-center">
-              <p className="text-[10px] font-black text-fin-muted uppercase tracking-[0.4em] mb-1 drop-shadow-lg">Total</p>
-              <p className="text-3xl font-black text-white tabular-nums tracking-tighter drop-shadow-2xl">
-                {formatCurrency(data.reduce((s, i) => s + i.value, 0))}
+        <div className="overflow-y-auto CustomScrollbar pr-2">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
+            <div>
+              <h2 className="text-2xl md:text-3xl font-black text-white mb-2 tracking-tight uppercase italic">{getTitle()}</h2>
+              <p className="text-fin-muted text-sm font-bold tracking-widest uppercase mb-6 md:mb-12 flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-brand"></div>
+                {new Date(year, month).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
               </p>
+
+              <div className="space-y-4 max-h-[350px] overflow-y-auto pr-4 CustomScrollbar">
+                {data.sort((a, b) => b.value - a.value).map((item, i) => (
+                  <div key={i} className="flex items-center justify-between p-4 bg-fin-bg/50 rounded-2xl border border-white/5 group hover:border-brand/30 transition-all">
+                    <div className="flex items-center gap-4">
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }}></div>
+                      <span className="text-[11px] font-black text-white uppercase tracking-wider">{item.name}</span>
+                    </div>
+                    <span className="text-sm font-black text-brand tabular-nums">{formatCurrency(item.value)}</span>
+                  </div>
+                ))}
+                {data.length === 0 && (
+                  <div className="py-20 text-center opacity-30">
+                    <LayoutGrid size={40} className="mx-auto mb-4" />
+                    <p className="text-[10px] font-black uppercase tracking-widest">Sin datos registrados</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="h-[300px] md:h-[400px] flex items-center justify-center relative">
+              <div className="absolute inset-0 bg-brand/5 rounded-full blur-[100px]"></div>
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={data}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={80}
+                    outerRadius={120}
+                    paddingAngle={8}
+                    dataKey="value"
+                    stroke="none"
+                    animationBegin={0}
+                    animationDuration={1500}
+                  >
+                    {data.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{ backgroundColor: '#141C2F', borderRadius: '24px', border: '1px solid #1F2937', padding: '16px' }}
+                    itemStyle={{ fontSize: '12px', fontWeight: '900', color: '#fff', textTransform: 'uppercase' }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="absolute text-center">
+                <p className="text-[10px] font-black text-fin-muted uppercase tracking-[0.4em] mb-1 drop-shadow-lg">Total</p>
+                <p className="text-xl md:text-3xl font-black text-white tabular-nums tracking-tighter drop-shadow-2xl">
+                  {formatCurrency(data.reduce((s, i) => s + i.value, 0))}
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -139,9 +141,16 @@ const DetailModal: React.FC<{
 
 export const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { context, setContext, businessId, setAlertCount } = useFinanza();
+  const { context, setContext, businessId, setBusinessId, setAlertCount } = useFinanza();
   const { profile } = useAuth();
   const [loading, setLoading] = useState(true);
+
+  // Auto-select business if needed
+  useEffect(() => {
+    if (context === 'octopus' && !businessId && profile?.businessIds?.length) {
+      setBusinessId(profile.businessIds[0]);
+    }
+  }, [context, businessId, profile]);
 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
@@ -326,7 +335,7 @@ export const Dashboard: React.FC = () => {
               </div>
               <span className="text-[9px] font-black text-fin-muted uppercase tracking-[0.2em]">{card.label}</span>
             </div>
-            <h2 className="text-3xl font-black text-white tabular-nums tracking-tighter">
+            <h2 className="text-xl md:text-2xl lg:text-3xl font-black text-white tabular-nums tracking-tighter overflow-hidden text-ellipsis whitespace-nowrap" title={formatCurrency(card.value)}>
               {formatCurrency(card.value)}
             </h2>
           </button>
