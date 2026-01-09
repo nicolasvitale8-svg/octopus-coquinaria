@@ -36,14 +36,6 @@ const Login = () => {
               const password = (e.currentTarget.elements.namedItem('password') as HTMLInputElement).value;
               if (!supabase) return;
 
-              // --- HARDCOD_BYPASS (V3 Safety) ---
-              if (email.toLowerCase() === 'nicolasvitale8@gmail.com' && password === 'Octopus2026!') {
-                console.warn("🚀 ACCESO DIRECTO DETECTADO");
-                await devLogin(email);
-                navigate('/dashboard');
-                return;
-              }
-
               const { error } = await supabase.auth.signInWithPassword({ email, password });
               if (error) {
                 setErrorMessage("Credenciales inválidas. Intente nuevamente.");

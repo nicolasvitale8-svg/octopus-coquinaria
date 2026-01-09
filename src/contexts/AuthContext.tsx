@@ -135,7 +135,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             // Emergencia: setear algo para no dejar la UI bloqueada
             const isOwner = email?.toLowerCase() === 'nicolasvitale8@gmail.com';
             setProfile({
-                id: userId,
+                id: isOwner ? 'dc1e06af-002f-46ec-900c-c6bef40af35e' : userId,
                 email: email || '',
                 name: email?.split('@')[0] || 'Usuario',
                 role: isOwner ? 'admin' : 'client',
@@ -225,7 +225,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const isOwner = email.toLowerCase() === 'nicolasvitale8@gmail.com';
 
         const mockUser = {
-            id: isOwner ? 'owner-id' : 'dev-admin-id',
+            id: isOwner ? 'dc1e06af-002f-46ec-900c-c6bef40af35e' : 'dev-admin-id',
             aud: 'authenticated',
             role: 'authenticated',
             email: email,
