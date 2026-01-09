@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import AdminLayout from '../components/AdminLayout';
-import { getAllProjects, createProject, deleteProject } from '../services/projectService';
+import { getAllProjects, createProject, deleteProject, updateProject } from '../services/projectService';
 import { Project } from '../types';
-import { Search, Briefcase, Plus, AlertCircle, Calendar, ArrowRight, X, Trash2, FileText, CheckSquare } from 'lucide-react';
+import { Search, Briefcase, Plus, AlertCircle, Calendar, ArrowRight, X, Trash2, FileText, CheckSquare, DollarSign } from 'lucide-react';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import LoadingOverlay from '../components/ui/LoadingOverlay';
@@ -190,8 +190,25 @@ const AdminProjects = () => {
                                                 </Button>
                                             </Link>
 
-                                            {/* V4 Indicators */}
                                             <div className="flex flex-col gap-1 items-start min-w-[60px]">
+                                                {/* FinanzaFlow Authorization Toggle */}
+                                                <button
+                                                    onClick={async () => {
+                                                        const updated = { ...project, finanzaflow_enabled: !project.finanzaflow_enabled };
+                                                        setProcessingAction('Actualizando Módulos...');
+                                                        const result = await updateProject(updated);
+                                                        if (result) {
+                                                            setProjects(prev => prev.map(p => p.id === project.id ? result : p));
+                                                        }
+                                                        setProcessingAction(null);
+                                                    }}
+                                                    className={`flex items-center gap-1 text-[9px] font-black px-1.5 py-0.5 rounded border transition-all ${project.finanzaflow_enabled ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50 hover:bg-emerald-500/30' : 'bg-slate-800 text-slate-500 border-slate-700 hover:text-slate-300'}`}
+                                                    title={project.finanzaflow_enabled ? 'Desactivar Finanzas' : 'Activar Finanzas'}
+                                                >
+                                                    <DollarSign className="w-2.5 h-2.5" />
+                                                    FINANZAS {project.finanzaflow_enabled ? 'ON' : 'OFF'}
+                                                </button>
+
                                                 {project.deliverables?.some(d => d.status === 'IN_REVIEW' || d.status === 'PENDING') && (
                                                     <div className="flex items-center gap-1 text-[9px] font-bold text-orange-400 bg-orange-400/10 px-1.5 py-0.5 rounded border border-orange-400/20" title="Entregables para revisión">
                                                         <FileText className="w-2.5 h-2.5" />

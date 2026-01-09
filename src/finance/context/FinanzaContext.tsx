@@ -46,10 +46,11 @@ export const FinanzaProvider: React.FC<{ children: React.ReactNode }> = ({ child
                 const entities: FinanceEntity[] = [personalEntity];
 
                 if (isAdmin) {
-                    // Admins see ALL projects
+                    // Admins see ALL projects WITH finanzaflow enabled
                     const { data: allProjects } = await supabase
                         .from('projects')
-                        .select('id, business_name');
+                        .select('id, business_name, finanzaflow_enabled')
+                        .eq('finanzaflow_enabled', true);
 
                     if (allProjects) {
                         allProjects.forEach(p => {
@@ -61,15 +62,15 @@ export const FinanzaProvider: React.FC<{ children: React.ReactNode }> = ({ child
                         });
                     }
                 } else {
-                    // Regular users see ONLY where they are members
+                    // Regular users see ONLY where they are members AND have the module enabled
                     const { data: members, error } = await supabase
                         .from('project_members')
-                        .select('project_id, projects(business_name)')
+                        .select('project_id, projects(business_name, finanzaflow_enabled)')
                         .eq('user_id', user.id);
 
                     if (!error && members) {
                         members.forEach((m: any) => {
-                            if (m.projects) {
+                            if (m.projects && m.projects.finanzaflow_enabled) {
                                 entities.push({
                                     id: m.project_id,
                                     name: m.projects.business_name,

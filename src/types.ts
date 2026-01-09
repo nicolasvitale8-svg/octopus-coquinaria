@@ -330,6 +330,7 @@ export interface Project {
   notion_url?: string;
   chatgpt_url?: string;
   drive_url?: string;
+  finanzaflow_enabled?: boolean;
 
   // New: Client External Systems
   external_systems?: ExternalSystemAccess[];
