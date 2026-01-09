@@ -64,8 +64,8 @@ const DetailModal: React.FC<{
   };
 
   return (
-    <div className="fixed inset-0 bg-fin-bg/40 backdrop-blur-[20px] flex items-center justify-center z-50 p-4 animate-in fade-in duration-500">
-      <div className="bg-[#0b1221]/90 backdrop-blur-3xl rounded-[40px] w-full max-w-4xl border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.8)] p-6 md:p-12 animate-in zoom-in-95 duration-300 relative overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 bg-fin-bg/40 backdrop-blur-[20px] flex items-center justify-center z-[100] p-4 animate-in fade-in duration-500 overflow-y-auto">
+      <div className="bg-[#0b1221]/95 backdrop-blur-3xl rounded-[40px] w-full max-w-4xl border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.8)] p-6 md:p-12 animate-in zoom-in-95 duration-300 relative overflow-hidden flex flex-col my-auto">
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-brand to-transparent opacity-80 z-10"></div>
         <button onClick={onClose} className="absolute top-4 right-4 md:top-8 md:right-8 p-3 bg-fin-bg rounded-2xl text-fin-muted hover:text-white transition-all border border-fin-border z-20">
           <X size={20} />
@@ -382,40 +382,11 @@ export const Dashboard: React.FC = () => {
           </div>
 
           {/* Accounts Summary */}
-          <div className="bg-fin-card rounded-[32px] border border-fin-border overflow-hidden shadow-2xl">
-            <div className="px-10 py-8 border-b border-fin-border flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <Wallet size={20} className="text-brand" />
-                <h3 className="font-black text-xl">Saldos Disponibles</h3>
-              </div>
-              <button onClick={() => navigate('/finance/accounts')} className="text-[10px] font-black text-brand uppercase tracking-widest hover:underline">Gestionar</button>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm border-collapse">
-                <thead>
-                  <tr className="text-[10px] text-fin-muted font-black uppercase tracking-widest bg-fin-bg/40">
-                    <th className="px-10 py-5">Cuenta</th>
-                    <th className="px-10 py-5 text-right">Balance de Periodo</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-fin-border/30">
-                  {periodStates.map(st => (
-                    <tr key={st.account.id} className="hover:bg-fin-bg/30 transition-colors group">
-                      <td className="px-10 py-6 font-bold text-white uppercase tracking-tight text-xs flex items-center gap-3">
-                        <div className={`w-1.5 h-1.5 rounded-full ${st.finalBalance >= 0 ? 'bg-emerald-500' : 'bg-red-500'}`}></div>
-                        {st.account.name}
-                      </td>
-                      <td className={`px-10 py-6 text-right font-black tabular-nums text-lg ${st.finalBalance >= 0 ? 'text-white' : 'text-red-500'}`}>
-                        {formatCurrency(st.finalBalance)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
         </div>
+      </div>
 
+      {/* Sidebar right side */}
+      <div className="lg:col-span-1 space-y-10">
         {/* Alerts Section (V2 Phase 1) */}
         {alerts.length > 0 && (
           <div className="bg-red-500/5 border border-red-500/20 rounded-3xl p-6 backdrop-blur-sm">
@@ -428,8 +399,8 @@ export const Dashboard: React.FC = () => {
                 <p className="text-[10px] font-bold text-red-500/60 uppercase tracking-tighter">Acciones requeridas ({alerts.length})</p>
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {alerts.slice(0, 3).map((alert, i) => {
+            <div className="flex flex-col gap-4">
+              {alerts.slice(0, 5).map((alert, i) => {
                 const cat = categories.find(c => c.id === alert.categoryId);
                 const sub = subCategories.find(s => s.id === alert.subCategoryId);
                 const isPast = (alert.plannedDate || 1) < new Date().getDate();
@@ -440,12 +411,12 @@ export const Dashboard: React.FC = () => {
                       <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isPast ? 'bg-red-500/10 text-red-500' : 'bg-amber-500/10 text-amber-500'}`}>
                         {alert.type === 'OUT' ? <TrendingDown size={18} /> : <TrendingUp size={18} />}
                       </div>
-                      <div>
-                        <p className="text-[10px] font-black text-white uppercase tracking-tight line-clamp-1">{alert.label}</p>
-                        <p className="text-[9px] font-bold text-fin-muted uppercase">{cat?.name} {sub ? `• ${sub.name}` : ''}</p>
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-black text-white uppercase tracking-tight truncate">{alert.label}</p>
+                        <p className="text-[9px] font-bold text-fin-muted uppercase truncate">{cat?.name} {sub ? `• ${sub.name}` : ''}</p>
                       </div>
                     </div>
-                    <div className="text-right">
+                    <div className="text-right flex-shrink-0">
                       <p className="text-xs font-black text-white">{formatCurrency(alert.plannedAmount)}</p>
                       <p className={`text-[8px] font-black uppercase tracking-widest ${isPast ? 'text-red-500' : 'text-amber-500'}`}>
                         {isPast ? 'Atrasado' : `Día ${alert.plannedDate}`}
@@ -454,57 +425,56 @@ export const Dashboard: React.FC = () => {
                   </div>
                 );
               })}
-              {alerts.length > 3 && (
+              {alerts.length > 5 && (
                 <button
-                  onClick={() => navigate('/budget')}
-                  className="bg-white/5 border border-dashed border-white/10 rounded-2xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-fin-muted hover:text-white transition-all"
+                  onClick={() => navigate('/finance/budget')}
+                  className="bg-white/5 border border-dashed border-white/10 p-4 rounded-2xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-fin-muted hover:text-white transition-all"
                 >
-                  Ver {alerts.length - 3} más <ChevronRight size={14} />
+                  Ver {alerts.length - 5} más <ChevronRight size={14} />
                 </button>
               )}
             </div>
           </div>
         )}
 
-        {/* Hero Stats */}
-        <div className="lg:col-span-1">
-          <div className="bg-fin-card rounded-[32px] border border-fin-border h-full flex flex-col shadow-2xl overflow-hidden">
-            <div className="px-10 py-8 border-b border-fin-border flex items-center justify-between bg-fin-bg/20">
-              <h3 className="font-black text-xl flex items-center gap-4">
-                <List size={20} className="text-brand" /> Recientes
-              </h3>
-              <button onClick={() => navigate('/finance/transactions')} className="p-2.5 bg-fin-bg rounded-xl border border-fin-border hover:text-brand transition-all">
-                <ArrowUpRight size={18} />
-              </button>
-            </div>
-            <div className="flex-1 overflow-auto divide-y divide-fin-border/30 scrollbar-hide">
-              {transactions
-                .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-                .slice(0, 10)
-                .map(t => (
-                  <div key={t.id} className="p-8 hover:bg-fin-bg/30 transition-all cursor-default group">
-                    <div className="flex justify-between items-start mb-2">
-                      <p className="text-[14px] font-bold text-white group-hover:text-brand transition-colors leading-tight">{t.description}</p>
-                      <span className={`text-[14px] font-black tabular-nums ${t.type === 'IN' ? 'text-emerald-500' : 'text-white'}`}>
-                        {t.type === 'IN' ? '+' : '-'}{formatCurrency(t.amount)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <p className="text-[9px] text-fin-muted font-black uppercase tracking-[0.2em]">{t.date}</p>
-                      <div className="w-1.5 h-1.5 rounded-full bg-fin-border group-hover:bg-brand transition-colors"></div>
-                    </div>
+        {/* Hero Stats / Recientes */}
+        <div className="bg-fin-card rounded-[32px] border border-fin-border shadow-2xl overflow-hidden flex flex-col h-fit">
+          <div className="px-10 py-8 border-b border-fin-border flex items-center justify-between bg-fin-bg/20">
+            <h3 className="font-black text-xl flex items-center gap-4">
+              <List size={20} className="text-brand" /> Recientes
+            </h3>
+            <button onClick={() => navigate('/finance/transactions')} className="p-2.5 bg-fin-bg rounded-xl border border-fin-border hover:text-brand transition-all">
+              <ArrowUpRight size={18} />
+            </button>
+          </div>
+          <div className="divide-y divide-fin-border/30 scrollbar-hide">
+            {transactions
+              .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+              .slice(0, 10)
+              .map(t => (
+                <div key={t.id} className="p-8 hover:bg-fin-bg/30 transition-all cursor-default group">
+                  <div className="flex justify-between items-start mb-2">
+                    <p className="text-[14px] font-bold text-white group-hover:text-brand transition-colors leading-tight">{t.description}</p>
+                    <span className={`text-[14px] font-black tabular-nums ${t.type === 'IN' ? 'text-emerald-500' : 'text-white'}`}>
+                      {t.type === 'IN' ? '+' : '-'}{formatCurrency(t.amount)}
+                    </span>
                   </div>
-                ))}
-              {transactions.length === 0 && (
-                <div className="flex-1 flex flex-col items-center justify-center p-12 text-center text-fin-muted space-y-4">
-                  <LayoutGrid size={40} className="opacity-10" />
-                  <p className="text-xs font-bold uppercase tracking-widest italic opacity-40">Sin movimientos registrados</p>
+                  <div className="flex justify-between items-center">
+                    <p className="text-[9px] text-fin-muted font-black uppercase tracking-[0.2em]">{t.date}</p>
+                    <div className="w-1.5 h-1.5 rounded-full bg-fin-border group-hover:bg-brand transition-colors"></div>
+                  </div>
                 </div>
-              )}
-            </div>
+              ))}
+            {transactions.length === 0 && (
+              <div className="flex flex-col items-center justify-center p-12 text-center text-fin-muted space-y-4">
+                <LayoutGrid size={40} className="opacity-10" />
+                <p className="text-xs font-bold uppercase tracking-widest italic opacity-40">Sin movimientos registrados</p>
+              </div>
+            )}
           </div>
         </div>
       </div>
     </div>
+    </div >
   );
 };
