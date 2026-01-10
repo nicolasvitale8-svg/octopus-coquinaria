@@ -18,7 +18,59 @@ export const getResources = async (): Promise<AcademyResource[]> => {
 
         if (error) throw error;
 
-        return (data || []).map((r: any) => ({
+        let rawData = data || [];
+
+        // FALLBACK: If no data in DB, provide default content to "Catch Clients"
+        if (rawData.length === 0) {
+            rawData = [
+                {
+                    id: 'def-1',
+                    titulo: 'Ingeniería de Menú: El Primer Paso',
+                    descripcion: 'Aprende a analizar tu carta para maximizar la rentabilidad sin perder identidad.',
+                    outcome: 'Rentabilidad +15%',
+                    category: 'OPERACIONES',
+                    format: 'VIDEO',
+                    impact_tag: 'QUICK_WIN',
+                    level: 1,
+                    duration_minutes: 8,
+                    access: 'PUBLIC',
+                    is_pinned: true,
+                    pinned_order: 1,
+                    action_steps: ['Descargar plantilla', 'Listar platos', 'Calcular costo vs precio']
+                },
+                {
+                    id: 'def-2',
+                    titulo: 'Control de Stock Diario',
+                    descripcion: 'La rutina de 15 minutos que evita el robo hormiga y el desperdicio.',
+                    outcome: 'Reducción de Merma',
+                    category: 'COSTOS',
+                    format: 'GUIDE',
+                    impact_tag: 'HERRAMIENTA',
+                    level: 1,
+                    duration_minutes: 12,
+                    access: 'PUBLIC',
+                    is_pinned: true,
+                    pinned_order: 2,
+                    action_steps: ['Definir críticos', 'Asignar responsable', 'Auditar semanalmente']
+                },
+                {
+                    id: 'def-3',
+                    titulo: 'Estandarización de Recetas',
+                    descripcion: 'Por qué tus platos saben diferente cuando no estás. La guía definitiva.',
+                    outcome: 'Consistencia Total',
+                    category: 'OPERACIONES',
+                    format: 'TEMPLATE',
+                    impact_tag: 'ESTRUCTURA',
+                    level: 2,
+                    duration_minutes: 20,
+                    access: 'PRO', // Teaser for PRO
+                    is_pinned: true,
+                    pinned_order: 3
+                }
+            ];
+        }
+
+        return rawData.map((r: any) => ({
             id: r.id,
             title: r.titulo,
             description: r.descripcion || '',

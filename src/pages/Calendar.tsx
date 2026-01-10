@@ -30,8 +30,8 @@ const CalendarPage = () => {
       const { data, error } = await supabase
         .from('eventos_calendario')
         .select('*')
-        .gte('fecha_inicio', startOfCurrentWeek.toISOString()) // Filter past events at DB level or frontend? DB is better.
-        .order('fecha_inicio', { ascending: true });
+        // .gte('fecha_inicio', startOfCurrentWeek.toISOString()) // Filter past events at DB level or frontend? RELAXED FOR VISIBILITY
+        .order('fecha_inicio', { ascending: false }); // Show newest/future first, but include old ones just in case
 
       if (data) {
         setEvents(data);
