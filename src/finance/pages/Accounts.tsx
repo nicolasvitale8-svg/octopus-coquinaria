@@ -236,13 +236,13 @@ export const Accounts: React.FC = () => {
           {/* Categories Management Area */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
             {/* INCOMING CATEGORIES */}
-            <div className="space-y-6">
-              <div className="flex justify-between items-center px-4 bg-emerald-500/5 py-4 rounded-2xl border border-emerald-500/10">
+            <div className="space-y-6 relative">
+              <div className="sticky top-0 z-10 flex justify-between items-center px-4 bg-[#020b14]/95 backdrop-blur-md py-4 rounded-2xl border border-emerald-500/20 shadow-xl">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-emerald-500/20 text-emerald-500 rounded-lg"><TrendingUp size={16} /></div>
                   <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500">Rubros de Ingresos</h3>
                 </div>
-                <button onClick={() => { setEditingCategory({ type: TransactionType.IN }); setIsCatModalOpen(true); }} className="flex items-center gap-2 px-4 py-2 bg-emerald-500 text-[#020b14] rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-white transition-all shadow-lg shadow-emerald-500/20"><Plus size={12} strokeWidth={3} /> Nuevo</button>
+                <button onClick={() => { setEditingCategory({ type: TransactionType.IN }); setIsCatModalOpen(true); }} className="flex items-center gap-2 px-4 py-2 bg-emerald-500 text-[#020b14] rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-white transition-all shadow-lg shadow-emerald-500/20 active:scale-95"><Plus size={12} strokeWidth={3} /> Nuevo</button>
               </div>
               <div className="space-y-4">
                 {categories.filter(c => c.type === TransactionType.IN || c.type === 'MIX').map(cat => (
@@ -254,7 +254,16 @@ export const Accounts: React.FC = () => {
                       </div>
                       <div className="flex gap-2">
                         <button onClick={() => { setEditingCategory(cat); setIsCatModalOpen(true); }} className="p-2 text-fin-muted hover:text-white bg-fin-bg rounded-xl border border-fin-border/50 transition-colors"><Edit2 size={14} /></button>
-                        <button onClick={async () => { if (confirm('¿Borrar rubro y todos sus subrubros?')) { await SupabaseService.deleteCategory(cat.id); await loadData(); } }} className="p-2 text-fin-muted hover:text-red-500 bg-fin-bg rounded-xl border border-fin-border/50 transition-colors"><Trash2 size={14} /></button>
+                        <button onClick={async () => {
+                          if (confirm('¿Borrar rubro y todos sus subrubros?')) {
+                            try {
+                              await SupabaseService.deleteCategory(cat.id);
+                              await loadData();
+                            } catch (e: any) {
+                              alert("No se puede borrar el rubro porque tiene movimientos asociados. Primero borra los movimientos o cámbialos de rubro.");
+                            }
+                          }
+                        }} className="p-2 text-fin-muted hover:text-red-500 bg-fin-bg rounded-xl border border-fin-border/50 transition-colors"><Trash2 size={14} /></button>
                       </div>
                     </div>
                     {/* Subcategories List */}
@@ -262,7 +271,16 @@ export const Accounts: React.FC = () => {
                       {subCategories.filter(sc => sc.categoryId === cat.id).map(sub => (
                         <div key={sub.id} className="bg-fin-bg px-4 py-2 rounded-xl border border-fin-border flex items-center gap-3 group/sub hover:border-emerald-500/20 transition-all">
                           <span className="text-[10px] font-bold text-fin-muted uppercase tracking-wider">{sub.name}</span>
-                          <button onClick={async () => { if (confirm('¿Borrar subrubro?')) { await SupabaseService.deleteSubCategory(sub.id); await loadData(); } }} className="text-fin-muted hover:text-red-500 transition-colors"><X size={12} /></button>
+                          <button onClick={async () => {
+                            if (confirm('¿Borrar subrubro?')) {
+                              try {
+                                await SupabaseService.deleteSubCategory(sub.id);
+                                await loadData();
+                              } catch (e: any) {
+                                alert("No se puede borrar el ítem porque tiene movimientos asociados.");
+                              }
+                            }
+                          }} className="text-fin-muted hover:text-red-500 transition-colors"><X size={12} /></button>
                         </div>
                       ))}
                       <button
@@ -278,13 +296,13 @@ export const Accounts: React.FC = () => {
             </div>
 
             {/* OUTGOING CATEGORIES */}
-            <div className="space-y-6">
-              <div className="flex justify-between items-center px-4 bg-red-500/5 py-4 rounded-2xl border border-red-500/10">
+            <div className="space-y-6 relative">
+              <div className="sticky top-0 z-10 flex justify-between items-center px-4 bg-[#020b14]/95 backdrop-blur-md py-4 rounded-2xl border border-red-500/20 shadow-xl">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-red-500/20 text-red-500 rounded-lg"><TrendingDown size={16} /></div>
                   <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-red-500">Rubros de Gastos</h3>
                 </div>
-                <button onClick={() => { setEditingCategory({ type: TransactionType.OUT }); setIsCatModalOpen(true); }} className="flex items-center gap-2 px-4 py-2 bg-red-500 text-[#020b14] rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-white transition-all shadow-lg shadow-red-500/20"><Plus size={12} strokeWidth={3} /> Nuevo</button>
+                <button onClick={() => { setEditingCategory({ type: TransactionType.OUT }); setIsCatModalOpen(true); }} className="flex items-center gap-2 px-4 py-2 bg-red-500 text-[#020b14] rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-white transition-all shadow-lg shadow-red-500/20 active:scale-95"><Plus size={12} strokeWidth={3} /> Nuevo</button>
               </div>
               <div className="space-y-4">
                 {categories.filter(c => c.type === TransactionType.OUT || c.type === 'MIX').map(cat => (
@@ -296,7 +314,16 @@ export const Accounts: React.FC = () => {
                       </div>
                       <div className="flex gap-2">
                         <button onClick={() => { setEditingCategory(cat); setIsCatModalOpen(true); }} className="p-2 text-fin-muted hover:text-white bg-fin-bg rounded-xl border border-fin-border/50 transition-colors"><Edit2 size={14} /></button>
-                        <button onClick={async () => { if (confirm('¿Borrar rubro y todos sus subrubros?')) { await SupabaseService.deleteCategory(cat.id); await loadData(); } }} className="p-2 text-fin-muted hover:text-red-500 bg-fin-bg rounded-xl border border-fin-border/50 transition-colors"><Trash2 size={14} /></button>
+                        <button onClick={async () => {
+                          if (confirm('¿Borrar rubro y todos sus subrubros?')) {
+                            try {
+                              await SupabaseService.deleteCategory(cat.id);
+                              await loadData();
+                            } catch (e: any) {
+                              alert("No se puede borrar el rubro porque tiene movimientos asociados.");
+                            }
+                          }
+                        }} className="p-2 text-fin-muted hover:text-red-500 bg-fin-bg rounded-xl border border-fin-border/50 transition-colors"><Trash2 size={14} /></button>
                       </div>
                     </div>
                     {/* Subcategories List */}
@@ -304,7 +331,16 @@ export const Accounts: React.FC = () => {
                       {subCategories.filter(sc => sc.categoryId === cat.id).map(sub => (
                         <div key={sub.id} className="bg-fin-bg px-4 py-2 rounded-xl border border-fin-border flex items-center gap-3 group/sub hover:border-red-500/20 transition-all">
                           <span className="text-[10px] font-bold text-fin-muted uppercase tracking-wider">{sub.name}</span>
-                          <button onClick={async () => { if (confirm('¿Borrar subrubro?')) { await SupabaseService.deleteSubCategory(sub.id); await loadData(); } }} className="text-fin-muted hover:text-red-500 transition-colors"><X size={12} /></button>
+                          <button onClick={async () => {
+                            if (confirm('¿Borrar subrubro?')) {
+                              try {
+                                await SupabaseService.deleteSubCategory(sub.id);
+                                await loadData();
+                              } catch (e: any) {
+                                alert("No se puede borrar el ítem porque tiene movimientos asociados.");
+                              }
+                            }
+                          }} className="text-fin-muted hover:text-red-500 transition-colors"><X size={12} /></button>
                         </div>
                       ))}
                       <button
@@ -360,8 +396,14 @@ export const Accounts: React.FC = () => {
         <div className="fixed inset-0 bg-fin-bg/95 backdrop-blur-xl flex items-center justify-center z-50 p-6">
           <div className="bg-fin-card rounded-[40px] w-full max-w-md border border-fin-border shadow-[0_0_50px_rgba(0,0,0,0.5)] p-10 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-brand/10 rounded-full -mr-16 -mt-16 blur-3xl"></div>
-            <button onClick={() => setIsCatModalOpen(false)} className="absolute top-8 right-8 text-fin-muted hover:text-white transition-colors"><X size={24} /></button>
-            <h2 className="text-2xl font-black text-white mb-8 uppercase tracking-tight">{editingCategory?.id ? 'Editar Rubro' : 'Nuevo Rubro'}</h2>
+            <button
+              onClick={() => setIsCatModalOpen(false)}
+              className="absolute top-6 right-6 p-2 text-white/50 hover:text-white bg-white/5 hover:bg-white/10 rounded-full transition-all z-[60]"
+              title="Cerrar (Esc)"
+            >
+              <X size={20} />
+            </button>
+            <h2 className="text-2xl font-black text-white mb-10 uppercase tracking-tight">{editingCategory?.id ? 'Editar Rubro' : 'Nuevo Rubro'}</h2>
             <form onSubmit={async (e) => {
               e.preventDefault();
               const bId = activeEntity.id || undefined;
@@ -391,8 +433,14 @@ export const Accounts: React.FC = () => {
       {isSubCatModalOpen && (
         <div className="fixed inset-0 bg-fin-bg/95 backdrop-blur-xl flex items-center justify-center z-50 p-6">
           <div className="bg-fin-card rounded-[40px] w-full max-w-md border border-fin-border shadow-[0_0_50px_rgba(0,0,0,0.5)] p-10 relative overflow-hidden">
-            <button onClick={() => setIsSubCatModalOpen(false)} className="absolute top-8 right-8 text-fin-muted hover:text-white transition-colors"><X size={24} /></button>
-            <h2 className="text-2xl font-black text-white mb-8 uppercase tracking-tight">Nuevo Sub-Rubro</h2>
+            <button
+              onClick={() => setIsSubCatModalOpen(false)}
+              className="absolute top-6 right-6 p-2 text-white/50 hover:text-white bg-white/5 hover:bg-white/10 rounded-full transition-all z-[60]"
+              title="Cerrar (Esc)"
+            >
+              <X size={20} />
+            </button>
+            <h2 className="text-2xl font-black text-white mb-10 uppercase tracking-tight">Nuevo Sub-Rubro</h2>
             <form onSubmit={async (e) => {
               e.preventDefault();
               const bId = activeEntity.id || undefined;
@@ -413,8 +461,14 @@ export const Accounts: React.FC = () => {
       {isAccModalOpen && (
         <div className="fixed inset-0 bg-fin-bg/90 backdrop-blur-xl flex items-center justify-center z-50 p-6">
           <div className="bg-fin-card rounded-[32px] w-full max-w-lg border border-fin-border shadow-2xl p-10 relative">
-            <button onClick={() => setIsAccModalOpen(false)} className="absolute top-8 right-8 text-fin-muted hover:text-white"><X size={24} /></button>
-            <h2 className="text-2xl font-black text-white mb-8 uppercase tracking-tight">{editingAccount?.id ? 'Editar Cuenta' : 'Nueva Cuenta'}</h2>
+            <button
+              onClick={() => setIsAccModalOpen(false)}
+              className="absolute top-6 right-6 p-2 text-white/50 hover:text-white bg-white/5 hover:bg-white/10 rounded-full transition-all z-[60]"
+              title="Cerrar (Esc)"
+            >
+              <X size={20} />
+            </button>
+            <h2 className="text-2xl font-black text-white mb-10 uppercase tracking-tight">{editingAccount?.id ? 'Editar Cuenta' : 'Nueva Cuenta'}</h2>
             <form onSubmit={handleSaveAccount} className="space-y-6 text-left">
               <div className="space-y-2">
                 <label className="text-[10px] font-black uppercase text-fin-muted ml-1 tracking-widest">Nombre de la Cuenta</label>
@@ -451,8 +505,14 @@ export const Accounts: React.FC = () => {
       {isRuleModalOpen && (
         <div className="fixed inset-0 bg-fin-bg/90 backdrop-blur-xl flex items-center justify-center z-50 p-6">
           <div className="bg-fin-card rounded-[32px] w-full max-w-lg border border-fin-border shadow-2xl p-10 relative">
-            <button onClick={() => setIsRuleModalOpen(false)} className="absolute top-8 right-8 text-fin-muted hover:text-white"><X size={24} /></button>
-            <h2 className="text-2xl font-black text-white mb-8 uppercase tracking-tight">Nueva Regla Inteligente</h2>
+            <button
+              onClick={() => setIsRuleModalOpen(false)}
+              className="absolute top-6 right-6 p-2 text-white/50 hover:text-white bg-white/5 hover:bg-white/10 rounded-full transition-all z-[60]"
+              title="Cerrar (Esc)"
+            >
+              <X size={20} />
+            </button>
+            <h2 className="text-2xl font-black text-white mb-10 uppercase tracking-tight">Nueva Regla Inteligente</h2>
             <form onSubmit={handleSaveRule} className="space-y-6">
               <div className="space-y-1">
                 <label className="text-[10px] font-black uppercase text-fin-muted ml-1">Palabra Clave (Pattern)</label>
