@@ -166,9 +166,13 @@ export const Transactions: React.FC = () => {
     }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [transactions, filterStartDate, filterEndDate, filterCategory, filterAccount, filterType, searchTerm]);
 
-  // Totals for filtered data
+  // Totals for filtered data (excluyendo transferencias entre cuentas)
   const filteredTotals = useMemo(() => {
     return filteredTransactions.reduce((acc, t) => {
+      // Excluir transferencias del cálculo de totales
+      const isTransfer = t.description?.toLowerCase().includes('transferencia');
+      if (isTransfer) return acc;
+
       if (t.type === TransactionType.IN) acc.in += t.amount;
       else acc.out += t.amount;
       return acc;

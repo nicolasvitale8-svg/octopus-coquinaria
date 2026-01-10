@@ -32,7 +32,8 @@ const DetailModal: React.FC<{
     if (type === 'IN' || type === 'OUT') {
       const filtered = transactions.filter(t => {
         const d = new Date(t.date);
-        return d.getMonth() === month && d.getFullYear() === year && t.type === type;
+        const isTransfer = t.description?.toLowerCase().includes('transferencia');
+        return d.getMonth() === month && d.getFullYear() === year && t.type === type && !isTransfer;
       });
 
       const byCat = filtered.reduce((acc, t) => {
@@ -197,15 +198,34 @@ export const Dashboard: React.FC = () => {
     setPeriodStates(states);
   };
 
-  const totalIn = periodStates.reduce((s, st) => s + st.totalIn, 0);
-  const totalOut = periodStates.reduce((s, st) => s + st.totalOut, 0);
+  // Totales excluyendo transferencias entre cuentas (para el resumen global)
+  const totalIn = React.useMemo(() => {
+    return transactions
+      .filter(t => {
+        const d = new Date(t.date);
+        const isTransfer = t.description?.toLowerCase().includes('transferencia');
+        return d.getMonth() === currentMonth && d.getFullYear() === currentYear && t.type === 'IN' && !isTransfer;
+      })
+      .reduce((sum, t) => sum + t.amount, 0);
+  }, [transactions, currentMonth, currentYear]);
+
+  const totalOut = React.useMemo(() => {
+    return transactions
+      .filter(t => {
+        const d = new Date(t.date);
+        const isTransfer = t.description?.toLowerCase().includes('transferencia');
+        return d.getMonth() === currentMonth && d.getFullYear() === currentYear && t.type === 'OUT' && !isTransfer;
+      })
+      .reduce((sum, t) => sum + t.amount, 0);
+  }, [transactions, currentMonth, currentYear]);
+
   const totalFinal = periodStates.reduce((s, st) => s + st.finalBalance, 0);
   const totalInJars = jars.map(calculateJar).reduce((acc, j) => acc + j.currentValue, 0);
 
   const chartData = [
     { name: 'Entradas', amount: totalIn, color: '#10B981' },
     { name: 'Salidas', amount: totalOut, color: '#EF4444' },
-    { name: 'Neto', amount: totalFinal, color: '#3B82F6' },
+    { name: 'Neto', amount: totalIn - totalOut, color: '#3B82F6' },
   ];
 
   // Logic for Alerts (V2 Phase 1)
