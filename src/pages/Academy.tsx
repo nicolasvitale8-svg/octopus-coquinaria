@@ -130,7 +130,7 @@ const Academy = () => {
   const microtips = resources.filter(r => r.format === 'TIP');
 
   const canAccess = (accessLevel: ResourceAccess) => {
-    if (accessLevel === 'PUBLIC') return true;
+    if (accessLevel === 'PUBLIC' || accessLevel === 'FREE') return true;
     return plan === 'PRO' || isAdmin || isConsultant;
   };
 

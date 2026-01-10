@@ -27,9 +27,9 @@ const Home = () => {
     const loadResources = async () => {
       try {
         const all = await getResources();
-        // Filtrar solo públicos y tomar los 3 primeros (o los marcados como pinned)
+        // Filtrar solo públicos o gratuitos y tomar los 3 primeros
         const filtered = all
-          .filter(r => r.access === 'PUBLIC')
+          .filter(r => r.access === 'PUBLIC' || r.access === 'FREE')
           .slice(0, 3);
         setFeaturedResources(filtered);
       } catch (e) {

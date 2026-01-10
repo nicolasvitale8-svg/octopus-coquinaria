@@ -106,7 +106,7 @@ export const getRecommendedContent = (
         .filter(r =>
             r.category === topCategory &&
             r.level === 1 &&
-            (userPlan === 'PRO' || r.access === 'PUBLIC')
+            (userPlan === 'PRO' || r.access === 'PUBLIC' || r.access === 'FREE')
         )
         .sort((a, b) => (a.impactTag === 'QUICK_WIN' ? -1 : 1))
         .slice(0, 3);
