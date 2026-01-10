@@ -25,7 +25,6 @@ interface AuthContextType {
     isPremium: boolean;
     hasPermission: (permission: Permission) => boolean;
     signOut: () => Promise<void>;
-    devLogin: (email?: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -40,7 +39,6 @@ const AuthContext = createContext<AuthContextType>({
     isPremium: false,
     hasPermission: () => false,
     signOut: async () => { },
-    devLogin: async (_email?: string) => { },
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -70,19 +68,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const userResult = await Promise.race([userPromise, timeoutPromise]);
 
             if ('timeout' in userResult) {
-                console.error("⏱️ Timeout al cargar perfil. Usando modo offline.");
-                // Modo de emergencia: usar email del owner
-                const isOwner = email?.toLowerCase() === 'nicolasvitale8@gmail.com';
-                setProfile({
-                    id: userId,
-                    email: email || '',
-                    name: email?.split('@')[0] || 'Usuario',
-                    role: isOwner ? 'admin' : 'client',
-                    plan: isOwner ? 'PRO' : 'FREE',
-                    diagnostic_scores: {},
-                    permissions: isOwner ? ['super_admin'] : [],
-                    businessIds: []
-                } as AppUser);
+                console.error("⏱️ Timeout al cargar perfil.");
                 return;
             }
 
@@ -117,33 +103,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 setProfile(userProfile);
                 console.log("✅ Perfil cargado:", userProfile.role, userProfile.email);
             } else {
-                console.warn("⚠️ Perfil no encontrado. Usando fallback con email:", email);
-                const isOwner = email?.toLowerCase() === 'nicolasvitale8@gmail.com';
-                setProfile({
-                    id: userId,
-                    email: email || '',
-                    name: email?.split('@')[0] || 'Usuario',
-                    role: isOwner ? 'admin' : 'client',
-                    plan: isOwner ? 'PRO' : 'FREE',
-                    diagnostic_scores: {},
-                    permissions: isOwner ? ['super_admin'] : [],
-                    businessIds: []
-                } as AppUser);
+                console.warn("⚠️ Perfil no encontrado para el usuario:", userId);
+                setProfile(null);
             }
         } catch (err) {
             console.error("❌ Error crítico fetching profile:", err);
-            // Emergencia: setear algo para no dejar la UI bloqueada
-            const isOwner = email?.toLowerCase() === 'nicolasvitale8@gmail.com';
-            setProfile({
-                id: isOwner ? 'dc1e06af-002f-46ec-900c-c6bef40af35e' : userId,
-                email: email || '',
-                name: email?.split('@')[0] || 'Usuario',
-                role: isOwner ? 'admin' : 'client',
-                plan: isOwner ? 'PRO' : 'FREE',
-                diagnostic_scores: {},
-                permissions: isOwner ? ['super_admin'] : [],
-                businessIds: []
-            } as AppUser);
+            setProfile(null);
         }
     };
 
@@ -218,47 +183,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
-    // MOCK LOGIN PARA DESARROLLO LOCAL / EMERGENCIA
-    const devLogin = async (email: string = 'nicolasvitale8@gmail.com') => {
-        console.warn("⚠️ USANDO LOGIN DE EMERGENCIA (BYPASS SUPABASE) ⚠️");
 
-        const isOwner = email.toLowerCase() === 'nicolasvitale8@gmail.com';
-
-        const mockUser = {
-            id: isOwner ? 'dc1e06af-002f-46ec-900c-c6bef40af35e' : 'dev-admin-id',
-            aud: 'authenticated',
-            role: 'authenticated',
-            email: email,
-            confirmed_at: new Date().toISOString(),
-            app_metadata: { provider: 'email' },
-            user_metadata: { full_name: isOwner ? 'Nicolas Vitale' : 'Desarrollador' },
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-        } as User;
-
-        const mockProfile: AppUser = {
-            id: mockUser.id,
-            email: email,
-            name: isOwner ? 'Nicolas Vitale' : 'Desarrollador Local',
-            role: 'admin',
-            businessName: 'Octopus Admin',
-            permissions: ['super_admin'],
-            plan: 'PRO',
-            diagnostic_scores: {
-                costos: 100,
-                operaciones: 100,
-                equipo: 100,
-                marketing: 100,
-                tecnologia: 100,
-                cliente: 100
-            },
-            businessIds: []
-        };
-
-        setUser(mockUser);
-        setProfile(mockProfile);
-        setIsLoading(false);
-    };
 
     // V3 Helper Logic
     const role = profile?.role;
@@ -284,7 +209,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             return profile?.permissions?.includes(permission) || false;
         },
         signOut,
-        devLogin,
     };
 
     return (

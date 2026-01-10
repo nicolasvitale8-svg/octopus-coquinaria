@@ -18,77 +18,7 @@ export const getResources = async (): Promise<AcademyResource[]> => {
 
         if (error) throw error;
 
-        let rawData = data || [];
-
-        // FALLBACK: If no data in DB, provide default content to "Catch Clients"
-        if (rawData.length === 0) {
-            rawData = [
-                // --- TIER 1: FREE (Lead Magnet / Trust) ---
-                {
-                    id: 'GUI-001',
-                    titulo: 'Por dónde empezar: Auditoría Express',
-                    descripcion: 'El primer paso para recuperar el control. Un checklist rápido para entender tu situación actual.',
-                    outcome: 'Claridad Inmediata',
-                    category: 'OPERACIONES',
-                    format: 'GUIDE',
-                    impact_tag: 'QUICK_WIN',
-                    level: 1,
-                    duration_minutes: 10,
-                    access: 'PUBLIC', // FREE
-                    is_pinned: true,
-                    pinned_order: 1,
-                    action_steps: ['Completar Checklist', 'Identificar área crítica', 'Agendar Diagnóstico']
-                },
-                {
-                    id: 'TIP-001',
-                    titulo: 'El Error #1 en Costos',
-                    descripcion: 'Por qué tu food cost teórico no coincide con el real. Una lección de 5 minutos.',
-                    outcome: 'Ahorro Inmediato',
-                    category: 'COSTOS',
-                    format: 'TIP',
-                    impact_tag: 'QUICK_WIN',
-                    level: 1,
-                    duration_minutes: 5,
-                    access: 'PUBLIC', // FREE
-                    is_pinned: false,
-                    pinned_order: 2
-                },
-
-                // --- TIER 2: PREMIUM (Operational Value / Sprints) ---
-                {
-                    id: 'PRO-001',
-                    titulo: 'Sprint Rentabilidad 7 Días',
-                    descripcion: 'Programa intensivo para reducir costo de mercadería y ajustar precios sin perder ventas.',
-                    outcome: 'Rentabilidad +15%',
-                    category: 'COSTOS',
-                    format: 'VIDEO', // "Ruta/Sprint" simulated as resource for now
-                    impact_tag: 'ESTRUCTURA',
-                    level: 2,
-                    duration_minutes: 120,
-                    access: 'PRO', // PREMIUM
-                    is_pinned: true,
-                    pinned_order: 2,
-                    action_steps: ['Análisis de compras', 'Ingeniería de Menú', 'Negociación proveedores']
-                },
-                {
-                    id: 'PRO-002',
-                    titulo: 'Sprint Orden Operativo 7 Días',
-                    descripcion: 'Estandariza tu cocina y salón. Deja de depender de que "esté el dueño" para que las cosas salgan bien.',
-                    outcome: 'Libertad Operativa',
-                    category: 'OPERACIONES',
-                    format: 'TEMPLATE',
-                    impact_tag: 'SISTEMA',
-                    level: 2,
-                    duration_minutes: 90,
-                    access: 'PRO', // PREMIUM
-                    is_pinned: true,
-                    pinned_order: 3,
-                    action_steps: ['Checklists de apertura/cierre', 'Roles y responsabilidades', 'Protocolos de servicio']
-                }
-            ];
-        }
-
-        return rawData.map((r: any) => ({
+        return (data || []).map((r: any) => ({
             id: r.id,
             title: r.titulo,
             description: r.descripcion || '',

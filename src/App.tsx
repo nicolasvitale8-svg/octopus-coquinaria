@@ -21,7 +21,7 @@ import AdminAcademy from './pages/AdminAcademy';
 import AdminProjects from './pages/AdminProjects';
 import AdminProjectHub from './pages/AdminProjectHub';
 import AdminUsers from './pages/AdminUsers';
-// import AdminBoard from './pages/AdminBoard'; // Already lazy loaded below
+import AdminBoard from './pages/AdminBoard';
 import ConsultantDashboard from './pages/ConsultantDashboard';
 import UserProfile from './pages/UserProfile';
 import ScrollToTop from './components/ScrollToTop';
@@ -43,9 +43,6 @@ import { syncLocalProjects } from './services/projectService';
 import { syncLocalLeads } from './services/storage';
 import HubCalendar from './pages/HubCalendar';
 import ClientProjectRedirect from './pages/ClientProjectRedirect';
-
-const AdminBoard = React.lazy(() => import('./pages/AdminBoard'));
-const DebugPublic = React.lazy(() => import('./pages/DebugPublic'));
 
 const App = () => {
   useEffect(() => {
@@ -128,13 +125,6 @@ const App = () => {
               <Route path="/finance/settings" element={<FinanceSettings />} />
             </Route>
 
-
-            {/* DEBUG ROUTE */}
-            <Route path="/debug-public" element={
-              <React.Suspense fallback={<div>Loading Debugger...</div>}>
-                <DebugPublic />
-              </React.Suspense>
-            } />
 
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

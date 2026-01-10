@@ -24,54 +24,8 @@ const NewsBoard: React.FC = () => {
                 .order('created_at', { ascending: false })
                 .limit(6);
 
-            if (data && data.length > 0) {
+            if (data) {
                 setItems(data);
-            } else {
-                // Fallback Content so the board is always visible to "Catch Clients"
-                setItems([
-                    {
-                        id: 'def-1',
-                        title: 'Bienvenido a la Era del Control',
-                        summary: 'Octopus reemplaza tus planillas de Excel por un sistema inteligente. Empieza por el Diagnóstico Rápido.',
-                        type: 'TIP',
-                        is_visible: true,
-                        priority: 1,
-                        created_at: new Date().toISOString(),
-                        start_date: '2020-01-01',
-                        end_date: '2030-01-01',
-                        cta_label: 'Hacer Diagnóstico',
-                        cta_url: '/quick-diagnostic',
-                        tag: 'Inicio'
-                    },
-                    {
-                        id: 'def-2',
-                        title: 'Academia Gratuita',
-                        summary: 'Accede a cursos cortos sobre costos, ingeniería de menú y estandarización de recetas.',
-                        type: 'NOVEDAD_APP',
-                        is_visible: true,
-                        priority: 2,
-                        created_at: new Date().toISOString(),
-                        start_date: '2020-01-01',
-                        end_date: '2030-01-01',
-                        cta_label: 'Ir a Academia',
-                        cta_url: '/resources',
-                        tag: 'Recursos'
-                    },
-                    {
-                        id: 'def-3',
-                        title: 'Calendario Gastronómico',
-                        summary: 'No te pierdas ningún feriado ni fecha clave comercial. Planifica tu oferta con tiempo.',
-                        type: 'RADAR',
-                        is_visible: true,
-                        priority: 3,
-                        created_at: new Date().toISOString(),
-                        start_date: '2020-01-01',
-                        end_date: '2030-01-01',
-                        cta_label: 'Ver Calendario',
-                        cta_url: '/calendar',
-                        tag: 'Planificación'
-                    }
-                ]);
             }
             setLoading(false);
         };

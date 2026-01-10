@@ -1,0 +1,41 @@
+# Octopus App - Estado de Funcionalidad y Reglas de Evolución
+
+Este documento establece el "Baseline" de la aplicación. Cualquier modificación sobre estos puntos debe ser aprobada explícitamente.
+
+## ✅ Checklist de Funcionalidades Estables (NO TOCAR)
+
+### 🚨 Core & Auth
+- [x] **Conexión Supabase**: El cliente y las variables de entorno están correctamente configurados.
+- [x] **Auth Context**: Manejo de perfiles, roles (Admin/Consultor/User) y planes (FREE/PRO).
+- [x] **Protección de Rutas**: Bypasses eliminados. Solo admins ven el panel admin.
+
+### 🏛️ Admin Board (Panel de Gestión)
+- [x] **Gestión de Novedades**: CRUD funcional en `/admin/board`.
+- [x] **Gestión de CRM/Leads**: Visualización y gestión de leads en `/admin/leads`.
+- [x] **Gestión de Usuarios**: Cambio de roles y permisos.
+
+### 🏠 Dashboard Público (Home)
+- [x] **Pizarra de Novedades**: Muestra items reales desde `public_board_items`.
+- [x] **Ticker Gastronómico**: Muestra feriados reales desde `eventos_calendario`.
+- [x] **Visualizador Chaos vs Octopus**: Interactividad probada.
+
+### 📊 Módulo Finanzas
+- [x] **Carga de Presupuestos**: Scripts SQL de migración y carga anual (2026) validados.
+- [x] **Visualización Mensual**: Filtros por fecha y categoría.
+
+---
+
+## 🚀 Evolución: Módulo Academia (Nueva Prioridad)
+
+Bajo el nuevo PRD, la evolución se centrará en:
+1. **Lógica de Bloqueo**: Candado en cards Premium (Basado en campo `access` y plan del usuario).
+2. **Recomendación Inteligente**: Filtro sugerido basado en el `primary_bottleneck` del Diagnóstico.
+3. **Estructura de Sprints**: Los "recursos" se agruparán en recorridos de 7 días.
+
+---
+
+## 🛠️ Registro de Cambios Recientes (Recovery)
+- Revertido lazy-loading de `AdminBoard` que causaba pantalla negra.
+- Eliminado contenido hardcodeado ("fallback") que ocultaba datos reales de la base de datos.
+- Eliminada sección "Recursos Gratuitos" del Home no aprobada.
+- Eliminados bypass de autenticación en dashboard.

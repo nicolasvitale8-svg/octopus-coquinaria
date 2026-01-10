@@ -10,7 +10,7 @@ import { useAuth } from '../contexts/AuthContext';
 
 const Login = () => {
   const navigate = useNavigate();
-  const { devLogin } = useAuth();
+  const { user } = useAuth(); // Just check auth context if needed, or remove if unused
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
 
   return (
@@ -63,18 +63,7 @@ const Login = () => {
                 INGRESAR AL SISTEMA
               </Button>
 
-              <div className="pt-4 border-t border-slate-800">
-                <button
-                  type="button"
-                  onClick={async () => {
-                    await devLogin();
-                    navigate('/dashboard');
-                  }}
-                  className="w-full text-xs text-slate-500 hover:text-cyan-400 transition-colors py-2 border border-dashed border-slate-800 rounded-lg"
-                >
-                  🚀 ACTIVAR ACCESO DE EMERGENCIA (BYPASS)
-                </button>
-              </div>
+
             </form>
 
           </div>
