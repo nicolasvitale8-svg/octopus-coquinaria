@@ -7,7 +7,7 @@ import { METHODOLOGY_7P, WHATSAPP_NUMBER, INSTAGRAM_URL, YOUTUBE_URL, BRAND_ILLU
 import {
   ArrowRight, Video, MessageCircle, AlertTriangle, Instagram,
   TrendingUp, TrendingDown, Activity, ShieldCheck, Zap,
-  FileText, Play, LayoutTemplate, ClipboardList
+  FileText, Play, LayoutTemplate, ClipboardList, GraduationCap
 } from 'lucide-react';
 import TickerGastronomico from '../components/TickerGastronomico';
 import NewsBoard from '../components/NewsBoard';

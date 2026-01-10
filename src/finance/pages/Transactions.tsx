@@ -27,9 +27,10 @@ export const Transactions: React.FC = () => {
   const [filterType, setFilterType] = useState<TransactionType | ''>('');
   const [searchTerm, setSearchTerm] = useState('');
 
-  const [formData, setFormData] = useState<Partial<Transaction>>({
+  const [formData, setFormData] = useState<Partial<Transaction> & { isTransfer?: boolean, toAccountId?: string }>({
     date: new Date().toISOString().split('T')[0],
     type: TransactionType.OUT, amount: 0, description: '',
+    isTransfer: false
   });
 
   useEffect(() => { loadData(); }, [activeEntity]);
@@ -57,17 +58,46 @@ export const Transactions: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.amount || !formData.categoryId || !formData.accountId) return;
+    if (!formData.amount || !formData.date || !formData.accountId) return;
 
     try {
       const bId = activeEntity.id || undefined;
-      await SupabaseService.addTransaction(formData, bId);
+
+      if (formData.isTransfer) {
+        if (!formData.toAccountId) return alert("Selecciona la cuenta destino");
+
+        // Buscar el rubro de Transferencias o crear uno genérico
+        let transCat = categories.find(c => c.name.toLowerCase().includes('transferencia'));
+        if (!transCat) {
+          // Si no existe, usamos el primero disponible como fallback
+          transCat = categories[0];
+        }
+
+        await SupabaseService.performTransfer({
+          fromAccountId: formData.accountId,
+          toAccountId: formData.toAccountId,
+          amount: formData.amount,
+          description: formData.description || 'Transferencia entre cuentas',
+          date: formData.date,
+          categoryId: transCat.id
+        }, bId);
+      } else {
+        if (!formData.categoryId) return alert("Selecciona un rubro");
+        await SupabaseService.addTransaction(formData, bId);
+      }
+
       await loadData();
       setIsModalOpen(false);
-      setFormData({ date: new Date().toISOString().split('T')[0], type: TransactionType.OUT, amount: 0, description: '' });
+      setFormData({
+        date: new Date().toISOString().split('T')[0],
+        type: TransactionType.OUT,
+        amount: 0,
+        description: '',
+        isTransfer: false
+      });
     } catch (error) {
       console.error("Error saving transaction:", error);
-      alert("Error al guardar la transacción");
+      alert("Error al guardar la operación");
     }
   };
 
@@ -355,78 +385,106 @@ export const Transactions: React.FC = () => {
                 <div className="flex-1 flex bg-[#020b14] border border-white/10 rounded-2xl p-1">
                   <button
                     type="button"
-                    onClick={() => setFormData({ ...formData, type: TransactionType.OUT, categoryId: undefined, subCategoryId: undefined })}
-                    className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${formData.type === TransactionType.OUT ? 'bg-red-500 text-white shadow-lg' : 'text-fin-muted'}`}
+                    onClick={() => setFormData({ ...formData, isTransfer: false, type: TransactionType.OUT, categoryId: undefined, subCategoryId: undefined })}
+                    className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${!formData.isTransfer && formData.type === TransactionType.OUT ? 'bg-red-500 text-white shadow-lg shadow-red-500/20' : 'text-fin-muted'}`}
                   >
-                    Salida / Gasto
+                    Gasto
                   </button>
                   <button
                     type="button"
-                    onClick={() => setFormData({ ...formData, type: TransactionType.IN, categoryId: undefined, subCategoryId: undefined })}
-                    className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${formData.type === TransactionType.IN ? 'bg-emerald-500 text-white shadow-lg' : 'text-fin-muted'}`}
+                    onClick={() => setFormData({ ...formData, isTransfer: false, type: TransactionType.IN, categoryId: undefined, subCategoryId: undefined })}
+                    className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${!formData.isTransfer && formData.type === TransactionType.IN ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'text-fin-muted'}`}
                   >
                     Ingreso
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, isTransfer: true, type: TransactionType.OUT, categoryId: undefined, subCategoryId: undefined })}
+                    className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${formData.isTransfer ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-fin-muted'}`}
+                  >
+                    Transferencia
                   </button>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 gap-6">
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase tracking-widest text-fin-muted flex items-center gap-2 ml-1">
                     <Calendar size={12} /> Fecha
                   </label>
                   <input type="date" value={formData.date} onChange={e => setFormData({ ...formData, date: e.target.value })} className="w-full bg-[#020b14] border border-white/10 rounded-xl p-3 text-sm text-white focus:border-brand outline-none transition-all" required />
                 </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-fin-muted flex items-center gap-2 ml-1">
-                    <Wallet size={12} /> Cuenta
-                  </label>
-                  <select value={formData.accountId || ''} onChange={e => setFormData({ ...formData, accountId: e.target.value })} className="w-full bg-[#020b14] border border-white/10 rounded-xl p-3 text-sm text-white focus:border-brand outline-none appearance-none cursor-pointer transition-all" required>
-                    <option value="">Seleccionar...</option>
-                    {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-                  </select>
-                </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-fin-muted ml-1">1. Rubro</label>
-                  <select
-                    value={formData.categoryId || ''}
-                    onChange={e => setFormData({ ...formData, categoryId: e.target.value, subCategoryId: undefined })}
-                    className="w-full bg-[#020b14] border border-white/10 rounded-xl p-3 text-sm text-white focus:border-brand outline-none appearance-none cursor-pointer transition-all" required
-                  >
-                    <option value="">Elegir rubro...</option>
-                    {categories
-                      .filter(c => c.type === formData.type || c.type === 'MIX')
-                      .sort((a, b) => a.name.localeCompare(b.name))
-                      .map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                  </select>
+              {formData.isTransfer ? (
+                <div className="grid grid-cols-2 gap-6 animate-fade-in">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-fin-muted flex items-center gap-2 ml-1">
+                      <TrendingDown size={12} className="text-red-500" /> Desde (Origen)
+                    </label>
+                    <select value={formData.accountId || ''} onChange={e => setFormData({ ...formData, accountId: e.target.value })} className="w-full bg-[#020b14] border border-white/10 rounded-xl p-3 text-sm text-white focus:border-brand outline-none appearance-none cursor-pointer transition-all" required>
+                      <option value="">Seleccionar...</option>
+                      {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-fin-muted flex items-center gap-2 ml-1">
+                      <TrendingUp size={12} className="text-emerald-500" /> Hacia (Destino)
+                    </label>
+                    <select value={formData.toAccountId || ''} onChange={e => setFormData({ ...formData, toAccountId: e.target.value })} className="w-full bg-[#020b14] border border-white/10 rounded-xl p-3 text-sm text-white focus:border-brand outline-none appearance-none cursor-pointer transition-all" required>
+                      <option value="">Seleccionar...</option>
+                      {accounts.filter(a => a.id !== formData.accountId).map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                    </select>
+                  </div>
                 </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center ml-1">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-fin-muted">1. Rubro</label>
+                      </div>
+                      <select
+                        value={formData.categoryId || ''}
+                        onChange={e => setFormData({ ...formData, categoryId: e.target.value, subCategoryId: undefined })}
+                        className="w-full bg-[#020b14] border border-white/10 rounded-xl p-3 text-sm text-white focus:border-brand outline-none appearance-none cursor-pointer transition-all" required
+                      >
+                        <option value="">Elegir rubro...</option>
+                        {categories
+                          .filter(c => c.type === formData.type || c.type === 'MIX')
+                          .sort((a, b) => a.name.localeCompare(b.name))
+                          .map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                      </select>
+                    </div>
 
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-fin-muted ml-1">2. Ítem</label>
-                  <select
-                    value={formData.subCategoryId || ''}
-                    onChange={e => {
-                      const sub = subCategories.find(s => s.id === e.target.value);
-                      setFormData({ ...formData, subCategoryId: e.target.value, description: sub ? sub.name : formData.description });
-                    }}
-                    className="w-full bg-[#020b14] border border-white/10 rounded-xl p-3 text-sm text-white focus:border-brand outline-none appearance-none cursor-pointer transition-all disabled:opacity-30"
-                    disabled={!formData.categoryId}
-                  >
-                    <option value="">Sugeridos...</option>
-                    {subCategories
-                      .filter(s => s.categoryId === formData.categoryId)
-                      .sort((a, b) => a.name.localeCompare(b.name))
-                      .map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                  </select>
-                </div>
-              </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-fin-muted ml-1">2. Ítem</label>
+                      <select
+                        value={formData.subCategoryId || ''}
+                        onChange={e => {
+                          const sub = subCategories.find(s => s.id === e.target.value);
+                          setFormData({ ...formData, subCategoryId: e.target.value, description: sub ? sub.name : formData.description });
+                        }}
+                        className="w-full bg-[#020b14] border border-white/10 rounded-xl p-3 text-sm text-white focus:border-brand outline-none appearance-none cursor-pointer transition-all disabled:opacity-30"
+                        disabled={!formData.categoryId}
+                      >
+                        <option value="">Sugeridos...</option>
+                        {subCategories
+                          .filter(s => s.categoryId === formData.categoryId)
+                          .sort((a, b) => a.name.localeCompare(b.name))
+                          .map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="flex justify-end pr-1">
+                    <button type="button" onClick={() => window.location.hash = '#/finance/accounts'} className="text-[9px] font-black text-brand uppercase tracking-widest hover:text-white transition-colors">Administrar Rubros →</button>
+                  </div>
+                </>
+              )}
 
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-fin-muted ml-1">Detalle / Concepto</label>
-                <input type="text" value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} className="w-full bg-[#020b14] border border-white/10 rounded-xl p-3 text-sm text-white focus:border-brand outline-none transition-all placeholder:text-white/20" placeholder="¿En qué consistió la operación?" required />
+                <label className="text-[10px] font-black uppercase tracking-widest text-fin-muted ml-1">Concepto / Comentario</label>
+                <input type="text" value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} className="w-full bg-[#020b14] border border-white/10 rounded-xl p-3 text-sm text-white focus:border-brand outline-none transition-all placeholder:text-white/20" placeholder={formData.isTransfer ? "Ej: Transferencia de ahorro" : "¿En qué consistió la operación?"} required />
               </div>
 
               <div className="space-y-2">
@@ -434,8 +492,11 @@ export const Transactions: React.FC = () => {
                 <input type="number" step="0.01" value={formData.amount || ''} onChange={e => setFormData({ ...formData, amount: Number(e.target.value) })} className="w-full bg-[#020b14] border border-white/10 rounded-xl p-4 text-3xl font-black text-white tabular-nums focus:border-brand outline-none transition-all" placeholder="0.00" required />
               </div>
 
-              <button type="submit" className="w-full py-5 bg-brand text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-lg shadow-brand/20 hover:bg-brand-hover transition-all">
-                Registrar Movimiento
+              <button type="submit" className={`w-full py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-lg active:scale-95 transition-all mt-2 ${formData.isTransfer ? 'bg-brand text-white shadow-brand/20' :
+                  formData.type === TransactionType.IN ? 'bg-emerald-500 text-white shadow-emerald-500/20' :
+                    'bg-red-500 text-white shadow-red-500/20'
+                }`}>
+                {formData.isTransfer ? 'Ejecutar Transferencia' : 'Registrar Movimiento'}
               </button>
             </form>
           </div>

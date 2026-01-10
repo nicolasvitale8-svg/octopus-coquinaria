@@ -290,6 +290,48 @@ export const SupabaseService = {
         return data[0];
     },
 
+    // --- TRANSFERS ---
+    performTransfer: async (params: {
+        fromAccountId: string,
+        toAccountId: string,
+        amount: number,
+        description: string,
+        date: string,
+        categoryId: string
+    }, businessId?: string) => {
+        const userId = await SupabaseService.private.getUserId();
+
+        // 1. Transaction OUT (from source)
+        const outTransaction = {
+            date: params.date,
+            category_id: params.categoryId,
+            description: `[TRANSFERENCIA SALIDA] ${params.description}`,
+            amount: params.amount,
+            type: TransactionType.OUT,
+            account_id: params.fromAccountId,
+            user_id: userId,
+            business_id: businessId || null
+        };
+
+        // 2. Transaction IN (to destination)
+        const inTransaction = {
+            date: params.date,
+            category_id: params.categoryId,
+            description: `[TRANSFERENCIA ENTRADA] ${params.description}`,
+            amount: params.amount,
+            type: TransactionType.IN,
+            account_id: params.toAccountId,
+            user_id: userId,
+            business_id: businessId || null
+        };
+
+        const { error } = await supabase
+            .from('fin_transactions')
+            .insert([outTransaction, inTransaction]);
+
+        if (error) throw error;
+    },
+
     // --- BUDGET ---
     getBudgetItems: async (businessId?: string): Promise<BudgetItem[]> => {
         const query = supabase.from('fin_budget_items').select('*');

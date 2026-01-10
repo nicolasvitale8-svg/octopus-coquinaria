@@ -237,33 +237,40 @@ export const Accounts: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
             {/* INCOMING CATEGORIES */}
             <div className="space-y-6">
-              <div className="flex justify-between items-center px-2">
-                <h3 className="text-xs font-black uppercase tracking-[0.2em] text-emerald-500">Rubros de Ingresos</h3>
-                <button onClick={() => { setEditingCategory({ type: TransactionType.IN }); setIsCatModalOpen(true); }} className="p-2 bg-emerald-500/10 text-emerald-500 rounded-lg hover:bg-emerald-500 hover:text-white transition-all"><Plus size={16} /></button>
+              <div className="flex justify-between items-center px-4 bg-emerald-500/5 py-4 rounded-2xl border border-emerald-500/10">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-emerald-500/20 text-emerald-500 rounded-lg"><TrendingUp size={16} /></div>
+                  <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500">Rubros de Ingresos</h3>
+                </div>
+                <button onClick={() => { setEditingCategory({ type: TransactionType.IN }); setIsCatModalOpen(true); }} className="flex items-center gap-2 px-4 py-2 bg-emerald-500 text-[#020b14] rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-white transition-all shadow-lg shadow-emerald-500/20"><Plus size={12} strokeWidth={3} /> Nuevo</button>
               </div>
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {categories.filter(c => c.type === TransactionType.IN || c.type === 'MIX').map(cat => (
-                  <div key={cat.id} className="bg-fin-card p-5 rounded-2xl border border-fin-border flex flex-col gap-4 group">
+                  <div key={cat.id} className="bg-fin-card p-6 rounded-3xl border border-fin-border flex flex-col gap-5 group hover:border-emerald-500/30 transition-all shadow-xl">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm font-black text-white uppercase tracking-tight">{cat.name}</span>
+                      <div className="flex items-center gap-3">
+                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                        <span className="text-sm font-black text-white uppercase tracking-tight">{cat.name}</span>
+                      </div>
                       <div className="flex gap-2">
-                        <button
-                          onClick={() => { setEditingSubCategory({ categoryId: cat.id }); setIsSubCatModalOpen(true); }}
-                          className="flex items-center gap-1.5 text-[9px] font-black text-emerald-500 bg-emerald-500/10 hover:bg-emerald-500 hover:text-[#020b14] px-3 py-1.5 rounded-lg transition-all border border-emerald-500/20"
-                        >
-                          <Plus size={10} strokeWidth={3} /> AÑADIR SUB
-                        </button>
-                        <button onClick={() => { setEditingCategory(cat); setIsCatModalOpen(true); }} className="p-2 text-fin-muted hover:text-white bg-fin-bg rounded-lg border border-fin-border/50 transition-colors"><Edit2 size={14} /></button>
+                        <button onClick={() => { setEditingCategory(cat); setIsCatModalOpen(true); }} className="p-2 text-fin-muted hover:text-white bg-fin-bg rounded-xl border border-fin-border/50 transition-colors"><Edit2 size={14} /></button>
+                        <button onClick={async () => { if (confirm('¿Borrar rubro y todos sus subrubros?')) { await SupabaseService.deleteCategory(cat.id); await loadData(); } }} className="p-2 text-fin-muted hover:text-red-500 bg-fin-bg rounded-xl border border-fin-border/50 transition-colors"><Trash2 size={14} /></button>
                       </div>
                     </div>
                     {/* Subcategories List */}
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2 pt-4 border-t border-fin-border/20">
                       {subCategories.filter(sc => sc.categoryId === cat.id).map(sub => (
-                        <div key={sub.id} className="bg-fin-bg px-3 py-1.5 rounded-lg border border-fin-border flex items-center gap-2 group/sub">
-                          <span className="text-[10px] font-bold text-fin-muted">{sub.name}</span>
-                          <button onClick={async () => { if (confirm('¿Borrar subrubro?')) { await SupabaseService.deleteSubCategory(sub.id); await loadData(); } }} className="text-red-500/0 group-hover/sub:text-red-500 transition-all"><X size={10} /></button>
+                        <div key={sub.id} className="bg-fin-bg px-4 py-2 rounded-xl border border-fin-border flex items-center gap-3 group/sub hover:border-emerald-500/20 transition-all">
+                          <span className="text-[10px] font-bold text-fin-muted uppercase tracking-wider">{sub.name}</span>
+                          <button onClick={async () => { if (confirm('¿Borrar subrubro?')) { await SupabaseService.deleteSubCategory(sub.id); await loadData(); } }} className="text-fin-muted hover:text-red-500 transition-colors"><X size={12} /></button>
                         </div>
                       ))}
+                      <button
+                        onClick={() => { setEditingSubCategory({ categoryId: cat.id }); setIsSubCatModalOpen(true); }}
+                        className="flex items-center gap-2 text-[9px] font-black text-emerald-500 bg-emerald-500/5 hover:bg-emerald-500 hover:text-[#020b14] px-4 py-2 rounded-xl transition-all border border-emerald-500/20 border-dashed"
+                      >
+                        <Plus size={12} strokeWidth={3} /> AÑADIR ITEM
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -272,33 +279,40 @@ export const Accounts: React.FC = () => {
 
             {/* OUTGOING CATEGORIES */}
             <div className="space-y-6">
-              <div className="flex justify-between items-center px-2">
-                <h3 className="text-xs font-black uppercase tracking-[0.2em] text-red-500">Rubros de Gastos</h3>
-                <button onClick={() => { setEditingCategory({ type: TransactionType.OUT }); setIsCatModalOpen(true); }} className="p-2 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-all"><Plus size={16} /></button>
+              <div className="flex justify-between items-center px-4 bg-red-500/5 py-4 rounded-2xl border border-red-500/10">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-red-500/20 text-red-500 rounded-lg"><TrendingDown size={16} /></div>
+                  <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-red-500">Rubros de Gastos</h3>
+                </div>
+                <button onClick={() => { setEditingCategory({ type: TransactionType.OUT }); setIsCatModalOpen(true); }} className="flex items-center gap-2 px-4 py-2 bg-red-500 text-[#020b14] rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-white transition-all shadow-lg shadow-red-500/20"><Plus size={12} strokeWidth={3} /> Nuevo</button>
               </div>
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {categories.filter(c => c.type === TransactionType.OUT || c.type === 'MIX').map(cat => (
-                  <div key={cat.id} className="bg-fin-card p-5 rounded-2xl border border-fin-border flex flex-col gap-4 group">
+                  <div key={cat.id} className="bg-fin-card p-6 rounded-3xl border border-fin-border flex flex-col gap-5 group hover:border-red-500/30 transition-all shadow-xl">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm font-black text-white uppercase tracking-tight">{cat.name}</span>
+                      <div className="flex items-center gap-3">
+                        <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></div>
+                        <span className="text-sm font-black text-white uppercase tracking-tight">{cat.name}</span>
+                      </div>
                       <div className="flex gap-2">
-                        <button
-                          onClick={() => { setEditingSubCategory({ categoryId: cat.id }); setIsSubCatModalOpen(true); }}
-                          className="flex items-center gap-1.5 text-[9px] font-black text-red-400 bg-red-400/10 hover:bg-red-400 hover:text-[#020b14] px-3 py-1.5 rounded-lg transition-all border border-red-400/20"
-                        >
-                          <Plus size={10} strokeWidth={3} /> AÑADIR SUB
-                        </button>
-                        <button onClick={() => { setEditingCategory(cat); setIsCatModalOpen(true); }} className="p-2 text-fin-muted hover:text-white bg-fin-bg rounded-lg border border-fin-border/50 transition-colors"><Edit2 size={14} /></button>
+                        <button onClick={() => { setEditingCategory(cat); setIsCatModalOpen(true); }} className="p-2 text-fin-muted hover:text-white bg-fin-bg rounded-xl border border-fin-border/50 transition-colors"><Edit2 size={14} /></button>
+                        <button onClick={async () => { if (confirm('¿Borrar rubro y todos sus subrubros?')) { await SupabaseService.deleteCategory(cat.id); await loadData(); } }} className="p-2 text-fin-muted hover:text-red-500 bg-fin-bg rounded-xl border border-fin-border/50 transition-colors"><Trash2 size={14} /></button>
                       </div>
                     </div>
                     {/* Subcategories List */}
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2 pt-4 border-t border-fin-border/20">
                       {subCategories.filter(sc => sc.categoryId === cat.id).map(sub => (
-                        <div key={sub.id} className="bg-fin-bg px-3 py-1.5 rounded-lg border border-fin-border flex items-center gap-2 group/sub">
-                          <span className="text-[10px] font-bold text-fin-muted">{sub.name}</span>
-                          <button onClick={async () => { if (confirm('¿Borrar subrubro?')) { await SupabaseService.deleteSubCategory(sub.id); await loadData(); } }} className="text-red-500/0 group-hover/sub:text-red-500 transition-all"><X size={10} /></button>
+                        <div key={sub.id} className="bg-fin-bg px-4 py-2 rounded-xl border border-fin-border flex items-center gap-3 group/sub hover:border-red-500/20 transition-all">
+                          <span className="text-[10px] font-bold text-fin-muted uppercase tracking-wider">{sub.name}</span>
+                          <button onClick={async () => { if (confirm('¿Borrar subrubro?')) { await SupabaseService.deleteSubCategory(sub.id); await loadData(); } }} className="text-fin-muted hover:text-red-500 transition-colors"><X size={12} /></button>
                         </div>
                       ))}
+                      <button
+                        onClick={() => { setEditingSubCategory({ categoryId: cat.id }); setIsSubCatModalOpen(true); }}
+                        className="flex items-center gap-2 text-[9px] font-black text-red-400 bg-red-400/5 hover:bg-red-400 hover:text-[#020b14] px-4 py-2 rounded-xl transition-all border border-red-400/20 border-dashed"
+                      >
+                        <Plus size={12} strokeWidth={3} /> AÑADIR ITEM
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -409,9 +423,14 @@ export const Accounts: React.FC = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase text-fin-muted ml-1 tracking-widest">Tipo</label>
-                  <select value={editingAccount?.accountTypeId || ''} onChange={e => setEditingAccount({ ...editingAccount, accountTypeId: e.target.value })} className="w-full bg-[#020b14] border border-white/10 rounded-2xl p-4 text-white text-xs font-black uppercase outline-none focus:border-brand cursor-pointer appearance-none" required>
-                    <option value="">Tipo...</option>
-                    {accountTypes.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                  <select
+                    value={editingAccount?.accountTypeId || ''}
+                    onChange={e => setEditingAccount({ ...editingAccount, accountTypeId: e.target.value })}
+                    className="w-full bg-[#020b14] border border-white/10 rounded-2xl p-4 text-white text-[10px] font-black uppercase tracking-widest outline-none focus:border-brand cursor-pointer appearance-none"
+                    required
+                  >
+                    <option value="">Seleccionar Tipo...</option>
+                    {accountTypes.map(t => <option key={t.id} value={t.id} className="bg-fin-card py-2">{t.name}</option>)}
                   </select>
                 </div>
                 <div className="space-y-2">
