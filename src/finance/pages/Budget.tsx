@@ -111,8 +111,28 @@ export const Budget: React.FC = () => {
   const calculateActual = (item: BudgetItem) => {
     return transactions.reduce((sum, t) => {
       const tDate = new Date(t.date);
+      // Filtrar por mes, año, categoría y tipo
       if (tDate.getMonth() !== item.month || tDate.getFullYear() !== item.year || t.categoryId !== item.categoryId || t.type !== item.type) return sum;
-      if (item.subCategoryId && t.subCategoryId !== item.subCategoryId) return sum;
+
+      // Si el ítem de presupuesto tiene subCategoryId, debe coincidir exactamente
+      if (item.subCategoryId) {
+        if (t.subCategoryId !== item.subCategoryId) return sum;
+      } else {
+        // Si el presupuesto NO tiene subCategoryId pero la transacción SÍ tiene,
+        // solo sumar si NO hay otro ítem de presupuesto para esa subcategoría específica
+        if (t.subCategoryId) {
+          const hasSpecificBudget = budgetItems.some(bi =>
+            bi.id !== item.id &&
+            bi.categoryId === item.categoryId &&
+            bi.subCategoryId === t.subCategoryId &&
+            bi.month === item.month &&
+            bi.year === item.year &&
+            bi.type === item.type
+          );
+          if (hasSpecificBudget) return sum; // La transacción se cuenta en otro presupuesto más específico
+        }
+      }
+
       return sum + t.amount;
     }, 0);
   };
