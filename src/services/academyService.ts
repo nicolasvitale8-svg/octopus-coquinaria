@@ -23,49 +23,67 @@ export const getResources = async (): Promise<AcademyResource[]> => {
         // FALLBACK: If no data in DB, provide default content to "Catch Clients"
         if (rawData.length === 0) {
             rawData = [
+                // --- TIER 1: FREE (Lead Magnet / Trust) ---
                 {
-                    id: 'def-1',
-                    titulo: 'Ingeniería de Menú: El Primer Paso',
-                    descripcion: 'Aprende a analizar tu carta para maximizar la rentabilidad sin perder identidad.',
-                    outcome: 'Rentabilidad +15%',
+                    id: 'GUI-001',
+                    titulo: 'Por dónde empezar: Auditoría Express',
+                    descripcion: 'El primer paso para recuperar el control. Un checklist rápido para entender tu situación actual.',
+                    outcome: 'Claridad Inmediata',
                     category: 'OPERACIONES',
-                    format: 'VIDEO',
+                    format: 'GUIDE',
                     impact_tag: 'QUICK_WIN',
                     level: 1,
-                    duration_minutes: 8,
-                    access: 'PUBLIC',
+                    duration_minutes: 10,
+                    access: 'PUBLIC', // FREE
                     is_pinned: true,
                     pinned_order: 1,
-                    action_steps: ['Descargar plantilla', 'Listar platos', 'Calcular costo vs precio']
+                    action_steps: ['Completar Checklist', 'Identificar área crítica', 'Agendar Diagnóstico']
                 },
                 {
-                    id: 'def-2',
-                    titulo: 'Control de Stock Diario',
-                    descripcion: 'La rutina de 15 minutos que evita el robo hormiga y el desperdicio.',
-                    outcome: 'Reducción de Merma',
+                    id: 'TIP-001',
+                    titulo: 'El Error #1 en Costos',
+                    descripcion: 'Por qué tu food cost teórico no coincide con el real. Una lección de 5 minutos.',
+                    outcome: 'Ahorro Inmediato',
                     category: 'COSTOS',
-                    format: 'GUIDE',
-                    impact_tag: 'HERRAMIENTA',
+                    format: 'TIP',
+                    impact_tag: 'QUICK_WIN',
                     level: 1,
-                    duration_minutes: 12,
-                    access: 'PUBLIC',
-                    is_pinned: true,
-                    pinned_order: 2,
-                    action_steps: ['Definir críticos', 'Asignar responsable', 'Auditar semanalmente']
+                    duration_minutes: 5,
+                    access: 'PUBLIC', // FREE
+                    is_pinned: false,
+                    pinned_order: 2
                 },
+
+                // --- TIER 2: PREMIUM (Operational Value / Sprints) ---
                 {
-                    id: 'def-3',
-                    titulo: 'Estandarización de Recetas',
-                    descripcion: 'Por qué tus platos saben diferente cuando no estás. La guía definitiva.',
-                    outcome: 'Consistencia Total',
-                    category: 'OPERACIONES',
-                    format: 'TEMPLATE',
+                    id: 'PRO-001',
+                    titulo: 'Sprint Rentabilidad 7 Días',
+                    descripcion: 'Programa intensivo para reducir costo de mercadería y ajustar precios sin perder ventas.',
+                    outcome: 'Rentabilidad +15%',
+                    category: 'COSTOS',
+                    format: 'VIDEO', // "Ruta/Sprint" simulated as resource for now
                     impact_tag: 'ESTRUCTURA',
                     level: 2,
-                    duration_minutes: 20,
-                    access: 'PRO', // Teaser for PRO
+                    duration_minutes: 120,
+                    access: 'PRO', // PREMIUM
                     is_pinned: true,
-                    pinned_order: 3
+                    pinned_order: 2,
+                    action_steps: ['Análisis de compras', 'Ingeniería de Menú', 'Negociación proveedores']
+                },
+                {
+                    id: 'PRO-002',
+                    titulo: 'Sprint Orden Operativo 7 Días',
+                    descripcion: 'Estandariza tu cocina y salón. Deja de depender de que "esté el dueño" para que las cosas salgan bien.',
+                    outcome: 'Libertad Operativa',
+                    category: 'OPERACIONES',
+                    format: 'TEMPLATE',
+                    impact_tag: 'SISTEMA',
+                    level: 2,
+                    duration_minutes: 90,
+                    access: 'PRO', // PREMIUM
+                    is_pinned: true,
+                    pinned_order: 3,
+                    action_steps: ['Checklists de apertura/cierre', 'Roles y responsabilidades', 'Protocolos de servicio']
                 }
             ];
         }
