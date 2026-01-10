@@ -6,8 +6,7 @@ import { formatCurrency } from '../utils/calculations';
 import { Camera, Loader2, CheckCircle2, ChevronLeft, ChevronRight, FileText, Sparkles, AlertTriangle, Trash2, Info } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useFinanza } from '../context/FinanzaContext';
-
-declare const Tesseract: any;
+import Tesseract from 'tesseract.js';
 
 export const ImportPage: React.FC = () => {
   const { activeEntity } = useFinanza();
@@ -54,15 +53,15 @@ export const ImportPage: React.FC = () => {
     setIsScanning(true);
     setScanProgress(0);
     try {
-      const { data: { text } } = await Tesseract.recognize(file, 'eng', {
+      const { data: { text } } = await Tesseract.recognize(file, 'spa', {
         logger: (m: any) => {
           if (m.status === 'recognizing text') setScanProgress(Math.round(m.progress * 100));
         }
       });
       setRawText(prev => (prev ? prev + '\n\n' : '') + text);
     } catch (err) {
-      console.error(err);
-      alert("Error al procesar la imagen. Intenta con un archivo más claro.");
+      console.error('OCR Error:', err);
+      alert("Error al procesar la imagen. Intenta con un archivo más claro o en formato PNG/JPG.");
     }
     finally { setIsScanning(false); }
   };
