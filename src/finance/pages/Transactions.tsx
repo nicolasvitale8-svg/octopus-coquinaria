@@ -373,8 +373,8 @@ export const Transactions: React.FC = () => {
 
       {/* Add Transaction Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-fin-bg/80 backdrop-blur-md flex items-center justify-center z-50 p-4">
-          <div className="bg-fin-card rounded-3xl w-full max-w-md border border-fin-border shadow-2xl p-10 animate-fade-in relative">
+        <div className="fixed inset-0 bg-fin-bg/80 backdrop-blur-md flex items-start justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-fin-card rounded-3xl w-full max-w-md border border-fin-border shadow-2xl p-10 animate-fade-in relative my-8">
             <button onClick={() => setIsModalOpen(false)} className="absolute top-6 right-6 p-2 text-fin-muted hover:text-white transition-colors">
               <X size={24} />
             </button>
