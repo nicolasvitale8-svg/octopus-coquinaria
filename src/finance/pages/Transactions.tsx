@@ -476,6 +476,22 @@ export const Transactions: React.FC = () => {
                       </select>
                     </div>
                   </div>
+                  {/* Selector de Cuenta */}
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-fin-muted flex items-center gap-2 ml-1">
+                      <Wallet size={12} /> Cuenta / Caja
+                    </label>
+                    <select
+                      value={formData.accountId || ''}
+                      onChange={e => setFormData({ ...formData, accountId: e.target.value })}
+                      className="w-full bg-[#020b14] border border-white/10 rounded-xl p-3 text-sm text-white focus:border-brand outline-none appearance-none cursor-pointer transition-all"
+                      required
+                    >
+                      <option value="">Seleccionar cuenta...</option>
+                      {accounts.map(a => <option key={a.id} value={a.id}>{a.name} ({a.currency})</option>)}
+                    </select>
+                  </div>
+
                   <div className="flex justify-end pr-1">
                     <button type="button" onClick={() => window.location.hash = '#/finance/accounts'} className="text-[9px] font-black text-brand uppercase tracking-widest hover:text-white transition-colors">Administrar Rubros →</button>
                   </div>
@@ -493,8 +509,8 @@ export const Transactions: React.FC = () => {
               </div>
 
               <button type="submit" className={`w-full py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-lg active:scale-95 transition-all mt-2 ${formData.isTransfer ? 'bg-brand text-white shadow-brand/20' :
-                  formData.type === TransactionType.IN ? 'bg-emerald-500 text-white shadow-emerald-500/20' :
-                    'bg-red-500 text-white shadow-red-500/20'
+                formData.type === TransactionType.IN ? 'bg-emerald-500 text-white shadow-emerald-500/20' :
+                  'bg-red-500 text-white shadow-red-500/20'
                 }`}>
                 {formData.isTransfer ? 'Ejecutar Transferencia' : 'Registrar Movimiento'}
               </button>
