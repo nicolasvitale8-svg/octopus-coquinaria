@@ -24,6 +24,9 @@ const NewsBoard: React.FC = () => {
                 .order('created_at', { ascending: false })
                 .limit(6);
 
+            if (error) {
+                console.error("NewsBoard Supabase Error:", error);
+            }
             if (data) {
                 setItems(data);
             }
