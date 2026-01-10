@@ -3,10 +3,14 @@ import { SupabaseService } from '../services/supabaseService';
 import { Account, Category, ImportLine, TransactionType, Transaction, TextCategoryRule } from '../financeTypes';
 import { parseRawText, applyRules } from '../utils/importEngine';
 import { formatCurrency } from '../utils/calculations';
-import { Camera, Loader2, CheckCircle2, ChevronLeft, ChevronRight, FileText, Sparkles, AlertTriangle, Trash2, Info } from 'lucide-react';
+import { Camera, Loader2, CheckCircle2, ChevronLeft, ChevronRight, FileText, Sparkles, AlertTriangle, Trash2, Info, RotateCcw, FileUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useFinanza } from '../context/FinanzaContext';
 import Tesseract from 'tesseract.js';
+import * as pdfjsLib from 'pdfjs-dist';
+
+// Configurar el worker de pdf.js
+pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
 export const ImportPage: React.FC = () => {
   const { activeEntity } = useFinanza();
@@ -18,6 +22,7 @@ export const ImportPage: React.FC = () => {
   const [selectedAccountId, setSelectedAccountId] = useState('');
   const [isScanning, setIsScanning] = useState(false);
   const [scanProgress, setScanProgress] = useState(0);
+  const [scanStatus, setScanStatus] = useState('');
   const [importedLines, setImportedLines] = useState<ImportLine[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -47,23 +52,71 @@ export const ImportPage: React.FC = () => {
     }
   };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Función para extraer texto de un PDF
+  const extractTextFromPDF = async (file: File): Promise<string> => {
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    let fullText = '';
+
+    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+      setScanStatus(`Procesando página ${pageNum} de ${pdf.numPages}...`);
+      setScanProgress(Math.round((pageNum / pdf.numPages) * 100));
+
+      const page = await pdf.getPage(pageNum);
+      const textContent = await page.getTextContent();
+      const pageText = textContent.items
+        .map((item: any) => item.str)
+        .join(' ');
+      fullText += pageText + '\n\n';
+    }
+
+    return fullText;
+  };
+
+  // Función unificada para manejar archivos (imágenes y PDFs)
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
     setIsScanning(true);
     setScanProgress(0);
+    setScanStatus('Iniciando...');
+
     try {
-      const { data: { text } } = await Tesseract.recognize(file, 'spa', {
-        logger: (m: any) => {
-          if (m.status === 'recognizing text') setScanProgress(Math.round(m.progress * 100));
-        }
-      });
-      setRawText(prev => (prev ? prev + '\n\n' : '') + text);
+      let extractedText = '';
+
+      if (file.type === 'application/pdf') {
+        // Procesar PDF
+        setScanStatus('Extrayendo texto del PDF...');
+        extractedText = await extractTextFromPDF(file);
+      } else {
+        // Procesar imagen con OCR
+        setScanStatus('Reconociendo texto de la imagen...');
+        const { data: { text } } = await Tesseract.recognize(file, 'spa', {
+          logger: (m: any) => {
+            if (m.status === 'recognizing text') {
+              setScanProgress(Math.round(m.progress * 100));
+            }
+          }
+        });
+        extractedText = text;
+      }
+
+      setRawText(prev => (prev ? prev + '\n\n' : '') + extractedText);
+      setScanStatus('¡Completado!');
     } catch (err) {
-      console.error('OCR Error:', err);
-      alert("Error al procesar la imagen. Intenta con un archivo más claro o en formato PNG/JPG.");
+      console.error('Error procesando archivo:', err);
+      alert("Error al procesar el archivo. Intenta con otro formato o archivo más claro.");
+    } finally {
+      setIsScanning(false);
+      // Reset file input para permitir subir el mismo archivo de nuevo
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
-    finally { setIsScanning(false); }
+  };
+
+  const clearText = () => {
+    setRawText('');
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const processText = () => {
@@ -165,7 +218,7 @@ export const ImportPage: React.FC = () => {
                 <Info size={12} /> Sugerencia
               </label>
               <div className="bg-fin-bg/50 border border-fin-border rounded-2xl p-4 text-[11px] text-fin-muted italic">
-                Usa capturas claras del historial de movimientos para mejores resultados.
+                Sube capturas de pantalla o el PDF del resumen de Mercado Pago, Lemon, etc.
               </div>
             </div>
           </div>
@@ -179,24 +232,40 @@ export const ImportPage: React.FC = () => {
             {isScanning && <div className="absolute inset-0 w-full h-1 bg-gradient-to-r from-transparent via-brand to-transparent animate-[scan_2s_linear_infinite] shadow-[0_0_15px_#3B82F6]"></div>}
 
             <div className="p-5 bg-brand/10 rounded-2xl text-brand group-hover:scale-110 transition-transform">
-              <Camera size={40} strokeWidth={2} />
+              <FileUp size={40} strokeWidth={2} />
             </div>
             <div className="text-center">
-              <p className="text-lg font-black text-white">Subir Historial</p>
-              <p className="text-xs text-fin-muted font-medium mt-1">Haz clic para seleccionar o arrastra la imagen aquí</p>
+              <p className="text-lg font-black text-white">{isScanning ? scanStatus : 'Subir Archivo'}</p>
+              <p className="text-xs text-fin-muted font-medium mt-1">Imagen (PNG/JPG) o PDF de Mercado Pago</p>
             </div>
-            <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageUpload} />
+            <input
+              type="file"
+              ref={fileInputRef}
+              className="hidden"
+              accept="image/*,application/pdf"
+              onChange={handleFileUpload}
+            />
           </div>
 
           <div className="space-y-3">
             <div className="flex justify-between items-center px-1">
               <label className="text-[10px] font-black uppercase tracking-[0.2em] text-fin-muted">Contenido Detectado</label>
-              <button
-                onClick={() => setRawText("02 de diciembre\n- $ 5.370 00\nPago a Carcor\n\n28 de noviembre\n+ $ 1.250 50\nIngreso de dinero")}
-                className="text-[9px] font-black text-brand uppercase tracking-widest hover:underline"
-              >
-                Cargar ejemplo
-              </button>
+              <div className="flex gap-4">
+                {rawText && (
+                  <button
+                    onClick={clearText}
+                    className="text-[9px] font-black text-red-500 uppercase tracking-widest hover:underline flex items-center gap-1"
+                  >
+                    <RotateCcw size={10} /> Limpiar
+                  </button>
+                )}
+                <button
+                  onClick={() => setRawText("02 de diciembre\n- $ 5.370 00\nPago a Carcor\n\n28 de noviembre\n+ $ 1.250 50\nIngreso de dinero")}
+                  className="text-[9px] font-black text-brand uppercase tracking-widest hover:underline"
+                >
+                  Cargar ejemplo
+                </button>
+              </div>
             </div>
             <div className="relative">
               <textarea
