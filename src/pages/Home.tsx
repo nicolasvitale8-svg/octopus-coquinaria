@@ -1,16 +1,56 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
 import Button from '../components/ui/Button';
 import { METHODOLOGY_7P, WHATSAPP_NUMBER, INSTAGRAM_URL, YOUTUBE_URL, BRAND_ILLUSTRATION_URL } from '../constants';
-import { ArrowRight, Video, MessageCircle, AlertTriangle, Instagram, TrendingUp, TrendingDown, Activity, ShieldCheck, Zap } from 'lucide-react';
+import {
+  ArrowRight, Video, MessageCircle, AlertTriangle, Instagram,
+  TrendingUp, TrendingDown, Activity, ShieldCheck, Zap,
+  FileText, Play, LayoutTemplate, ClipboardList
+} from 'lucide-react';
 import TickerGastronomico from '../components/TickerGastronomico';
 import NewsBoard from '../components/NewsBoard';
+import { getResources } from '../services/academyService';
+import { AcademyResource } from '../types';
+
+
 
 const Home = () => {
   const [imgError, setImgError] = useState(false);
   const [isOctopusMode, setIsOctopusMode] = useState(true);
+  const [featuredResources, setFeaturedResources] = useState<AcademyResource[]>([]);
+  const [loadingResources, setLoadingResources] = useState(true);
+
+  useEffect(() => {
+
+    const loadResources = async () => {
+      try {
+        const all = await getResources();
+        // Filtrar solo públicos y tomar los 3 primeros (o los marcados como pinned)
+        const filtered = all
+          .filter(r => r.access === 'PUBLIC')
+          .slice(0, 3);
+        setFeaturedResources(filtered);
+      } catch (e) {
+        console.error("Error loading home resources", e);
+      } finally {
+        setLoadingResources(false);
+      }
+    };
+    loadResources();
+  }, []);
+
+  const getResourceIcon = (format: string) => {
+    switch (format) {
+      case 'VIDEO': return <Play size={16} />;
+      case 'TEMPLATE': return <LayoutTemplate size={16} />;
+      case 'TIP': return <Zap size={16} />;
+      case 'FORM': return <ClipboardList size={16} />;
+      default: return <FileText size={16} />;
+    }
+  };
+
 
   return (
     <Layout>
@@ -278,6 +318,52 @@ const Home = () => {
           </div>
         </div>
       </div>
+
+      {/* RECURSOS GRATUITOS - SECCIÓN FUNCIONAL */}
+      {!loadingResources && featuredResources.length > 0 && (
+        <div className="bg-[#021019] py-24 border-t border-slate-900 relative">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
+              <div className="max-w-xl">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#1FB6D5]/10 text-[#1FB6D5] text-[10px] font-bold uppercase tracking-widest mb-4 border border-[#1FB6D5]/20">
+                  <Zap className="w-3 h-3" /> Biblioteca Gratuita
+                </div>
+                <h2 className="text-3xl font-bold text-white font-space mb-4">Recursos para empezar hoy</h2>
+                <p className="text-slate-400">
+                  Herramientas y guías prácticas que podés aplicar ahora mismo en tu negocio sin costo.
+                </p>
+              </div>
+              <Link to="/academy">
+                <Button variant="outline" className="border-slate-800 text-slate-400 hover:text-[#1FB6D5] hover:border-[#1FB6D5]">
+                  Ir a la Academia <ArrowRight className="ml-2 w-4 h-4" />
+                </Button>
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {featuredResources.map(res => (
+                <div key={res.id} className="bg-slate-900/40 border border-slate-800 rounded-3xl p-8 hover:border-[#1FB6D5]/30 transition-all group flex flex-col h-full">
+                  <div className="flex justify-between items-start mb-6">
+                    <span className="flex items-center gap-2 bg-slate-800 text-slate-400 px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider">
+                      {getResourceIcon(res.format)} {res.format}
+                    </span>
+                    <span className="text-[10px] font-bold text-[#1FB6D5] uppercase tracking-widest">{res.category}</span>
+                  </div>
+                  <h3 className="text-xl font-bold text-white mb-3 font-space group-hover:text-[#1FB6D5] transition-colors">{res.title}</h3>
+                  <p className="text-sm text-slate-400 mb-8 italic line-clamp-2">"{res.outcome}"</p>
+
+                  <div className="mt-auto pt-6 border-t border-slate-800/50 flex items-center justify-between">
+                    <span className="text-[10px] font-bold text-slate-600 uppercase italic">Gratuito</span>
+                    <Link to="/academy" className="text-[#1FB6D5] text-xs font-bold hover:text-white flex items-center gap-1 group/btn">
+                      Ver Recurso <ArrowRight className="w-3 h-3 group-hover/btn:translate-x-1 transition-transform" />
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 };
