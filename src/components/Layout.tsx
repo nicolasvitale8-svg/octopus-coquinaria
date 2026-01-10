@@ -124,27 +124,28 @@ const Layout: React.FC<LayoutProps> = ({ children, user: propUser }) => {
             <div className="hidden md:flex items-center gap-4">
               {/* Admin Shortcut - Only for Admin/Consultant */}
               {(isAdmin || isConsultant) && (
-                <Link to="/admin/leads" className="flex items-center gap-2 text-slate-300 hover:text-white text-xs font-bold uppercase tracking-wide border border-slate-700 hover:border-[#1FB6D5] px-3 py-1.5 rounded bg-slate-800/50 hover:bg-slate-800 transition-all">
+                <Link to="/admin/leads" className="flex items-center gap-2 text-[#021019] bg-[#1FB6D5] hover:bg-white hover:text-[#021019] text-xs font-black uppercase tracking-wide px-4 py-2 rounded-lg shadow-[0_0_15px_rgba(31,182,213,0.4)] transition-all border border-[#1FB6D5]">
                   <Database className="w-3 h-3" />
-                  Admin DB
+                  Admin <span className="hidden lg:inline">Panel</span>
                   {dbConnected && (
                     <span className="relative flex h-2 w-2 ml-1">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500 border border-white"></span>
                     </span>
                   )}
                 </Link>
               )}
 
-              <div className="flex items-center md:ml-6 gap-4">
+              <div className="flex items-center md:ml-4 gap-2 lg:gap-4">
                 {internalUser ? (
                   <>
-                    <Link to="/finance" className="flex items-center gap-2 bg-[#00344F] hover:bg-[#1FB6D5]/20 hover:text-[#1FB6D5] border border-[#1FB6D5]/30 px-4 py-2 rounded-md transition-all text-white text-sm font-medium shadow-md">
+                    <Link to="/finance" className="flex items-center gap-2 bg-[#00344F] hover:bg-[#1FB6D5]/20 hover:text-[#1FB6D5] border border-[#1FB6D5]/30 px-3 py-2 rounded-md transition-all text-white text-sm font-medium shadow-md">
                       <BarChart2 className="w-4 h-4" />
-                      Finanzas
+                      <span className="hidden xl:inline">Finanzas</span>
+                      <span className="inline xl:hidden">Fin.</span>
                     </Link>
-                    <Link to="/dashboard" className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 px-4 py-2 rounded-md transition-all text-white text-sm font-medium shadow-md">
-                      Tablero ({internalUser.email?.split('@')[0]})
+                    <Link to="/dashboard" className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 px-3 py-2 rounded-md transition-all text-white text-sm font-medium shadow-md">
+                      Tablero <span className="hidden xl:inline">({internalUser.email?.split('@')[0]})</span>
                     </Link>
                     <Link
                       to="/hub/profile"

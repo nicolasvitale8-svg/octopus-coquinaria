@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
-import { PlusCircle, FileText, TrendingUp, TrendingDown, Target, Zap, Clock, ChevronRight, Activity, ArrowUpRight } from 'lucide-react';
+import { PlusCircle, FileText, TrendingUp, TrendingDown, Target, Zap, Clock, ChevronRight, Activity, ArrowUpRight, Calendar as CalendarIcon, BookOpen } from 'lucide-react';
 import Button from '../components/ui/Button';
 import { Link, useNavigate } from 'react-router-dom';
 import { formatCurrency, formatPercent } from '../services/calculations';
 import { getDiagnosticHistory, getLastDiagnostic, getMyLeads } from '../services/storage';
 import { useAuth } from '../contexts/AuthContext';
 import { SemiCircleGauge, MiniProgressRing } from '../components/dashboard/DashboardGauges';
+import TickerGastronomico from '../components/TickerGastronomico';
+import NewsBoard from '../components/NewsBoard';
 
 const Dashboard = () => {
   const { user, profile, isAdmin, isConsultant, isLoading: isAuthLoading } = useAuth();
@@ -20,10 +22,9 @@ const Dashboard = () => {
   useEffect(() => {
     if (isAuthLoading) return;
 
-    if (isAdmin || isConsultant) {
-      navigate('/admin/leads');
-      return;
-    }
+    // ADMIN REDIRECT REMOVED: Admins should be able to see the User Dashboard.
+    // Use the "Admin DB" or "Admin Dashboard" button in the Navbar/Layout to switch contexts.
+
 
     const loadData = async () => {
       setIsDataLoading(true);
@@ -65,6 +66,9 @@ const Dashboard = () => {
 
   return (
     <Layout user={user}>
+
+      <TickerGastronomico />
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 animate-fade-in">
 
         {/* HERO SECTION / WELCOME */}
@@ -193,20 +197,41 @@ const Dashboard = () => {
           </div>
 
           {/* PROJECT SHORTCUT BOX */}
-          <div className="md:col-span-4 bg-gradient-to-br from-[#00344F] to-[#021019] border border-[#1FB6D5]/30 p-8 rounded-[2.5rem] flex flex-col justify-between group cursor-pointer relative overflow-hidden">
-            <div className="absolute -right-8 -bottom-8 p-4 opacity-5 group-hover:scale-125 transition-transform duration-700">
-              <Briefcase className="w-48 h-48 text-white rotate-12" />
+          <div className="md:col-span-4 grid grid-rows-2 gap-4">
+            {/* PROJECT CARD */}
+            <div className="row-span-1 bg-gradient-to-br from-[#00344F] to-[#021019] border border-[#1FB6D5]/30 p-6 rounded-[2rem] flex flex-col justify-between group cursor-pointer relative overflow-hidden">
+              <div className="absolute -right-4 -bottom-4 p-4 opacity-5 group-hover:scale-125 transition-transform duration-700">
+                <Briefcase className="w-32 h-32 text-white rotate-12" />
+              </div>
+              <div>
+                <h4 className="text-[10px] font-black text-[#1FB6D5] uppercase tracking-[0.2em] mb-2">Seguimiento</h4>
+                <h3 className="text-xl font-bold text-white font-space leading-tight">Proyecto 7P</h3>
+              </div>
+              <Link to={profile?.businessIds?.[0] ? `/hub/projects/${profile.businessIds[0]}` : '#'} className="mt-4">
+                <button className="w-full bg-white text-[#021019] hover:bg-[#1FB6D5] hover:text-white font-black py-3 rounded-xl transition-all flex items-center justify-center gap-2 shadow-xl text-xs">
+                  IR AL PROYECTO <ChevronRight className="w-3 h-3" />
+                </button>
+              </Link>
             </div>
-            <div>
-              <h4 className="text-xs font-black text-[#1FB6D5] uppercase tracking-[0.2em] mb-4">Módulo de Seguimiento</h4>
-              <h3 className="text-2xl font-bold text-white font-space leading-tight pr-4">Tu Proyecto de Gestión Gastronómica</h3>
-              <p className="text-slate-400 text-sm mt-4">Consulta el avance de tus hitos, descarga entregables y mira el estado de tus tareas.</p>
+
+            {/* QUICK RESOURCES ROW */}
+            <div className="row-span-1 grid grid-cols-2 gap-4">
+              {/* CALENDAR SHORTCUT */}
+              <Link to="/calendar" className="bg-slate-900/60 border border-white/10 rounded-[2rem] p-5 flex flex-col justify-center items-center gap-2 hover:bg-slate-800 transition-all group">
+                <div className="w-10 h-10 rounded-full bg-[#1FB6D5]/10 flex items-center justify-center group-hover:bg-[#1FB6D5] transition-colors">
+                  <CalendarIcon className="w-5 h-5 text-[#1FB6D5] group-hover:text-white" />
+                </div>
+                <span className="text-xs font-bold text-slate-300">Calendario</span>
+              </Link>
+
+              {/* ACADEMY SHORTCUT */}
+              <Link to="/resources" className="bg-slate-900/60 border border-white/10 rounded-[2rem] p-5 flex flex-col justify-center items-center gap-2 hover:bg-slate-800 transition-all group">
+                <div className="w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center group-hover:bg-purple-500 transition-colors">
+                  <BookOpen className="w-5 h-5 text-purple-400 group-hover:text-white" />
+                </div>
+                <span className="text-xs font-bold text-slate-300">Academia</span>
+              </Link>
             </div>
-            <Link to={profile?.businessIds?.[0] ? `/hub/projects/${profile.businessIds[0]}` : '#'} className="mt-8">
-              <button className="w-full bg-white text-[#021019] hover:bg-[#1FB6D5] hover:text-white font-black py-4 rounded-xl transition-all flex items-center justify-center gap-2 shadow-xl">
-                IR AL PROYECTO <ChevronRight className="w-4 h-4 translate-x-0 group-hover:translate-x-1 transition-transform" />
-              </button>
-            </Link>
           </div>
 
           {/* HISTORY TABLE BOX */}
@@ -272,6 +297,9 @@ const Dashboard = () => {
         </div>
 
       </div>
+
+      <NewsBoard />
+
     </Layout>
   );
 };
