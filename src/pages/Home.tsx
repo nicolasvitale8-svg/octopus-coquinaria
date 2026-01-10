@@ -322,40 +322,59 @@ const Home = () => {
       {/* RECURSOS GRATUITOS - SECCIÓN FUNCIONAL */}
       {!loadingResources && featuredResources.length > 0 && (
         <div className="bg-[#021019] py-24 border-t border-slate-900 relative">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
-              <div className="max-w-xl">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#1FB6D5]/10 text-[#1FB6D5] text-[10px] font-bold uppercase tracking-widest mb-4 border border-[#1FB6D5]/20">
-                  <Zap className="w-3 h-3" /> Biblioteca Gratuita
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
+              <div className="max-w-2xl">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="h-px w-12 bg-[#1FB6D5]"></div>
+                  <span className="text-[#1FB6D5] font-black text-xs uppercase tracking-[0.3em]">Biblioteca Gratuita</span>
                 </div>
-                <h2 className="text-3xl font-bold text-white font-space mb-4">Recursos para empezar hoy</h2>
-                <p className="text-slate-400">
-                  Herramientas y guías prácticas que podés aplicar ahora mismo en tu negocio sin costo.
+                <h2 className="text-4xl md:text-5xl font-bold text-white font-space mb-6 leading-tight">
+                  Recursos para <br />
+                  <span className="text-[#1FB6D5] italic font-light">Empezar Hoy</span>
+                </h2>
+                <p className="text-slate-400 text-lg leading-relaxed">
+                  Herramientas y guías prácticas de la metodología Octopus que podés aplicar ahora mismo en tu negocio sin costo.
                 </p>
               </div>
-              <Link to="/resources">
-                <Button variant="outline" className="border-slate-800 text-slate-400 hover:text-[#1FB6D5] hover:border-[#1FB6D5]">
-                  Ir a la Academia <ArrowRight className="ml-2 w-4 h-4" />
+              <Link to="/academy" className="mb-2">
+                <Button variant="outline" className="h-14 px-8 rounded-2xl border-white/10 text-white hover:border-[#1FB6D5] hover:text-[#1FB6D5] font-bold uppercase tracking-widest text-xs">
+                  Explorar Academia <ArrowRight className="ml-3 w-4 h-4" />
                 </Button>
               </Link>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {featuredResources.map(res => (
-                <div key={res.id} className="bg-slate-900/40 border border-slate-800 rounded-3xl p-8 hover:border-[#1FB6D5]/30 transition-all group flex flex-col h-full">
-                  <div className="flex justify-between items-start mb-6">
-                    <span className="flex items-center gap-2 bg-slate-800 text-slate-400 px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider">
-                      {getResourceIcon(res.format)} {res.format}
-                    </span>
-                    <span className="text-[10px] font-bold text-[#1FB6D5] uppercase tracking-widest">{res.category}</span>
-                  </div>
-                  <h3 className="text-xl font-bold text-white mb-3 font-space group-hover:text-[#1FB6D5] transition-colors">{res.title}</h3>
-                  <p className="text-sm text-slate-400 mb-8 italic line-clamp-2">"{res.outcome}"</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {featuredResources.map((res) => (
+                <div
+                  key={res.id}
+                  className="group relative flex flex-col h-full bg-[#031521] border-white/5 border rounded-[2.5rem] p-10 transition-all duration-500 hover:bg-[#041d2d] hover:border-[#1FB6D5]/30 hover:-translate-y-2 overflow-hidden shadow-2xl"
+                >
+                  {/* Glow effect */}
+                  <div className="absolute -right-20 -top-20 w-40 h-40 bg-[#1FB6D5]/10 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
 
-                  <div className="mt-auto pt-6 border-t border-slate-800/50 flex items-center justify-between">
-                    <span className="text-[10px] font-bold text-slate-600 uppercase italic">Gratuito</span>
-                    <Link to={`/academy/${res.id}`} className="text-[#1FB6D5] text-xs font-bold hover:text-white flex items-center gap-1 group/btn">
-                      Ver Recurso <ArrowRight className="w-3 h-3 group-hover/btn:translate-x-1 transition-transform" />
+                  <div className="mb-8">
+                    <div className="w-14 h-14 rounded-2xl bg-[#1FB6D5]/10 flex items-center justify-center text-[#1FB6D5] group-hover:scale-110 transition-transform duration-500">
+                      <GraduationCap className="w-7 h-7" />
+                    </div>
+                  </div>
+
+                  <div className="flex-grow space-y-4 mb-10">
+                    <div className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">
+                      {res.category} • {res.format}
+                    </div>
+                    <h3 className="text-2xl font-bold text-white font-space leading-tight group-hover:text-[#1FB6D5] transition-colors line-clamp-2">
+                      {res.title}
+                    </h3>
+                    <p className="text-slate-400 text-base leading-relaxed line-clamp-3">
+                      {res.outcome}
+                    </p>
+                  </div>
+
+                  <div className="pt-8 border-t border-white/5 flex items-center justify-between">
+                    <span className="text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] italic">Open Resource</span>
+                    <Link to={`/academy/${res.id}`} className="text-[#1FB6D5] text-xs font-black uppercase tracking-widest hover:text-white flex items-center gap-2 group/btn">
+                      Comenzar <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
                     </Link>
                   </div>
                 </div>
