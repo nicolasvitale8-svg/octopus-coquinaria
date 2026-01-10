@@ -27,8 +27,13 @@ const TickerGastronomico = () => {
       if (data && data.length > 0) {
         setActiveEvents(data);
       } else {
-        // Fallback to constants if DB is empty to show something
-        // (Optional, maybe specific "Welcome" event)
+        // Fallback checks to ensure visibility even if DB is empty
+        setActiveEvents([
+          { id: 'def-1', mensaje: '📅 Calendario: Chequea los feriados y eventos gastronómicos del mes.', prioridad: 1 },
+          { id: 'def-2', mensaje: '🚀 Nuevo: Accede a la Academia Octopus para cursos gratuitos.', prioridad: 1 },
+          { id: 'def-3', mensaje: '💡 Tip: Mantén tus costos controlados con el Módulo Finanzas.', prioridad: 1 },
+          { id: 'def-4', mensaje: '📢 Comunidad: Únete a nuestro grupo de WhatsApp para novedades.', prioridad: 1 }
+        ]);
       }
     };
 
