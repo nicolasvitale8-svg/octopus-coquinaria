@@ -5,6 +5,21 @@ import { formatCurrency } from '../utils/calculations';
 import { Wallet, Plus, Edit2, X, Trash2, Check, AlertCircle, Info, Zap, Settings2, Sparkles, TrendingUp, TrendingDown } from 'lucide-react';
 import { useFinanza } from '../context/FinanzaContext';
 
+// Función para parsear números en formato argentino (1.000.000,00 -> 1000000.00)
+const parseArgNumber = (value: string): number => {
+  if (!value) return 0;
+  // Remueve puntos de miles y reemplaza coma decimal por punto
+  const cleaned = value.replace(/\./g, '').replace(',', '.');
+  const num = parseFloat(cleaned);
+  return isNaN(num) ? 0 : num;
+};
+
+// Función para formatear número para mostrar en input (sin símbolo de moneda)
+const formatArgNumber = (value: number): string => {
+  if (!value && value !== 0) return '';
+  return value.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+};
+
 export const Accounts: React.FC = () => {
   const { activeEntity } = useFinanza();
   const [loading, setLoading] = useState(true);
@@ -183,7 +198,23 @@ export const Accounts: React.FC = () => {
                       {acc.name}
                     </td>
                     <td className="px-10 py-6 text-right">
-                      <input type="number" step="0.01" className="w-40 text-right bg-[#020b14] border border-white/10 rounded-xl px-4 py-2 text-sm text-white font-black outline-none focus:border-brand transition-all" value={getBalance(acc.id) || ''} onChange={(e) => updateOpeningBalance(acc.id, Number(e.target.value))} />
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        className="w-44 text-right bg-[#020b14] border border-white/10 rounded-xl px-4 py-2 text-sm text-white font-black outline-none focus:border-brand transition-all"
+                        placeholder="0,00"
+                        defaultValue={formatArgNumber(getBalance(acc.id))}
+                        onBlur={(e) => {
+                          const parsed = parseArgNumber(e.target.value);
+                          updateOpeningBalance(acc.id, parsed);
+                          e.target.value = formatArgNumber(parsed);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.currentTarget.blur();
+                          }
+                        }}
+                      />
                     </td>
                   </tr>
                 ))}
