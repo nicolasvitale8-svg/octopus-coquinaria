@@ -290,6 +290,25 @@ export const SupabaseService = {
         return data[0];
     },
 
+    updateTransaction: async (t: Transaction) => {
+        const dbObj = {
+            date: t.date,
+            category_id: t.categoryId,
+            sub_category_id: t.subCategoryId || null,
+            description: t.description,
+            note: t.note,
+            amount: t.amount,
+            type: t.type,
+            account_id: t.accountId
+        };
+        const { error } = await supabase
+            .from('fin_transactions')
+            .update(dbObj)
+            .eq('id', t.id);
+        if (error) throw error;
+    },
+
+
     // --- TRANSFERS ---
     performTransfer: async (params: {
         fromAccountId: string,

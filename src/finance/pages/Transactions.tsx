@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { SupabaseService } from '../services/supabaseService';
 import { Transaction, Account, Category, SubCategory, TransactionType } from '../financeTypes';
-import { Plus, X, Tag, Calendar, Wallet, Filter, ListFilter, RotateCcw, TrendingUp, TrendingDown, DollarSign, Search, Sparkles } from 'lucide-react';
+import { Plus, X, Tag, Calendar, Wallet, Filter, ListFilter, RotateCcw, TrendingUp, TrendingDown, DollarSign, Search, Sparkles, Edit2, Trash2 } from 'lucide-react';
 import { formatCurrency } from '../utils/calculations';
 import { useFinanza } from '../context/FinanzaContext';
 
@@ -13,6 +13,7 @@ export const Transactions: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [showFilters, setShowFilters] = useState(false);
 
   // ... (Filter states remain same)
@@ -83,21 +84,63 @@ export const Transactions: React.FC = () => {
         }, bId);
       } else {
         if (!formData.categoryId) return alert("Selecciona un rubro");
-        await SupabaseService.addTransaction(formData, bId);
+
+        if (editingTransaction) {
+          // Update existing transaction
+          await SupabaseService.updateTransaction({
+            ...editingTransaction,
+            ...formData,
+          } as Transaction);
+        } else {
+          // Create new transaction
+          await SupabaseService.addTransaction(formData, bId);
+        }
       }
 
       await loadData();
-      setIsModalOpen(false);
-      setFormData({
-        date: new Date().toISOString().split('T')[0],
-        type: TransactionType.OUT,
-        amount: 0,
-        description: '',
-        isTransfer: false
-      });
+      closeModal();
     } catch (error) {
       console.error("Error saving transaction:", error);
       alert("Error al guardar la operación");
+    }
+  };
+
+  const openEditModal = (t: Transaction) => {
+    setEditingTransaction(t);
+    setFormData({
+      id: t.id,
+      date: t.date,
+      type: t.type,
+      amount: t.amount,
+      description: t.description,
+      categoryId: t.categoryId,
+      subCategoryId: t.subCategoryId,
+      accountId: t.accountId,
+      isTransfer: false
+    });
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setEditingTransaction(null);
+    setFormData({
+      date: new Date().toISOString().split('T')[0],
+      type: TransactionType.OUT,
+      amount: 0,
+      description: '',
+      isTransfer: false
+    });
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('¿Estás seguro de eliminar este movimiento?')) return;
+    try {
+      await SupabaseService.deleteTransaction(id);
+      await loadData();
+    } catch (error) {
+      console.error("Error deleting transaction:", error);
+      alert("Error al eliminar el movimiento");
     }
   };
 
@@ -314,6 +357,7 @@ export const Transactions: React.FC = () => {
                 <th className="px-8 py-5">Clasificación</th>
                 <th className="px-8 py-5">Cuenta</th>
                 <th className="px-8 py-5 text-right">Monto</th>
+                <th className="px-8 py-5 text-center">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-fin-border/30">
@@ -362,6 +406,24 @@ export const Transactions: React.FC = () => {
                       <td className={`px-8 py-5 text-right font-black tabular-nums text-[16px] ${t.type === 'IN' ? 'text-emerald-500' : 'text-white'}`}>
                         {t.type === 'IN' ? '+' : '-'}{formatCurrency(t.amount)}
                       </td>
+                      <td className="px-8 py-5">
+                        <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={() => openEditModal(t)}
+                            className="p-2 text-fin-muted hover:text-brand bg-fin-bg rounded-lg border border-fin-border/50 transition-colors"
+                            title="Editar"
+                          >
+                            <Edit2 size={14} />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(t.id)}
+                            className="p-2 text-fin-muted hover:text-red-500 bg-fin-bg rounded-lg border border-fin-border/50 transition-colors"
+                            title="Eliminar"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </td>
                     </tr>
                   )
                 })
@@ -375,37 +437,46 @@ export const Transactions: React.FC = () => {
       {isModalOpen && (
         <div className="fixed inset-0 bg-fin-bg/80 backdrop-blur-md flex items-start justify-center z-50 p-4 overflow-y-auto">
           <div className="bg-fin-card rounded-3xl w-full max-w-md border border-fin-border shadow-2xl p-10 animate-fade-in relative my-8">
-            <button onClick={() => setIsModalOpen(false)} className="absolute top-6 right-6 p-2 text-fin-muted hover:text-white transition-colors">
+            <button onClick={closeModal} className="absolute top-6 right-6 p-2 text-fin-muted hover:text-white transition-colors">
               <X size={24} />
             </button>
-            <h2 className="text-2xl font-black text-white mb-10 tracking-tight">Nueva Operación</h2>
+            <h2 className="text-2xl font-black text-white mb-10 tracking-tight">
+              {editingTransaction ? 'Editar Movimiento' : 'Nueva Operación'}
+            </h2>
 
             <form onSubmit={handleSubmit} className="space-y-8 text-left">
-              <div className="flex gap-4">
-                <div className="flex-1 flex bg-[#020b14] border border-white/10 rounded-2xl p-1">
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, isTransfer: false, type: TransactionType.OUT, categoryId: undefined, subCategoryId: undefined })}
-                    className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${!formData.isTransfer && formData.type === TransactionType.OUT ? 'bg-red-500 text-white shadow-lg shadow-red-500/20' : 'text-fin-muted'}`}
-                  >
-                    Gasto
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, isTransfer: false, type: TransactionType.IN, categoryId: undefined, subCategoryId: undefined })}
-                    className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${!formData.isTransfer && formData.type === TransactionType.IN ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'text-fin-muted'}`}
-                  >
-                    Ingreso
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, isTransfer: true, type: TransactionType.OUT, categoryId: undefined, subCategoryId: undefined })}
-                    className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${formData.isTransfer ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-fin-muted'}`}
-                  >
-                    Transferencia
-                  </button>
+              {/* Solo mostrar selector de tipo para nuevas transacciones */}
+              {!editingTransaction ? (
+                <div className="flex gap-4">
+                  <div className="flex-1 flex bg-[#020b14] border border-white/10 rounded-2xl p-1">
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, isTransfer: false, type: TransactionType.OUT, categoryId: undefined, subCategoryId: undefined })}
+                      className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${!formData.isTransfer && formData.type === TransactionType.OUT ? 'bg-red-500 text-white shadow-lg shadow-red-500/20' : 'text-fin-muted'}`}
+                    >
+                      Gasto
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, isTransfer: false, type: TransactionType.IN, categoryId: undefined, subCategoryId: undefined })}
+                      className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${!formData.isTransfer && formData.type === TransactionType.IN ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'text-fin-muted'}`}
+                    >
+                      Ingreso
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, isTransfer: true, type: TransactionType.OUT, categoryId: undefined, subCategoryId: undefined })}
+                      className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${formData.isTransfer ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-fin-muted'}`}
+                    >
+                      Transferencia
+                    </button>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className={`text-center py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest ${formData.type === TransactionType.IN ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-red-500/10 text-red-500 border border-red-500/20'}`}>
+                  {formData.type === TransactionType.IN ? '📥 Ingreso' : '📤 Gasto'}
+                </div>
+              )}
 
               <div className="grid grid-cols-1 gap-6">
                 <div className="space-y-2">
