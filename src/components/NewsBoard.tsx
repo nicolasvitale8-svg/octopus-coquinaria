@@ -18,8 +18,8 @@ const NewsBoard: React.FC = () => {
                 .from('public_board_items')
                 .select('*')
                 .eq('is_visible', true)
-                .lte('start_date', now)
-                .gte('end_date', now)
+                // .lte('start_date', now)  <-- Relaxed so future promos show up if visible=true
+                // .gte('end_date', now)    <-- Relaxed so recently expired tips stay visible
                 .order('priority', { ascending: true })
                 .order('created_at', { ascending: false })
                 .limit(6);

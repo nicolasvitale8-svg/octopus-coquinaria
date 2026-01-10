@@ -20,7 +20,7 @@ const TickerGastronomico = () => {
         .from('eventos_calendario')
         .select('*')
         //.lte('fecha_inicio', todayStr) -- This might be too restrictive if data is sparse
-        //.gte('fecha_fin', todayStr)
+        //.gte('fecha_fin', todayStr) // Relaxed logic: Show all events, or order by date descended
         .order('prioridad', { ascending: false })
         .limit(10);
 
