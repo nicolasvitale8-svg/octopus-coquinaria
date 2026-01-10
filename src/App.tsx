@@ -106,7 +106,7 @@ const App = () => {
             } />
 
             <Route path="/methodology" element={<Methodology />} />
-            <Route path="/resources" element={<Academy />} />
+            <Route path="/academy" element={<Academy />} />
             <Route path="/academy/:id" element={<ResourceDetail />} />
             <Route path="/login" element={<Login />} />
 

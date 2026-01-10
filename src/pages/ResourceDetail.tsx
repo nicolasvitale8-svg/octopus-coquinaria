@@ -106,8 +106,9 @@ const ResourceDetail = () => {
       <div className="bg-[#021019] min-h-screen pb-20">
         <div className="max-w-4xl mx-auto px-4 py-8">
 
-          <Link to="/resources" className="inline-flex items-center text-slate-400 hover:text-white mb-6 text-sm transition-colors">
-            <ArrowLeft className="w-4 h-4 mr-1" /> Volver a la Academia
+          <Link to="/academy" className="inline-flex items-center gap-2 text-slate-400 hover:text-white transition-colors mb-8 group">
+            <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+            Volver a la Academia
           </Link>
 
           {/* Header Section */}

@@ -333,7 +333,7 @@ const Home = () => {
                   Herramientas y guías prácticas que podés aplicar ahora mismo en tu negocio sin costo.
                 </p>
               </div>
-              <Link to="/academy">
+              <Link to="/resources">
                 <Button variant="outline" className="border-slate-800 text-slate-400 hover:text-[#1FB6D5] hover:border-[#1FB6D5]">
                   Ir a la Academia <ArrowRight className="ml-2 w-4 h-4" />
                 </Button>
@@ -354,7 +354,7 @@ const Home = () => {
 
                   <div className="mt-auto pt-6 border-t border-slate-800/50 flex items-center justify-between">
                     <span className="text-[10px] font-bold text-slate-600 uppercase italic">Gratuito</span>
-                    <Link to="/academy" className="text-[#1FB6D5] text-xs font-bold hover:text-white flex items-center gap-1 group/btn">
+                    <Link to={`/academy/${res.id}`} className="text-[#1FB6D5] text-xs font-bold hover:text-white flex items-center gap-1 group/btn">
                       Ver Recurso <ArrowRight className="w-3 h-3 group-hover/btn:translate-x-1 transition-transform" />
                     </Link>
                   </div>

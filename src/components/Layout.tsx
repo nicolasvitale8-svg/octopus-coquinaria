@@ -38,7 +38,7 @@ const Layout: React.FC<LayoutProps> = ({ children, user: propUser }) => {
     { name: 'Metodología', path: '/methodology' },
     { name: 'Casos y Servicios', path: '/services' },
     { name: 'Calendario', path: '/calendar' },
-    { name: 'Academia', path: '/resources' },
+    { name: 'Academia', path: '/academy' },
     { name: 'Sobre mí', path: '/about' },
   ];
 
@@ -258,7 +258,7 @@ const Layout: React.FC<LayoutProps> = ({ children, user: propUser }) => {
               <h3 className="text-white font-semibold mb-4 font-space">Recursos</h3>
               <ul className="space-y-2 text-sm text-slate-500">
                 <li><Link to="/methodology" className="hover:text-[#1FB6D5] transition-colors">Método 7P</Link></li>
-                <li><Link to="/resources" className="hover:text-[#1FB6D5] transition-colors">Academia y Videos</Link></li>
+                <li><Link to="/academy" className="hover:text-[#1FB6D5] transition-colors">Academia y Videos</Link></li>
                 <li><Link to="/services" className="hover:text-[#1FB6D5] transition-colors">Casos de Éxito</Link></li>
               </ul>
             </div>
