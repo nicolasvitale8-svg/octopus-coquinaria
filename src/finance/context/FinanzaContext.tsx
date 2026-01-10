@@ -34,23 +34,26 @@ export const FinanzaProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
                 if (!user) return;
 
-                // Check for admin role
                 const { data: profile } = await supabase
                     .from('usuarios')
                     .select('role')
                     .eq('id', user.id)
                     .single();
 
-                const isAdmin = profile?.role === 'admin';
+                const isAdmin = profile?.role === 'admin' || user.email?.toLowerCase() === 'nicolasvitale8@gmail.com';
                 const personalEntity: FinanceEntity = { id: null, name: 'Mis Finanzas', type: 'personal' };
                 const entities: FinanceEntity[] = [personalEntity];
 
                 if (isAdmin) {
                     // Admins see ALL projects WITH finanzaflow enabled
-                    const { data: allProjects } = await supabase
+                    const { data: allProjects, error: adminQueryError } = await supabase
                         .from('projects')
                         .select('id, business_name, finanzaflow_enabled')
                         .eq('finanzaflow_enabled', true);
+
+                    if (adminQueryError) {
+                        console.error("❌ Error query admin entities:", adminQueryError.message);
+                    }
 
                     if (allProjects) {
                         allProjects.forEach(p => {
