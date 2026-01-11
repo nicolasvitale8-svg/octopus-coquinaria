@@ -30,6 +30,12 @@ export const Accounts: React.FC = () => {
   const [rules, setRules] = useState<TextCategoryRule[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+
+  // Conciliation State
+  const [isConciliateModalOpen, setIsConciliateModalOpen] = useState(false);
+  const [conciliatingAccount, setConciliatingAccount] = useState<Account | null>(null);
+  const [realBalance, setRealBalance] = useState('');
 
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
@@ -56,13 +62,14 @@ export const Accounts: React.FC = () => {
     setLoading(true);
     try {
       const bId = activeEntity.id || undefined;
-      const [acc, accTypes, mb, r, cat, subCat] = await Promise.all([
+      const [acc, accTypes, mb, r, cat, subCat, t] = await Promise.all([
         SupabaseService.getAccounts(bId),
         SupabaseService.getAccountTypes(bId),
         SupabaseService.getMonthlyBalances(bId),
         SupabaseService.getRules(bId),
         SupabaseService.getCategories(bId),
-        SupabaseService.getAllSubCategories(bId)
+        SupabaseService.getAllSubCategories(bId),
+        SupabaseService.getTransactions(bId)
       ]);
       setAccounts(acc);
       setAccountTypes(accTypes);
@@ -70,6 +77,7 @@ export const Accounts: React.FC = () => {
       setRules(r);
       setCategories(cat);
       setSubCategories(subCat);
+      setTransactions(t);
     } catch (error) {
       console.error("Error loading account data:", error);
     } finally {
@@ -129,6 +137,30 @@ export const Accounts: React.FC = () => {
   };
 
   const getBalance = (accId: string) => (monthlyBalances.find(m => m.accountId === accId && m.month === currentMonth && m.year === currentYear)?.amount || 0);
+
+  const handleConciliate = async () => {
+    if (!conciliatingAccount || !realBalance) return;
+
+    const target = parseArgNumber(realBalance);
+
+    // Calcular Ingresos y Egresos del mes para ESTA cuenta
+    const monthTrans = transactions.filter(t => {
+      const d = new Date(t.date);
+      return t.accountId === conciliatingAccount.id && d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+    });
+
+    const totalIn = monthTrans.filter(t => t.type === TransactionType.IN).reduce((s, t) => s + t.amount, 0);
+    const totalOut = monthTrans.filter(t => t.type === TransactionType.OUT).reduce((s, t) => s + t.amount, 0);
+
+    // Fórmula: Saldo Inicial Requerido = Saldo Real - (Ingresos - Gastos)
+    const requiredOpening = target - (totalIn - totalOut);
+
+    await updateOpeningBalance(conciliatingAccount.id, requiredOpening);
+    setIsConciliateModalOpen(false);
+    setConciliatingAccount(null);
+    setRealBalance('');
+    alert(`Conciliación exitosa. Saldo inicial ajustado a ${formatArgNumber(requiredOpening)}`);
+  };
 
   if (loading && accounts.length === 0) {
     return (
@@ -197,7 +229,7 @@ export const Accounts: React.FC = () => {
                       <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.4)]"></div>
                       {acc.name}
                     </td>
-                    <td className="px-10 py-6 text-right">
+                    <td className="px-10 py-6 text-right flex items-center justify-end gap-3">
                       <input
                         type="text"
                         inputMode="decimal"
@@ -215,6 +247,13 @@ export const Accounts: React.FC = () => {
                           }
                         }}
                       />
+                      <button
+                        onClick={() => { setConciliatingAccount(acc); setRealBalance(''); setIsConciliateModalOpen(true); }}
+                        className="p-2 bg-brand/10 text-brand rounded-xl border border-brand/20 hover:bg-brand hover:text-white transition-all shadow-sm"
+                        title="Conciliar Saldo Real"
+                      >
+                        <Zap size={16} />
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -583,6 +622,61 @@ export const Accounts: React.FC = () => {
               </div>
               <button type="submit" className="w-full py-4 bg-brand text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-brand/20">Crear Regla</button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Conciliate Modal */}
+      {isConciliateModalOpen && (
+        <div className="fixed inset-0 bg-fin-bg/95 backdrop-blur-2xl flex items-center justify-center z-50 p-6 animate-in fade-in duration-300">
+          <div className="bg-fin-card rounded-[40px] w-full max-w-md border border-brand/20 shadow-[0_0_100px_rgba(16,185,129,0.1)] p-10 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-brand/10 rounded-full -mr-16 -mt-16 blur-3xl"></div>
+            <button
+              onClick={() => setIsConciliateModalOpen(false)}
+              className="absolute top-6 right-6 p-2 text-white/50 hover:text-white bg-white/5 hover:bg-white/10 rounded-full transition-all z-[60]"
+            >
+              <X size={20} />
+            </button>
+
+            <div className="flex items-center gap-4 mb-8">
+              <div className="p-3 bg-brand/20 text-brand rounded-2xl shadow-lg shadow-brand/10">
+                <Zap size={24} />
+              </div>
+              <div>
+                <h2 className="text-xl font-black text-white uppercase tracking-tight">Conciliar Cuenta</h2>
+                <p className="text-[10px] font-black text-brand uppercase tracking-widest">{conciliatingAccount?.name}</p>
+              </div>
+            </div>
+
+            <div className="space-y-6 relative z-10">
+              <div className="p-4 bg-[#020b14] rounded-2xl border border-white/5">
+                <p className="text-[10px] font-black text-fin-muted uppercase tracking-widest mb-2">Instrucciones</p>
+                <p className="text-[11px] text-white/70 leading-relaxed">
+                  Ingresa el saldo real que ves en tu aplicación bancaria. El sistema ajustará el <span className="text-brand font-bold">Saldo Inicial</span> del mes automáticamente para que tu saldo final coincida exactamente.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase text-brand ml-1 tracking-widest">Saldo Real Actual (ARS)</label>
+                <input
+                  type="text"
+                  value={realBalance}
+                  onChange={e => setRealBalance(e.target.value)}
+                  onBlur={() => setRealBalance(formatArgNumber(parseArgNumber(realBalance)))}
+                  className="w-full bg-[#020b14] border border-brand/20 focus:border-brand rounded-2xl p-5 text-2xl font-black text-white outline-none transition-all placeholder:text-white/10 tabular-nums"
+                  placeholder="0,00"
+                  autoFocus
+                />
+              </div>
+
+              <button
+                onClick={handleConciliate}
+                disabled={!realBalance || realBalance === '0,00'}
+                className="w-full py-5 bg-brand text-[#020b14] rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl shadow-brand/20 hover:bg-white transition-all active:scale-95 disabled:opacity-30"
+              >
+                Ajustar y Conciliar
+              </button>
+            </div>
           </div>
         </div>
       )}
