@@ -2,61 +2,110 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import { WHATSAPP_NUMBER } from '../constants';
-import { Calendar as CalendarIcon, AlertTriangle, TrendingUp, Sun, ShoppingCart, Info, ArrowLeft, MessageCircle, ChevronDown, ChevronRight, X, HelpCircle } from 'lucide-react';
+import { Calendar as CalendarIcon, AlertTriangle, TrendingUp, Sun, ShoppingCart, Info, ArrowLeft, MessageCircle, ChevronDown, ChevronRight, X, HelpCircle, Edit3, Trash2, Save } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Button from '../components/ui/Button';
 import { supabase } from '../services/supabase';
+import { useAuth } from '../contexts/AuthContext';
 
 const CalendarPage = () => {
+  const { profile } = useAuth();
+  const isAdmin = profile?.role === 'admin' || profile?.role === 'consultant';
+
   const [events, setEvents] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [expandedMonths, setExpandedMonths] = useState<Record<string, boolean>>({});
   const [showGuide, setShowGuide] = useState(false);
 
-  useEffect(() => {
-    const fetchEvents = async () => {
-      if (!supabase) {
-        setIsLoading(false);
-        return;
-      }
+  // Event Edit State
+  const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
+  const [editMode, setEditMode] = useState(false);
+  const [editForm, setEditForm] = useState({ titulo: '', mensaje: '', tipo: 'feriado', prioridad: 1 });
+  const [isSaving, setIsSaving] = useState(false);
 
-      // Calculate start of current week (Monday)
-      const now = new Date();
-      const startOfCurrentWeek = new Date(now);
-      const day = startOfCurrentWeek.getDay();
-      const diff = startOfCurrentWeek.getDate() - day + (day === 0 ? -6 : 1);
-      startOfCurrentWeek.setDate(diff);
-      startOfCurrentWeek.setHours(0, 0, 0, 0);
-
-      const { data, error } = await supabase
-        .from('eventos_calendario')
-        .select('*')
-        .order('fecha_inicio', { ascending: true }); // Eventos más cercanos primero
-
-      console.log("DEBUG Calendar: fetched events:", data?.length, "error:", error?.message);
-
-      if (data) {
-        setEvents(data);
-
-        // Group and set initial expansion (first month expanded)
-        const months = data.reduce((acc: string[], event: any) => {
-          const datePart = event.fecha_inicio.split('T')[0];
-          const date = new Date(`${datePart}T00:00:00`);
-          const rawMonth = date.toLocaleString('es-AR', { month: 'long', year: 'numeric' });
-          const monthKey = rawMonth.charAt(0).toUpperCase() + rawMonth.slice(1);
-          if (!acc.includes(monthKey)) acc.push(monthKey);
-          return acc;
-        }, []);
-
-        if (months.length > 0) {
-          setExpandedMonths({ [months[0]]: true });
-        }
-      }
+  const fetchEvents = async () => {
+    if (!supabase) {
       setIsLoading(false);
-    };
+      return;
+    }
 
+    const { data, error } = await supabase
+      .from('eventos_calendario')
+      .select('*')
+      .order('fecha_inicio', { ascending: true });
+
+    console.log("DEBUG Calendar: fetched events:", data?.length, "error:", error?.message);
+
+    if (data) {
+      setEvents(data);
+
+      // Expand current month by default
+      const now = new Date();
+      const currentMonthRaw = now.toLocaleString('es-AR', { month: 'long', year: 'numeric' });
+      const currentMonthKey = currentMonthRaw.charAt(0).toUpperCase() + currentMonthRaw.slice(1);
+
+      setExpandedMonths({ [currentMonthKey]: true });
+    }
+    setIsLoading(false);
+  };
+
+  useEffect(() => {
     fetchEvents();
   }, []);
+
+  const handleEventClick = (evt: any) => {
+    setSelectedEvent(evt);
+    setEditForm({
+      titulo: evt.titulo || '',
+      mensaje: evt.mensaje || '',
+      tipo: evt.tipo || 'feriado',
+      prioridad: evt.prioridad || 1
+    });
+    setEditMode(false);
+  };
+
+  const handleSaveEvent = async () => {
+    if (!supabase || !selectedEvent) return;
+    setIsSaving(true);
+
+    const { error } = await supabase
+      .from('eventos_calendario')
+      .update({
+        titulo: editForm.titulo,
+        mensaje: editForm.mensaje,
+        tipo: editForm.tipo,
+        prioridad: editForm.prioridad
+      })
+      .eq('id', selectedEvent.id);
+
+    if (error) {
+      alert("Error al guardar: " + error.message);
+    } else {
+      await fetchEvents();
+      setSelectedEvent(null);
+    }
+    setIsSaving(false);
+  };
+
+  const handleDeleteEvent = async () => {
+    if (!supabase || !selectedEvent) return;
+    if (!confirm(`¿Eliminar el evento "${selectedEvent.titulo}"? Esta acción es irreversible.`)) return;
+
+    setIsSaving(true);
+    const { error } = await supabase
+      .from('eventos_calendario')
+      .delete()
+      .eq('id', selectedEvent.id);
+
+    if (error) {
+      alert("Error al eliminar: " + error.message);
+    } else {
+      await fetchEvents();
+      setSelectedEvent(null);
+    }
+    setIsSaving(false);
+  };
+
 
   // Group events by Month
   const eventsByMonth = events.reduce((groups, event) => {
@@ -156,7 +205,11 @@ const CalendarPage = () => {
                     {isExpanded && (
                       <div className="grid grid-cols-1 gap-4 animate-slide-down">
                         {(monthEvents as any[]).map((evt: any) => (
-                          <div key={evt.id} className="bg-slate-900 rounded-xl border border-slate-800 p-6 hover:border-[#1FB6D5]/30 transition-all group relative overflow-hidden">
+                          <div
+                            key={evt.id}
+                            onClick={() => handleEventClick(evt)}
+                            className="bg-slate-900 rounded-xl border border-slate-800 p-6 hover:border-[#1FB6D5]/30 transition-all group relative overflow-hidden cursor-pointer hover:bg-slate-800/50"
+                          >
                             {/* Left accent border based on PRIORITY */}
                             <div className={`absolute left-0 top-0 bottom-0 w-1 ${evt.prioridad === 3 ? 'bg-red-500' : (evt.prioridad === 2 ? 'bg-[#1FB6D5]' : 'bg-slate-700')}`}></div>
 
@@ -342,6 +395,124 @@ const CalendarPage = () => {
                 </Button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Evento (Ver/Editar) */}
+      {selectedEvent && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-fade-in">
+          <div className="relative bg-slate-900 border border-slate-700 rounded-2xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl animate-scale-in">
+            {/* Header */}
+            <div className="sticky top-0 bg-slate-900 border-b border-slate-700 rounded-t-2xl p-6 flex items-center justify-between z-20">
+              <div className="flex items-center gap-3">
+                <CalendarIcon className="w-6 h-6 text-[#1FB6D5]" />
+                <h2 className="text-xl font-bold text-white">{editMode ? 'Editar Evento' : 'Detalle del Evento'}</h2>
+              </div>
+              <button
+                onClick={() => { setSelectedEvent(null); setEditMode(false); }}
+                className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-full transition-all"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="overflow-auto p-6 space-y-4">
+              {editMode ? (
+                // Edit Form
+                <>
+                  <div>
+                    <label className="block text-sm text-slate-400 mb-1">Título</label>
+                    <input
+                      type="text"
+                      value={editForm.titulo}
+                      onChange={(e) => setEditForm({ ...editForm, titulo: e.target.value })}
+                      className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white focus:border-[#1FB6D5] outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-slate-400 mb-1">Descripción / Notas</label>
+                    <textarea
+                      value={editForm.mensaje}
+                      onChange={(e) => setEditForm({ ...editForm, mensaje: e.target.value })}
+                      rows={6}
+                      className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white focus:border-[#1FB6D5] outline-none resize-none"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm text-slate-400 mb-1">Tipo</label>
+                      <select
+                        value={editForm.tipo}
+                        onChange={(e) => setEditForm({ ...editForm, tipo: e.target.value })}
+                        className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white focus:border-[#1FB6D5] outline-none"
+                      >
+                        <option value="feriado">Feriado</option>
+                        <option value="comercial">Comercial</option>
+                        <option value="interno">Interno</option>
+                        <option value="clima">Clima</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm text-slate-400 mb-1">Prioridad</label>
+                      <select
+                        value={editForm.prioridad}
+                        onChange={(e) => setEditForm({ ...editForm, prioridad: parseInt(e.target.value) })}
+                        className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white focus:border-[#1FB6D5] outline-none"
+                      >
+                        <option value={1}>Baja</option>
+                        <option value={2}>Media</option>
+                        <option value={3}>Alta</option>
+                      </select>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                // Read-Only View
+                <>
+                  <div className="flex items-center gap-3 mb-4">
+                    {getEventIcon(selectedEvent.tipo)}
+                    <span className="text-xs font-bold uppercase text-slate-400 bg-slate-800 px-2 py-1 rounded">
+                      {selectedEvent.tipo?.replace('_', ' ')}
+                    </span>
+                    {getPriorityBadge(selectedEvent.prioridad)}
+                  </div>
+                  <h3 className="text-2xl font-bold text-white mb-4">{selectedEvent.titulo}</h3>
+                  <div className="bg-slate-950 border border-slate-700 rounded-lg p-4">
+                    <p className="text-slate-300 whitespace-pre-wrap">{selectedEvent.mensaje || 'Sin descripción.'}</p>
+                  </div>
+                  <div className="text-xs text-slate-500 mt-4">
+                    Fecha: {new Date(selectedEvent.fecha_inicio).toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Footer */}
+            {isAdmin && (
+              <div className="p-6 border-t border-slate-700 flex justify-between">
+                {editMode ? (
+                  <>
+                    <Button onClick={() => setEditMode(false)} variant="outline" className="border-slate-600 text-slate-300">
+                      Cancelar
+                    </Button>
+                    <Button onClick={handleSaveEvent} disabled={isSaving} className="bg-[#1FB6D5] text-[#021019] hover:bg-white font-bold">
+                      <Save className="w-4 h-4 mr-2" /> {isSaving ? 'Guardando...' : 'Guardar'}
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button onClick={handleDeleteEvent} disabled={isSaving} variant="outline" className="border-red-500/50 text-red-400 hover:bg-red-500/10">
+                      <Trash2 className="w-4 h-4 mr-2" /> Eliminar
+                    </Button>
+                    <Button onClick={() => setEditMode(true)} className="bg-[#1FB6D5] text-[#021019] hover:bg-white font-bold">
+                      <Edit3 className="w-4 h-4 mr-2" /> Editar
+                    </Button>
+                  </>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}

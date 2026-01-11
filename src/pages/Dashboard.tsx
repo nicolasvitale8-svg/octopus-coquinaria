@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
-import { PlusCircle, FileText, TrendingUp, TrendingDown, Target, Zap, Clock, ChevronRight, Activity, ArrowUpRight, Calendar as CalendarIcon, BookOpen } from 'lucide-react';
+import { PlusCircle, FileText, TrendingUp, TrendingDown, Target, Zap, Clock, ChevronRight, Activity, ArrowUpRight, Calendar as CalendarIcon, BookOpen, Building } from 'lucide-react';
 import Button from '../components/ui/Button';
 import { Link, useNavigate } from 'react-router-dom';
 import { formatCurrency, formatPercent } from '../services/calculations';
@@ -86,11 +86,19 @@ const Dashboard = () => {
             </p>
           </div>
           <div className="flex gap-4">
-            <Link to="/quick-diagnostic">
-              <Button variant="outline" className="border-slate-800 bg-slate-900/40 text-slate-300 hover:bg-slate-800 font-bold px-6 py-6 h-auto transition-all">
-                Nuevo Rápido
-              </Button>
-            </Link>
+            {isAdmin || isConsultant ? (
+              <Link to="/quick-diagnostic">
+                <Button variant="outline" className="border-slate-800 bg-slate-900/40 text-slate-300 hover:bg-slate-800 font-bold px-6 py-6 h-auto transition-all">
+                  Nuevo Rápido
+                </Button>
+              </Link>
+            ) : (
+              <Link to="/hub">
+                <Button variant="outline" className="border-slate-800 bg-slate-900/40 text-slate-300 hover:bg-slate-800 font-bold px-6 py-6 h-auto transition-all">
+                  <Building className="w-4 h-4 mr-2" /> Mi Proyecto
+                </Button>
+              </Link>
+            )}
             <Link to="/deep-diagnostic">
               <Button className="bg-[#1FB6D5] text-[#021019] hover:bg-white font-black px-8 py-6 h-auto shadow-[0_0_20px_rgba(31,182,213,0.3)] transition-all">
                 <PlusCircle className="w-5 h-5 mr-3" /> Cargar Mes
