@@ -461,20 +461,20 @@ export const Dashboard: React.FC = () => {
                 {expensesByCategory.slice(0, 8).map((cat, i) => {
                   const percentage = totalOut > 0 ? ((cat.amount / totalOut) * 100).toFixed(1) : '0';
                   return (
-                    <div key={i} className="flex items-center gap-3 p-3 bg-fin-bg/30 rounded-2xl border border-fin-border/30 hover:border-fin-border transition-all group/item">
-                      <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: cat.color }}></div>
+                    <div key={i} className="flex items-center gap-3 p-3 bg-slate-800/80 rounded-xl border border-slate-700/50 hover:border-slate-600 transition-all">
+                      <div className="w-4 h-4 rounded-full flex-shrink-0 shadow-lg" style={{ backgroundColor: cat.color }}></div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-[11px] font-bold text-white truncate" title={cat.name}>{cat.name}</p>
-                        <p className="text-[10px] font-bold text-fin-muted tabular-nums">{formatCurrency(cat.amount)}</p>
+                        <p className="text-sm font-bold text-white truncate" title={cat.name}>{cat.name}</p>
+                        <p className="text-xs font-semibold text-slate-300 tabular-nums">{formatCurrency(cat.amount)}</p>
                       </div>
-                      <span className="text-[11px] font-black text-fin-muted tabular-nums">{percentage}%</span>
+                      <span className="text-sm font-black text-cyan-400 tabular-nums">{percentage}%</span>
                     </div>
                   );
                 })}
                 {expensesByCategory.length === 0 && (
                   <div className="col-span-2 flex flex-col items-center justify-center p-8 text-center">
-                    <LayoutGrid size={32} className="text-fin-muted/20 mb-3" />
-                    <p className="text-xs font-bold text-fin-muted/40 uppercase">Sin egresos registrados este mes</p>
+                    <LayoutGrid size={32} className="text-slate-600 mb-3" />
+                    <p className="text-sm font-bold text-slate-500">Sin egresos registrados este mes</p>
                   </div>
                 )}
               </div>
