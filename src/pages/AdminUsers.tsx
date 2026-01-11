@@ -13,6 +13,10 @@ interface UserData {
     role: UserRole;
     created_at: string;
     permissions?: string[];
+    businessIds?: string[]; // Mapped from project_members for modal
+    phone?: string;
+    job_title?: string;
+    notes?: string;
     // memberships con nombre de proyecto (V4)
     project_members?: {
         projects: {
@@ -85,7 +89,15 @@ const AdminUsers = () => {
     };
 
     const handleEdit = (user: UserData) => {
-        setSelectedUser(user);
+        // Map project_members to businessIds array
+        const mappedUser: UserData = {
+            ...user,
+            businessIds: user.project_members
+                ?.map((pm: any) => pm.projects?.id || pm.project_id)
+                .filter(Boolean) || []
+        };
+        console.log("DEBUG: Editing user with mapped businessIds:", mappedUser.businessIds);
+        setSelectedUser(mappedUser);
         setIsModalOpen(true);
     };
 
