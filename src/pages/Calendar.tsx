@@ -124,6 +124,19 @@ const CalendarPage = () => {
     return groups;
   }, {} as Record<string, any[]>);
 
+  // Auto-scroll to nearest future event
+  useEffect(() => {
+    if (!isLoading && Object.keys(eventsByMonth).length > 0) {
+      // Small timeout to ensure DOM update
+      setTimeout(() => {
+        const futureEvent = document.querySelector('[data-future="true"]');
+        if (futureEvent) {
+          futureEvent.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 500);
+    }
+  }, [events, expandedMonths, isLoading]);
+
   const toggleMonth = (month: string) => {
     setExpandedMonths(prev => ({
       ...prev,
