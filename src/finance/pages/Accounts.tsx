@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { SupabaseService } from '../services/supabaseService';
-import { Account, AccountType, MonthlyBalance, TextCategoryRule, Category, SubCategory, TransactionType } from '../financeTypes';
+import { Account, AccountType, MonthlyBalance, TextCategoryRule, Category, SubCategory, TransactionType, Transaction } from '../financeTypes';
 import { formatCurrency } from '../utils/calculations';
 import { Wallet, Plus, Edit2, X, Trash2, Check, AlertCircle, Info, Zap, Settings2, Sparkles, TrendingUp, TrendingDown } from 'lucide-react';
 import { useFinanza } from '../context/FinanzaContext';
