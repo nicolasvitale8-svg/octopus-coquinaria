@@ -213,43 +213,44 @@ const CalendarPage = () => {
                             {/* Left accent border based on PRIORITY */}
                             <div className={`absolute left-0 top-0 bottom-0 w-1 ${evt.prioridad === 3 ? 'bg-red-500' : (evt.prioridad === 2 ? 'bg-[#1FB6D5]' : 'bg-slate-700')}`}></div>
 
-                            <div className="flex flex-col md:flex-row gap-6">
-                              {/* Date Block */}
-                              <div className="flex-shrink-0 flex flex-col items-center justify-center bg-[#00344F]/30 rounded-lg w-20 h-20 border border-slate-700">
-                                <span className="text-xs text-slate-400 uppercase font-bold">Día</span>
-                                <span className="text-2xl font-bold text-white font-mono">
-                                  {(() => {
-                                    const datePart = evt.fecha_inicio.split('T')[0];
-                                    return new Date(`${datePart}T00:00:00`).getDate();
-                                  })()}
-                                </span>
-                              </div>
+                            <div className="flex flex-col gap-4">
 
-                              {/* Content */}
-                              <div className="flex-grow">
-                                <div className="flex flex-wrap items-center gap-3 mb-2">
+                              {/* Header: Date & Type */}
+                              <div className="flex justify-between items-start border-b border-slate-800 pb-3">
+                                <div>
+                                  <div className="flex items-center gap-2 text-[#1FB6D5] font-mono text-sm mb-1">
+                                    <CalendarIcon className="w-4 h-4" />
+                                    <span>
+                                      {(() => {
+                                        const datePart = evt.fecha_inicio.split('T')[0]; // YYYY-MM-DD
+                                        return datePart;
+                                      })()}
+                                    </span>
+                                  </div>
+                                  <h3 className="text-xl font-bold text-white leading-tight">
+                                    {evt.titulo}
+                                  </h3>
+                                </div>
+                                <div className="flex flex-col items-end gap-2">
                                   {getPriorityBadge(evt.prioridad)}
-                                  <span className="flex items-center text-xs font-bold uppercase text-slate-400 tracking-wider bg-slate-800 px-2 py-0.5 rounded">
+                                  <span className="flex items-center text-xs font-bold uppercase text-slate-400 tracking-wider bg-slate-800 px-2 py-1 rounded">
                                     {getEventIcon(evt.tipo)}
                                     <span className="ml-1">{evt.tipo.replace('_', ' ')}</span>
                                   </span>
                                 </div>
+                              </div>
 
-                                <h3 className="text-xl font-bold text-white mb-2">
-                                  {evt.titulo}
-                                </h3>
-
-                                {evt.prioridad >= 2 && evt.mensaje ? (
-                                  <div className="bg-[#00344F]/20 p-3 rounded border border-[#1FB6D5]/20 flex items-start gap-3 mt-2">
-                                    <AlertTriangle className="w-4 h-4 text-[#1FB6D5] mt-0.5 flex-shrink-0" />
-                                    <p className="text-xs text-[#1FB6D5] font-medium">
-                                      Recomendación: {evt.mensaje}
-                                    </p>
-                                  </div>
+                              {/* Description / Content */}
+                              <div className="text-slate-300 text-sm whitespace-pre-wrap font-sans space-y-2">
+                                {evt.description || evt.mensaje ? (
+                                  <>
+                                    <strong className="block text-slate-500 uppercase text-xs tracking-wider mb-1">Notas / Descripción:</strong>
+                                    <div className="pl-2 border-l-2 border-slate-800">
+                                      {evt.description || evt.mensaje}
+                                    </div>
+                                  </>
                                 ) : (
-                                  <p className="text-slate-300 text-sm mb-3">
-                                    {evt.mensaje || "Sin detalles adicionales."}
-                                  </p>
+                                  <span className="italic text-slate-600">Sin descripción adicional.</span>
                                 )}
                               </div>
                             </div>
@@ -263,13 +264,9 @@ const CalendarPage = () => {
             ) : (
               <div className="text-center py-20">
                 <p className="text-slate-400 mb-4">No hay eventos próximos cargados.</p>
-                <Link to="/admin/calendar">
-                  <Button variant="outline">Ir al Admin para crear eventos</Button>
-                </Link>
               </div>
             )}
           </div>
-
         </div>
       </div>
 
@@ -293,6 +290,7 @@ const CalendarPage = () => {
 
             {/* Scrollable Content */}
             <div className="overflow-auto p-8 space-y-6">
+              {/* Contenido de la guía (simplificado para no repetir todo el bloque estático si fuera muy largo, pero aquí lo incluyo completo para seguridad) */}
               <p className="text-slate-300 text-lg font-medium">El calendario no es decorativo: <span className="text-[#1FB6D5]">es tu plan operativo.</span></p>
 
               {/* Tipos de Evento */}
@@ -388,7 +386,6 @@ const CalendarPage = () => {
                   <span className="text-white font-medium"> ¿Tengo que abrir distinto? ¿Vender distinto? ¿Organizar algo interno?</span>
                 </p>
               </div>
-
               <div className="pt-4 flex justify-end border-t border-slate-700">
                 <Button onClick={() => setShowGuide(false)} className="bg-[#1FB6D5] text-[#021019] hover:bg-white font-bold">
                   Entendido 👍
@@ -480,7 +477,7 @@ const CalendarPage = () => {
                   </div>
                   <h3 className="text-2xl font-bold text-white mb-4">{selectedEvent.titulo}</h3>
                   <div className="bg-slate-950 border border-slate-700 rounded-lg p-4">
-                    <p className="text-slate-300 whitespace-pre-wrap">{selectedEvent.mensaje || 'Sin descripción.'}</p>
+                    <p className="text-slate-300 whitespace-pre-wrap font-sans">{selectedEvent.description || selectedEvent.mensaje || 'Sin descripción.'}</p>
                   </div>
                   <div className="text-xs text-slate-500 mt-4">
                     Fecha: {new Date(selectedEvent.fecha_inicio).toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
