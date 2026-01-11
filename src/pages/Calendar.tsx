@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import { WHATSAPP_NUMBER } from '../constants';
-import { Calendar as CalendarIcon, AlertTriangle, TrendingUp, Sun, ShoppingCart, Info, ArrowLeft, MessageCircle, ChevronDown, ChevronRight } from 'lucide-react';
+import { Calendar as CalendarIcon, AlertTriangle, TrendingUp, Sun, ShoppingCart, Info, ArrowLeft, MessageCircle, ChevronDown, ChevronRight, X, HelpCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Button from '../components/ui/Button';
 import { supabase } from '../services/supabase';
@@ -11,6 +11,7 @@ const CalendarPage = () => {
   const [events, setEvents] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [expandedMonths, setExpandedMonths] = useState<Record<string, boolean>>({});
+  const [showGuide, setShowGuide] = useState(false);
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -116,12 +117,18 @@ const CalendarPage = () => {
                 Anticipate a lo que viene. Feriados, alertas climáticas y tendencias para ajustar tu operación a tiempo.
               </p>
             </div>
-            <a href={`https://wa.me/${WHATSAPP_NUMBER}`} target="_blank" rel="noreferrer">
-              <Button className="bg-[#1FB6D5] text-[#021019] hover:bg-white font-bold">
-                <MessageCircle className="w-4 h-4 mr-2" /> Sugerir un evento
+            <div className="flex gap-3">
+              <Button onClick={() => setShowGuide(true)} variant="outline" className="border-slate-700 text-slate-300 hover:bg-slate-800">
+                <HelpCircle className="w-4 h-4 mr-2" /> Cómo leer
               </Button>
-            </a>
+              <a href={`https://wa.me/${WHATSAPP_NUMBER}`} target="_blank" rel="noreferrer">
+                <Button className="bg-[#1FB6D5] text-[#021019] hover:bg-white font-bold">
+                  <MessageCircle className="w-4 h-4 mr-2" /> Sugerir un evento
+                </Button>
+              </a>
+            </div>
           </div>
+
 
           <div className="space-y-6">
             {isLoading ? (
@@ -211,6 +218,130 @@ const CalendarPage = () => {
 
         </div>
       </div>
+
+      {/* Modal de Guía */}
+      {showGuide && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-fade-in">
+          <div className="relative bg-slate-900 border border-slate-700 rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-auto shadow-2xl animate-scale-in">
+            <button
+              onClick={() => setShowGuide(false)}
+              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-full transition-all z-10"
+            >
+              <X className="w-6 h-6" />
+            </button>
+
+            <div className="p-8 space-y-6">
+              <div className="flex items-center gap-3 border-b border-slate-700 pb-4">
+                <CalendarIcon className="w-8 h-8 text-[#1FB6D5]" />
+                <h2 className="text-2xl font-bold text-white font-space">🗓 Guía rápida para leer el Calendario</h2>
+              </div>
+
+              <p className="text-slate-300 text-lg font-medium">El calendario no es decorativo: <span className="text-[#1FB6D5]">es tu plan operativo.</span></p>
+
+              {/* Tipos de Evento */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-bold text-white">1. Tipos de evento</h3>
+                <div className="grid gap-3">
+                  <div className="bg-[#00344F]/30 border border-[#1FB6D5]/30 rounded-xl p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <CalendarIcon className="w-5 h-5 text-[#1FB6D5]" />
+                      <span className="font-bold text-[#1FB6D5]">FERIADO</span>
+                    </div>
+                    <p className="text-slate-300 text-sm">Algo externo que mueve la demanda. Ej: feriados nacionales, fines de semana largos. Te sirve para decidir si abrís, con qué horario y con cuánta gente.</p>
+                  </div>
+                  <div className="bg-green-900/20 border border-green-500/30 rounded-xl p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <TrendingUp className="w-5 h-5 text-green-400" />
+                      <span className="font-bold text-green-400">COMERCIAL</span>
+                    </div>
+                    <p className="text-slate-300 text-sm">Acción para vender más o mejor. Ej: San Valentín, Día del Amigo, Noche de Malbec. Ideas de promos, menús especiales y foco de venta.</p>
+                  </div>
+                  <div className="bg-slate-800/50 border border-slate-600 rounded-xl p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Info className="w-5 h-5 text-slate-400" />
+                      <span className="font-bold text-slate-300">INTERNO</span>
+                    </div>
+                    <p className="text-slate-300 text-sm">Cosas de puertas para adentro. Ej: inventarios, cambios de carta, reuniones. No traen gente, pero ordenan tu operación.</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Cómo leer las Notas */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-bold text-white">2. Cómo leer las Notas / Descripción</h3>
+                <p className="text-slate-400 text-sm">Las notas están pensadas como pasos de acción, no como novela:</p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div className="bg-slate-800 rounded-lg p-3 text-center">
+                    <div className="text-[#1FB6D5] font-bold text-lg">H-72</div>
+                    <div className="text-slate-400 text-xs">3 días antes</div>
+                    <div className="text-slate-300 text-[10px] mt-1">Decisiones grandes</div>
+                  </div>
+                  <div className="bg-slate-800 rounded-lg p-3 text-center">
+                    <div className="text-amber-400 font-bold text-lg">H-24</div>
+                    <div className="text-slate-400 text-xs">Día anterior</div>
+                    <div className="text-slate-300 text-[10px] mt-1">Ajustes finos</div>
+                  </div>
+                  <div className="bg-slate-800 rounded-lg p-3 text-center">
+                    <div className="text-green-400 font-bold text-lg">Día D</div>
+                    <div className="text-slate-400 text-xs">Mismo día</div>
+                    <div className="text-slate-300 text-[10px] mt-1">Foco del servicio</div>
+                  </div>
+                  <div className="bg-slate-800 rounded-lg p-3 text-center">
+                    <div className="text-purple-400 font-bold text-lg">Post</div>
+                    <div className="text-slate-400 text-xs">Después</div>
+                    <div className="text-slate-300 text-[10px] mt-1">Registrar aprendizajes</div>
+                  </div>
+                </div>
+                <p className="text-[#1FB6D5] text-sm font-medium">👉 Si vas corto de tiempo: leé Título + Tipo + H-24 + Día D</p>
+              </div>
+
+              {/* Cómo usar */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-bold text-white">3. Cómo usar el calendario</h3>
+                <div className="space-y-3 text-sm">
+                  <div className="flex gap-3">
+                    <span className="bg-[#1FB6D5] text-[#021019] font-bold rounded-full w-6 h-6 flex items-center justify-center text-xs flex-shrink-0">1</span>
+                    <div>
+                      <span className="font-bold text-white">Una vez por MES:</span>
+                      <span className="text-slate-400"> Mirá la vista mensual. ¿Qué feriados, fechas comerciales e internos vienen?</span>
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <span className="bg-[#1FB6D5] text-[#021019] font-bold rounded-full w-6 h-6 flex items-center justify-center text-xs flex-shrink-0">2</span>
+                    <div>
+                      <span className="font-bold text-white">Una vez por SEMANA (lunes):</span>
+                      <span className="text-slate-400"> Leé H-72 de lo que viene. Tomá 2-3 decisiones: producción, gente, foco de venta.</span>
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <span className="bg-[#1FB6D5] text-[#021019] font-bold rounded-full w-6 h-6 flex items-center justify-center text-xs flex-shrink-0">3</span>
+                    <div>
+                      <span className="font-bold text-white">Cada DÍA:</span>
+                      <span className="text-slate-400"> Revisá H-24 y Día D. En el brief con el equipo: mostrar el evento y el foco del día.</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Regla de Oro */}
+              <div className="bg-[#1FB6D5]/10 border border-[#1FB6D5]/30 rounded-xl p-4">
+                <h3 className="text-lg font-bold text-[#1FB6D5] mb-2">⭐ Regla de oro</h3>
+                <p className="text-slate-300 text-sm">
+                  Si ves un evento y no te ayuda a decidir nada, algo está mal cargado. Cada evento debería responder:
+                  <span className="text-white font-medium"> ¿Tengo que abrir distinto? ¿Vender distinto? ¿Organizar algo interno?</span>
+                </p>
+              </div>
+
+              <div className="pt-4 flex justify-end border-t border-slate-700">
+                <Button onClick={() => setShowGuide(false)} className="bg-[#1FB6D5] text-[#021019] hover:bg-white font-bold">
+                  Entendido 👍
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     </Layout>
   );
 };
