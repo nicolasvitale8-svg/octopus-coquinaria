@@ -73,9 +73,9 @@ const AdminProjectHub = () => {
     if (!project) return <div className="p-8 text-center text-red-500">Proyecto no encontrado.</div>;
 
     // --- PORTAL CLIENTE (VIEW REDIRECT) ---
-    if (profile?.role === 'client') {
-        return <ClientProjectView project={project} />;
-    }
+    // if (profile?.role === 'client') {
+    //    return <ClientProjectView project={project} />;
+    // }
     return (
         <div className="max-w-6xl mx-auto space-y-8 pb-12 animate-fade-in">
             {/* Nav Context / Back Button */}
