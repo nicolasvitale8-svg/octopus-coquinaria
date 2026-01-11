@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { SupabaseService } from '../services/supabaseService';
-import { Account, Category, ImportLine, TransactionType, Transaction, TextCategoryRule } from '../financeTypes';
+import { Account, Category, SubCategory, ImportLine, TransactionType, Transaction, TextCategoryRule } from '../financeTypes';
 import { parseRawText, applyRules } from '../utils/importEngine';
 import { formatCurrency } from '../utils/calculations';
 import { Camera, Loader2, CheckCircle2, ChevronLeft, ChevronRight, FileText, Sparkles, AlertTriangle, Trash2, Info, RotateCcw, FileUp } from 'lucide-react';
@@ -26,6 +26,7 @@ export const ImportPage: React.FC = () => {
   const [importedLines, setImportedLines] = useState<ImportLine[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
   const [rules, setRules] = useState<TextCategoryRule[]>([]);
   const [existingTransactions, setExistingTransactions] = useState<Transaction[]>([]);
 
@@ -35,14 +36,16 @@ export const ImportPage: React.FC = () => {
     setLoading(true);
     try {
       const bId = activeEntity.id || undefined;
-      const [a, c, r, t] = await Promise.all([
+      const [a, c, subCat, r, t] = await Promise.all([
         SupabaseService.getAccounts(bId),
         SupabaseService.getCategories(bId),
+        SupabaseService.getAllSubCategories(bId),
         SupabaseService.getRules(bId),
         SupabaseService.getTransactions(bId)
       ]);
       setAccounts(a);
       setCategories(c);
+      setSubCategories(subCat);
       setRules(r);
       setExistingTransactions(t);
     } catch (error) {
@@ -324,30 +327,45 @@ export const ImportPage: React.FC = () => {
       )}
 
       <div className="bg-fin-card rounded-3xl border border-fin-border overflow-hidden shadow-2xl">
+        {/* Datalist para sugerencias de descripciones basadas en historial */}
+        <datalist id="description-suggestions">
+          {[...new Set(existingTransactions.map(t => t.description))].slice(0, 50).map((desc, i) => (
+            <option key={i} value={desc} />
+          ))}
+        </datalist>
+
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm border-collapse">
             <thead className="bg-fin-bg/40 border-b border-fin-border">
               <tr className="text-[10px] text-fin-muted font-black uppercase tracking-widest">
-                <th className="px-10 py-6 w-12 text-center">
+                <th className="px-4 py-5 w-12 text-center">
                   <input type="checkbox" checked={importedLines.length > 0 && importedLines.every(l => l.isSelected)} onChange={e => setImportedLines(l => l.map(x => ({ ...x, isSelected: e.target.checked })))} className="w-5 h-5 rounded-lg border-fin-border bg-fin-bg text-brand focus:ring-brand accent-brand" />
                 </th>
-                <th className="px-10 py-6">Fecha</th>
-                <th className="px-10 py-6">Detalle</th>
-                <th className="px-10 py-6 text-right">Monto</th>
-                <th className="px-10 py-6">Rubro</th>
-                <th className="px-10 py-6 text-center"></th>
+                <th className="px-4 py-5 w-28">Fecha</th>
+                <th className="px-4 py-5 min-w-[200px]">Detalle</th>
+                <th className="px-4 py-5 text-right w-36">Monto</th>
+                <th className="px-4 py-5 w-40">Rubro</th>
+                <th className="px-4 py-5 w-40">Sub-Rubro</th>
+                <th className="px-4 py-5 text-center w-12"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-fin-border/30">
               {importedLines.map(line => (
                 <tr key={line.id} className={`${line.isDuplicate ? 'bg-amber-500/5' : 'hover:bg-fin-bg/30'} transition-colors group ${!line.isSelected ? 'opacity-50' : ''}`}>
-                  <td className="px-10 py-7 text-center">
+                  <td className="px-4 py-4 text-center">
                     <input type="checkbox" checked={line.isSelected} onChange={e => setImportedLines(lines => lines.map(l => l.id === line.id ? { ...l, isSelected: e.target.checked } : l))} className="w-5 h-5 rounded-lg border-fin-border bg-fin-bg text-brand accent-brand cursor-pointer" />
                   </td>
-                  <td className="px-10 py-7 font-bold text-white/50 tabular-nums text-xs whitespace-nowrap">{line.date}</td>
-                  <td className="px-10 py-7">
+                  <td className="px-4 py-4 font-bold text-white/50 tabular-nums text-xs whitespace-nowrap">{line.date}</td>
+                  <td className="px-4 py-4">
                     <div className="space-y-1">
-                      <p className="font-black text-white text-[15px] leading-tight group-hover:text-brand transition-colors">{line.description}</p>
+                      <input
+                        type="text"
+                        list="description-suggestions"
+                        value={line.description}
+                        onChange={e => setImportedLines(lines => lines.map(l => l.id === line.id ? { ...l, description: e.target.value } : l))}
+                        className="w-full bg-transparent border-b border-transparent hover:border-white/20 focus:border-brand px-1 py-0.5 text-[13px] font-bold text-white outline-none transition-all"
+                        placeholder="Descripción..."
+                      />
                       {line.isDuplicate && (
                         <span className="inline-flex items-center gap-1.5 text-[9px] font-black text-amber-500 uppercase tracking-tighter bg-amber-500/10 px-2 py-0.5 rounded">
                           <AlertTriangle size={8} /> Ya registrado
@@ -355,20 +373,33 @@ export const ImportPage: React.FC = () => {
                       )}
                     </div>
                   </td>
-                  <td className={`px-10 py-7 text-right font-black tabular-nums text-lg ${line.type === 'IN' ? 'text-emerald-500' : 'text-white'}`}>
+                  <td className={`px-4 py-4 text-right font-black tabular-nums text-base ${line.type === 'IN' ? 'text-emerald-500' : 'text-white'}`}>
                     {line.type === 'IN' ? '+' : '-'}{formatCurrency(line.amount)}
                   </td>
-                  <td className="px-10 py-7">
+                  <td className="px-4 py-4">
                     <select
-                      className="bg-[#020b14] border border-white/10 rounded-xl px-4 py-2.5 text-[11px] font-black text-white focus:border-brand outline-none w-full min-w-[140px] appearance-none cursor-pointer hover:border-brand/50 transition-all"
+                      className="bg-[#020b14] border border-white/10 rounded-lg px-2 py-2 text-[10px] font-black text-white focus:border-brand outline-none w-full appearance-none cursor-pointer hover:border-brand/50 transition-all"
                       value={line.categoryId || ''}
-                      onChange={e => setImportedLines(lines => lines.map(l => l.id === line.id ? { ...l, categoryId: e.target.value } : l))}
+                      onChange={e => setImportedLines(lines => lines.map(l => l.id === line.id ? { ...l, categoryId: e.target.value, subCategoryId: undefined } : l))}
                     >
-                      <option value="">ASIGNAR RUBRO...</option>
+                      <option value="">Rubro...</option>
                       {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                     </select>
                   </td>
-                  <td className="px-10 py-7 text-center">
+                  <td className="px-4 py-4">
+                    <select
+                      className="bg-[#020b14] border border-white/10 rounded-lg px-2 py-2 text-[10px] font-black text-white focus:border-brand outline-none w-full appearance-none cursor-pointer hover:border-brand/50 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                      value={line.subCategoryId || ''}
+                      onChange={e => setImportedLines(lines => lines.map(l => l.id === line.id ? { ...l, subCategoryId: e.target.value } : l))}
+                      disabled={!line.categoryId}
+                    >
+                      <option value="">Sub-rubro...</option>
+                      {subCategories
+                        .filter(s => s.categoryId === line.categoryId)
+                        .map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                    </select>
+                  </td>
+                  <td className="px-4 py-4 text-center">
                     <button
                       onClick={() => setImportedLines(lines => lines.filter(l => l.id !== line.id))}
                       className="text-fin-muted hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
