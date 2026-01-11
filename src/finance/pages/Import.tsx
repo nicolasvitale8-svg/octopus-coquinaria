@@ -9,8 +9,8 @@ import { useFinanza } from '../context/FinanzaContext';
 import Tesseract from 'tesseract.js';
 import * as pdfjsLib from 'pdfjs-dist';
 
-// Configurar el worker de pdf.js
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+// Configurar el worker de pdf.js - usar unpkg como CDN alternativo
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
 
 export const ImportPage: React.FC = () => {
   const { activeEntity } = useFinanza();
@@ -57,23 +57,29 @@ export const ImportPage: React.FC = () => {
 
   // Función para extraer texto de un PDF
   const extractTextFromPDF = async (file: File): Promise<string> => {
-    const arrayBuffer = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-    let fullText = '';
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+      const pdf = await loadingTask.promise;
+      let fullText = '';
 
-    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-      setScanStatus(`Procesando página ${pageNum} de ${pdf.numPages}...`);
-      setScanProgress(Math.round((pageNum / pdf.numPages) * 100));
+      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+        setScanStatus(`Procesando página ${pageNum} de ${pdf.numPages}...`);
+        setScanProgress(Math.round((pageNum / pdf.numPages) * 100));
 
-      const page = await pdf.getPage(pageNum);
-      const textContent = await page.getTextContent();
-      const pageText = textContent.items
-        .map((item: any) => item.str)
-        .join(' ');
-      fullText += pageText + '\n\n';
+        const page = await pdf.getPage(pageNum);
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items
+          .map((item: any) => item.str)
+          .join(' ');
+        fullText += pageText + '\n\n';
+      }
+
+      return fullText;
+    } catch (pdfError) {
+      console.error('Error procesando PDF:', pdfError);
+      throw new Error('No se pudo leer el PDF. Puede que esté protegido o dañado.');
     }
-
-    return fullText;
   };
 
   // Función unificada para manejar archivos (imágenes y PDFs)
