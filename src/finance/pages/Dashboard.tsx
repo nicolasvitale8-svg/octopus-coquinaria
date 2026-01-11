@@ -334,25 +334,6 @@ export const Dashboard: React.FC = () => {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        {[
-          { label: 'Importar con OCR', icon: <UploadCloud />, path: '/finance/import', color: 'bg-brand/10 text-brand border-brand/20' },
-          { label: 'Nueva Operación', icon: <PlusCircle />, path: '/finance/transactions', color: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' },
-        ].map((action, i) => (
-          <button
-            key={i}
-            onClick={() => navigate(action.path)}
-            className={`flex items-center justify-between p-6 rounded-3xl border transition-all hover:-translate-y-1 hover:shadow-2xl active:scale-95 group ${action.color}`}
-          >
-            <div className="flex items-center gap-4">
-              <span className="p-3 rounded-2xl bg-white/5 group-hover:scale-110 transition-transform">{action.icon}</span>
-              <span className="text-xs font-black uppercase tracking-widest">{action.label}</span>
-            </div>
-            <ChevronRight size={16} className="opacity-30 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
-          </button>
-        ))}
-      </div>
-
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
           { id: 'IN', label: 'Ingresos', value: totalIn, icon: <TrendingUp />, color: 'text-emerald-400', bg: 'bg-emerald-500/5', border: 'hover:border-emerald-500/50' },
