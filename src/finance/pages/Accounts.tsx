@@ -405,18 +405,29 @@ export const Accounts: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {rules.map(rule => (
-              <div key={rule.id} className="bg-fin-card p-6 rounded-2xl border border-fin-border flex justify-between items-center group">
-                <div className="space-y-1">
-                  <p className="text-[10px] font-black text-brand uppercase tracking-widest">{rule.pattern}</p>
-                  <p className="text-xs font-bold text-white">{categories.find(c => c.id === rule.categoryId)?.name}</p>
+            {rules.map(rule => {
+              const category = categories.find(c => c.id === rule.categoryId);
+              const subCategory = subCategories.find(s => s.id === rule.subCategoryId);
+              return (
+                <div key={rule.id} className="bg-fin-card p-6 rounded-2xl border border-fin-border flex justify-between items-center group hover:border-brand/30 transition-all">
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-black text-brand uppercase tracking-widest">{rule.pattern}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-xs font-bold text-white">{category?.name || 'Sin rubro'}</p>
+                      {subCategory && (
+                        <span className="text-[9px] font-bold text-fin-muted bg-fin-bg px-2 py-0.5 rounded-lg border border-fin-border">
+                          {subCategory.name}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onClick={() => { setEditingRule(rule); setIsRuleModalOpen(true); }} className="p-2 text-fin-muted hover:text-white"><Edit2 size={14} /></button>
+                    <button onClick={async () => { if (confirm('¿Borrar regla?')) { await SupabaseService.deleteRule(rule.id); await loadData(); } }} className="p-2 text-fin-muted hover:text-red-500"><Trash2 size={14} /></button>
+                  </div>
                 </div>
-                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button onClick={() => { setEditingRule(rule); setIsRuleModalOpen(true); }} className="p-2 text-fin-muted hover:text-white"><Edit2 size={14} /></button>
-                  <button onClick={async () => { if (confirm('¿Borrar regla?')) { await SupabaseService.deleteRule(rule.id); await loadData(); } }} className="p-2 text-fin-muted hover:text-red-500"><Trash2 size={14} /></button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
             {rules.length === 0 && <div className="col-span-full py-20 text-center text-fin-muted text-xs uppercase font-black opacity-20 tracking-widest">No hay reglas configuradas</div>}
           </div>
         </div>

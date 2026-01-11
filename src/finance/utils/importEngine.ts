@@ -236,24 +236,32 @@ export const parseImportText = (text: string): ImportLine[] => {
  * Applies learned rules to categorize imported lines.
  */
 export const applyRules = (lines: ImportLine[], rules: TextCategoryRule[]): ImportLine[] => {
+    console.log('[applyRules] Aplicando', rules.length, 'reglas a', lines.length, 'líneas');
+
     return lines.map(line => {
         const match = rules.find(r => {
             if (!r.isActive) return false;
             const text = line.description.toLowerCase();
             const pattern = r.pattern.toLowerCase();
 
-            if (r.matchType === 'contains') return text.includes(pattern);
-            if (r.matchType === 'equals') return text === pattern;
-            if (r.matchType === 'startsWith') return text.startsWith(pattern);
-            return false;
+            // Default to 'contains' if matchType is not defined
+            const matchType = r.matchType || 'contains';
+
+            if (matchType === 'contains') return text.includes(pattern);
+            if (matchType === 'equals') return text === pattern;
+            if (matchType === 'startsWith') return text.startsWith(pattern);
+
+            // Fallback: try contains
+            return text.includes(pattern);
         });
 
         if (match) {
+            console.log('[applyRules] Match found:', line.description, '→', match.pattern, '→ categoryId:', match.categoryId);
             return {
                 ...line,
                 categoryId: match.categoryId,
                 subCategoryId: match.subCategoryId,
-                type: match.direction || line.type // Rule overrides direction if specified
+                type: match.direction || line.type
             };
         }
 
