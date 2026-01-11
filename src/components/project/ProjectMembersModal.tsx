@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { X, UserPlus, Shield, Star, Trash2, Search, Check } from 'lucide-react';
 import { Project, AppUser, Role } from '../../types';
 import { memberService } from '../../services/memberService';
@@ -83,9 +84,12 @@ const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({ project, isOp
             u.email?.toLowerCase().includes(searchQuery.toLowerCase()))
     );
 
-    return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+    // Debugging Roles
+    console.log("DEBUG: Available Roles:", roles);
+
+    return ReactDOM.createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-scale-in">
                 {/* Header */}
                 <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-900/50">
                     <div>
@@ -162,6 +166,7 @@ const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({ project, isOp
                                                     {member.role_id === 'admin' && <Shield className="w-3 h-3 text-orange-400" />}
                                                 </div>
                                                 <p className="text-slate-500 text-xs">{member.usuarios?.email}</p>
+                                                <p className="text-[10px] text-slate-600">ID Role: {member.role_id}</p>
                                             </div>
                                         </div>
 
@@ -173,7 +178,7 @@ const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({ project, isOp
                                                 disabled={isSaving}
                                             >
                                                 {roles.map(r => (
-                                                    <option key={r.id} value={r.id}>{r.name}</option>
+                                                    <option key={r.id} value={r.id}>{r.name} ({r.id})</option>
                                                 ))}
                                             </select>
 
@@ -201,7 +206,8 @@ const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({ project, isOp
                     <Button onClick={onClose} variant="secondary">Cerrar</Button>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 

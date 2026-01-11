@@ -7,6 +7,7 @@ import Button from './ui/Button';
 const NewsBoard: React.FC = () => {
     const [items, setItems] = useState<NewsBoardItem[]>([]);
     const [loading, setLoading] = useState(true);
+    const [selectedItem, setSelectedItem] = useState<NewsBoardItem | null>(null);
 
     useEffect(() => {
         const fetchItems = async () => {
@@ -114,7 +115,8 @@ const NewsBoard: React.FC = () => {
                         return (
                             <div
                                 key={item.id}
-                                className={`group relative flex flex-col h-full bg-[#031521] border-white/5 border rounded-[2.5rem] p-8 transition-all duration-500 hover:bg-[#041d2d] hover:border-[#1FB6D5]/30 hover:-translate-y-2 overflow-hidden shadow-2xl`}
+                                onClick={() => setSelectedItem(item)}
+                                className={`group relative flex flex-col h-full bg-[#031521] border-white/5 border rounded-[2.5rem] p-8 transition-all duration-500 hover:bg-[#041d2d] hover:border-[#1FB6D5]/30 hover:-translate-y-2 overflow-hidden shadow-2xl cursor-pointer`}
                             >
                                 {/* Background Glow on Hover */}
                                 <div className={`absolute -right-20 -top-20 w-40 h-40 rounded-full blur-[60px] opacity-0 group-hover:opacity-20 transition-opacity duration-500 ${styles.bg}`}></div>
@@ -178,6 +180,63 @@ const NewsBoard: React.FC = () => {
                     </div>
                 </div>
             </div>
+            {/* Modal de Detalle */}
+            {selectedItem && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div
+                        className="absolute inset-0 bg-black/80 backdrop-blur-sm animate-fade-in"
+                        onClick={() => setSelectedItem(null)}
+                    ></div>
+                    <div className="relative bg-[#031521] border border-white/10 rounded-[2rem] max-w-2xl w-full p-8 shadow-2xl animate-scale-in overflow-hidden">
+                        {/* Background Glow */}
+                        <div className={`absolute -right-20 -top-20 w-60 h-60 rounded-full blur-[80px] opacity-20 ${getTypeStyles(selectedItem.type).bg}`}></div>
+
+                        <button
+                            onClick={() => setSelectedItem(null)}
+                            className="absolute top-6 right-6 text-slate-400 hover:text-white transition-colors"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        </button>
+
+                        <div className="relative z-10 space-y-6">
+                            <div className="flex items-center gap-4">
+                                <div className={`p-3 rounded-xl ${getTypeStyles(selectedItem.type).bg} ${getTypeStyles(selectedItem.type).color}`}>
+                                    {getTypeStyles(selectedItem.type).icon}
+                                </div>
+                                <div>
+                                    <div className={`text-[10px] font-black uppercase tracking-[0.2em] font-space ${getTypeStyles(selectedItem.type).color}`}>
+                                        {getTypeStyles(selectedItem.type).label}
+                                    </div>
+                                    <h3 className="text-2xl font-bold text-white font-space leading-tight mt-1">
+                                        {selectedItem.title}
+                                    </h3>
+                                </div>
+                            </div>
+
+                            <div className="prose prose-invert prose-p:text-slate-300 prose-headings:text-white max-w-none">
+                                <p className="text-lg leading-relaxed">{selectedItem.summary}</p>
+                                {/* Aquí podríamos renderizar un campo 'content' o 'body' si existiera en el futuro */}
+                            </div>
+
+                            {selectedItem.cta_label && selectedItem.cta_url && (
+                                <div className="pt-6 border-t border-white/5 flex justify-end">
+                                    <a
+                                        href={selectedItem.cta_url}
+                                        target={selectedItem.cta_url.startsWith('http') ? '_blank' : '_self'}
+                                        rel="noreferrer"
+                                    >
+                                        <Button
+                                            className={`rounded-xl border border-white/10 text-[#021019] font-bold text-xs uppercase tracking-widest bg-[#1FB6D5] hover:bg-white transition-all duration-300 px-8 py-4 h-auto shadow-lg shadow-cyan-500/20`}
+                                        >
+                                            {selectedItem.cta_label} <ArrowRight className="w-4 h-4 ml-2" />
+                                        </Button>
+                                    </a>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </section>
     );
 };
