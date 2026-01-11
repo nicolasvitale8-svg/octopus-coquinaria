@@ -26,6 +26,7 @@ const AdminCalendar = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+    const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
 
     // Form State
     const [newEventTitle, setNewEventTitle] = useState('');
@@ -70,25 +71,50 @@ const AdminCalendar = () => {
 
     const handleDayClick = (day: Date) => {
         setSelectedDate(day);
+        setEditingEvent(null); // Reset edit mode
         setNewEventTitle('');
         setNewEventType('interno');
         setNewEventMsg('');
         setIsModalOpen(true);
     };
 
-    const handleCreateEvent = async (e: React.FormEvent) => {
+    const handleEventClick = (event: CalendarEvent, e: React.MouseEvent) => {
+        e.stopPropagation(); // Prevent prompting new event
+        setEditingEvent(event);
+        setSelectedDate(new Date(event.start_date));
+        setNewEventTitle(event.title);
+        setNewEventType(event.type);
+        setNewEventMsg(event.description || '');
+        setIsModalOpen(true);
+    };
+
+    const handleSaveEvent = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!selectedDate) return;
 
-        await createEvent({
-            title: newEventTitle,
-            type: newEventType,
-            start_date: format(selectedDate, 'yyyy-MM-dd'),
-            end_date: format(selectedDate, 'yyyy-MM-dd'),
-            description: newEventMsg
-        });
+        const { createEvent, updateEvent } = await import('../services/calendarService');
+
+        if (editingEvent) {
+            // Update existing
+            await updateEvent({
+                ...editingEvent,
+                title: newEventTitle,
+                type: newEventType,
+                description: newEventMsg
+            });
+        } else {
+            // Create new
+            await createEvent({
+                title: newEventTitle,
+                type: newEventType,
+                start_date: format(selectedDate, 'yyyy-MM-dd'),
+                end_date: format(selectedDate, 'yyyy-MM-dd'),
+                description: newEventMsg
+            });
+        }
 
         setIsModalOpen(false);
+        setEditingEvent(null);
         fetchEvents();
     };
 
@@ -185,7 +211,8 @@ const AdminCalendar = () => {
                                     {dayEvents.map(event => (
                                         <div
                                             key={event.id}
-                                            className={`text-[10px] px-1.5 py-1 rounded border truncate flex justify-between items-center group/event ${getEventTypeColor(event.type)}`}
+                                            onClick={(e) => handleEventClick(event, e)}
+                                            className={`text-[10px] px-1.5 py-1 rounded border truncate flex justify-between items-center group/event ${getEventTypeColor(event.type)} cursor-pointer hover:opacity-80`}
                                             title={event.title}
                                         >
                                             <span className="truncate">{event.title}</span>
@@ -204,20 +231,20 @@ const AdminCalendar = () => {
                 </div>
             </div>
 
-            {/* Add Event Modal */}
+            {/* Add/Edit Event Modal */}
             {isModalOpen && selectedDate && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
                     <div className="bg-slate-900 rounded-xl border border-slate-700 w-full max-w-md shadow-2xl animate-fade-in-up">
                         <div className="flex justify-between items-center p-6 border-b border-slate-800">
                             <h3 className="text-xl font-bold text-white">
-                                Nuevo Evento: <span className="text-[#1FB6D5]">{format(selectedDate, 'd MMMM', { locale: es })}</span>
+                                {editingEvent ? 'Editar Evento' : 'Nuevo Evento'}: <span className="text-[#1FB6D5]">{format(selectedDate, 'd MMMM', { locale: es })}</span>
                             </h3>
                             <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-white">
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
 
-                        <form onSubmit={handleCreateEvent} className="p-6 space-y-4">
+                        <form onSubmit={handleSaveEvent} className="p-6 space-y-4">
                             <div>
                                 <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Título</label>
                                 <input
@@ -265,7 +292,7 @@ const AdminCalendar = () => {
                                     Cancelar
                                 </Button>
                                 <Button type="submit" className="bg-[#1FB6D5] text-[#021019] font-bold hover:bg-white">
-                                    Guardar Evento
+                                    {editingEvent ? 'Guardar Cambios' : 'Crear Evento'}
                                 </Button>
                             </div>
                         </form>

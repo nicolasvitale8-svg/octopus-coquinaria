@@ -123,6 +123,55 @@ export const createEvent = async (event: Omit<CalendarEvent, 'id' | 'created_at'
     return newEvent;
 };
 
+
+/**
+ * Update event.
+ */
+export const updateEvent = async (event: CalendarEvent): Promise<CalendarEvent> => {
+    // 1. Update Local
+    try {
+        const localData = localStorage.getItem(CALENDAR_STORAGE_KEY);
+        if (localData) {
+            const list: CalendarEvent[] = JSON.parse(localData);
+            const index = list.findIndex(e => e.id === event.id);
+            if (index !== -1) {
+                list[index] = event;
+                localStorage.setItem(CALENDAR_STORAGE_KEY, JSON.stringify(list));
+                console.log("✅ Event updated locally");
+            }
+        }
+    } catch (e) {
+        console.error("Error updating local event", e);
+    }
+
+    // 2. Sync Supabase (Background)
+    if (supabase) {
+        (async () => {
+            try {
+                // Map to DB columns
+                const dbRow = {
+                    id: event.id,
+                    titulo: event.title,
+                    mensaje: event.description,
+                    description: event.description, // redundancy
+                    fecha_inicio: event.start_date,
+                    fecha_fin: event.end_date || event.start_date,
+                    tipo: event.type,
+                    prioridad: 1 // Default or add to interface if needed
+                };
+
+                const { error } = await supabase.from('eventos_calendario').upsert(dbRow);
+                if (error) console.warn("Background Sync: Supabase update failed:", error.message);
+                else console.log("Background Sync: Event updated in Supabase");
+            } catch (e) {
+                console.error("Background Sync exception", e);
+            }
+        })();
+    }
+
+    return event;
+};
+
 /**
  * Delete event.
  */

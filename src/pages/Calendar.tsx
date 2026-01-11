@@ -204,58 +204,69 @@ const CalendarPage = () => {
 
                     {isExpanded && (
                       <div className="grid grid-cols-1 gap-4 animate-slide-down">
-                        {(monthEvents as any[]).map((evt: any) => (
-                          <div
-                            key={evt.id}
-                            onClick={() => handleEventClick(evt)}
-                            className="bg-slate-900 rounded-xl border border-slate-800 p-6 hover:border-[#1FB6D5]/30 transition-all group relative overflow-hidden cursor-pointer hover:bg-slate-800/50"
-                          >
-                            {/* Left accent border based on PRIORITY */}
-                            <div className={`absolute left-0 top-0 bottom-0 w-1 ${evt.prioridad === 3 ? 'bg-red-500' : (evt.prioridad === 2 ? 'bg-[#1FB6D5]' : 'bg-slate-700')}`}></div>
+                        {(monthEvents as any[]).map((evt: any) => {
+                          // Check if this event is today or future to potentially scroll to it
+                          const eventDate = new Date(evt.fecha_inicio);
+                          const today = new Date();
+                          today.setHours(0, 0, 0, 0);
+                          const isFutureOrToday = eventDate >= today;
 
-                            <div className="flex flex-col gap-4">
+                          return (
+                            <div
+                              key={evt.id}
+                              id={`event-${evt.id}`}
+                              data-future={isFutureOrToday}
+                              onClick={() => handleEventClick(evt)}
+                              className="bg-slate-900 rounded-xl border border-slate-800 p-6 hover:border-[#1FB6D5]/30 transition-all group relative overflow-hidden cursor-pointer hover:bg-slate-800/50"
+                            >
+                              {/* Left accent border based on PRIORITY */}
+                              <div className={`absolute left-0 top-0 bottom-0 w-1 ${evt.prioridad === 3 ? 'bg-red-500' : (evt.prioridad === 2 ? 'bg-[#1FB6D5]' : 'bg-slate-700')}`}></div>
 
-                              {/* Header: Date & Type */}
-                              <div className="flex justify-between items-start border-b border-slate-800 pb-3">
-                                <div>
-                                  <div className="flex items-center gap-2 text-[#1FB6D5] font-mono text-sm mb-1">
-                                    <CalendarIcon className="w-4 h-4" />
-                                    <span>
-                                      {(() => {
-                                        const datePart = evt.fecha_inicio.split('T')[0]; // YYYY-MM-DD
-                                        return datePart;
-                                      })()}
+                              <div className="flex flex-col gap-4">
+
+                                {/* Header: Date & Type */}
+
+                                <div className="flex justify-between items-start border-b border-slate-800 pb-3">
+                                  <div>
+                                    <div className="flex items-center gap-2 text-[#1FB6D5] font-mono text-sm mb-1">
+                                      <CalendarIcon className="w-4 h-4" />
+                                      <span>
+                                        {(() => {
+                                          const datePart = evt.fecha_inicio.split('T')[0]; // YYYY-MM-DD
+                                          return datePart;
+                                        })()}
+                                      </span>
+                                    </div>
+                                    <h3 className="text-xl font-bold text-white leading-tight">
+                                      {evt.titulo}
+                                    </h3>
+                                  </div>
+                                  <div className="flex flex-col items-end gap-2">
+                                    {getPriorityBadge(evt.prioridad)}
+                                    <span className="flex items-center text-xs font-bold uppercase text-slate-400 tracking-wider bg-slate-800 px-2 py-1 rounded">
+                                      {getEventIcon(evt.tipo)}
+                                      <span className="ml-1">{evt.tipo.replace('_', ' ')}</span>
                                     </span>
                                   </div>
-                                  <h3 className="text-xl font-bold text-white leading-tight">
-                                    {evt.titulo}
-                                  </h3>
                                 </div>
-                                <div className="flex flex-col items-end gap-2">
-                                  {getPriorityBadge(evt.prioridad)}
-                                  <span className="flex items-center text-xs font-bold uppercase text-slate-400 tracking-wider bg-slate-800 px-2 py-1 rounded">
-                                    {getEventIcon(evt.tipo)}
-                                    <span className="ml-1">{evt.tipo.replace('_', ' ')}</span>
-                                  </span>
-                                </div>
-                              </div>
 
-                              {/* Description / Content */}
-                              <div className="text-slate-300 text-sm whitespace-pre-wrap font-sans space-y-2">
-                                {evt.description || evt.mensaje ? (
-                                  <>
-                                    <strong className="block text-slate-500 uppercase text-xs tracking-wider mb-1">Notas / Descripción:</strong>
-                                    <div className="pl-2 border-l-2 border-slate-800">
-                                      {evt.description || evt.mensaje}
-                                    </div>
-                                  </>
-                                ) : (
-                                  <span className="italic text-slate-600">Sin descripción adicional.</span>
-                                )}
+                                {/* Description / Content */}
+                                <div className="text-slate-300 text-sm whitespace-pre-wrap font-sans space-y-2">
+                                  {evt.description || evt.mensaje ? (
+                                    <>
+                                      <strong className="block text-slate-500 uppercase text-xs tracking-wider mb-1">Notas / Descripción:</strong>
+                                      <div className="pl-2 border-l-2 border-slate-800">
+                                        {evt.description || evt.mensaje}
+                                      </div>
+                                    </>
+                                  ) : (
+                                    <span className="italic text-slate-600">Sin descripción adicional.</span>
+                                  )}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
                   </div>
