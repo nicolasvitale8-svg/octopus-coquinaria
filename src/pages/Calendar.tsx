@@ -31,8 +31,9 @@ const CalendarPage = () => {
       const { data, error } = await supabase
         .from('eventos_calendario')
         .select('*')
-        // .gte('fecha_inicio', startOfCurrentWeek.toISOString()) // Filter past events at DB level or frontend? RELAXED FOR VISIBILITY
-        .order('fecha_inicio', { ascending: false }); // Show newest/future first, but include old ones just in case
+        .order('fecha_inicio', { ascending: true }); // Eventos más cercanos primero
+
+      console.log("DEBUG Calendar: fetched events:", data?.length, "error:", error?.message);
 
       if (data) {
         setEvents(data);
@@ -222,20 +223,23 @@ const CalendarPage = () => {
       {/* Modal de Guía */}
       {showGuide && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-fade-in">
-          <div className="relative bg-slate-900 border border-slate-700 rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-auto shadow-2xl animate-scale-in">
-            <button
-              onClick={() => setShowGuide(false)}
-              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-full transition-all z-10"
-            >
-              <X className="w-6 h-6" />
-            </button>
-
-            <div className="p-8 space-y-6">
-              <div className="flex items-center gap-3 border-b border-slate-700 pb-4">
+          <div className="relative bg-slate-900 border border-slate-700 rounded-2xl max-w-3xl w-full max-h-[90vh] flex flex-col shadow-2xl animate-scale-in">
+            {/* Header Sticky */}
+            <div className="sticky top-0 bg-slate-900 border-b border-slate-700 rounded-t-2xl p-6 flex items-center justify-between z-20">
+              <div className="flex items-center gap-3">
                 <CalendarIcon className="w-8 h-8 text-[#1FB6D5]" />
-                <h2 className="text-2xl font-bold text-white font-space">🗓 Guía rápida para leer el Calendario</h2>
+                <h2 className="text-xl font-bold text-white font-space">🗓 Guía para leer el Calendario</h2>
               </div>
+              <button
+                onClick={() => setShowGuide(false)}
+                className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-full transition-all"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
 
+            {/* Scrollable Content */}
+            <div className="overflow-auto p-8 space-y-6">
               <p className="text-slate-300 text-lg font-medium">El calendario no es decorativo: <span className="text-[#1FB6D5]">es tu plan operativo.</span></p>
 
               {/* Tipos de Evento */}
