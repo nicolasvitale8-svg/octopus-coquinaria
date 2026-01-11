@@ -195,10 +195,10 @@ const AdminBoard = () => {
                                 const status = getItemStatus(item);
                                 return (
                                     <tr key={item.id} className="hover:bg-slate-800/30 transition-colors group">
-                                        <td className="px-6 py-4">
+                                        <td className="px-6 py-4 max-w-lg">
                                             <div className="flex flex-col">
                                                 <div className="flex items-center gap-2 mb-1">
-                                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${item.type === 'TIP' ? 'bg-yellow-400/10 text-yellow-400' :
+                                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase whitespace-nowrap ${item.type === 'TIP' ? 'bg-yellow-400/10 text-yellow-400' :
                                                         item.type === 'DESCUENTO' ? 'bg-green-400/10 text-green-400' :
                                                             item.type === 'NOVEDAD_APP' ? 'bg-[#1FB6D5]/10 text-[#1FB6D5]' : 'bg-purple-400/10 text-purple-400'
                                                         }`}>
@@ -206,7 +206,7 @@ const AdminBoard = () => {
                                                     </span>
                                                     <span className="font-bold text-white group-hover:text-[#1FB6D5] transition-colors">{item.title}</span>
                                                 </div>
-                                                <span className="text-xs text-slate-500 line-clamp-1">{item.summary}</span>
+                                                <span className="text-xs text-slate-500 line-clamp-2 whitespace-normal">{item.summary}</span>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 text-center">

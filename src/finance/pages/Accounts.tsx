@@ -221,45 +221,60 @@ export const Accounts: React.FC = () => {
             <table className="w-full text-left text-sm">
               <thead className="bg-fin-bg/40 border-b border-fin-border">
                 <tr className="text-[10px] text-fin-muted font-black uppercase tracking-widest">
-                  <th className="px-10 py-6">Activo Financiero</th>
-                  <th className="px-10 py-6 text-right">Saldo de Apertura</th>
+                  <th className="px-8 py-6">Activo Financiero</th>
+                  <th className="px-6 py-6 text-right">Saldo de Apertura</th>
+                  <th className="px-6 py-6 text-right">Saldo Actual</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-fin-border/30">
-                {accounts.filter(a => a.isActive).map(acc => (
-                  <tr key={acc.id} className="hover:bg-fin-bg/30 transition-colors">
-                    <td className="px-10 py-6 font-bold text-white uppercase text-xs flex items-center gap-4">
-                      <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.4)]"></div>
-                      {acc.name}
-                    </td>
-                    <td className="px-10 py-6 text-right flex items-center justify-end gap-3">
-                      <input
-                        type="text"
-                        inputMode="decimal"
-                        className="w-44 text-right bg-[#020b14] border border-white/10 rounded-xl px-4 py-2 text-sm text-white font-black outline-none focus:border-brand transition-all"
-                        placeholder="0,00"
-                        defaultValue={formatArgNumber(getBalance(acc.id))}
-                        onBlur={(e) => {
-                          const parsed = parseArgNumber(e.target.value);
-                          updateOpeningBalance(acc.id, parsed);
-                          e.target.value = formatArgNumber(parsed);
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.currentTarget.blur();
-                          }
-                        }}
-                      />
-                      <button
-                        onClick={() => { setConciliatingAccount(acc); setRealBalance(''); setIsConciliateModalOpen(true); }}
-                        className="p-2 bg-brand/10 text-brand rounded-xl border border-brand/20 hover:bg-brand hover:text-white transition-all shadow-sm"
-                        title="Conciliar Saldo Real"
-                      >
-                        <Zap size={16} />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {accounts.filter(a => a.isActive).map(acc => {
+                  const openingBal = getBalance(acc.id);
+                  const accTransactions = transactions.filter(t => t.accountId === acc.id && new Date(t.date).getMonth() === currentMonth && new Date(t.date).getFullYear() === currentYear);
+                  const monthlyIn = accTransactions.filter(t => t.type === 'IN').reduce((s, t) => s + t.amount, 0);
+                  const monthlyOut = accTransactions.filter(t => t.type === 'OUT').reduce((s, t) => s + t.amount, 0);
+                  const currentBalance = openingBal + monthlyIn - monthlyOut;
+                  return (
+                    <tr key={acc.id} className="hover:bg-fin-bg/30 transition-colors">
+                      <td className="px-8 py-5 font-bold text-white uppercase text-xs flex items-center gap-4">
+                        <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.4)]"></div>
+                        {acc.name}
+                      </td>
+                      <td className="px-6 py-5 text-right">
+                        <div className="flex items-center justify-end gap-3">
+                          <input
+                            type="text"
+                            inputMode="decimal"
+                            className="w-40 text-right bg-[#020b14] border border-white/10 rounded-xl px-4 py-2 text-sm text-white font-black outline-none focus:border-brand transition-all"
+                            placeholder="0,00"
+                            defaultValue={formatArgNumber(openingBal)}
+                            onBlur={(e) => {
+                              const parsed = parseArgNumber(e.target.value);
+                              updateOpeningBalance(acc.id, parsed);
+                              e.target.value = formatArgNumber(parsed);
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.currentTarget.blur();
+                              }
+                            }}
+                          />
+                          <button
+                            onClick={() => { setConciliatingAccount(acc); setRealBalance(''); setIsConciliateModalOpen(true); }}
+                            className="p-2 bg-brand/10 text-brand rounded-xl border border-brand/20 hover:bg-brand hover:text-white transition-all shadow-sm"
+                            title="Conciliar Saldo Real"
+                          >
+                            <Zap size={16} />
+                          </button>
+                        </div>
+                      </td>
+                      <td className="px-6 py-5 text-right">
+                        <span className={`text-sm font-black tabular-nums ${currentBalance >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                          {formatCurrency(currentBalance)}
+                        </span>
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>

@@ -24,16 +24,16 @@ const AcademyResourceTable: React.FC<AcademyResourceTableProps> = ({ resources, 
     return (
         <div className="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden shadow-xl">
             <div className="overflow-x-auto">
-                <table className="min-w-full text-left text-sm whitespace-nowrap">
+                <table className="min-w-full text-left text-sm">
                     <thead className="bg-slate-950/50 text-slate-400 uppercase tracking-wider font-bold text-xs font-space">
                         <tr>
-                            <th className="px-6 py-5">Fmt</th>
-                            <th className="px-6 py-5">Título / Outcome</th>
-                            <th className="px-6 py-5">Categoría</th>
-                            <th className="px-6 py-5">Impacto</th>
-                            <th className="px-6 py-5">Nivel</th>
-                            <th className="px-6 py-5">Acceso</th>
-                            <th className="px-6 py-5 text-right">Acciones</th>
+                            <th className="px-4 py-5 w-16">Fmt</th>
+                            <th className="px-4 py-5">Título / Outcome</th>
+                            <th className="px-4 py-5 whitespace-nowrap">Categoría</th>
+                            <th className="px-4 py-5 whitespace-nowrap">Impacto</th>
+                            <th className="px-4 py-5 whitespace-nowrap">Nivel</th>
+                            <th className="px-4 py-5 whitespace-nowrap">Acceso</th>
+                            <th className="px-4 py-5 text-right whitespace-nowrap">Acciones</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-800">
@@ -42,14 +42,14 @@ const AcademyResourceTable: React.FC<AcademyResourceTableProps> = ({ resources, 
                         ) : resources.length > 0 ? (
                             resources.map((resource) => (
                                 <tr key={resource.id} className="hover:bg-slate-800/50 transition-colors">
-                                    <td className="px-6 py-4">
+                                    <td className="px-4 py-4">
                                         <div className="bg-slate-800 p-2 rounded-lg inline-block">
                                             {getIcon(resource.format)}
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4">
+                                    <td className="px-4 py-4 max-w-md">
                                         <div className="font-bold text-white text-sm">{resource.title}</div>
-                                        <div className="text-[#1FB6D5] text-[10px] font-bold uppercase italic mt-1">{resource.outcome || 'Sin outcome'}</div>
+                                        <div className="text-[#1FB6D5] text-[10px] font-bold uppercase italic mt-1 break-words whitespace-normal">{resource.outcome || 'Sin outcome'}</div>
                                     </td>
                                     <td className="px-6 py-4">
                                         <span className="text-xs font-bold text-slate-300 uppercase">{resource.category}</span>
