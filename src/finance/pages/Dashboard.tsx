@@ -19,6 +19,12 @@ interface PeriodAccountState {
   hasOpeningRecord: boolean;
 }
 
+// Helper para parsear fechas string "YYYY-MM-DD" en local sin timezone shift
+const parseDate = (dateStr: string) => {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  return new Date(y, m - 1, d);
+};
+
 const DetailModal: React.FC<{
   type: 'IN' | 'OUT' | 'BALANCE' | 'INVESTED';
   onClose: () => void;
@@ -32,7 +38,7 @@ const DetailModal: React.FC<{
   const data = React.useMemo(() => {
     if (type === 'IN' || type === 'OUT') {
       const filtered = transactions.filter(t => {
-        const d = new Date(t.date);
+        const d = parseDate(t.date);
         const isTransfer = t.description?.toLowerCase().includes('transferencia');
         return d.getMonth() === month && d.getFullYear() === year && t.type === type && !isTransfer;
       });
@@ -164,8 +170,18 @@ export const Dashboard: React.FC = () => {
   useEffect(() => { loadData(); }, [activeEntity]);
   useEffect(() => { calculateDashboardData(); }, [currentMonth, currentYear, transactions, monthlyBalances, accounts]);
 
+
   const loadData = async () => {
     setLoading(true);
+    // Limpiar estados para evitar mostrar datos del contexto anterior
+    setTransactions([]);
+    setAccounts([]);
+    setJars([]);
+    setMonthlyBalances([]);
+    setCategories([]);
+    setSubCategories([]);
+    setBudgetItems([]);
+
     try {
       const bId = activeEntity.id || undefined;
       const [t, acc, j, mb, cat, subCat, budget] = await Promise.all([
@@ -203,7 +219,7 @@ export const Dashboard: React.FC = () => {
   const totalIn = React.useMemo(() => {
     return transactions
       .filter(t => {
-        const d = new Date(t.date);
+        const d = parseDate(t.date);
         const isTransfer = t.description?.toLowerCase().includes('transferencia');
         return d.getMonth() === currentMonth && d.getFullYear() === currentYear && t.type === 'IN' && !isTransfer;
       })
@@ -213,7 +229,7 @@ export const Dashboard: React.FC = () => {
   const totalOut = React.useMemo(() => {
     return transactions
       .filter(t => {
-        const d = new Date(t.date);
+        const d = parseDate(t.date);
         const isTransfer = t.description?.toLowerCase().includes('transferencia');
         return d.getMonth() === currentMonth && d.getFullYear() === currentYear && t.type === 'OUT' && !isTransfer;
       })
@@ -236,7 +252,7 @@ export const Dashboard: React.FC = () => {
 
     transactions
       .filter(t => {
-        const d = new Date(t.date);
+        const d = parseDate(t.date);
         const isTransfer = t.description?.toLowerCase().includes('transferencia');
         return d.getMonth() === currentMonth && d.getFullYear() === currentYear && t.type === 'OUT' && !isTransfer;
       })

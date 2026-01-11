@@ -5,6 +5,7 @@ import QuickDiagnostic from './pages/QuickDiagnostic';
 import DeepDiagnostic from './pages/DeepDiagnostic';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
+import ResetPassword from './pages/ResetPassword';
 import Methodology from './pages/Methodology';
 import Academy from './pages/Academy';
 import ResourceDetail from './pages/ResourceDetail';
@@ -109,6 +110,7 @@ const App = () => {
             <Route path="/academy" element={<Academy />} />
             <Route path="/academy/:id" element={<ResourceDetail />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
 
             <Route path="/about" element={<About />} />
             <Route path="/services" element={<Services />} />
