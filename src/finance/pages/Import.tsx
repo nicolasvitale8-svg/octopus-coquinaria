@@ -29,6 +29,7 @@ export const ImportPage: React.FC = () => {
   const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
   const [rules, setRules] = useState<TextCategoryRule[]>([]);
   const [existingTransactions, setExistingTransactions] = useState<Transaction[]>([]);
+  const [isImporting, setIsImporting] = useState(false);
 
   useEffect(() => { loadData(); }, [activeEntity]);
 
@@ -150,14 +151,20 @@ export const ImportPage: React.FC = () => {
   };
 
   const handleImport = async () => {
+    if (isImporting) return; // Prevenir doble clic
+
     const toImport = importedLines.filter(l => l.isSelected && l.categoryId);
     if (toImport.length === 0) {
       alert("No hay movimientos seleccionados con categoría asignada.");
       return;
     }
 
+    setIsImporting(true);
+
     try {
       const bId = activeEntity.id || undefined;
+
+      // Importar las transacciones
       await Promise.all(toImport.map(line =>
         SupabaseService.addTransaction({
           date: line.date,
@@ -170,11 +177,44 @@ export const ImportPage: React.FC = () => {
         }, bId)
       ));
 
-      alert(`${toImport.length} movimientos importados con éxito.`);
-      navigate('/transactions');
+      // Auto-aprender: crear reglas para las asignaciones manuales que no tenían regla
+      const linesToLearn = toImport.filter(line => {
+        // Solo crear regla si la descripción no fue categorizada por una regla existente
+        const hasRule = rules.some(r =>
+          r.isActive && line.description.toLowerCase().includes(r.pattern.toLowerCase())
+        );
+        return !hasRule && line.categoryId;
+      });
+
+      // Crear reglas automáticamente (solo para descripciones únicas)
+      const learnedPatterns = new Set<string>();
+      for (const line of linesToLearn) {
+        // Extraer palabra clave de la descripción (primeras 2-3 palabras significativas)
+        const words = line.description.split(/\s+/).filter(w => w.length > 3).slice(0, 2);
+        const pattern = words.join(' ').toLowerCase();
+
+        if (pattern.length > 3 && !learnedPatterns.has(pattern)) {
+          learnedPatterns.add(pattern);
+          try {
+            await SupabaseService.saveRule({
+              pattern: pattern,
+              categoryId: line.categoryId!,
+              subCategoryId: line.subCategoryId,
+              matchType: 'contains',
+              isActive: true
+            }, bId);
+          } catch (e) {
+            console.log('Error creating rule:', e);
+          }
+        }
+      }
+
+      alert(`${toImport.length} movimientos importados con éxito.${learnedPatterns.size > 0 ? ` Se crearon ${learnedPatterns.size} reglas automáticamente.` : ''}`);
+      navigate('/finance/transactions');
     } catch (error) {
       console.error("Error importing transactions:", error);
       alert("Ocurrió un error al importar los movimientos.");
+      setIsImporting(false);
     }
   };
 
@@ -313,9 +353,14 @@ export const ImportPage: React.FC = () => {
         </div>
         <button
           onClick={handleImport}
-          className="w-full sm:w-auto bg-emerald-500 text-white px-10 py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl shadow-emerald-500/20 flex items-center justify-center gap-3 hover:bg-emerald-600 transition-all"
+          disabled={isImporting || importedLines.filter(l => l.isSelected && l.categoryId).length === 0}
+          className="w-full sm:w-auto bg-emerald-500 text-white px-10 py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl shadow-emerald-500/20 flex items-center justify-center gap-3 hover:bg-emerald-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <CheckCircle2 size={18} /> Importar ({importedLines.filter(l => l.isSelected).length})
+          {isImporting ? (
+            <><Loader2 size={18} className="animate-spin" /> Importando...</>
+          ) : (
+            <><CheckCircle2 size={18} /> Importar ({importedLines.filter(l => l.isSelected).length})</>
+          )}
         </button>
       </div>
 
