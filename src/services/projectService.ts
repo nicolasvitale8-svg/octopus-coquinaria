@@ -97,16 +97,6 @@ export const getProjectById = async (id: string): Promise<Project | null> => {
                             .from('projects')
                             .select(`
                                 *,
-                                business_memberships (
-                                    user_id,
-                                    usuarios (
-                                        id,
-                                        full_name,
-                                        email,
-                                        role,
-                                        job_title
-                                    )
-                                ),
                                 project_members (
                                     user_id,
                                     role_id,
