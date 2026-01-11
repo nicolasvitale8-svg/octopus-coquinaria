@@ -6,6 +6,7 @@ import { Project } from '../types';
 import { Activity, ArrowLeft } from 'lucide-react';
 import Button from '../components/ui/Button';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '../services/supabase';
 
 // Imported Components
 import ProjectHeader from '../components/project/ProjectHeader';
@@ -23,7 +24,7 @@ import ClientProjectView from '../components/project/ClientProjectView';
 type ProjectHubTab = 'overview' | 'tasks' | 'deliverables' | 'journal';
 
 const AdminProjectHub = () => {
-    const { profile } = useAuth();
+    const { profile, user } = useAuth();
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const [project, setProject] = useState<Project | null>(null);
@@ -40,12 +41,25 @@ const AdminProjectHub = () => {
 
         // --- PROTECCIÓN DE ACCESO ---
         const isSuperAdmin = profile?.role === 'admin';
-        const hasAccess = isSuperAdmin || (profile?.businessIds || []).includes(projectId);
+
+        // For non-admins, check if user has project membership
+        let hasAccess = isSuperAdmin;
+
+        if (!isSuperAdmin && user) {
+            const { data: membership } = await supabase
+                .from('project_members')
+                .select('id')
+                .eq('project_id', projectId)
+                .eq('user_id', user.id)
+                .single();
+
+            hasAccess = !!membership;
+        }
 
         if (!hasAccess) {
             console.warn("🚫 Intento de acceso no autorizado a proyecto:", projectId);
             setIsLoading(false);
-            setProject(null); // Esto disparará el mensaje de "Proyecto no encontrado" o podemos poner uno de "Sin Acceso"
+            setProject(null);
             return;
         }
 
