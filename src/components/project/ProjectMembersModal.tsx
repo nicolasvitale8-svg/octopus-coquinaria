@@ -41,6 +41,7 @@ const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({ project, isOp
 
     const handleAddUser = async (user: Partial<AppUser>) => {
         setIsSaving(true);
+        console.log("DEBUG: Adding user:", user.id, "to project:", project.id, "with default role: consultant");
         const success = await memberService.addOrUpdateMember({
             project_id: project.id,
             user_id: user.id,
@@ -49,6 +50,8 @@ const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({ project, isOp
         if (success) {
             await loadData();
             onUpdate();
+        } else {
+            alert("❌ Error al agregar miembro. Revisá la consola para más detalles.");
         }
         setIsSaving(false);
     };
@@ -56,23 +59,31 @@ const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({ project, isOp
     const handleRemoveMember = async (userId: string) => {
         if (!confirm('¿Eliminar a este miembro del proyecto?')) return;
         setIsSaving(true);
+        console.log("DEBUG: Removing user:", userId, "from project:", project.id);
         const success = await memberService.removeMember(project.id, userId);
         if (success) {
             await loadData();
             onUpdate();
+        } else {
+            alert("❌ Error al eliminar miembro. Revisá la consola para más detalles.");
         }
         setIsSaving(false);
     };
 
     const handleUpdateRole = async (userId: string, roleId: string) => {
         setIsSaving(true);
-        await memberService.addOrUpdateMember({
+        console.log("DEBUG: Updating role for user:", userId, "in project:", project.id, "to roleId:", roleId);
+        const success = await memberService.addOrUpdateMember({
             project_id: project.id,
             user_id: userId,
             role_id: roleId
         });
-        await loadData();
-        onUpdate();
+        if (success) {
+            await loadData();
+            onUpdate();
+        } else {
+            alert("❌ Error al actualizar el rol. Revisá la consola para más detalles.");
+        }
         setIsSaving(false);
     };
 

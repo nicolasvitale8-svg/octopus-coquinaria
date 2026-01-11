@@ -45,13 +45,15 @@ export const memberService = {
     addOrUpdateMember: async (membership: Partial<ProjectMember>): Promise<boolean> => {
         if (!supabase) return false;
 
+        console.log("DEBUG memberService.addOrUpdateMember:", membership);
+
         const { error } = await supabase
             .from('project_members')
-            .upsert(membership)
+            .upsert(membership, { onConflict: 'project_id, user_id' })
             .select();
 
         if (error) {
-            console.error("Error saving project member:", error);
+            console.error("Error saving project member:", error.message, error.details, error.hint);
             return false;
         }
 
@@ -64,13 +66,15 @@ export const memberService = {
     removeMember: async (projectId: string, userId: string): Promise<boolean> => {
         if (!supabase) return false;
 
+        console.log("DEBUG memberService.removeMember:", { projectId, userId });
+
         const { error } = await supabase
             .from('project_members')
             .delete()
             .match({ project_id: projectId, user_id: userId });
 
         if (error) {
-            console.error("Error removing project member:", error);
+            console.error("Error removing project member:", error.message, error.details, error.hint);
             return false;
         }
 
