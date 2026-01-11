@@ -199,6 +199,8 @@ const AdminProjects = () => {
                                                         const result = await updateProject(updated);
                                                         if (result) {
                                                             setProjects(prev => prev.map(p => p.id === project.id ? result : p));
+                                                        } else {
+                                                            alert('❌ Error al guardar en el servidor. Intenta de nuevo o revisa la consola.');
                                                         }
                                                         setProcessingAction(null);
                                                     }}

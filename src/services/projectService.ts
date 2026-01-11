@@ -276,10 +276,15 @@ export const updateProject = async (project: Project): Promise<Project | null> =
                 setTimeout(() => resolve({ timeout: true }), 10000);
             });
 
+            // SANITIZE: Remove virtual/joined fields that don't exist in the 'projects' table
+            const { tasks, deliverables, project_members, business_memberships, ...cleanProject } = safeProject as any;
+
+            console.log("🧹 Sanitized project for upsert:", Object.keys(cleanProject));
+
             // Use upsert to handle both updates and potential recovery of missing records
             const upsertPromise = supabase
                 .from('projects')
-                .upsert(project)
+                .upsert(cleanProject)
                 .select();
 
             const result = await Promise.race([upsertPromise, timeoutPromise]);
@@ -287,17 +292,18 @@ export const updateProject = async (project: Project): Promise<Project | null> =
             if ('timeout' in result) {
                 console.error("❌ Supabase UPDATE timed out. Saved locally only.");
             } else {
-                const { error } = result as any;
+                const { error, data } = result as any;
                 if (error) {
-                    console.error("⚠️ Supabase Update/Upsert Failed:", error.message);
-                    // We don't throw here to allowing continuing offline
+                    console.error("⚠️ Supabase Update/Upsert Failed:", error.message, error.details, error.hint);
+                    // Return null to signal failure to UI
+                    return null;
                 } else {
-                    console.log("✅ Project synced to Supabase");
+                    console.log("✅ Project synced to Supabase:", data?.[0]?.business_name);
                 }
             }
         } catch (e) {
             console.error("Supabase update exception", e);
-            // Don't re-throw, let UI continue with local state
+            return null;
         }
     }
 
