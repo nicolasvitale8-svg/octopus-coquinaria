@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { SupabaseService } from '../services/supabaseService';
 import { Account, Category, SubCategory, ImportLine, TransactionType, Transaction, TextCategoryRule } from '../financeTypes';
-import { parseRawText, applyRules } from '../utils/importEngine';
+import { parseImportText, applyRules } from '../utils/importEngine';
 import { formatCurrency } from '../utils/calculations';
 import { Camera, Loader2, CheckCircle2, ChevronLeft, ChevronRight, FileText, Sparkles, AlertTriangle, Trash2, Info, RotateCcw, FileUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -130,7 +130,7 @@ export const ImportPage: React.FC = () => {
 
   const processText = () => {
     if (!selectedAccountId) return alert("Por favor, selecciona la cuenta donde se guardarán los movimientos.");
-    let lines = parseRawText(rawText);
+    let lines = parseImportText(rawText);
 
     lines = applyRules(lines, rules).map(line => ({
       ...line,

@@ -160,6 +160,79 @@ export const parseRawText = (text: string): ImportLine[] => {
 };
 
 /**
+ * Parser específico para el resumen PDF de Mercado Pago.
+ * Formato típico del PDF:
+ * "Fecha Descripción ID de la operación Valor Saldo"
+ * "01-01-2026 Pago Google 139632256637 $ -37.866,12 $ 342.235,94"
+ */
+export const parseMercadoPagoPDF = (text: string): ImportLine[] => {
+    const result: ImportLine[] = [];
+
+    // Regex para detectar líneas de transacciones de MP
+    // Formato: DD-MM-YYYY Descripción ID $ Monto $ Saldo
+    const transactionRegex = /(\d{2}-\d{2}-\d{4})\s+(.+?)\s+(\d{10,})\s+\$\s*([\-\d\.,]+)\s+\$\s*([\d\.,]+)/g;
+
+    // También detectar formato alternativo sin ID largo
+    const altRegex = /(\d{2}-\d{2}-\d{4})\s+([A-Za-zÁÉÍÓÚáéíóúñÑ\s\*']+)\s+\$\s*([\-\d\.,]+)/g;
+
+    let match;
+
+    // Primero intentar con el regex principal (con ID)
+    while ((match = transactionRegex.exec(text)) !== null) {
+        const [, dateStr, description, , valueStr] = match;
+
+        // Convertir fecha de DD-MM-YYYY a YYYY-MM-DD
+        const [day, month, year] = dateStr.split('-');
+        const formattedDate = `${year}-${month}-${day}`;
+
+        // Parsear el valor (quitar puntos de miles y convertir coma a punto)
+        const cleanValue = valueStr.replace(/\./g, '').replace(',', '.');
+        let amount = parseFloat(cleanValue);
+
+        // Determinar tipo (IN/OUT) basado en el signo
+        const type = amount < 0 ? TransactionType.OUT : TransactionType.IN;
+        amount = Math.abs(amount);
+
+        // Limpiar descripción
+        const cleanDesc = description.trim().replace(/\s+/g, ' ');
+
+        result.push({
+            id: crypto.randomUUID(),
+            rawText: match[0],
+            date: formattedDate,
+            description: cleanDesc,
+            amount: amount,
+            type: type,
+            isSelected: true,
+            isDuplicate: false
+        });
+    }
+
+    return result;
+};
+
+/**
+ * Función principal que detecta el formato y usa el parser apropiado.
+ */
+export const parseImportText = (text: string): ImportLine[] => {
+    // Detectar si es un resumen de Mercado Pago
+    const isMercadoPagoPDF = text.includes('RESUMEN DE CUENTA') ||
+        text.includes('mercado pago') ||
+        text.includes('DETALLE DE MOVIMIENTOS') ||
+        /\d{2}-\d{2}-\d{4}.*\$\s*[\-\d\.,]+\s+\$\s*[\d\.,]+/.test(text);
+
+    if (isMercadoPagoPDF) {
+        const mpResults = parseMercadoPagoPDF(text);
+        if (mpResults.length > 0) {
+            return mpResults;
+        }
+    }
+
+    // Fallback al parser genérico
+    return parseRawText(text);
+};
+
+/**
  * Applies learned rules to categorize imported lines.
  */
 export const applyRules = (lines: ImportLine[], rules: TextCategoryRule[]): ImportLine[] => {
