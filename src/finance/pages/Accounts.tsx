@@ -551,9 +551,23 @@ export const Accounts: React.FC = () => {
               </div>
               <div className="space-y-1">
                 <label className="text-[10px] font-black uppercase text-fin-muted ml-1">Asignar Rubro</label>
-                <select value={editingRule?.categoryId || ''} onChange={e => setEditingRule({ ...editingRule, categoryId: e.target.value })} className="w-full bg-fin-bg border border-fin-border rounded-xl p-4 text-white text-xs font-bold" required>
+                <select value={editingRule?.categoryId || ''} onChange={e => setEditingRule({ ...editingRule, categoryId: e.target.value, subCategoryId: undefined })} className="w-full bg-fin-bg border border-fin-border rounded-xl p-4 text-white text-xs font-bold" required>
                   <option value="">Seleccionar rubro...</option>
                   {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-black uppercase text-fin-muted ml-1">Sub-Rubro (Opcional)</label>
+                <select
+                  value={editingRule?.subCategoryId || ''}
+                  onChange={e => setEditingRule({ ...editingRule, subCategoryId: e.target.value || undefined })}
+                  className="w-full bg-fin-bg border border-fin-border rounded-xl p-4 text-white text-xs font-bold disabled:opacity-30 disabled:cursor-not-allowed"
+                  disabled={!editingRule?.categoryId}
+                >
+                  <option value="">Sin sub-rubro específico</option>
+                  {subCategories
+                    .filter(s => s.categoryId === editingRule?.categoryId)
+                    .map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                 </select>
               </div>
               <button type="submit" className="w-full py-4 bg-brand text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-brand/20">Crear Regla</button>
