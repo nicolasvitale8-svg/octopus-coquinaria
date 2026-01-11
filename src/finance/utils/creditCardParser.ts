@@ -171,3 +171,56 @@ export function parseCreditCardStatement(text: string): CreditCardStatement | nu
             return parseNaranjaXStatement(text); // Fallback
     }
 }
+
+/**
+ * Detecta si el texto es un resumen de tarjeta de crédito
+ */
+export function isCreditCardStatement(text: string): boolean {
+    const lowerText = text.toLowerCase();
+    const ccKeywords = [
+        'tarjeta de crédito',
+        'tarjeta de credito',
+        'cuota/plan',
+        'resumen de cuenta',
+        'consumos tarjeta',
+        'naranjax',
+        'naranja x',
+        'tu cuenta está al día',
+        'fecha de vencimiento',
+        'pago mínimo'
+    ];
+    return ccKeywords.some(kw => lowerText.includes(kw));
+}
+
+/**
+ * Convierte las líneas del parser a ImportLines compatibles con el flujo existente
+ */
+export function toImportLines(statement: CreditCardStatement): Array<{
+    id: string;
+    rawText: string;
+    date: string;
+    description: string;
+    amount: number;
+    type: 'OUT';
+    isSelected: boolean;
+    isDuplicate: boolean;
+}> {
+    return statement.lines.map((line, index) => {
+        // Construir descripción con info de cuota
+        let description = line.description;
+        if (line.currentInstallment && line.totalInstallments) {
+            description += ` (${String(line.currentInstallment).padStart(2, '0')}/${String(line.totalInstallments).padStart(2, '0')})`;
+        }
+
+        return {
+            id: `cc-${index}-${Date.now()}`,
+            rawText: `${line.date} ${line.description} ${line.amount}`,
+            date: line.date,
+            description: description.toUpperCase(),
+            amount: line.amount,
+            type: 'OUT' as const,
+            isSelected: true,
+            isDuplicate: false
+        };
+    });
+}

@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { SupabaseService } from '../services/supabaseService';
 import { Account, Category, SubCategory, ImportLine, TransactionType, Transaction, TextCategoryRule } from '../financeTypes';
 import { parseImportText, applyRules } from '../utils/importEngine';
+import { isCreditCardStatement, parseCreditCardStatement, toImportLines as ccToImportLines } from '../utils/creditCardParser';
 import { formatCurrency } from '../utils/calculations';
-import { Camera, Loader2, CheckCircle2, ChevronLeft, ChevronRight, FileText, Sparkles, AlertTriangle, Trash2, Info, RotateCcw, FileUp } from 'lucide-react';
+import { Camera, Loader2, CheckCircle2, ChevronLeft, ChevronRight, FileText, Sparkles, AlertTriangle, Trash2, Info, RotateCcw, FileUp, CreditCard } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useFinanza } from '../context/FinanzaContext';
 import Tesseract from 'tesseract.js';
@@ -131,8 +132,25 @@ export const ImportPage: React.FC = () => {
 
   const processText = () => {
     if (!selectedAccountId) return alert("Por favor, selecciona la cuenta donde se guardarán los movimientos.");
-    let lines = parseImportText(rawText);
 
+    let lines: ImportLine[] = [];
+
+    // Detectar automáticamente si es un resumen de tarjeta de crédito
+    if (isCreditCardStatement(rawText)) {
+      const ccStatement = parseCreditCardStatement(rawText);
+      if (ccStatement && ccStatement.lines.length > 0) {
+        // Convertir a ImportLines y aplicar reglas
+        lines = ccToImportLines(ccStatement).map(l => ({ ...l, categoryId: undefined, subCategoryId: undefined })) as ImportLine[];
+        console.log(`📄 Resumen de TC detectado: ${ccStatement.cardType} - ${ccStatement.lines.length} consumos`);
+      }
+    }
+
+    // Si no es TC o no se pudo parsear, usar parser normal
+    if (lines.length === 0) {
+      lines = parseImportText(rawText);
+    }
+
+    // Aplicar reglas de auto-categorización
     lines = applyRules(lines, rules).map(line => ({
       ...line,
       isDuplicate: !!existingTransactions.find(t =>
