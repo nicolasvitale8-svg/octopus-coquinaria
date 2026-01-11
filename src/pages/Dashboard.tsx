@@ -93,7 +93,7 @@ const Dashboard = () => {
                 </Button>
               </Link>
             ) : (
-              <Link to="/hub">
+              <Link to="/hub/my-project">
                 <Button variant="outline" className="border-slate-800 bg-slate-900/40 text-slate-300 hover:bg-slate-800 font-bold px-6 py-6 h-auto transition-all">
                   <Building className="w-4 h-4 mr-2" /> Mi Proyecto
                 </Button>

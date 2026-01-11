@@ -19,7 +19,23 @@ const ClientProjectRedirect = () => {
             if (!supabase || !user) return;
 
             try {
-                // Fetch all projects accessible to this user
+                // First, try to find project via project_members (preferred method)
+                const { data: memberships, error: memberError } = await supabase
+                    .from('project_members')
+                    .select('project_id, projects(*)')
+                    .eq('user_id', user.id);
+
+                if (!memberError && memberships && memberships.length > 0) {
+                    // User has project membership - redirect to first project
+                    const firstProject = memberships[0]?.projects;
+                    if (firstProject) {
+                        console.log("Found project via membership:", firstProject);
+                        navigate(`/hub/projects/${(firstProject as any).id}`);
+                        return;
+                    }
+                }
+
+                // Fallback: Legacy search via team.client_email field
                 const { data: projects, error } = await supabase
                     .from('projects')
                     .select('*');
@@ -31,7 +47,6 @@ const ClientProjectRedirect = () => {
                     projects: projects || []
                 });
 
-                // Filter logic (Case Insensitive)
                 const userEmail = user.email?.toLowerCase().trim() || '';
 
                 const myProject = projects?.find((p: any) => {
