@@ -60,6 +60,8 @@ const AdminCalendar = () => {
 
     useEffect(() => {
         fetchEvents();
+        // Trigger background sync to ensure local events are pushed to Supabase
+        import('../services/calendarService').then(mod => mod.syncLocalEvents());
     }, [currentDate]);
 
     // --- Handlers ---

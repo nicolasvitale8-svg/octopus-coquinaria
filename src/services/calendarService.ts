@@ -154,46 +154,36 @@ export const syncLocalEvents = async (): Promise<void> => {
     const localEvents = getLocalEvents();
     if (localEvents.length === 0) return;
 
-    console.log(`🔄 Syncing ${localEvents.length} calendar events via RAW FETCH...`);
+    if (!supabase) return;
 
-    const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-    const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    console.log(`🔄 Syncing ${localEvents.length} calendar events via Supabase Client...`);
 
-    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) { return; }
-
-    // 2. Prepare Data (Map keys: description -> mensaje, robust check)
+    // 2. Prepare Data
     const dbRows = localEvents.map((e: any) => ({
         id: e.id,
         titulo: e.title || e.titulo || 'Sin Título',
         tipo: e.type || e.tipo || 'comercial',
         fecha_inicio: e.start_date || e.fecha_inicio || new Date().toISOString(),
         fecha_fin: e.end_date || e.fecha_fin || e.start_date || new Date().toISOString(),
-        mensaje: e.description || e.mensaje || '', // Robust mapping
+        mensaje: e.description || e.mensaje || '',
+        description: e.description || e.mensaje || '', // Ensure description is populated for the new column
         prioridad: e.priority || e.prioridad || 1,
         created_at: e.created_at || new Date().toISOString(),
         business_id: e.business_id || null
     }));
 
-    // 3. RAW FETCH
+    // 3. UPSERT using Supabase Client (Handles Auth)
     try {
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/eventos_calendario`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "apikey": SUPABASE_ANON_KEY,
-                "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
-                "Prefer": "resolution=merge-duplicates" // Upsert on ID
-            },
-            body: JSON.stringify(dbRows) // Send mapped rows
-        });
+        const { error } = await supabase
+            .from('eventos_calendario')
+            .upsert(dbRows, { onConflict: 'id' });
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error(`❌ Raw Sync Failed (Calendar): ${response.status}`, errorText);
+        if (error) {
+            console.error("❌ Sync Failed (Calendar):", error.message);
         } else {
-            console.log("✅ Calendar synced successfully via REST!");
+            console.log("✅ Calendar synced successfully!");
         }
     } catch (e) {
-        console.error("❌ Raw Sync Exception (Calendar):", e);
+        console.error("❌ Sync Exception (Calendar):", e);
     }
 };
