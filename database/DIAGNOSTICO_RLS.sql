@@ -27,12 +27,14 @@ SELECT COUNT(*) as total_eventos FROM eventos_calendario;
 
 -- Verificar membresía de Juan Pablo específicamente
 SELECT 
-    pm.id,
     pm.user_id,
     pm.project_id,
+    pm.role_id,
     u.email,
-    p.business_name
+    p.business_name,
+    r.name as rol_nombre
 FROM project_members pm
 JOIN usuarios u ON pm.user_id = u.id
 JOIN projects p ON pm.project_id = p.id
+LEFT JOIN roles r ON pm.role_id = r.id
 WHERE u.email = 'juanpablogerchunoff@gmail.com';

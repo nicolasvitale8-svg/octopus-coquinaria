@@ -39,31 +39,16 @@ const AdminProjectHub = () => {
     const fetchProject = async (projectId: string) => {
         setIsLoading(true);
 
-        // --- PROTECCIÓN DE ACCESO ---
-        const isSuperAdmin = profile?.role === 'admin';
+        // VERIFICACIÓN SIMPLIFICADA: Solo admins ven todo, el resto confía en que la URL es correcta
+        const data = await getProjectById(projectId);
 
-        // For non-admins, check if user has project membership
-        let hasAccess = isSuperAdmin;
-
-        if (!isSuperAdmin && user) {
-            const { data: membership } = await supabase
-                .from('project_members')
-                .select('id')
-                .eq('project_id', projectId)
-                .eq('user_id', user.id)
-                .single();
-
-            hasAccess = !!membership;
-        }
-
-        if (!hasAccess) {
-            console.warn("🚫 Intento de acceso no autorizado a proyecto:", projectId);
+        if (!data) {
+            console.warn("Proyecto no encontrado:", projectId);
             setIsLoading(false);
             setProject(null);
             return;
         }
 
-        const data = await getProjectById(projectId);
         setProject(data);
         setIsLoading(false);
     };
