@@ -171,9 +171,11 @@ export const AdminUserModal: React.FC<AdminUserModalProps> = ({ isOpen, onClose,
 
                 // Cliente temporal aislado
                 // INSTANCIADO SOLO AL MOMENTO DE USAR
+                const { SUPABASE_URL, SUPABASE_ANON_KEY } = await import('../../constants');
+
                 const shadowSupabase = createClient(
-                    import.meta.env.VITE_SUPABASE_URL,
-                    import.meta.env.VITE_SUPABASE_ANON_KEY,
+                    SUPABASE_URL,
+                    SUPABASE_ANON_KEY,
                     {
                         auth: {
                             persistSession: false,
