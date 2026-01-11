@@ -229,6 +229,31 @@ export const Dashboard: React.FC = () => {
       .reduce((sum, item) => sum + item.plannedAmount, 0);
   }, [budgetItems, currentMonth, currentYear]);
 
+  // Distribución de gastos por categoría para el Donut
+  const expensesByCategory = React.useMemo(() => {
+    const categoryMap: Record<string, { name: string; amount: number; color: string }> = {};
+    const COLORS = ['#10B981', '#3B82F6', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#14B8A6', '#F97316'];
+
+    transactions
+      .filter(t => {
+        const d = new Date(t.date);
+        const isTransfer = t.description?.toLowerCase().includes('transferencia');
+        return d.getMonth() === currentMonth && d.getFullYear() === currentYear && t.type === 'OUT' && !isTransfer;
+      })
+      .forEach(t => {
+        const cat = categories.find(c => c.id === t.categoryId);
+        const catName = cat?.name || 'Sin Categoría';
+        if (!categoryMap[catName]) {
+          const colorIndex = Object.keys(categoryMap).length % COLORS.length;
+          categoryMap[catName] = { name: catName, amount: 0, color: COLORS[colorIndex] };
+        }
+        categoryMap[catName].amount += t.amount;
+      });
+
+    return Object.values(categoryMap).sort((a, b) => b.amount - a.amount);
+  }, [transactions, categories, currentMonth, currentYear]);
+
+  // Legacy chartData (mantener por compatibilidad si se necesita)
   const chartData = [
     { name: 'Entradas', amount: totalIn, color: 'url(#colorIn)' },
     { name: 'Salidas', amount: totalOut, color: 'url(#colorOut)' },
@@ -375,73 +400,84 @@ export const Dashboard: React.FC = () => {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main Chart Section */}
+        {/* Main Chart Section - Donut de Distribución */}
         <div className="lg:col-span-2 space-y-8">
           <div className="bg-fin-card p-10 rounded-[40px] border border-fin-border relative overflow-hidden group h-full">
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-brand/40 to-transparent"></div>
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-12 gap-4">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
               <div>
-                <h3 className="font-black text-2xl flex items-center gap-4 text-white uppercase tracking-tighter italic">
-                  <LayoutGrid size={24} className="text-brand" /> Performance Mensual
+                <h3 className="font-black text-xl flex items-center gap-3 text-white">
+                  <PieIcon size={22} className="text-brand" /> Distribución de Gastos
                 </h3>
-                <p className="text-[10px] font-black text-fin-muted uppercase tracking-[0.3em] mt-1">Análisis de flujos y rentabilidad</p>
+                <p className="text-[10px] font-black text-fin-muted uppercase tracking-[0.2em] mt-1">¿En qué estás gastando este mes?</p>
               </div>
-              <div className="flex gap-4">
-                <div className="px-5 py-2.5 bg-brand/5 border border-brand/20 rounded-2xl flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-brand animate-pulse"></div>
-                  <span className="text-[9px] font-black text-white uppercase tracking-widest">Live Sync</span>
-                </div>
+              <div className="text-right">
+                <p className="text-[10px] font-black text-fin-muted uppercase tracking-widest">Total Egresos</p>
+                <p className="text-2xl font-black text-white tabular-nums">{formatCurrency(totalOut)}</p>
               </div>
             </div>
 
-            <div className="h-[350px] relative">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="colorIn" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#10B981" stopOpacity={0.8} />
-                      <stop offset="95%" stopColor="#10B981" stopOpacity={0.1} />
-                    </linearGradient>
-                    <linearGradient id="colorOut" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#EF4444" stopOpacity={0.8} />
-                      <stop offset="95%" stopColor="#EF4444" stopOpacity={0.1} />
-                    </linearGradient>
-                    <linearGradient id="colorNet" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8} />
-                      <stop offset="95%" stopColor="#3B82F6" stopOpacity={0.1} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#1F2937" vertical={false} />
-                  <XAxis
-                    dataKey="name"
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: '#94A3B8', fontSize: 11, fontWeight: 900 }}
-                    dy={20}
-                    textAnchor="middle"
-                  />
-                  <YAxis
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: '#4B5563', fontSize: 10, fontWeight: 700 }}
-                    tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
-                  />
-                  <Tooltip
-                    cursor={{ fill: 'rgba(255,255,255,0.02)' }}
-                    contentStyle={{
-                      backgroundColor: '#0b1221',
-                      borderRadius: '24px',
-                      border: '1px solid #1F2937',
-                      padding: '20px',
-                      boxShadow: '0 20px 50px rgba(0,0,0,0.5)'
-                    }}
-                    itemStyle={{ fontSize: '12px', fontWeight: '900', textTransform: 'uppercase' }}
-                  />
-                  <Bar dataKey="amount" radius={[12, 12, 12, 12]} barSize={80}>
-                    {chartData.map((entry, index) => <Cell key={index} fill={entry.color} />)}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+            <div className="flex flex-col lg:flex-row items-center gap-8">
+              {/* Donut Chart */}
+              <div className="h-[280px] w-[280px] relative flex-shrink-0">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={expensesByCategory.length > 0 ? expensesByCategory : [{ name: 'Sin Datos', amount: 1, color: '#1F2937' }]}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={70}
+                      outerRadius={110}
+                      paddingAngle={3}
+                      dataKey="amount"
+                      strokeWidth={0}
+                    >
+                      {expensesByCategory.map((entry, index) => (
+                        <Cell key={index} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: '#0b1221',
+                        borderRadius: '16px',
+                        border: '1px solid #1F2937',
+                        padding: '12px 16px',
+                        boxShadow: '0 10px 30px rgba(0,0,0,0.5)'
+                      }}
+                      formatter={(value: number) => formatCurrency(value)}
+                      itemStyle={{ fontSize: '12px', fontWeight: '700', textTransform: 'uppercase' }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+                {/* Center Label */}
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                  <p className="text-[10px] font-black text-fin-muted uppercase tracking-widest">Categorías</p>
+                  <p className="text-3xl font-black text-white">{expensesByCategory.length}</p>
+                </div>
+              </div>
+
+              {/* Legend */}
+              <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-h-[280px] overflow-y-auto scrollbar-hide">
+                {expensesByCategory.slice(0, 8).map((cat, i) => {
+                  const percentage = totalOut > 0 ? ((cat.amount / totalOut) * 100).toFixed(1) : '0';
+                  return (
+                    <div key={i} className="flex items-center gap-3 p-3 bg-fin-bg/30 rounded-2xl border border-fin-border/30 hover:border-fin-border transition-all group/item">
+                      <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: cat.color }}></div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[11px] font-bold text-white truncate" title={cat.name}>{cat.name}</p>
+                        <p className="text-[10px] font-bold text-fin-muted tabular-nums">{formatCurrency(cat.amount)}</p>
+                      </div>
+                      <span className="text-[11px] font-black text-fin-muted tabular-nums">{percentage}%</span>
+                    </div>
+                  );
+                })}
+                {expensesByCategory.length === 0 && (
+                  <div className="col-span-2 flex flex-col items-center justify-center p-8 text-center">
+                    <LayoutGrid size={32} className="text-fin-muted/20 mb-3" />
+                    <p className="text-xs font-bold text-fin-muted/40 uppercase">Sin egresos registrados este mes</p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
