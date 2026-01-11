@@ -66,8 +66,8 @@ const DetailModal: React.FC<{
   };
 
   return (
-    <div className="fixed inset-0 bg-fin-bg/40 backdrop-blur-[20px] flex items-center justify-center z-[100] p-4 animate-in fade-in duration-500 overflow-y-auto">
-      <div className="bg-[#0b1221]/95 backdrop-blur-3xl rounded-[40px] w-full max-w-4xl border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.8)] p-6 md:p-12 animate-in zoom-in-95 duration-300 relative overflow-hidden flex flex-col my-auto">
+    <div className="fixed inset-0 bg-fin-bg/40 backdrop-blur-[20px] flex items-start justify-center z-[100] p-4 pt-20 animate-in fade-in duration-500 overflow-y-auto">
+      <div className="bg-[#0b1221]/95 backdrop-blur-3xl rounded-[40px] w-full max-w-4xl border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.8)] p-6 md:p-12 animate-in zoom-in-95 duration-300 relative overflow-hidden flex flex-col">
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-brand to-transparent opacity-80 z-10"></div>
         <button onClick={onClose} className="absolute top-4 right-4 md:top-8 md:right-8 p-3 bg-fin-bg rounded-2xl text-fin-muted hover:text-white transition-all border border-fin-border z-20">
           <X size={20} />
@@ -445,7 +445,8 @@ export const Dashboard: React.FC = () => {
                         boxShadow: '0 10px 30px rgba(0,0,0,0.5)'
                       }}
                       formatter={(value: number) => formatCurrency(value)}
-                      itemStyle={{ fontSize: '12px', fontWeight: '700', textTransform: 'uppercase' }}
+                      labelStyle={{ color: '#ffffff', fontWeight: 700 }}
+                      itemStyle={{ fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', color: '#ffffff' }}
                     />
                   </PieChart>
                 </ResponsiveContainer>
