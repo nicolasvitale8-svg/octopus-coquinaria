@@ -230,53 +230,40 @@ const CalendarPage = () => {
                               id={`event-${evt.id}`}
                               data-future={isFutureOrToday}
                               onClick={() => handleEventClick(evt)}
-                              className="bg-slate-900 rounded-xl border border-slate-800 p-6 hover:border-[#1FB6D5]/30 transition-all group relative overflow-hidden cursor-pointer hover:bg-slate-800/50"
+                              className="bg-slate-900 rounded-xl border border-slate-800 p-4 hover:border-[#1FB6D5]/50 transition-all group relative overflow-hidden cursor-pointer hover:bg-slate-800/50 flex items-center gap-4"
                             >
                               {/* Left accent border based on PRIORITY */}
                               <div className={`absolute left-0 top-0 bottom-0 w-1 ${evt.prioridad === 3 ? 'bg-red-500' : (evt.prioridad === 2 ? 'bg-[#1FB6D5]' : 'bg-slate-700')}`}></div>
 
-                              <div className="flex flex-col gap-4">
+                              {/* Date Box */}
+                              <div className="bg-slate-950 border border-slate-700 rounded-lg p-2 min-w-[70px] text-center flex flex-col justify-center items-center">
+                                <span className="text-[10px] uppercase text-slate-500 font-bold tracking-wider">
+                                  {new Date(evt.fecha_inicio.split('T')[0] + 'T00:00:00').toLocaleDateString('es-AR', { weekday: 'short' }).replace('.', '')}
+                                </span>
+                                <span className={`text-2xl font-bold font-sans ${isFutureOrToday ? 'text-white' : 'text-slate-500'}`}>
+                                  {new Date(evt.fecha_inicio.split('T')[0] + 'T00:00:00').getDate()}
+                                </span>
+                              </div>
 
-                                {/* Header: Date & Type */}
-
-                                <div className="flex justify-between items-start border-b border-slate-800 pb-3">
-                                  <div>
-                                    <div className="flex items-center gap-2 text-[#1FB6D5] font-mono text-sm mb-1">
-                                      <CalendarIcon className="w-4 h-4" />
-                                      <span>
-                                        {(() => {
-                                          const datePart = evt.fecha_inicio.split('T')[0]; // YYYY-MM-DD
-                                          return datePart;
-                                        })()}
-                                      </span>
-                                    </div>
-                                    <h3 className="text-xl font-bold text-white leading-tight">
-                                      {evt.titulo}
-                                    </h3>
-                                  </div>
-                                  <div className="flex flex-col items-end gap-2">
-                                    {getPriorityBadge(evt.prioridad)}
-                                    <span className="flex items-center text-xs font-bold uppercase text-slate-400 tracking-wider bg-slate-800 px-2 py-1 rounded">
-                                      {getEventIcon(evt.tipo)}
-                                      <span className="ml-1">{evt.tipo.replace('_', ' ')}</span>
-                                    </span>
-                                  </div>
-                                </div>
-
-                                {/* Description / Content */}
-                                <div className="text-slate-300 text-sm whitespace-pre-wrap font-sans space-y-2">
-                                  {evt.description || evt.mensaje ? (
-                                    <>
-                                      <strong className="block text-slate-500 uppercase text-xs tracking-wider mb-1">Notas / Descripción:</strong>
-                                      <div className="pl-2 border-l-2 border-slate-800">
-                                        {evt.description || evt.mensaje}
-                                      </div>
-                                    </>
-                                  ) : (
-                                    <span className="italic text-slate-600">Sin descripción adicional.</span>
-                                  )}
+                              {/* Title & Type */}
+                              <div className="flex-1 min-w-0">
+                                <h3 className={`text-lg font-bold truncate ${isFutureOrToday ? 'text-white' : 'text-slate-400'}`}>
+                                  {evt.titulo}
+                                </h3>
+                                <div className="flex items-center gap-2 mt-1">
+                                  {getPriorityBadge(evt.prioridad)}
+                                  <span className="flex items-center text-xs font-bold uppercase text-slate-500 tracking-wider">
+                                    {getEventIcon(evt.tipo)}
+                                    <span className="ml-1 text-[10px]">{evt.tipo.replace('_', ' ')}</span>
+                                  </span>
                                 </div>
                               </div>
+
+                              {/* Expand Icon */}
+                              <div className="text-slate-600 group-hover:text-[#1FB6D5] transition-colors">
+                                <ChevronDown className="w-5 h-5 -rotate-90" />
+                              </div>
+
                             </div>
                           );
                         })}
@@ -314,7 +301,6 @@ const CalendarPage = () => {
 
             {/* Scrollable Content */}
             <div className="overflow-auto p-8 space-y-6">
-              {/* Contenido de la guía (simplificado para no repetir todo el bloque estático si fuera muy largo, pero aquí lo incluyo completo para seguridad) */}
               <p className="text-slate-300 text-lg font-medium">El calendario no es decorativo: <span className="text-[#1FB6D5]">es tu plan operativo.</span></p>
 
               {/* Tipos de Evento */}
@@ -374,42 +360,6 @@ const CalendarPage = () => {
                 <p className="text-[#1FB6D5] text-sm font-medium">👉 Si vas corto de tiempo: leé Título + Tipo + H-24 + Día D</p>
               </div>
 
-              {/* Cómo usar */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-bold text-white">3. Cómo usar el calendario</h3>
-                <div className="space-y-3 text-sm">
-                  <div className="flex gap-3">
-                    <span className="bg-[#1FB6D5] text-[#021019] font-bold rounded-full w-6 h-6 flex items-center justify-center text-xs flex-shrink-0">1</span>
-                    <div>
-                      <span className="font-bold text-white">Una vez por MES:</span>
-                      <span className="text-slate-400"> Mirá la vista mensual. ¿Qué feriados, fechas comerciales e internos vienen?</span>
-                    </div>
-                  </div>
-                  <div className="flex gap-3">
-                    <span className="bg-[#1FB6D5] text-[#021019] font-bold rounded-full w-6 h-6 flex items-center justify-center text-xs flex-shrink-0">2</span>
-                    <div>
-                      <span className="font-bold text-white">Una vez por SEMANA (lunes):</span>
-                      <span className="text-slate-400"> Leé H-72 de lo que viene. Tomá 2-3 decisiones: producción, gente, foco de venta.</span>
-                    </div>
-                  </div>
-                  <div className="flex gap-3">
-                    <span className="bg-[#1FB6D5] text-[#021019] font-bold rounded-full w-6 h-6 flex items-center justify-center text-xs flex-shrink-0">3</span>
-                    <div>
-                      <span className="font-bold text-white">Cada DÍA:</span>
-                      <span className="text-slate-400"> Revisá H-24 y Día D. En el brief con el equipo: mostrar el evento y el foco del día.</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Regla de Oro */}
-              <div className="bg-[#1FB6D5]/10 border border-[#1FB6D5]/30 rounded-xl p-4">
-                <h3 className="text-lg font-bold text-[#1FB6D5] mb-2">⭐ Regla de oro</h3>
-                <p className="text-slate-300 text-sm">
-                  Si ves un evento y no te ayuda a decidir nada, algo está mal cargado. Cada evento debería responder:
-                  <span className="text-white font-medium"> ¿Tengo que abrir distinto? ¿Vender distinto? ¿Organizar algo interno?</span>
-                </p>
-              </div>
               <div className="pt-4 flex justify-end border-t border-slate-700">
                 <Button onClick={() => setShowGuide(false)} className="bg-[#1FB6D5] text-[#021019] hover:bg-white font-bold">
                   Entendido 👍
@@ -422,8 +372,8 @@ const CalendarPage = () => {
 
       {/* Modal de Evento (Ver/Editar) */}
       {selectedEvent && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-fade-in">
-          <div className="relative bg-slate-900 border border-slate-700 rounded-2xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl animate-scale-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-fade-in pt-12 md:pt-4">
+          <div className="relative bg-slate-900 border border-slate-700 rounded-2xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl animate-scale-in my-auto">
             {/* Header */}
             <div className="sticky top-0 bg-slate-900 border-b border-slate-700 rounded-t-2xl p-6 flex items-center justify-between z-20">
               <div className="flex items-center gap-3">
@@ -503,8 +453,8 @@ const CalendarPage = () => {
                   <div className="bg-slate-950 border border-slate-700 rounded-lg p-4">
                     <p className="text-slate-300 whitespace-pre-wrap font-sans">{selectedEvent.description || selectedEvent.mensaje || 'Sin descripción.'}</p>
                   </div>
-                  <div className="text-xs text-slate-500 mt-4">
-                    Fecha: {new Date(selectedEvent.fecha_inicio).toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                  <div className="text-xs text-slate-500 mt-4 capitalize">
+                    {new Date(selectedEvent.fecha_inicio.split('T')[0] + 'T00:00:00').toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
                   </div>
                 </>
               )}
