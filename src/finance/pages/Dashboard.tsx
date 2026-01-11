@@ -4,10 +4,11 @@ import { SupabaseService } from '../services/supabaseService';
 import { calculatePeriodBalance, calculateJar, formatCurrency, calculateBudgetAlerts } from '../utils/calculations';
 import { Account, Transaction, Jar, MonthlyBalance, Category, SubCategory, BudgetItem } from '../financeTypes';
 import { TrendingUp, TrendingDown, DollarSign, Lock, ChevronRight, LayoutGrid, List, Wallet, ArrowUpRight, UploadCloud, PlusCircle, Settings, Sparkles, User, Building2, PieChart as PieIcon, X, Bell, AlertTriangle } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, AreaChart, Area, CartesianGrid } from 'recharts';
 import { useNavigate } from 'react-router-dom';
 import { useFinanza } from '../context/FinanzaContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { BudgetRPMGauge } from '../components/BudgetRPMGauge';
 
 interface PeriodAccountState {
   account: Account;
@@ -222,10 +223,16 @@ export const Dashboard: React.FC = () => {
   const totalFinal = periodStates.reduce((s, st) => s + st.finalBalance, 0);
   const totalInJars = jars.map(calculateJar).reduce((acc, j) => acc + j.currentValue, 0);
 
+  const totalBudgeted = React.useMemo(() => {
+    return budgetItems
+      .filter(item => item.month === currentMonth && item.year === currentYear)
+      .reduce((sum, item) => sum + item.plannedAmount, 0);
+  }, [budgetItems, currentMonth, currentYear]);
+
   const chartData = [
-    { name: 'Entradas', amount: totalIn, color: '#10B981' },
-    { name: 'Salidas', amount: totalOut, color: '#EF4444' },
-    { name: 'Neto', amount: totalIn - totalOut, color: '#3B82F6' },
+    { name: 'Entradas', amount: totalIn, color: 'url(#colorIn)' },
+    { name: 'Salidas', amount: totalOut, color: 'url(#colorOut)' },
+    { name: 'Neto', amount: totalIn - totalOut, color: 'url(#colorNet)' },
   ];
 
   // Logic for Alerts (V2 Phase 1)
@@ -323,28 +330,33 @@ export const Dashboard: React.FC = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
-          { id: 'IN', label: 'Ingresos', value: totalIn, icon: <TrendingUp />, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
-          { id: 'OUT', label: 'Salidas', value: totalOut, icon: <TrendingDown />, color: 'text-red-500', bg: 'bg-red-500/10' },
-          { id: 'BALANCE', label: 'Saldo Neto', value: totalFinal, icon: <DollarSign />, color: 'text-brand', bg: 'bg-brand/10' },
-          { id: 'INVESTED', label: 'Invested Capital', value: totalInJars, icon: <Lock />, color: 'text-amber-500', bg: 'bg-amber-500/10' }
+          { id: 'IN', label: 'Ingresos', value: totalIn, icon: <TrendingUp />, color: 'text-emerald-400', bg: 'bg-emerald-500/5', border: 'hover:border-emerald-500/50' },
+          { id: 'OUT', label: 'Salidas', value: totalOut, icon: <TrendingDown />, color: 'text-red-400', bg: 'bg-red-500/5', border: 'hover:border-red-500/50' },
+          { id: 'BALANCE', label: 'Saldo Neto', value: totalFinal, icon: <DollarSign />, color: 'text-brand', bg: 'bg-brand/5', border: 'hover:border-brand/50' },
+          { id: 'INVESTED', label: 'Invested Capital', value: totalInJars, icon: <Lock />, color: 'text-amber-400', bg: 'bg-amber-500/5', border: 'hover:border-amber-500/50' }
         ].map((card, idx) => (
           <button
             key={idx}
             onClick={() => setActiveDetail(card.id as any)}
-            className="bg-fin-card p-8 rounded-[32px] border border-fin-border shadow-sm group hover:border-brand/40 hover:-translate-y-1 transition-all text-left relative overflow-hidden"
+            className={`bg-[#0b1221]/60 backdrop-blur-xl p-8 rounded-[40px] border border-white/5 shadow-2xl group ${card.border} hover:-translate-y-2 transition-all duration-500 text-left relative overflow-hidden`}
           >
-            <div className={`absolute top-0 right-0 p-2 opacity-0 group-hover:opacity-100 transition-all ${card.color}`}>
-              <PieIcon size={14} />
-            </div>
-            <div className="flex items-center justify-between mb-6">
-              <div className={`p-4 rounded-2xl ${card.bg} ${card.color} group-hover:scale-110 transition-transform`}>
+            <div className={`absolute -bottom-8 -right-8 w-24 h-24 rounded-full blur-[40px] opacity-10 transition-all duration-700 group-hover:scale-150 ${card.bg.replace('5/', '20/')}`}></div>
+            <div className="flex items-center justify-between mb-8">
+              <div className={`p-4 rounded-2xl ${card.bg} ${card.color} border border-white/5 group-hover:scale-110 transition-transform duration-500`}>
                 {card.icon}
               </div>
-              <span className="text-[9px] font-black text-fin-muted uppercase tracking-[0.2em]">{card.label}</span>
+              <span className="text-[10px] font-black text-fin-muted uppercase tracking-[0.3em] opacity-40 group-hover:opacity-100 transition-opacity">{card.label}</span>
             </div>
-            <h2 className="text-xl md:text-2xl lg:text-3xl font-black text-white tabular-nums tracking-tighter overflow-hidden text-ellipsis whitespace-nowrap" title={formatCurrency(card.value)}>
-              {formatCurrency(card.value)}
-            </h2>
+            <div className="space-y-1">
+              <h2 className="text-2xl md:text-3xl font-black text-white tabular-nums tracking-tighter" title={formatCurrency(card.value)}>
+                {formatCurrency(card.value)}
+              </h2>
+              <div className="flex items-center gap-2">
+                <div className={`h-1 rounded-full ${card.bg.replace('5/', '30/')} flex-1 overflow-hidden`}>
+                  <div className={`h-full ${card.color.replace('text-', 'bg-')} w-2/3 opacity-50`}></div>
+                </div>
+              </div>
+            </div>
           </button>
         ))}
       </div>
@@ -362,33 +374,81 @@ export const Dashboard: React.FC = () => {
         />
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-        <div className="lg:col-span-2 space-y-10">
-          {/* Chart Section */}
-          <div className="bg-fin-card p-10 rounded-[32px] border border-fin-border">
-            <div className="flex items-center justify-between mb-12">
-              <h3 className="font-black text-xl flex items-center gap-4">
-                <LayoutGrid size={20} className="text-brand" /> Distribución Mensual
-              </h3>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Main Chart Section */}
+        <div className="lg:col-span-2 space-y-8">
+          <div className="bg-fin-card p-10 rounded-[40px] border border-fin-border relative overflow-hidden group h-full">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-brand/40 to-transparent"></div>
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-12 gap-4">
+              <div>
+                <h3 className="font-black text-2xl flex items-center gap-4 text-white uppercase tracking-tighter italic">
+                  <LayoutGrid size={24} className="text-brand" /> Performance Mensual
+                </h3>
+                <p className="text-[10px] font-black text-fin-muted uppercase tracking-[0.3em] mt-1">Análisis de flujos y rentabilidad</p>
+              </div>
+              <div className="flex gap-4">
+                <div className="px-5 py-2.5 bg-brand/5 border border-brand/20 rounded-2xl flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-brand animate-pulse"></div>
+                  <span className="text-[9px] font-black text-white uppercase tracking-widest">Live Sync</span>
+                </div>
+              </div>
             </div>
-            <div className="h-[300px]">
+
+            <div className="h-[350px] relative">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData}>
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94A3B8', fontSize: 10, fontWeight: 800 }} dy={15} />
-                  <YAxis hide />
+                <BarChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorIn" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#10B981" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="#10B981" stopOpacity={0.1} />
+                    </linearGradient>
+                    <linearGradient id="colorOut" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#EF4444" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="#EF4444" stopOpacity={0.1} />
+                    </linearGradient>
+                    <linearGradient id="colorNet" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="#3B82F6" stopOpacity={0.1} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#1F2937" vertical={false} />
+                  <XAxis
+                    dataKey="name"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#94A3B8', fontSize: 11, fontWeight: 900 }}
+                    dy={20}
+                    textAnchor="middle"
+                  />
+                  <YAxis
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#4B5563', fontSize: 10, fontWeight: 700 }}
+                    tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
+                  />
                   <Tooltip
                     cursor={{ fill: 'rgba(255,255,255,0.02)' }}
-                    contentStyle={{ backgroundColor: '#141C2F', borderRadius: '24px', border: '1px solid #1F2937', padding: '16px' }}
+                    contentStyle={{
+                      backgroundColor: '#0b1221',
+                      borderRadius: '24px',
+                      border: '1px solid #1F2937',
+                      padding: '20px',
+                      boxShadow: '0 20px 50px rgba(0,0,0,0.5)'
+                    }}
+                    itemStyle={{ fontSize: '12px', fontWeight: '900', textTransform: 'uppercase' }}
                   />
-                  <Bar dataKey="amount" radius={[8, 8, 8, 8]} barSize={56}>
+                  <Bar dataKey="amount" radius={[12, 12, 12, 12]} barSize={80}>
                     {chartData.map((entry, index) => <Cell key={index} fill={entry.color} />)}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </div>
+        </div>
 
-          {/* Accounts Summary */}
+        {/* Budget Health (RPM Gauge) */}
+        <div className="lg:col-span-1">
+          <BudgetRPMGauge spent={totalOut} budgeted={totalBudgeted} />
         </div>
       </div>
 
