@@ -17,8 +17,7 @@ export interface Account {
   accountTypeId: string;
   currency: string;
   isActive: boolean;
-  // openingBalance is now handled via MonthlyBalance for specific periods, 
-  // but we keep a legacy field or just rely on the initialization process.
+  creditLimit?: number; // Solo para tarjetas de crédito
 }
 
 export interface MonthlyBalance {

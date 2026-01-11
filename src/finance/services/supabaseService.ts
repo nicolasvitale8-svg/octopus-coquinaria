@@ -57,13 +57,14 @@ export const SupabaseService = {
             name: d.name,
             accountTypeId: d.account_type_id,
             currency: d.currency,
-            isActive: d.is_active
+            isActive: d.is_active,
+            creditLimit: d.credit_limit || undefined
         }));
     },
 
     addAccount: async (acc: Partial<Account>, businessId?: string) => {
         const userId = await SupabaseService.private.getUserId();
-        const dbObj = {
+        const dbObj: any = {
             name: acc.name,
             account_type_id: acc.accountTypeId,
             currency: acc.currency,
@@ -71,6 +72,7 @@ export const SupabaseService = {
             user_id: userId,
             business_id: businessId || null
         };
+        if (acc.creditLimit) dbObj.credit_limit = acc.creditLimit;
         const { data, error } = await supabase
             .from('fin_accounts')
             .insert([dbObj])
@@ -80,12 +82,13 @@ export const SupabaseService = {
     },
 
     updateAccount: async (acc: Account) => {
-        const dbObj = {
+        const dbObj: any = {
             name: acc.name,
             account_type_id: acc.accountTypeId,
             currency: acc.currency,
             is_active: acc.isActive
         };
+        if (acc.creditLimit !== undefined) dbObj.credit_limit = acc.creditLimit;
         const { error } = await supabase
             .from('fin_accounts')
             .update(dbObj)

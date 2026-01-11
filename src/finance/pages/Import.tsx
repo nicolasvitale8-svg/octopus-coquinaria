@@ -222,9 +222,6 @@ export const ImportPage: React.FC = () => {
     return (
       <div className="max-w-3xl mx-auto space-y-12 animate-fade-in pb-20">
         <div className="text-center space-y-4">
-          <div className="inline-flex p-3 bg-brand/10 rounded-2xl text-brand mb-2">
-            <Sparkles size={28} />
-          </div>
           <h1 className="text-4xl font-black text-white tracking-tight">Sincronizador Inteligente</h1>
           <p className="text-fin-muted max-w-lg mx-auto font-medium">Carga capturas de tus billeteras digitales (MercadoPago, Lemon, Brubank) para automatizar tu registro.</p>
         </div>
