@@ -114,22 +114,57 @@ export const Budget: React.FC = () => {
       // Filtrar por mes, año, categoría y tipo
       if (tDate.getMonth() !== item.month || tDate.getFullYear() !== item.year || t.categoryId !== item.categoryId || t.type !== item.type) return sum;
 
-      // Si el ítem de presupuesto tiene subCategoryId, debe coincidir exactamente
-      if (item.subCategoryId) {
+      // CASO 1: Ambos tienen subCategoryId - deben coincidir exactamente
+      if (item.subCategoryId && t.subCategoryId) {
         if (t.subCategoryId !== item.subCategoryId) return sum;
-      } else {
-        // Si el presupuesto NO tiene subCategoryId pero la transacción SÍ tiene,
-        // solo sumar si NO hay otro ítem de presupuesto para esa subcategoría específica
-        if (t.subCategoryId) {
-          const hasSpecificBudget = budgetItems.some(bi =>
-            bi.id !== item.id &&
-            bi.categoryId === item.categoryId &&
-            bi.subCategoryId === t.subCategoryId &&
-            bi.month === item.month &&
-            bi.year === item.year &&
-            bi.type === item.type
-          );
-          if (hasSpecificBudget) return sum; // La transacción se cuenta en otro presupuesto más específico
+        return sum + t.amount;
+      }
+
+      // CASO 2: El presupuesto tiene subCategoryId pero la transacción NO
+      // Intentar match por palabras clave del label
+      if (item.subCategoryId && !t.subCategoryId) {
+        // Buscar si la descripción contiene el label del presupuesto
+        const labelWords = item.label.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+        const descLower = t.description.toLowerCase();
+        const matchesLabel = labelWords.some(word => descLower.includes(word));
+        if (!matchesLabel) return sum;
+        return sum + t.amount;
+      }
+
+      // CASO 3: El presupuesto NO tiene subCategoryId pero la transacción SÍ
+      if (!item.subCategoryId && t.subCategoryId) {
+        // Verificar si hay otro presupuesto más específico para esta subcategoría
+        const hasSpecificBudget = budgetItems.some(bi =>
+          bi.id !== item.id &&
+          bi.categoryId === item.categoryId &&
+          bi.subCategoryId === t.subCategoryId &&
+          bi.month === item.month &&
+          bi.year === item.year &&
+          bi.type === item.type
+        );
+        if (hasSpecificBudget) return sum; // Se cuenta en otro presupuesto más específico
+      }
+
+      // CASO 4: Ninguno tiene subCategoryId
+      // Verificar si hay otro presupuesto del mismo rubro que matchee mejor por label
+      if (!item.subCategoryId && !t.subCategoryId) {
+        const otherBudgets = budgetItems.filter(bi =>
+          bi.id !== item.id &&
+          bi.categoryId === item.categoryId &&
+          bi.month === item.month &&
+          bi.year === item.year &&
+          bi.type === item.type
+        );
+
+        // Si hay otros presupuestos del mismo rubro, ver si alguno matchea mejor por label
+        const descLower = t.description.toLowerCase();
+        for (const other of otherBudgets) {
+          const otherLabelWords = other.label.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+          const otherMatches = otherLabelWords.some(word => descLower.includes(word));
+          if (otherMatches) {
+            // Esta transacción pertenece a otro presupuesto
+            return sum;
+          }
         }
       }
 
