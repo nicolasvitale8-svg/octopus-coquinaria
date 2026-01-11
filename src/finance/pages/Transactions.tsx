@@ -403,7 +403,7 @@ export const Transactions: React.FC = () => {
                         </span>
                       </td>
                       <td className="px-8 py-5">
-                        <span className="text-[10px] font-bold text-fin-muted uppercase tracking-widest bg-fin-bg/20 px-2.5 py-1.5 rounded-lg border border-fin-border/50">
+                        <span className="text-[10px] font-bold text-fin-muted uppercase tracking-widest bg-fin-bg/20 px-2.5 py-1.5 rounded-lg border border-fin-border/50 whitespace-nowrap">
                           {acc?.name}
                         </span>
                       </td>

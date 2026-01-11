@@ -80,16 +80,42 @@ export function parseNaranjaXStatement(text: string): CreditCardStatement | null
             }
         }
 
-        // Si no encontramos líneas con el regex principal, intentar otro patrón
+        // Si no encontramos líneas con el regex principal, intentar patrones alternativos
         if (lines.length === 0) {
-            // Patrón alternativo: línea por línea
-            const textLines = text.split('\n');
-            for (const line of textLines) {
-                const simpleMatch = line.match(/(\d{2}\/\d{2}\/\d{2})\s+.+\s+(\d{2})\/(\d{2})\s+([\d.,]+)/);
-                if (simpleMatch) {
-                    const [, dateStr, currentStr, totalStr, amountStr] = simpleMatch;
-                    const descMatch = line.match(/\d{4}\s+(.+?)\s+\d{2}\/\d{2}/);
+            const textLines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
 
+            for (const line of textLines) {
+                // Patrón 1: DD/MM/YYYY DESCRIPCION XX/XX MONTO (formato del usuario)
+                const pattern1 = line.match(/^(\d{2}\/\d{2}\/\d{4})\s+(.+?)\s+(\d{2})\/(\d{2})\s+([\d.,]+)$/);
+                if (pattern1) {
+                    const [, dateStr, desc, currentStr, totalStr, amountStr] = pattern1;
+                    lines.push({
+                        date: formatDateFromDDMMYYYY(dateStr),
+                        description: desc.trim(),
+                        currentInstallment: parseInt(currentStr),
+                        totalInstallments: parseInt(totalStr),
+                        amount: parseArgNumber(amountStr)
+                    });
+                    continue;
+                }
+
+                // Patrón 2: DD/MM/YYYY DESCRIPCION MONTO (sin cuotas)
+                const pattern2 = line.match(/^(\d{2}\/\d{2}\/\d{4})\s+(.+?)\s+([\d.,]+)$/);
+                if (pattern2) {
+                    const [, dateStr, desc, amountStr] = pattern2;
+                    lines.push({
+                        date: formatDateFromDDMMYYYY(dateStr),
+                        description: desc.trim(),
+                        amount: parseArgNumber(amountStr)
+                    });
+                    continue;
+                }
+
+                // Patrón 3: DD/MM/YY ... (formato original)
+                const pattern3 = line.match(/^(\d{2}\/\d{2}\/\d{2})\s+.+\s+(\d{2})\/(\d{2})\s+([\d.,]+)$/);
+                if (pattern3) {
+                    const [, dateStr, currentStr, totalStr, amountStr] = pattern3;
+                    const descMatch = line.match(/\d{2}\/\d{2}\/\d{2}\s+(.+?)\s+\d{2}\/\d{2}/);
                     lines.push({
                         date: formatDateFromDDMMYY(dateStr),
                         description: descMatch ? descMatch[1].trim() : 'Consumo',
@@ -136,6 +162,12 @@ function formatDateFromDDMMYY(dateStr: string): string {
     const [day, month, year] = dateStr.split('/');
     const fullYear = year.length === 2 ? `20${year}` : year;
     return `${fullYear}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+}
+
+// Helper: Formatear fecha DD/MM/YYYY a YYYY-MM-DD
+function formatDateFromDDMMYYYY(dateStr: string): string {
+    const [day, month, year] = dateStr.split('/');
+    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
 }
 
 // Helper: Obtener fecha del próximo mes
