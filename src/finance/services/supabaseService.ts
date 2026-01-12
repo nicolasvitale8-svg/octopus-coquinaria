@@ -44,11 +44,13 @@ export const SupabaseService = {
 
     // --- ACCOUNTS (CAJAS) ---
     getAccounts: async (businessId?: string): Promise<Account[]> => {
+        const userId = await SupabaseService.private.getUserId();
         const query = supabase.from('fin_accounts').select('*');
         if (businessId) {
             query.eq('business_id', businessId);
         } else {
-            query.is('business_id', null);
+            // Personal finance: filter by current user
+            query.is('business_id', null).eq('user_id', userId);
         }
         const { data, error } = await query;
         if (error) throw error;
@@ -106,9 +108,10 @@ export const SupabaseService = {
 
     // --- MONTHLY BALANCES ---
     getMonthlyBalances: async (businessId?: string): Promise<MonthlyBalance[]> => {
+        const userId = await SupabaseService.private.getUserId();
         const query = supabase.from('fin_monthly_balances').select('*');
         if (businessId) query.eq('business_id', businessId);
-        else query.is('business_id', null);
+        else query.is('business_id', null).eq('user_id', userId);
 
         const { data, error } = await query;
         if (error) throw error;
@@ -140,11 +143,13 @@ export const SupabaseService = {
 
     // --- CATEGORIES ---
     getCategories: async (businessId?: string): Promise<Category[]> => {
+        const userId = await SupabaseService.private.getUserId();
         const query = supabase.from('fin_categories').select('*');
         if (businessId) {
             query.or(`business_id.is.null,business_id.eq.${businessId}`);
         } else {
-            query.is('business_id', null);
+            // Personal: only user's own categories
+            query.is('business_id', null).eq('user_id', userId);
         }
         const { data, error } = await query;
         if (error) throw error;
@@ -252,9 +257,10 @@ export const SupabaseService = {
 
     // --- TRANSACTIONS ---
     getTransactions: async (businessId?: string): Promise<Transaction[]> => {
+        const userId = await SupabaseService.private.getUserId();
         const query = supabase.from('fin_transactions').select('*');
         if (businessId) query.eq('business_id', businessId);
-        else query.is('business_id', null);
+        else query.is('business_id', null).eq('user_id', userId);
 
         const { data, error } = await query.order('date', { ascending: false });
         if (error) throw error;
@@ -356,9 +362,10 @@ export const SupabaseService = {
 
     // --- BUDGET ---
     getBudgetItems: async (businessId?: string): Promise<BudgetItem[]> => {
+        const userId = await SupabaseService.private.getUserId();
         const query = supabase.from('fin_budget_items').select('*');
         if (businessId) query.eq('business_id', businessId);
-        else query.is('business_id', null);
+        else query.is('business_id', null).eq('user_id', userId);
 
         const { data, error } = await query;
         if (error) throw error;
@@ -404,9 +411,10 @@ export const SupabaseService = {
 
     // --- JARS ---
     getJars: async (businessId?: string): Promise<Jar[]> => {
+        const userId = await SupabaseService.private.getUserId();
         const query = supabase.from('fin_jars').select('*');
         if (businessId) query.eq('business_id', businessId);
-        else query.is('business_id', null);
+        else query.is('business_id', null).eq('user_id', userId);
 
         const { data, error } = await query;
         if (error) throw error;
@@ -442,9 +450,10 @@ export const SupabaseService = {
 
     // --- RULES ---
     getRules: async (businessId?: string): Promise<TextCategoryRule[]> => {
+        const userId = await SupabaseService.private.getUserId();
         const query = supabase.from('fin_rules').select('*');
         if (businessId) query.eq('business_id', businessId);
-        else query.is('business_id', null);
+        else query.is('business_id', null).eq('user_id', userId);
 
         const { data, error } = await query;
         if (error) throw error;
