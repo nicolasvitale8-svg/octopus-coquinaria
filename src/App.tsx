@@ -36,6 +36,7 @@ import { Accounts as FinanceAccounts } from './finance/pages/Accounts';
 import { ImportPage as FinanceImport } from './finance/pages/Import';
 import { SettingsPage as FinanceSettings } from './finance/pages/Settings';
 import { Cheques as FinanceCheques } from './finance/pages/Cheques';
+import { CashFlow as FinanceCashFlow } from './finance/pages/CashFlow';
 import FinanceLayout from './finance/components/FinanceLayout';
 
 
@@ -127,6 +128,7 @@ const App = () => {
               <Route path="/finance/import" element={<FinanceImport />} />
               <Route path="/finance/settings" element={<FinanceSettings />} />
               <Route path="/finance/cheques" element={<FinanceCheques />} />
+              <Route path="/finance/cashflow" element={<FinanceCashFlow />} />
             </Route>
 
 

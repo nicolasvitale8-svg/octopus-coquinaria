@@ -1,6 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { SupabaseService } from '../services/supabaseService';
+import { chequeService, Cheque } from '../services/chequeService';
 import { calculatePeriodBalance, calculateJar, formatCurrency, calculateBudgetAlerts } from '../utils/calculations';
 import { Account, Transaction, Jar, MonthlyBalance, Category, SubCategory, BudgetItem } from '../financeTypes';
 import { TrendingUp, TrendingDown, DollarSign, Lock, ChevronRight, LayoutGrid, List, Wallet, ArrowUpRight, UploadCloud, PlusCircle, Settings, Sparkles, User, Building2, PieChart as PieIcon, X, Bell, AlertTriangle } from 'lucide-react';
@@ -165,6 +166,7 @@ export const Dashboard: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
   const [budgetItems, setBudgetItems] = useState<BudgetItem[]>([]);
+  const [cheques, setCheques] = useState<Cheque[]>([]);
   const [activeDetail, setActiveDetail] = useState<'IN' | 'OUT' | 'BALANCE' | 'INVESTED' | null>(null);
 
   useEffect(() => { loadData(); }, [activeEntity]);
@@ -184,14 +186,15 @@ export const Dashboard: React.FC = () => {
 
     try {
       const bId = activeEntity.id || undefined;
-      const [t, acc, j, mb, cat, subCat, budget] = await Promise.all([
+      const [t, acc, j, mb, cat, subCat, budget, chqs] = await Promise.all([
         SupabaseService.getTransactions(bId),
         SupabaseService.getAccounts(bId),
         SupabaseService.getJars(bId),
         SupabaseService.getMonthlyBalances(bId),
         SupabaseService.getCategories(bId),
         SupabaseService.getAllSubCategories(bId),
-        SupabaseService.getBudgetItems(bId)
+        SupabaseService.getBudgetItems(bId),
+        chequeService.getAll(bId || '')
       ]);
 
       setTransactions(t);
@@ -201,6 +204,7 @@ export const Dashboard: React.FC = () => {
       setCategories(cat);
       setSubCategories(subCat);
       setBudgetItems(budget);
+      setCheques(chqs);
     } catch (error) {
       console.error("Error loading dashboard data:", error);
     } finally {
@@ -280,6 +284,22 @@ export const Dashboard: React.FC = () => {
   const alerts = React.useMemo(() => {
     return calculateBudgetAlerts(budgetItems, transactions, currentMonth, currentYear);
   }, [budgetItems, transactions, currentMonth, currentYear]);
+
+  // Upcoming Cheques Logic
+  const upcomingCheques = React.useMemo(() => {
+    return cheques
+      .filter(c => {
+        if (c.status !== 'PENDIENTE' || c.type !== 'PROPIO') return false;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const paymentDate = new Date(c.payment_date);
+        paymentDate.setHours(0, 0, 0, 0);
+        const diffTime = paymentDate.getTime() - today.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return diffDays >= 0 && diffDays <= 7;
+      })
+      .sort((a, b) => new Date(a.payment_date).getTime() - new Date(b.payment_date).getTime());
+  }, [cheques]);
 
   // Sync alert count with context
   useEffect(() => {
@@ -488,6 +508,57 @@ export const Dashboard: React.FC = () => {
 
       {/* Sidebar right side */}
       <div className="lg:col-span-1 space-y-10">
+
+        {/* Cheques Expirations Section */}
+        {upcomingCheques.length > 0 && (
+          <div className="bg-fin-card border border-fin-border rounded-[32px] p-6 shadow-2xl overflow-hidden relative group">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-red-500/10 rounded-full blur-[40px] -mr-8 -mt-8 pointer-events-none"></div>
+
+            <div className="flex items-center justify-between mb-6 relative z-10">
+              <div>
+                <h3 className="text-lg font-black text-white flex items-center gap-2">
+                  <Wallet size={18} className="text-red-500" /> Vencimientos
+                </h3>
+                <p className="text-[10px] font-bold text-fin-muted uppercase tracking-widest mt-1">Próximos 7 días</p>
+              </div>
+              <div className="bg-red-500/10 px-3 py-1 rounded-lg text-red-500 text-[10px] font-black uppercase tracking-widest border border-red-500/20">
+                {upcomingCheques.length} Cheques
+              </div>
+            </div>
+
+            <div className="space-y-4 relative z-10">
+              {upcomingCheques.slice(0, 4).map((cheque) => {
+                const daysLeft = Math.ceil((new Date(cheque.payment_date).getTime() - new Date().setHours(0, 0, 0, 0)) / (1000 * 60 * 60 * 24));
+                return (
+                  <div key={cheque.id} className="p-4 bg-[#0b1221]/80 rounded-2xl border border-white/5 hover:border-red-500/30 transition-all flex items-center justify-between group/item">
+                    <div>
+                      <p className="text-white font-bold text-sm truncate max-w-[120px]" title={cheque.recipient_sender}>{cheque.recipient_sender}</p>
+                      <p className="text-[10px] text-fin-muted font-black uppercase tracking-widest">{cheque.bank_name}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-red-400 font-extrabold tabular-nums text-sm">-{formatCurrency(cheque.amount)}</p>
+                      <p className={`text-[9px] font-black uppercase tracking-wider ${daysLeft === 0 ? 'text-red-500 animate-pulse' : 'text-fin-muted'}`}>
+                        {daysLeft === 0 ? 'Vence Hoy' : `${daysLeft} días`}
+                      </p>
+                    </div>
+                  </div>
+                )
+              })}
+              {upcomingCheques.length > 4 && (
+                <button onClick={() => navigate('/finance/cheques')} className="w-full py-3 text-[10px] font-black uppercase tracking-widest text-fin-muted hover:text-white transition-colors flex items-center justify-center gap-2 border-t border-white/5 mt-2">
+                  Ver Todos <ChevronRight size={14} />
+                </button>
+              )}
+              <div className="pt-2 border-t border-white/5 flex justify-between items-center mt-2">
+                <span className="text-[10px] font-black text-fin-muted uppercase tracking-widest">Total a Pagar</span>
+                <span className="text-sm font-black text-white tabular-nums">
+                  {formatCurrency(upcomingCheques.reduce((sum, c) => sum + c.amount, 0))}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Alerts Section (V2 Phase 1) */}
         {alerts.length > 0 && (
           <div className="bg-red-500/5 border border-red-500/20 rounded-3xl p-6 backdrop-blur-sm">
@@ -552,20 +623,29 @@ export const Dashboard: React.FC = () => {
             {transactions
               .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
               .slice(0, 10)
-              .map(t => (
-                <div key={t.id} className="p-8 hover:bg-fin-bg/30 transition-all cursor-default group">
-                  <div className="flex justify-between items-start mb-2">
-                    <p className="text-[14px] font-bold text-white group-hover:text-brand transition-colors leading-tight">{t.description}</p>
-                    <span className={`text-[14px] font-black tabular-nums ${t.type === 'IN' ? 'text-emerald-500' : 'text-white'}`}>
-                      {t.type === 'IN' ? '+' : '-'}{formatCurrency(t.amount)}
-                    </span>
+              .map(t => {
+                const cat = categories.find(c => c.id === t.categoryId);
+                const sub = subCategories.find(s => s.id === t.subCategoryId);
+                return (
+                  <div key={t.id} className="p-8 hover:bg-fin-bg/30 transition-all cursor-default group">
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="space-y-1">
+                        <p className="text-[14px] font-bold text-white group-hover:text-brand transition-colors leading-tight">{t.description}</p>
+                        <p className="text-[10px] text-fin-muted font-bold uppercase tracking-wide">
+                          {cat?.name} {sub ? <span className="text-fin-muted/60">• {sub.name}</span> : ''}
+                        </p>
+                      </div>
+                      <span className={`text-[14px] font-black tabular-nums ${t.type === 'IN' ? 'text-emerald-500' : 'text-white'}`}>
+                        {t.type === 'IN' ? '+' : '-'}{formatCurrency(t.amount)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center mt-2">
+                      <p className="text-[9px] text-fin-muted font-black uppercase tracking-[0.2em]">{t.date}</p>
+                      <div className="w-1.5 h-1.5 rounded-full bg-fin-border group-hover:bg-brand transition-colors"></div>
+                    </div>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <p className="text-[9px] text-fin-muted font-black uppercase tracking-[0.2em]">{t.date}</p>
-                    <div className="w-1.5 h-1.5 rounded-full bg-fin-border group-hover:bg-brand transition-colors"></div>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             {transactions.length === 0 && (
               <div className="flex flex-col items-center justify-center p-12 text-center text-fin-muted space-y-4">
                 <LayoutGrid size={40} className="opacity-10" />

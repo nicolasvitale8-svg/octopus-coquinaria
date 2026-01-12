@@ -14,7 +14,8 @@ import {
     PieChart,
     Banknote,
     Bell,
-    PiggyBank
+    PiggyBank,
+    TrendingUp
 } from 'lucide-react';
 import { useFinanza } from '../context/FinanzaContext';
 
@@ -29,6 +30,7 @@ const FinanceLayout = () => {
         { path: '/finance/budget', icon: <Banknote size={20} />, label: 'Presupuesto' },
         { path: '/finance/transactions', icon: <BarChart3 size={20} />, label: 'Movimientos' },
         { path: '/finance/cheques', icon: <Wallet size={20} />, label: 'Libro Cheques' },
+        { path: '/finance/cashflow', icon: <TrendingUp size={20} />, label: 'Cash Flow' },
         { path: '/finance/jars', icon: <PiggyBank size={20} />, label: 'Frascos' },
         { path: '/finance/accounts', icon: <Settings size={20} />, label: 'Administración' },
         { path: '/finance/import', icon: <Download size={20} />, label: 'Importar' },
@@ -48,8 +50,8 @@ const FinanceLayout = () => {
 
             {/* Sidebar / Sidebar Navigation */}
             <aside
-                className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#050f1a] border-r border-white/5 transition-all duration-300 ease-in-out md:relative md:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-                    }`}
+                className={`fixed inset - y - 0 left - 0 z - 50 w - 64 bg - [#050f1a] border - r border - white / 5 transition - all duration - 300 ease -in -out md:relative md: translate - x - 0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+                    } `}
             >
                 {/* Logo Area */}
                 <div className="h-20 flex items-center px-6 border-b border-white/5 bg-[#050f1a]/50 backdrop-blur-md sticky top-0 z-10">
@@ -66,12 +68,12 @@ const FinanceLayout = () => {
                             key={item.path}
                             to={item.path}
                             onClick={() => setIsSidebarOpen(false)}
-                            className={`flex items-center px-4 py-3.5 rounded-2xl transition-all group ${isActive(item.path)
+                            className={`flex items - center px - 4 py - 3.5 rounded - 2xl transition - all group ${isActive(item.path)
                                 ? 'bg-cyan-500 text-white shadow-lg shadow-cyan-500/20 font-bold translate-x-1'
                                 : 'text-slate-400 hover:bg-white/5 hover:text-white'
-                                }`}
+                                } `}
                         >
-                            <span className={`mr-3 transition-transform group-hover:scale-110 ${isActive(item.path) ? 'text-white' : 'text-cyan-500/70'}`}>
+                            <span className={`mr - 3 transition - transform group - hover: scale - 110 ${isActive(item.path) ? 'text-white' : 'text-cyan-500/70'} `}>
                                 {item.icon}
                             </span>
                             <span className="text-sm tracking-tight">{item.label}</span>
@@ -122,7 +124,7 @@ const FinanceLayout = () => {
                         <div className="relative group">
                             <button
                                 onClick={() => navigate('/finance/budget')}
-                                className={`p-2.5 rounded-xl border transition-all relative ${alertCount > 0 ? 'bg-red-500/10 border-red-500/30 text-red-500 shadow-[0_0_15px_rgba(239,68,68,0.2)]' : 'bg-white/5 border-white/10 text-white/40 hover:text-white'}`}
+                                className={`p - 2.5 rounded - xl border transition - all relative ${alertCount > 0 ? 'bg-red-500/10 border-red-500/30 text-red-500 shadow-[0_0_15px_rgba(239,68,68,0.2)]' : 'bg-white/5 border-white/10 text-white/40 hover:text-white'} `}
                             >
                                 <Bell size={20} className={alertCount > 0 ? 'animate-swing' : ''} />
                                 {alertCount > 0 && (
@@ -201,7 +203,8 @@ const FinanceLayout = () => {
                     animation: swing 2s ease infinite;
                     transform-origin: top center;
                 }
-            ` }} />
+                `
+            }} />
         </div>
     );
 };
