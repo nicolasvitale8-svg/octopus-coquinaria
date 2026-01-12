@@ -28,8 +28,9 @@ const FinanceLayout = () => {
         { path: '/finance', icon: <PieChart size={20} />, label: 'Resumen' },
         { path: '/finance/budget', icon: <Banknote size={20} />, label: 'Presupuesto' },
         { path: '/finance/transactions', icon: <BarChart3 size={20} />, label: 'Movimientos' },
+        { path: '/finance/cheques', icon: <Wallet size={20} />, label: 'Libro Cheques' },
         { path: '/finance/jars', icon: <PiggyBank size={20} />, label: 'Frascos' },
-        { path: '/finance/accounts', icon: <Wallet size={20} />, label: 'Administración' },
+        { path: '/finance/accounts', icon: <Settings size={20} />, label: 'Administración' },
         { path: '/finance/import', icon: <Download size={20} />, label: 'Importar' },
     ];
 
