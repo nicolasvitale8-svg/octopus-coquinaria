@@ -35,7 +35,6 @@ const FinanceLayout = () => {
         { path: '/finance/cashflow', icon: <TrendingUp size={20} />, label: 'Cash Flow' },
         { path: '/finance/jars', icon: <PiggyBank size={20} />, label: 'Frascos' },
         { path: '/finance/accounts', icon: <Settings size={20} />, label: 'Administración' },
-        { path: '/finance/accounts', icon: <Settings size={20} />, label: 'Administración' },
         { path: '/finance/import', icon: <Download size={20} />, label: 'Importar' },
     ];
 
