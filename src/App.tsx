@@ -14,6 +14,7 @@ import Services from './pages/Services';
 import CalendarPage from './pages/Calendar';
 import ProtectedRoute from './components/ProtectedRoute';
 import ScrollToTop from './components/ScrollToTop';
+import ErrorBoundary from './components/ErrorBoundary';
 import { AuthProvider } from './contexts/AuthContext';
 import { FinanzaProvider } from './finance/context/FinanzaContext';
 import HubCalendar from './pages/HubCalendar';
@@ -61,91 +62,93 @@ const LoadingFallback = () => (
 
 const App = () => {
   return (
-    <AuthProvider>
-      <FinanzaProvider>
-        <Router>
-          <ScrollToTop />
-          <Suspense fallback={<LoadingFallback />}>
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/quick-diagnostic" element={<QuickDiagnostic />} />
-              <Route path="/deep-diagnostic" element={<DeepDiagnostic />} />
-              <Route element={<ProtectedRoute />}>
-                <Route path="/dashboard" element={<Dashboard />} />
-              </Route>
-
-              {/* Rutas ADMINISTRADOR (Módulo Consultor/Admin) */}
-              <Route element={<ProtectedRoute requirePrivileged={true} />}>
-                <Route path="/admin" element={<AdminLayout />}>
-                  <Route index element={<Navigate to="/admin/dashboard" replace />} />
-                  <Route path="dashboard" element={<AdminDashboard />} />
-                  <Route path="consultant-dashboard" element={<ConsultantDashboard />} />
-                  <Route path="leads" element={<AdminLeads />} />
-                  <Route path="projects" element={<AdminProjects />} />
-                  <Route path="projects/:id" element={<AdminProjectHub />} />
-                  <Route path="users" element={<AdminUsers />} />
-                  <Route path="calendar" element={<AdminCalendar />} />
-                  <Route path="academy" element={<AdminAcademy />} />
-                  <Route path="board" element={<AdminBoard />} />
-                  <Route path="config" element={<AdminConfig />} />
-                  <Route path="profile" element={<UserProfile />} />
+    <ErrorBoundary>
+      <AuthProvider>
+        <FinanzaProvider>
+          <Router>
+            <ScrollToTop />
+            <Suspense fallback={<LoadingFallback />}>
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/quick-diagnostic" element={<QuickDiagnostic />} />
+                <Route path="/deep-diagnostic" element={<DeepDiagnostic />} />
+                <Route element={<ProtectedRoute />}>
+                  <Route path="/dashboard" element={<Dashboard />} />
                 </Route>
-              </Route>
 
-              {/* New Hub Routes for Clients/Managers */}
-              <Route path="/hub/profile" element={
-                <ProtectedRoute>
-                  <UserProfile />
-                </ProtectedRoute>
-              } />
-              <Route path="/hub/calendar" element={
-                <ProtectedRoute>
-                  <HubCalendar />
-                </ProtectedRoute>
-              } />
+                {/* Rutas ADMINISTRADOR (Módulo Consultor/Admin) */}
+                <Route element={<ProtectedRoute requirePrivileged={true} />}>
+                  <Route path="/admin" element={<AdminLayout />}>
+                    <Route index element={<Navigate to="/admin/dashboard" replace />} />
+                    <Route path="dashboard" element={<AdminDashboard />} />
+                    <Route path="consultant-dashboard" element={<ConsultantDashboard />} />
+                    <Route path="leads" element={<AdminLeads />} />
+                    <Route path="projects" element={<AdminProjects />} />
+                    <Route path="projects/:id" element={<AdminProjectHub />} />
+                    <Route path="users" element={<AdminUsers />} />
+                    <Route path="calendar" element={<AdminCalendar />} />
+                    <Route path="academy" element={<AdminAcademy />} />
+                    <Route path="board" element={<AdminBoard />} />
+                    <Route path="config" element={<AdminConfig />} />
+                    <Route path="profile" element={<UserProfile />} />
+                  </Route>
+                </Route>
 
-              <Route path="/hub/my-project" element={
-                <ProtectedRoute>
-                  <ClientProjectRedirect />
-                </ProtectedRoute>
-              } />
+                {/* New Hub Routes for Clients/Managers */}
+                <Route path="/hub/profile" element={
+                  <ProtectedRoute>
+                    <UserProfile />
+                  </ProtectedRoute>
+                } />
+                <Route path="/hub/calendar" element={
+                  <ProtectedRoute>
+                    <HubCalendar />
+                  </ProtectedRoute>
+                } />
 
-              {/* Reuse AdminProjectHub for Clients (Read Only logic handled inside) */}
-              <Route path="/hub/projects/:id" element={
-                <ProtectedRoute>
-                  <AdminProjectHub />
-                </ProtectedRoute>
-              } />
+                <Route path="/hub/my-project" element={
+                  <ProtectedRoute>
+                    <ClientProjectRedirect />
+                  </ProtectedRoute>
+                } />
 
-              <Route path="/methodology" element={<Methodology />} />
-              <Route path="/academy" element={<Academy />} />
-              <Route path="/academy/:id" element={<ResourceDetail />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
+                {/* Reuse AdminProjectHub for Clients (Read Only logic handled inside) */}
+                <Route path="/hub/projects/:id" element={
+                  <ProtectedRoute>
+                    <AdminProjectHub />
+                  </ProtectedRoute>
+                } />
 
-              <Route path="/about" element={<About />} />
-              <Route path="/services" element={<Services />} />
-              <Route path="/calendar" element={<CalendarPage />} />
+                <Route path="/methodology" element={<Methodology />} />
+                <Route path="/academy" element={<Academy />} />
+                <Route path="/academy/:id" element={<ResourceDetail />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
 
-              {/* Finance Module Routes */}
-              <Route element={<ProtectedRoute><FinanceLayout /></ProtectedRoute>}>
-                <Route path="/finance" element={<FinanceDashboard />} />
-                <Route path="/finance/transactions" element={<FinanceTransactions />} />
-                <Route path="/finance/budget" element={<FinanceBudget />} />
-                <Route path="/finance/jars" element={<FinanceJars />} />
-                <Route path="/finance/accounts" element={<FinanceAccounts />} />
-                <Route path="/finance/import" element={<FinanceImport />} />
-                <Route path="/finance/settings" element={<FinanceSettings />} />
-                <Route path="/finance/cheques" element={<FinanceCheques />} />
-                <Route path="/finance/cashflow" element={<FinanceCashFlow />} />
-              </Route>
+                <Route path="/about" element={<About />} />
+                <Route path="/services" element={<Services />} />
+                <Route path="/calendar" element={<CalendarPage />} />
 
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </Suspense>
-        </Router>
-      </FinanzaProvider>
-    </AuthProvider>
+                {/* Finance Module Routes */}
+                <Route element={<ProtectedRoute><FinanceLayout /></ProtectedRoute>}>
+                  <Route path="/finance" element={<FinanceDashboard />} />
+                  <Route path="/finance/transactions" element={<FinanceTransactions />} />
+                  <Route path="/finance/budget" element={<FinanceBudget />} />
+                  <Route path="/finance/jars" element={<FinanceJars />} />
+                  <Route path="/finance/accounts" element={<FinanceAccounts />} />
+                  <Route path="/finance/import" element={<FinanceImport />} />
+                  <Route path="/finance/settings" element={<FinanceSettings />} />
+                  <Route path="/finance/cheques" element={<FinanceCheques />} />
+                  <Route path="/finance/cashflow" element={<FinanceCashFlow />} />
+                </Route>
+
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </Suspense>
+          </Router>
+        </FinanzaProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 };
 
