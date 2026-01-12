@@ -24,14 +24,14 @@ export const CashFlow = () => {
     const [initialLiquidity, setInitialLiquidity] = useState(0);
 
     useEffect(() => {
-        if (activeEntity?.id) loadData();
+        loadData();
     }, [activeEntity, daysToProject]);
 
     const loadData = async () => {
-        if (!activeEntity?.id) return;
         setLoading(true);
         try {
-            const bId = activeEntity.id;
+            // Para finanzas personales, businessId es undefined (no null)
+            const bId = activeEntity?.type === 'business' && activeEntity.id ? activeEntity.id : undefined;
             const today = new Date();
 
             // 1. Fetch all necessary data
@@ -45,11 +45,12 @@ export const CashFlow = () => {
                 chequesData
             ] = await Promise.all([
                 SupabaseService.getAccounts(bId),
-                SupabaseService.getAccountTypes(), // Need this to filter liquidity
+                SupabaseService.getAccountTypes(bId),
                 SupabaseService.getTransactions(bId),
                 SupabaseService.getMonthlyBalances(bId),
                 SupabaseService.getBudgetItems(bId),
-                chequeService.getAll(bId)
+                // Cheques solo para negocios, no para finanzas personales
+                bId ? chequeService.getAll(bId) : Promise.resolve([])
             ]);
 
             setAccounts(accData);
