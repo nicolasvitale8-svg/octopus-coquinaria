@@ -17,24 +17,24 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: (id) => {
-          // Vendor chunk: React core
-          if (id.includes('node_modules/react-dom') ||
-            id.includes('node_modules/react/') ||
-            id.includes('node_modules/react-router')) {
+          // Solo separar vendors de node_modules
+          if (id.includes('node_modules')) {
+            // React core y router juntos
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
+              return 'vendor-react';
+            }
+            // Charts separados (son grandes)
+            if (id.includes('recharts') || id.includes('d3-')) {
+              return 'vendor-charts';
+            }
+            // Supabase
+            if (id.includes('@supabase')) {
+              return 'vendor-supabase';
+            }
+            // Otros vendors
             return 'vendor';
           }
-          // Charts chunk: Recharts
-          if (id.includes('node_modules/recharts') || id.includes('node_modules/d3')) {
-            return 'charts';
-          }
-          // Finance module chunk
-          if (id.includes('/src/finance/')) {
-            return 'finance';
-          }
-          // Admin pages chunk
-          if (id.includes('/src/pages/Admin') || id.includes('/src/components/AdminLayout')) {
-            return 'admin';
-          }
+          // Dejar que Vite maneje los chunks de src/ automáticamente con lazy()
         }
       }
     }
