@@ -48,46 +48,52 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [profile, setProfile] = useState<AppUser | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    const fetchProfile = async (userId: string, email?: string, metadata?: any) => {
+    const fetchProfile = async (userId: string, email?: string, metadata?: any, retryCount = 0) => {
         try {
             if (!supabase) return;
 
             console.log("🔍 Fetching profile for:", userId, email);
 
-            // 1. Fetch User (Profile + Permissions) con timeout
-            const userPromise = supabase
-                .from('usuarios')
-                .select('id, role, permissions, full_name, business_name, plan, diagnostic_scores')
-                .eq('id', userId)
-                .single();
+            // Ejecutar ambas consultas en PARALELO para mejor performance
+            const [userResult, memberResult] = await Promise.all([
+                // 1. Fetch User Profile
+                Promise.race([
+                    supabase
+                        .from('usuarios')
+                        .select('id, role, permissions, full_name, business_name, plan, diagnostic_scores')
+                        .eq('id', userId)
+                        .single(),
+                    new Promise<{ timeout: true }>((resolve) =>
+                        setTimeout(() => resolve({ timeout: true }), 8000) // 8 segundos
+                    )
+                ]),
+                // 2. Fetch Memberships (en paralelo)
+                Promise.race([
+                    supabase
+                        .from('project_members')
+                        .select('project_id')
+                        .eq('user_id', userId),
+                    new Promise<{ timeout: true }>((resolve) =>
+                        setTimeout(() => resolve({ timeout: true }), 5000)
+                    )
+                ])
+            ]);
 
-            const timeoutPromise = new Promise<{ timeout: true }>((resolve) =>
-                setTimeout(() => resolve({ timeout: true }), 3000)
-            );
-
-            const userResult = await Promise.race([userPromise, timeoutPromise]);
-
+            // Verificar timeout del perfil
             if ('timeout' in userResult) {
-                console.error("⏱️ Timeout al cargar perfil.");
+                console.warn("⏱️ Timeout al cargar perfil.");
+                // Retry automático (máximo 2 intentos)
+                if (retryCount < 2) {
+                    console.log("🔄 Reintentando...", retryCount + 1);
+                    return fetchProfile(userId, email, metadata, retryCount + 1);
+                }
                 return;
             }
 
             const { data: userData, error: userError } = userResult as any;
-
-            // 2. Fetch Memberships (Business IDs) - también con timeout
-            const membershipPromise = supabase
-                .from('project_members')
-                .select('project_id')
-                .eq('user_id', userId);
-
-            const memberResult = await Promise.race([membershipPromise, new Promise<{ timeout: true }>((resolve) =>
-                setTimeout(() => resolve({ timeout: true }), 2000)
-            )]);
-
-            const membershipData = 'timeout' in memberResult ? [] : (memberResult as any).data;
+            const membershipData = 'timeout' in memberResult ? [] : (memberResult as any).data || [];
 
             if (userData) {
-                // SUCESSO V3: Construir AppUser real
                 const userProfile: AppUser = {
                     id: userData.id,
                     email: email || '',
@@ -96,7 +102,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     plan: (userData.plan || 'FREE') as 'FREE' | 'PRO',
                     diagnostic_scores: userData.diagnostic_scores || {},
                     permissions: (userData.permissions || []) as Permission[],
-                    businessIds: (membershipData || []).map((m: any) => m.project_id),
+                    businessIds: membershipData.map((m: any) => m.project_id),
                     businessName: userData.business_name
                 };
 
