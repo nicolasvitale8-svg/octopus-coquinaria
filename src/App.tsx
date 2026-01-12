@@ -49,6 +49,9 @@ const FinanceImport = lazy(() => import('./finance/pages/Import').then(m => ({ d
 const FinanceSettings = lazy(() => import('./finance/pages/Settings').then(m => ({ default: m.SettingsPage })));
 const FinanceCheques = lazy(() => import('./finance/pages/Cheques').then(m => ({ default: m.Cheques })));
 const FinanceCashFlow = lazy(() => import('./finance/pages/CashFlow').then(m => ({ default: m.CashFlow })));
+// Procurement / Gatekeeper
+const GatekeeperDashboard = lazy(() => import('./finance/pages/GatekeeperDashboard').then(m => ({ default: m.GatekeeperDashboard })));
+const SupplyItemsPage = lazy(() => import('./finance/pages/SupplyItems').then(m => ({ default: m.SupplyItemsPage })));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -140,6 +143,9 @@ const App = () => {
                   <Route path="/finance/settings" element={<FinanceSettings />} />
                   <Route path="/finance/cheques" element={<FinanceCheques />} />
                   <Route path="/finance/cashflow" element={<FinanceCashFlow />} />
+                  {/* Gatekeeper Routes */}
+                  <Route path="/finance/procurement" element={<GatekeeperDashboard />} />
+                  <Route path="/finance/supply" element={<SupplyItemsPage />} />
                 </Route>
 
                 <Route path="*" element={<Navigate to="/" replace />} />

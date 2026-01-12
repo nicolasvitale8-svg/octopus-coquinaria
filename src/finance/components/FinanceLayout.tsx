@@ -15,7 +15,9 @@ import {
     Banknote,
     Bell,
     PiggyBank,
-    TrendingUp
+    TrendingUp,
+    ShieldCheck,
+    Archive
 } from 'lucide-react';
 import { useFinanza } from '../context/FinanzaContext';
 
@@ -33,7 +35,11 @@ const FinanceLayout = () => {
         { path: '/finance/cashflow', icon: <TrendingUp size={20} />, label: 'Cash Flow' },
         { path: '/finance/jars', icon: <PiggyBank size={20} />, label: 'Frascos' },
         { path: '/finance/accounts', icon: <Settings size={20} />, label: 'Administración' },
+        { path: '/finance/accounts', icon: <Settings size={20} />, label: 'Administración' },
         { path: '/finance/import', icon: <Download size={20} />, label: 'Importar' },
+        // Procurement
+        { path: '/finance/procurement', icon: <ShieldCheck size={20} className="text-brand" />, label: 'El Gatekeeper' },
+        { path: '/finance/supply', icon: <Archive size={20} />, label: 'Base Insumos' },
     ];
 
     const isActive = (path: string) => location.pathname === path;
