@@ -50,7 +50,7 @@ const FinanceLayout = () => {
 
             {/* Sidebar / Sidebar Navigation */}
             <aside
-                className={`fixed inset - y - 0 left - 0 z - 50 w - 64 bg - [#050f1a] border - r border - white / 5 transition - all duration - 300 ease -in -out md:relative md: translate - x - 0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+                className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#050f1a] border-r border-white/5 transition-all duration-300 ease-in-out md:relative md:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
                     } `}
             >
                 {/* Logo Area */}
@@ -68,12 +68,12 @@ const FinanceLayout = () => {
                             key={item.path}
                             to={item.path}
                             onClick={() => setIsSidebarOpen(false)}
-                            className={`flex items - center px - 4 py - 3.5 rounded - 2xl transition - all group ${isActive(item.path)
+                            className={`flex items-center px-4 py-3.5 rounded-2xl transition-all group ${isActive(item.path)
                                 ? 'bg-cyan-500 text-white shadow-lg shadow-cyan-500/20 font-bold translate-x-1'
                                 : 'text-slate-400 hover:bg-white/5 hover:text-white'
                                 } `}
                         >
-                            <span className={`mr - 3 transition - transform group - hover: scale - 110 ${isActive(item.path) ? 'text-white' : 'text-cyan-500/70'} `}>
+                            <span className={`mr-3 transition-transform group-hover:scale-110 ${isActive(item.path) ? 'text-white' : 'text-cyan-500/70'} `}>
                                 {item.icon}
                             </span>
                             <span className="text-sm tracking-tight">{item.label}</span>
@@ -124,7 +124,7 @@ const FinanceLayout = () => {
                         <div className="relative group">
                             <button
                                 onClick={() => navigate('/finance/budget')}
-                                className={`p - 2.5 rounded - xl border transition - all relative ${alertCount > 0 ? 'bg-red-500/10 border-red-500/30 text-red-500 shadow-[0_0_15px_rgba(239,68,68,0.2)]' : 'bg-white/5 border-white/10 text-white/40 hover:text-white'} `}
+                                className={`p-2.5 rounded-xl border transition-all relative ${alertCount > 0 ? 'bg-red-500/10 border-red-500/30 text-red-500 shadow-[0_0_15px_rgba(239,68,68,0.2)]' : 'bg-white/5 border-white/10 text-white/40 hover:text-white'} `}
                             >
                                 <Bell size={20} className={alertCount > 0 ? 'animate-swing' : ''} />
                                 {alertCount > 0 && (
