@@ -20,6 +20,8 @@ export type CreateChequeDTO = Omit<Cheque, 'id' | 'created_at' | 'project_id'>;
 export const chequeService = {
 
     async getAll(projectId: string) {
+        if (!projectId) return [];
+
         const { data, error } = await supabase
             .from('finance_cheques')
             .select('*')
