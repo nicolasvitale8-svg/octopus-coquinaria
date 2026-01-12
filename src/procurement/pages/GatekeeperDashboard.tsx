@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ProcurementService, SupplyItem, ProcurementBudget, PurchaseOrderItem } from '../services/procurementService';
-import { formatCurrency } from '../utils/calculations';
+import { formatCurrency } from '../../finance/utils/calculations';
 import { AlertTriangle, Lock, ShieldCheck, ShoppingCart, TrendingDown } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 

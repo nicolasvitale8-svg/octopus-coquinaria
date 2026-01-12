@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { ProcurementService, SupplyItem } from '../services/procurementService';
-import { formatCurrency } from '../utils/calculations';
+import { formatCurrency } from '../../finance/utils/calculations';
 import { Plus, Search, Archive, AlertCircle, Save, Upload, X, Check } from 'lucide-react';
 
 export const SupplyItemsPage: React.FC = () => {

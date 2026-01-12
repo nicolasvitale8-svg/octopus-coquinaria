@@ -11,7 +11,8 @@ import {
     X,
     Briefcase,
     Megaphone,
-    BarChart2
+    BarChart2,
+    ShieldCheck
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { LOGO_ADMIN_URL } from '../constants';
@@ -46,6 +47,7 @@ const AdminLayout = () => {
         },
         { path: '/admin/academy', icon: <GraduationCap size={20} />, label: 'Academia' },
         { path: '/admin/board', icon: <Megaphone size={20} />, label: 'Pizarra Home' },
+        { path: '/admin/procurement', icon: <ShieldCheck size={20} className="text-brand" />, label: 'Compras / Gatekeeper' },
         { path: '/finance', icon: <BarChart2 size={20} />, label: 'Módulo Finanzas' },
         { path: '/admin/config', icon: <Settings size={20} />, label: 'Configuración', hidden: !isAdmin },
     ].filter(item => !item.hidden);
