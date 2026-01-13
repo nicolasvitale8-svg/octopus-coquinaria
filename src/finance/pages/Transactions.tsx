@@ -14,6 +14,7 @@ export const Transactions: React.FC = () => {
   const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
 
   // ... (Filter states remain same)
@@ -59,13 +60,18 @@ export const Transactions: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSaving) return; // Prevenir doble click
     if (!formData.amount || !formData.date || !formData.accountId) return;
 
+    setIsSaving(true);
     try {
       const bId = activeEntity.id || undefined;
 
       if (formData.isTransfer) {
-        if (!formData.toAccountId) return alert("Selecciona la cuenta destino");
+        if (!formData.toAccountId) {
+          setIsSaving(false);
+          return alert("Selecciona la cuenta destino");
+        }
 
         // Buscar el rubro de Transferencias o crear uno genérico
         let transCat = categories.find(c => c.name.toLowerCase().includes('transferencia'));
@@ -83,7 +89,10 @@ export const Transactions: React.FC = () => {
           categoryId: transCat.id
         }, bId);
       } else {
-        if (!formData.categoryId) return alert("Selecciona un rubro");
+        if (!formData.categoryId) {
+          setIsSaving(false);
+          return alert("Selecciona un rubro");
+        }
 
         if (editingTransaction) {
           // Update existing transaction
@@ -102,6 +111,8 @@ export const Transactions: React.FC = () => {
     } catch (error) {
       console.error("Error saving transaction:", error);
       alert("Error al guardar la operación");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -583,11 +594,14 @@ export const Transactions: React.FC = () => {
                 <input type="number" step="0.01" value={formData.amount || ''} onChange={e => setFormData({ ...formData, amount: Number(e.target.value) })} className="w-full bg-[#020b14] border border-white/10 rounded-xl p-4 text-3xl font-black text-white tabular-nums focus:border-brand outline-none transition-all" placeholder="0.00" required />
               </div>
 
-              <button type="submit" className={`w-full py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-lg active:scale-95 transition-all mt-2 ${formData.isTransfer ? 'bg-brand text-white shadow-brand/20' :
-                formData.type === TransactionType.IN ? 'bg-emerald-500 text-white shadow-emerald-500/20' :
-                  'bg-red-500 text-white shadow-red-500/20'
-                }`}>
-                {formData.isTransfer ? 'Ejecutar Transferencia' : 'Registrar Movimiento'}
+              <button
+                type="submit"
+                disabled={isSaving}
+                className={`w-full py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-lg active:scale-95 transition-all mt-2 disabled:opacity-50 disabled:cursor-not-allowed ${formData.isTransfer ? 'bg-brand text-white shadow-brand/20' :
+                  formData.type === TransactionType.IN ? 'bg-emerald-500 text-white shadow-emerald-500/20' :
+                    'bg-red-500 text-white shadow-red-500/20'
+                  }`}>
+                {isSaving ? 'Guardando...' : (formData.isTransfer ? 'Ejecutar Transferencia' : 'Registrar Movimiento')}
               </button>
             </form>
           </div>
