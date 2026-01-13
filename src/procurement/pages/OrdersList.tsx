@@ -58,7 +58,10 @@ export const OrdersList: React.FC = () => {
                         >
                             + Nuevo Pedido
                         </button>
-                        <button className="bg-gray-800 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-lg border border-gray-600 transition-all">
+                        <button
+                            onClick={() => navigate('/admin/supply')}
+                            className="bg-gray-800 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-lg border border-gray-600 transition-all"
+                        >
                             Ver Insumos
                         </button>
                     </div>
