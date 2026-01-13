@@ -227,13 +227,15 @@ export const SupplyItemsPage: React.FC = () => {
 
             {/* Editor Modal - EXPANDED */}
             {isEditing && (
-                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in overflow-y-auto">
-                    <div className="bg-[#0b1221] border border-white/10 w-full max-w-2xl rounded-3xl p-8 shadow-2xl relative my-8">
-                        <button onClick={() => setIsEditing(false)} className="absolute top-4 right-4 text-gray-500 hover:text-white"><X size={20} /></button>
-                        <h2 className="text-2xl font-black text-white mb-6 uppercase tracking-tight font-space">
-                            {newItem.id ? 'Editar Insumo' : 'Nuevo Insumo'}
-                        </h2>
-                        <form onSubmit={handleSave} className="space-y-6">
+                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-start justify-center p-4 animate-fade-in overflow-y-auto pt-8 pb-8">
+                    <div className="bg-[#0b1221] border border-white/10 w-full max-w-2xl rounded-3xl shadow-2xl relative flex flex-col max-h-[90vh]">
+                        <div className="sticky top-0 bg-[#0b1221] border-b border-white/10 rounded-t-3xl p-6 flex justify-between items-center z-10">
+                            <h2 className="text-2xl font-black text-white uppercase tracking-tight font-space">
+                                {newItem.id ? 'Editar Insumo' : 'Nuevo Insumo'}
+                            </h2>
+                            <button onClick={() => setIsEditing(false)} className="text-gray-500 hover:text-white p-2 hover:bg-white/10 rounded-full transition-colors"><X size={20} /></button>
+                        </div>
+                        <form onSubmit={handleSave} className="p-6 overflow-y-auto flex-1 space-y-6">
                             {/* Sección: Datos Básicos */}
                             <div className="space-y-4">
                                 <h3 className="text-xs font-black text-brand uppercase tracking-widest border-b border-white/10 pb-2">📦 Datos Básicos</h3>
