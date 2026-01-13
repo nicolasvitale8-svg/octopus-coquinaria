@@ -1,133 +1,167 @@
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '../../services/supabase';
+import { Insumo, Pedido, DetallePedido, Presupuesto, MovimientoStock } from '../types';
 
-// NOTA: Usar las mismas variables de entorno que el servicio principal
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-const supabase = createClient(supabaseUrl, supabaseKey);
-
-export interface SupplyItem {
-    id: string;
-    name: string;
-    unit: string;
-    last_price: number;
-    category: string;
-    supplier_name?: string;
-}
-
-export interface ProcurementBudget {
-    id: string;
-    period_start: string;
-    period_end: string;
-    sales_projected: number;
-    cost_target_pct: number;
-    limit_amount: number; // Generated
-    status: 'OPEN' | 'LOCKED' | 'CLOSED';
-}
-
-export interface PurchaseOrder {
-    id: string;
-    budget_id?: string;
-    order_date: string;
-    supplier_name: string;
-    status: 'DRAFT' | 'VALIDATED' | 'APPROVED' | 'REJECTED';
-    total_amount: number;
-    gatekeeper_status: 'PENDING' | 'GREEN' | 'RED';
-    items?: PurchaseOrderItem[];
-    is_forced?: boolean;
-    force_reason?: string;
-}
-
-export interface PurchaseOrderItem {
-    id?: string;
-    item_id: string;
-    quantity: number;
-    unit_price: number;
-    subtotal?: number; // Generated or calculated
-    item_name?: string; // Join helper
-}
-
-export const ProcurementService = {
-    // --- ITEMS ---
-    async getItems(): Promise<SupplyItem[]> {
+export const procurementService = {
+    // --- INSUMOS ---
+    async getInsumos(): Promise<Insumo[]> {
         const { data, error } = await supabase
-            .from('supply_items')
+            .from('insumos')
             .select('*')
-            .order('name');
+            .order('nombre');
+
         if (error) throw error;
         return data || [];
     },
 
-    async saveItem(item: Partial<SupplyItem>): Promise<SupplyItem> {
+    async getInsumoById(id: string): Promise<Insumo | null> {
         const { data, error } = await supabase
-            .from('supply_items')
-            .upsert(item)
-            .select()
-            .single();
-        if (error) throw error;
-        return data;
-    },
-
-    async bulkImportItems(items: Partial<SupplyItem>[]): Promise<void> {
-        const { error } = await supabase
-            .from('supply_items')
-            .insert(items);
-        if (error) throw error;
-    },
-
-    // --- BUDGETS ---
-    async getActiveBudget(): Promise<ProcurementBudget | null> {
-        const today = new Date().toISOString().split('T')[0];
-        const { data, error } = await supabase
-            .from('procurement_budgets')
+            .from('insumos')
             .select('*')
-            .lte('period_start', today)
-            .gte('period_end', today)
+            .eq('id', id)
             .single();
 
-        if (error && error.code !== 'PGRST116') throw error; // Ignorar "no rows found"
-        return data;
-    },
-
-    async createBudget(budget: Partial<ProcurementBudget>): Promise<ProcurementBudget> {
-        const { data, error } = await supabase
-            .from('procurement_budgets')
-            .insert(budget)
-            .select()
-            .single();
         if (error) throw error;
         return data;
     },
 
-    // --- ORDERS ---
-    async createOrder(order: Partial<PurchaseOrder>, items: PurchaseOrderItem[]): Promise<PurchaseOrder> {
-        // 1. Crear Cabecera
-        const { data: orderData, error: orderError } = await supabase
-            .from('purchase_orders')
-            .insert(order)
-            .select()
+    async updateInsumo(id: string, updates: Partial<Insumo>) {
+        const { error } = await supabase
+            .from('insumos')
+            .update(updates)
+            .eq('id', id);
+        if (error) throw error;
+    },
+
+    async createInsumo(item: Partial<Insumo>) {
+        const { error } = await supabase
+            .from('insumos')
+            .insert(item);
+        if (error) throw error;
+    },
+
+    // --- PRESUPUESTOS ---
+    async getPresupuestoActual(): Promise<Presupuesto | null> {
+        const today = new Date().toISOString().split('T')[0];
+
+        // Buscar presupuesto abierto que cubra la fecha actual
+        const { data, error } = await supabase
+            .from('presupuestos_compras')
+            .select('*')
+            .eq('estado', 'ABIERTO')
+            .lte('fecha_inicio', today)
+            .gte('fecha_fin', today)
             .single();
 
-        if (orderError) throw orderError;
+        if (error && error.code !== 'PGRST116') throw error; // Ignorar not found
+        return data;
+    },
 
-        // 2. Crear Items
-        const itemsWithOrderId = items.map(item => ({
-            order_id: orderData.id,
-            item_id: item.item_id,
-            quantity: item.quantity,
-            unit_price: item.unit_price
-        }));
+    // --- PEDIDOS ---
+    async getPedidos(estado?: string): Promise<Pedido[]> {
+        let query = supabase
+            .from('pedidos_compras')
+            .select('*')
+            .order('created_at', { ascending: false });
 
-        const { error: itemsError } = await supabase
-            .from('purchase_order_items')
-            .insert(itemsWithOrderId);
-
-        if (itemsError) {
-            // Rollback (borrar orden si fallan los items - idealmente usar RPC transaction)
-            await supabase.from('purchase_orders').delete().eq('id', orderData.id);
-            throw itemsError;
+        if (estado) {
+            query = query.eq('estado', estado);
         }
 
-        return orderData;
+        const { data, error } = await query;
+        if (error) throw error;
+        return data || [];
+    },
+
+    async createPedido(pedido: Partial<Pedido>): Promise<Pedido> {
+        const { data, error } = await supabase
+            .from('pedidos_compras')
+            .insert(pedido)
+            .select()
+            .single();
+
+        if (error) throw error;
+        return data;
+    },
+
+    async updatePedido(id: string, updates: Partial<Pedido>) {
+        const { error } = await supabase
+            .from('pedidos_compras')
+            .update(updates)
+            .eq('id', id);
+        if (error) throw error;
+    },
+
+    // --- DETALLE PEDIDO ---
+    async getDetallesPedido(pedidoId: string): Promise<DetallePedido[]> {
+        const { data, error } = await supabase
+            .from('pedidos_detalle')
+            .select('*, insumo:insumos(*)')
+            .eq('pedido_id', pedidoId);
+
+        if (error) throw error;
+        return data || [];
+    },
+
+    async upsertDetalle(detalle: Partial<DetallePedido>) {
+        const { data, error } = await supabase
+            .from('pedidos_detalle')
+            .upsert(detalle)
+            .select()
+            .single();
+        if (error) throw error;
+        return data;
+    },
+
+    async deleteDetalle(id: string) {
+        const { error } = await supabase
+            .from('pedidos_detalle')
+            .delete()
+            .eq('id', id);
+        if (error) throw error;
+    },
+
+    // --- ACCIONES COMPLEJAS ---
+
+    // Recepción de pedido: Cambia estado y genera movimientos
+    async recibirPedido(pedidoId: string) {
+        // 1. Obtener detalles
+        const detalles = await this.getDetallesPedido(pedidoId);
+        if (detalles.length === 0) throw new Error("El pedido no tiene ítems.");
+
+        // 2. Crear movimientos de stock
+        const movimientos = detalles.map(d => ({
+            insumo_id: d.insumo_id,
+            tipo: 'ENTRADA',
+            origen: 'COMPRA',
+            cantidad: d.cantidad_real,
+            referencia_id: pedidoId,
+            fecha: new Date().toISOString()
+        }));
+
+        const { error: moveError } = await supabase
+            .from('movimientos_stock')
+            .insert(movimientos);
+
+        if (moveError) throw moveError;
+
+        // 3. Actualizar estado del pedido
+        await this.updatePedido(pedidoId, { estado: 'RECIBIDO' });
+
+        // 4. (Opcional) Actualizar stock_actual en la tabla insumos 
+        // Idealmente esto se haría con un Trigger en DB, 
+        // pero lo hacemos aquí por si no hay triggers.
+        for (const d of detalles) {
+            // Fetch current stock first to atomic update? 
+            // Mejor llamar a una RPC si existiera, o update simple.
+            // Hacemos update simple incrementando
+            // Nota: esto no es safe para concurrencia alta sin RPC.
+            // Asumimos bajo volumen.
+            const { data: insumo } = await supabase.from('insumos').select('stock_actual').eq('id', d.insumo_id).single();
+            if (insumo) {
+                await supabase.from('insumos').update({
+                    stock_actual: (insumo.stock_actual || 0) + d.cantidad_real
+                }).eq('id', d.insumo_id);
+            }
+        }
     }
 };

@@ -51,7 +51,10 @@ const FinanceCheques = lazy(() => import('./finance/pages/Cheques').then(m => ({
 const FinanceCashFlow = lazy(() => import('./finance/pages/CashFlow').then(m => ({ default: m.CashFlow })));
 
 // Procurement / Gatekeeper
-const GatekeeperDashboard = lazy(() => import('./procurement/pages/GatekeeperDashboard').then(m => ({ default: m.GatekeeperDashboard })));
+// Procurement / Gatekeeper
+const OrdersList = lazy(() => import('./procurement/pages/OrdersList').then(m => ({ default: m.OrdersList })));
+const OrderForm = lazy(() => import('./procurement/pages/OrderForm').then(m => ({ default: m.OrderForm })));
+const OrderDetail = lazy(() => import('./procurement/pages/OrderDetail').then(m => ({ default: m.OrderDetail })));
 const SupplyItemsPage = lazy(() => import('./procurement/pages/SupplyItems').then(m => ({ default: m.SupplyItemsPage })));
 
 // Loading fallback component
@@ -98,7 +101,9 @@ const App = () => {
 
 
                     {/* Procurement Routes (Admin) */}
-                    <Route path="procurement" element={<GatekeeperDashboard />} />
+                    <Route path="procurement" element={<OrdersList />} />
+                    <Route path="procurement/new" element={<OrderForm />} />
+                    <Route path="procurement/:id" element={<OrderDetail />} />
                     <Route path="supply" element={<SupplyItemsPage />} />
                   </Route>
                 </Route>
