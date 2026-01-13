@@ -1,6 +1,7 @@
-import { QuickDiagnosticResult, DeepDiagnosticResult } from '../types';
+import { QuickDiagnosticResult, DeepDiagnosticResult, Lead } from '../types';
 import { supabase } from './supabase';
 import { runWithRetryAndTimeout } from './network';
+import { logger } from './logger';
 
 const STORAGE_KEY = 'octopus_diagnostic_result';
 const HISTORY_KEY = 'octopus_diagnostic_history';
@@ -27,7 +28,7 @@ export const saveDiagnosticResult = async (result: QuickDiagnosticResult) => {
     // NOTE: Redundant Supabase insert removed here to avoid duplicates.
     // QuickDiagnostic.tsx already performs the insert with full auth context.
   } catch (error) {
-    console.error('Error saving diagnostic locally', error);
+    logger.error('Error saving diagnostic locally', { context: 'Storage', data: error });
   }
 };
 
@@ -50,12 +51,12 @@ export const saveDeepDiagnosticResult = (result: DeepDiagnosticResult) => {
     saveToHistory(historyEntry);
     return true;
   } catch (error) {
-    console.error('Error saving deep diagnostic', error);
+    logger.error('Error saving deep diagnostic', { context: 'Storage', data: error });
     return false;
   }
 };
 
-const saveToHistory = (entry: any) => {
+const saveToHistory = (entry: Lead | Record<string, unknown>) => {
   const historyStr = localStorage.getItem(HISTORY_KEY);
   const history = historyStr ? JSON.parse(historyStr) : [];
   const newHistory = [entry, ...history].slice(0, 20);
@@ -73,7 +74,7 @@ export const getLastDiagnostic = (): QuickDiagnosticResult | null => {
   }
 };
 
-export const getDiagnosticHistory = (): any[] => {
+export const getDiagnosticHistory = (): Lead[] => {
   try {
     const data = localStorage.getItem(HISTORY_KEY);
     return data ? JSON.parse(data) : [];
@@ -87,7 +88,7 @@ export const getDiagnosticHistory = (): any[] => {
 /**
  * Fetch diagnostics specifically for the current authenticated user (Lead/User role).
  */
-export const getMyLeads = async (email: string): Promise<any[]> => {
+export const getMyLeads = async (email: string): Promise<Lead[]> => {
   const client = supabase;
   if (!client || !email) return [];
 
@@ -124,7 +125,7 @@ export const getMyLeads = async (email: string): Promise<any[]> => {
       };
     });
   } catch (error) {
-    console.error("Error fetching my leads:", error);
+    logger.error('Error fetching my leads', { context: 'Storage', data: error });
     return [];
   }
 };
@@ -170,8 +171,9 @@ export const getAllLeads = async (): Promise<any[]> => {
           ...(row.full_data || {})
         }));
       }
-    } catch (error: any) {
-      console.warn('⚠️ Supabase fetch failed. Falling back to LocalStorage.', error?.message || error);
+    } catch (error: unknown) {
+      const err = error as Error;
+      logger.warn('Supabase fetch failed, falling back to LocalStorage', { context: 'Storage', data: err.message });
     }
   }
 
@@ -200,11 +202,10 @@ export const syncLocalLeads = async (): Promise<void> => {
 
   if (leadsToSync.length === 0) return;
 
-  console.log(`🔄 Syncing ${leadsToSync.length} leads via RAW FETCH...`);
+  logger.info(`Syncing ${leadsToSync.length} leads via RAW FETCH`, { context: 'Storage' });
 
-  // Use imported constants
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-    console.error("❌ Missing Supabase constants for REST sync.");
+    logger.error('Missing Supabase constants for REST sync', { context: 'Storage' });
     return;
   }
 
@@ -240,13 +241,13 @@ export const syncLocalLeads = async (): Promise<void> => {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error(`❌ Raw Sync Failed (Leads): ${response.status}`, errorText);
+      logger.error('Raw Sync Failed (Leads)', { context: 'Storage', data: { status: response.status, error: errorText } });
     } else {
-      console.log("✅ All leads synced successfully via REST!");
+      logger.success('All leads synced successfully via REST', { context: 'Storage' });
     }
 
   } catch (e) {
-    console.error("❌ Raw Sync Exception (Leads):", e);
+    logger.error('Raw Sync Exception (Leads)', { context: 'Storage', data: e });
   }
 };
 
@@ -258,10 +259,10 @@ export const deleteLead = async (lead: any): Promise<void> => {
       const history = JSON.parse(historyData);
       const newHistory = history.filter((h: any) => h.date !== lead.date);
       localStorage.setItem(HISTORY_KEY, JSON.stringify(newHistory));
-      console.log('Lead deleted from LocalStorage (Optimistic)');
+      logger.success('Lead deleted from LocalStorage', { context: 'Storage' });
     }
   } catch (e) {
-    console.error('Error deleting from local storage', e);
+    logger.error('Error deleting from local storage', { context: 'Storage', data: e });
   }
 
   // 2. Background Sync
@@ -282,11 +283,9 @@ export const deleteLead = async (lead: any): Promise<void> => {
               }),
             { timeoutMs: 30000, retries: 3, backoffMs: 2000, label: 'Eliminar lead (Background)' }
           );
-          console.log('Lead deleted from Supabase (Background)');
+          logger.success('Lead deleted from Supabase (Background)', { context: 'Storage' });
         } catch (error) {
-          console.error('Error deleting lead from Supabase:', error);
-          // Optional: Could revert local change here if strict consistency is needed, 
-          // but for delete it's usually better to just log error or retry later.
+          logger.error('Error deleting lead from Supabase', { context: 'Storage', data: error });
         }
       })();
     }

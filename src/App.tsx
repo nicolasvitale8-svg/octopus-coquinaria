@@ -51,11 +51,12 @@ const FinanceCheques = lazy(() => import('./finance/pages/Cheques').then(m => ({
 const FinanceCashFlow = lazy(() => import('./finance/pages/CashFlow').then(m => ({ default: m.CashFlow })));
 
 // Procurement / Gatekeeper
-// Procurement / Gatekeeper
 const OrdersList = lazy(() => import('./procurement/pages/OrdersList').then(m => ({ default: m.OrdersList })));
 const OrderForm = lazy(() => import('./procurement/pages/OrderForm').then(m => ({ default: m.OrderForm })));
 const OrderDetail = lazy(() => import('./procurement/pages/OrderDetail').then(m => ({ default: m.OrderDetail })));
 const SupplyItemsPage = lazy(() => import('./procurement/pages/SupplyItems').then(m => ({ default: m.SupplyItemsPage })));
+const StockAlerts = lazy(() => import('./procurement/pages/StockAlerts').then(m => ({ default: m.StockAlerts })));
+const StockMovements = lazy(() => import('./procurement/pages/StockMovements').then(m => ({ default: m.StockMovements })));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -99,10 +100,11 @@ const App = () => {
                     <Route path="config" element={<AdminConfig />} />
                     <Route path="profile" element={<UserProfile />} />
 
-
                     {/* Procurement Routes (Admin) */}
                     <Route path="procurement" element={<OrdersList />} />
                     <Route path="procurement/new" element={<OrderForm />} />
+                    <Route path="procurement/alerts" element={<StockAlerts />} />
+                    <Route path="procurement/movements" element={<StockMovements />} />
                     <Route path="procurement/:id" element={<OrderDetail />} />
                     <Route path="supply" element={<SupplyItemsPage />} />
                   </Route>
@@ -152,6 +154,7 @@ const App = () => {
                   <Route path="/finance/accounts" element={<FinanceAccounts />} />
                   <Route path="/finance/import" element={<FinanceImport />} />
                   <Route path="/finance/settings" element={<FinanceSettings />} />
+                  <Route path="/finance/cheques" element={<FinanceCheques />} />
                   <Route path="/finance/cashflow" element={<FinanceCashFlow />} />
                 </Route>
 

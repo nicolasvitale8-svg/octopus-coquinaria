@@ -1,5 +1,6 @@
 import { supabase } from './supabase';
 import { ProjectMember, AppUser, Role } from '../types';
+import { logger } from './logger';
 
 /**
  * memberService.ts 🐙
@@ -32,7 +33,7 @@ export const memberService = {
             .eq('project_id', projectId);
 
         if (error) {
-            console.error("Error fetching project members:", error);
+            logger.error('Error fetching project members', { context: 'MemberService', data: error });
             return [];
         }
 
@@ -45,7 +46,7 @@ export const memberService = {
     addOrUpdateMember: async (membership: Partial<ProjectMember>): Promise<boolean> => {
         if (!supabase) return false;
 
-        console.log("DEBUG memberService.addOrUpdateMember:", membership);
+        logger.debug('addOrUpdateMember', { context: 'MemberService', data: membership });
 
         const { error } = await supabase
             .from('project_members')
@@ -53,7 +54,7 @@ export const memberService = {
             .select();
 
         if (error) {
-            console.error("Error saving project member:", error.message, error.details, error.hint);
+            logger.error('Error saving project member', { context: 'MemberService', data: { msg: error.message, details: error.details } });
             return false;
         }
 
@@ -66,7 +67,7 @@ export const memberService = {
     removeMember: async (projectId: string, userId: string): Promise<boolean> => {
         if (!supabase) return false;
 
-        console.log("DEBUG memberService.removeMember:", { projectId, userId });
+        logger.debug('removeMember', { context: 'MemberService', data: { projectId, userId } });
 
         const { error } = await supabase
             .from('project_members')
@@ -74,7 +75,7 @@ export const memberService = {
             .match({ project_id: projectId, user_id: userId });
 
         if (error) {
-            console.error("Error removing project member:", error.message, error.details, error.hint);
+            logger.error('Error removing project member', { context: 'MemberService', data: { msg: error.message, details: error.details } });
             return false;
         }
 

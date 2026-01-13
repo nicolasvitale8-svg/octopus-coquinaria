@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { procurementService } from '../services/procurementService';
 import { Insumo, Presupuesto, DetallePedido } from '../types';
 import { calcularSugerido, validarPresupuesto } from '../utils/calculations';
@@ -8,6 +8,7 @@ import { PresupuestoCard } from '../components/PresupuestoCard';
 export const OrderForm: React.FC = () => {
     const navigate = useNavigate();
     const { id } = useParams(); // Si editamos
+    const [searchParams] = useSearchParams();
 
     // Data State
     const [insumos, setInsumos] = useState<Insumo[]>([]);
@@ -18,6 +19,37 @@ export const OrderForm: React.FC = () => {
     const [proveedor, setProveedor] = useState('');
     const [nota, setNota] = useState('');
     const [loading, setLoading] = useState(true);
+
+    // Helper function to add item
+    const addItemFromInsumo = (insumo: Insumo, allItems: Partial<DetallePedido>[]) => {
+        const consumoDiario = 1; // TODO: Fetch real history
+        const pendiente = 0;
+
+        const sugerido = calcularSugerido(
+            insumo.stock_max,
+            insumo.stock_min,
+            insumo.stock_actual,
+            consumoDiario,
+            insumo.lead_time_dias,
+            pendiente,
+            insumo.pack_proveedor
+        );
+
+        const newItem: Partial<DetallePedido> = {
+            insumo_id: insumo.id,
+            insumo,
+            cantidad_sugerida: sugerido,
+            cantidad_real: sugerido,
+            unidad: insumo.unidad_medida,
+            precio_unitario: insumo.precio_ultimo,
+            subtotal: sugerido * insumo.precio_ultimo,
+            consumo_promedio_diario: consumoDiario,
+            stock_actual_snapshot: insumo.stock_actual,
+            pendiente_recibir_snapshot: pendiente
+        };
+
+        return [...allItems, newItem];
+    };
 
     // Load Data
     useEffect(() => {
@@ -30,7 +62,24 @@ export const OrderForm: React.FC = () => {
                 setInsumos(fetchedInsumos);
                 setPresupuesto(fetchedPresupuesto);
 
-                // TODO: Si es edit, cargar pedido y detalles (no implementado en V1 para brevedad)
+                // Check for auto-populate from query params
+                const autoIds = searchParams.get('auto');
+                if (autoIds && fetchedInsumos.length > 0) {
+                    const idsArray = autoIds.split(',');
+                    let newItems: Partial<DetallePedido>[] = [];
+
+                    for (const insumoId of idsArray) {
+                        const insumo = fetchedInsumos.find(i => i.id === insumoId);
+                        if (insumo) {
+                            newItems = addItemFromInsumo(insumo, newItems);
+                        }
+                    }
+
+                    if (newItems.length > 0) {
+                        setItems(newItems);
+                        setNota('Pedido generado automáticamente desde Alertas de Stock');
+                    }
+                }
             } catch (e) {
                 console.error(e);
             } finally {
@@ -38,7 +87,7 @@ export const OrderForm: React.FC = () => {
             }
         };
         init();
-    }, [id]);
+    }, [id, searchParams]);
 
     // Calculations
     const totalEstimado = useMemo(() => {

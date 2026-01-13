@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { procurementService } from '../services/procurementService';
 import { Pedido, Presupuesto } from '../types';
 import { PresupuestoCard } from '../components/PresupuestoCard';
@@ -9,6 +9,7 @@ export const OrdersList: React.FC = () => {
     const [pedidos, setPedidos] = useState<Pedido[]>([]);
     const [presupuesto, setPresupuesto] = useState<Presupuesto | null>(null);
     const [loading, setLoading] = useState(true);
+    const [filtroEstado, setFiltroEstado] = useState<string>('ALL');
 
     useEffect(() => {
         loadData();
@@ -28,6 +29,11 @@ export const OrdersList: React.FC = () => {
             setLoading(false);
         }
     };
+
+    const pedidosFiltrados = useMemo(() => {
+        if (filtroEstado === 'ALL') return pedidos;
+        return pedidos.filter(p => p.estado === filtroEstado);
+    }, [pedidos, filtroEstado]);
 
     const getStatusColor = (status: string) => {
         switch (status) {
@@ -51,7 +57,7 @@ export const OrdersList: React.FC = () => {
                     <p className="text-gray-400 text-lg">
                         Control de pedidos, proveedores y presupuesto.
                     </p>
-                    <div className="flex gap-3 pt-2">
+                    <div className="flex flex-wrap gap-3 pt-2">
                         <button
                             onClick={() => navigate('/admin/procurement/new')}
                             className="bg-brand hover:bg-brand-hover text-black font-bold py-2 px-6 rounded-lg shadow-lg hover:shadow-brand/50 transition-all"
@@ -62,7 +68,19 @@ export const OrdersList: React.FC = () => {
                             onClick={() => navigate('/admin/supply')}
                             className="bg-gray-800 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-lg border border-gray-600 transition-all"
                         >
-                            Ver Insumos
+                            Insumos
+                        </button>
+                        <button
+                            onClick={() => navigate('/admin/procurement/alerts')}
+                            className="bg-red-900/30 hover:bg-red-900/50 text-red-300 font-semibold py-2 px-4 rounded-lg border border-red-800/50 transition-all"
+                        >
+                            🔔 Alertas Stock
+                        </button>
+                        <button
+                            onClick={() => navigate('/admin/procurement/movements')}
+                            className="bg-gray-800 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-lg border border-gray-600 transition-all"
+                        >
+                            📦 Movimientos
                         </button>
                     </div>
                 </div>
@@ -76,19 +94,27 @@ export const OrdersList: React.FC = () => {
             <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
                 <div className="p-4 border-b border-gray-800 flex justify-between items-center bg-gray-800/50">
                     <h2 className="font-semibold text-white">Historial de Pedidos</h2>
-                    <select className="bg-gray-900 border border-gray-700 text-gray-300 text-sm rounded-lg p-2 focus:border-brand outline-none">
+                    <select
+                        value={filtroEstado}
+                        onChange={(e) => setFiltroEstado(e.target.value)}
+                        className="bg-gray-900 border border-gray-700 text-gray-300 text-sm rounded-lg p-2 focus:border-brand outline-none"
+                    >
                         <option value="ALL">Todos los estados</option>
                         <option value="BORRADOR">Borrador</option>
                         <option value="ENVIADO">Enviado</option>
+                        <option value="CONFIRMADO">Confirmado</option>
                         <option value="RECIBIDO">Recibido</option>
+                        <option value="CANCELADO">Cancelado</option>
                     </select>
                 </div>
 
                 {loading ? (
                     <div className="p-8 text-center text-gray-500">Cargando pedidos...</div>
-                ) : pedidos.length === 0 ? (
+                ) : pedidosFiltrados.length === 0 ? (
                     <div className="p-12 text-center text-gray-500">
-                        No hay pedidos registrados. Comienza creando uno nuevo.
+                        {filtroEstado === 'ALL'
+                            ? 'No hay pedidos registrados. Comienza creando uno nuevo.'
+                            : `No hay pedidos con estado "${filtroEstado}".`}
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
@@ -103,7 +129,7 @@ export const OrdersList: React.FC = () => {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-800">
-                                {pedidos.map((pedido) => (
+                                {pedidosFiltrados.map((pedido) => (
                                     <tr key={pedido.id} className="hover:bg-gray-800/30 transition-colors">
                                         <td className="px-6 py-4">
                                             {new Date(pedido.fecha).toLocaleDateString()}

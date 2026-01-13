@@ -6,6 +6,7 @@ import { Project } from '../types';
 import { WHATSAPP_NUMBER } from '../constants';
 import { MessageCircle, Rocket, ShieldCheck, ArrowRight } from 'lucide-react';
 import Button from '../components/ui/Button';
+import { logger } from '../services/logger';
 
 const ClientProjectRedirect = () => {
     const { user, profile } = useAuth();
@@ -29,7 +30,7 @@ const ClientProjectRedirect = () => {
                     // User has project membership - redirect to first project
                     const firstProject = memberships[0]?.projects;
                     if (firstProject) {
-                        console.log("Found project via membership:", firstProject);
+                        logger.debug('Found project via membership', { context: 'ClientProjectRedirect', data: firstProject });
                         navigate(`/hub/projects/${(firstProject as any).id}`);
                         return;
                     }
@@ -66,9 +67,10 @@ const ClientProjectRedirect = () => {
                     setError('PENDING_PROJECT');
                 }
 
-            } catch (err: any) {
-                console.error("Error finding project:", err);
-                setError(err.message);
+            } catch (err: unknown) {
+                const error = err as Error;
+                logger.error('Error finding project', { context: 'ClientProjectRedirect', data: error });
+                setError(error.message);
             } finally {
                 setIsLoading(false);
             }

@@ -14,6 +14,52 @@ export enum DiagnosticStatus {
   RED = 'Rojo'
 }
 
+// --- LEAD TYPES (CRM) ---
+export interface LeadData {
+  name?: string;
+  email?: string;
+  phone?: string;
+  business?: string;
+}
+
+export interface LeadFullData {
+  primaryConcern?: string[];
+  methodologyScores?: Record<string, number>;
+  contactEmail?: string;
+  contactName?: string;
+  businessType?: string;
+}
+
+export interface Lead {
+  id: string;
+  date: string;
+  type?: 'quick' | 'deep';
+  leadData?: LeadData;
+  full_data?: LeadFullData;
+
+  // Result fields (flat for quick access)
+  status?: DiagnosticStatus | string;
+  scoreGlobal?: number;
+  scoreFinancial?: number;
+  score7P?: number;
+  cogsPercentage?: number;
+  laborPercentage?: number;
+  fixedPercentage?: number;
+  marginPercentage?: number;
+  profileName?: string;
+  profileDescription?: string;
+
+  // Legacy compatibility
+  business_name?: string;
+  contact_name?: string;
+  methodologyScores?: Record<string, number>;
+
+  // Conversion tracking
+  converted?: boolean;
+  project_id?: string;
+  created_at?: string;
+}
+
 export interface QuickDiagnosticData {
   businessType: BusinessType;
   city: string;

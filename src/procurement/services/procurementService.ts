@@ -72,6 +72,17 @@ export const procurementService = {
         return data || [];
     },
 
+    async getPedidoById(id: string): Promise<Pedido | null> {
+        const { data, error } = await supabase
+            .from('pedidos_compras')
+            .select('*')
+            .eq('id', id)
+            .single();
+
+        if (error && error.code !== 'PGRST116') throw error;
+        return data;
+    },
+
     async createPedido(pedido: Partial<Pedido>): Promise<Pedido> {
         const { data, error } = await supabase
             .from('pedidos_compras')
@@ -163,5 +174,112 @@ export const procurementService = {
                 }).eq('id', d.insumo_id);
             }
         }
+    },
+
+    // --- MOVIMIENTOS DE STOCK ---
+    async getMovimientos(filtros?: { insumo_id?: string; tipo?: string; desde?: string; hasta?: string }): Promise<MovimientoStock[]> {
+        let query = supabase
+            .from('movimientos_stock')
+            .select('*')
+            .order('fecha', { ascending: false });
+
+        if (filtros?.insumo_id) {
+            query = query.eq('insumo_id', filtros.insumo_id);
+        }
+        if (filtros?.tipo) {
+            query = query.eq('tipo', filtros.tipo);
+        }
+        if (filtros?.desde) {
+            query = query.gte('fecha', filtros.desde);
+        }
+        if (filtros?.hasta) {
+            query = query.lte('fecha', filtros.hasta);
+        }
+
+        const { data, error } = await query.limit(500);
+        if (error) throw error;
+        return data || [];
+    },
+
+    async createMovimiento(movimiento: Partial<MovimientoStock>) {
+        const { data, error } = await supabase
+            .from('movimientos_stock')
+            .insert({
+                ...movimiento,
+                fecha: movimiento.fecha || new Date().toISOString()
+            })
+            .select()
+            .single();
+
+        if (error) throw error;
+
+        // Actualizar stock del insumo
+        if (movimiento.insumo_id && movimiento.cantidad) {
+            const { data: insumo } = await supabase
+                .from('insumos')
+                .select('stock_actual')
+                .eq('id', movimiento.insumo_id)
+                .single();
+
+            if (insumo) {
+                const delta = movimiento.tipo === 'ENTRADA' ? movimiento.cantidad : -movimiento.cantidad;
+                await supabase
+                    .from('insumos')
+                    .update({ stock_actual: Math.max(0, (insumo.stock_actual || 0) + delta) })
+                    .eq('id', movimiento.insumo_id);
+            }
+        }
+
+        return data;
+    },
+
+    // --- ALERTAS DE STOCK ---
+    async getInsumosConAlerta(): Promise<(Insumo & { alerta: 'CRITICO' | 'ALERTA' | 'OK'; punto_pedido: number })[]> {
+        const insumos = await this.getInsumos();
+
+        return insumos
+            .filter(i => i.activo !== false)
+            .map(insumo => {
+                // Punto de pedido = stock_min + (consumo_estimado * lead_time)
+                // Por ahora usamos un estimado básico
+                const consumoEstimado = 1; // TODO: calcular desde historial
+                const puntoPedido = (insumo.stock_min || 0) + (consumoEstimado * (insumo.lead_time_dias || 0));
+
+                let alerta: 'CRITICO' | 'ALERTA' | 'OK' = 'OK';
+                if ((insumo.stock_actual || 0) <= (insumo.stock_min || 0)) {
+                    alerta = 'CRITICO';
+                } else if ((insumo.stock_actual || 0) <= puntoPedido) {
+                    alerta = 'ALERTA';
+                }
+
+                return {
+                    ...insumo,
+                    alerta,
+                    punto_pedido: puntoPedido
+                };
+            })
+            .sort((a, b) => {
+                // Ordenar: CRITICO primero, luego ALERTA, luego OK
+                const orden = { CRITICO: 0, ALERTA: 1, OK: 2 };
+                return orden[a.alerta] - orden[b.alerta];
+            });
+    },
+
+    // --- CONSUMO PROMEDIO ---
+    async getConsumoPromedio(insumoId: string, diasHistorico: number = 30): Promise<number> {
+        const desde = new Date();
+        desde.setDate(desde.getDate() - diasHistorico);
+
+        const { data, error } = await supabase
+            .from('movimientos_stock')
+            .select('cantidad')
+            .eq('insumo_id', insumoId)
+            .eq('tipo', 'SALIDA')
+            .gte('fecha', desde.toISOString());
+
+        if (error) throw error;
+
+        const totalSalidas = (data || []).reduce((sum, m) => sum + (m.cantidad || 0), 0);
+        return totalSalidas / diasHistorico;
     }
 };

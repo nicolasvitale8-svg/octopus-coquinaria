@@ -1,9 +1,8 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '../services/supabase';
 import { User } from '@supabase/supabase-js';
+import { logger } from '../services/logger';
 
-// Tipos de roles soportados
-// Tipos de roles soportados
 // --- SECURITY TYPES (V3) ---
 import { UserRole, Permission, AppUser } from '../types';
 
@@ -48,11 +47,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [profile, setProfile] = useState<AppUser | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    const fetchProfile = async (userId: string, email?: string, metadata?: any, retryCount = 0) => {
+    const fetchProfile = async (userId: string, email?: string, metadata?: Record<string, unknown>, retryCount = 0) => {
         try {
             if (!supabase) return;
 
-            console.log("🔍 Fetching profile for:", userId, email);
+            logger.debug('Fetching profile', { context: 'Auth', data: { userId, email } });
 
             // Ejecutar ambas consultas en PARALELO para mejor performance
             const [userResult, memberResult] = await Promise.all([
@@ -81,10 +80,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
             // Verificar timeout del perfil
             if ('timeout' in userResult) {
-                console.warn("⏱️ Timeout al cargar perfil.");
-                // Retry automático (máximo 2 intentos)
+                logger.warn('Timeout cargando perfil', { context: 'Auth' });
                 if (retryCount < 2) {
-                    console.log("🔄 Reintentando...", retryCount + 1);
+                    logger.info('Reintentando...', { context: 'Auth', data: { attempt: retryCount + 1 } });
                     return fetchProfile(userId, email, metadata, retryCount + 1);
                 }
                 return;
@@ -102,18 +100,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     plan: (userData.plan || 'FREE') as 'FREE' | 'PRO',
                     diagnostic_scores: userData.diagnostic_scores || {},
                     permissions: (userData.permissions || []) as Permission[],
-                    businessIds: membershipData.map((m: any) => m.project_id),
+                    businessIds: membershipData.map((m: { project_id: string }) => m.project_id),
                     businessName: userData.business_name
                 };
 
                 setProfile(userProfile);
-                console.log("✅ Perfil cargado:", userProfile.role, userProfile.email);
+                logger.success('Perfil cargado', { context: 'Auth', data: { role: userProfile.role, email: userProfile.email } });
             } else {
-                console.warn("⚠️ Perfil no encontrado para el usuario:", userId);
+                logger.warn('Perfil no encontrado', { context: 'Auth', data: { userId } });
                 setProfile(null);
             }
         } catch (err) {
-            console.error("❌ Error crítico fetching profile:", err);
+            logger.error('Error crítico fetching profile', { context: 'Auth', data: err });
             setProfile(null);
         }
     };
@@ -139,7 +137,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     setProfile(null);
                 }
             } catch (error) {
-                console.error("Error checking session:", error);
+                logger.error('Error checking session', { context: 'Auth', data: error });
             } finally {
                 setIsLoading(false);
             }
@@ -176,7 +174,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 await Promise.race([signOutPromise, timeoutPromise]);
             }
         } catch (error) {
-            console.error("Error signing out:", error);
+            logger.error('Error signing out', { context: 'Auth', data: error });
         } finally {
             // 2. Force local cleanup
             setUser(null);

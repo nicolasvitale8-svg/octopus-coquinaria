@@ -6,6 +6,7 @@ import { saveDiagnosticResult } from '../services/storage';
 import { supabase } from '../services/supabase';
 import { ChevronLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { logger } from '../services/logger';
 
 // Components
 import DiagnosticHeader from '../components/diagnostic/DiagnosticHeader';
@@ -110,7 +111,7 @@ const QuickDiagnostic = () => {
         try {
           // 1. Check if user wants to create account
           if (formData.password && formData.password.length >= 6) {
-            console.log("🔐 Intentando crear cuenta para el lead...");
+            logger.debug('Intentando crear cuenta para el lead', { context: 'QuickDiagnostic' });
             const { data: authData, error: authError } = await supabase.auth.signUp({
               email: formData.contactEmail,
               password: formData.password,
@@ -123,9 +124,9 @@ const QuickDiagnostic = () => {
             });
 
             if (authError) {
-              console.error("❌ Error en registro Auth:", authError.message);
+              logger.error('Error en registro Auth', { context: 'QuickDiagnostic', data: authError.message });
             } else if (authData.user) {
-              console.log("✅ Usuario auth creado:", authData.user.id);
+              logger.success('Usuario auth creado', { context: 'QuickDiagnostic', data: authData.user.id });
               // Crear perfil en tabla usuarios (trigger habitual, pero lo aseguramos)
               await supabase.from('usuarios').upsert({
                 id: authData.user.id,
@@ -162,7 +163,7 @@ const QuickDiagnostic = () => {
           const { error: diagError } = await supabase.from('diagnosticos_express').insert(diagPayload);
 
           if (diagError) {
-            console.warn("⚠️ Fallo insert directo, reintentando solo con campos base + full_data...");
+            logger.warn('Fallo insert directo, reintentando con fallback', { context: 'QuickDiagnostic' });
             // Fallback: Si fallan las columnas nuevas, guardar solo lo básico + el JSON completo
             const fallbackPayload = {
               contact_name: formData.contactName,
@@ -175,7 +176,7 @@ const QuickDiagnostic = () => {
           }
 
         } catch (e) {
-          console.error("❌ Error crítico en guardado de Supabase:", e);
+          logger.error('Error crítico en guardado de Supabase', { context: 'QuickDiagnostic', data: e });
         }
       }
 

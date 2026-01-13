@@ -1,5 +1,6 @@
 
 import { supabase } from './supabase';
+import { logger } from './logger';
 
 // Define Interface locally or import if available in types.ts (prefer types.ts if exists)
 // Based on previous chats, it seems user has a Calendar event type.
@@ -50,8 +51,8 @@ export const getEvents = async (): Promise<CalendarEvent[]> => {
             .select('*');
 
         if (error) {
-            console.warn("Supabase calendar fetch failed (RLS?):", error.message);
-            return localEvents; // Fallback to local
+            logger.warn('Supabase calendar fetch failed', { context: 'CalendarService', data: error.message });
+            return localEvents;
         }
 
         if (data) {
@@ -77,7 +78,7 @@ export const getEvents = async (): Promise<CalendarEvent[]> => {
             return combined;
         }
     } catch (e) {
-        console.error(e);
+        logger.error('Calendar getEvents exception', { context: 'CalendarService', data: e });
     }
 
     return localEvents;
@@ -102,9 +103,9 @@ export const createEvent = async (event: Omit<CalendarEvent, 'id' | 'created_at'
         const currentList: CalendarEvent[] = localData ? JSON.parse(localData) : [];
         const newList = [...currentList, newEvent];
         localStorage.setItem(CALENDAR_STORAGE_KEY, JSON.stringify(newList));
-        console.log("✅ Event saved locally");
+        logger.success('Event saved locally', { context: 'CalendarService' });
     } catch (e) {
-        console.error("Error saving local event", e);
+        logger.error('Error saving local event', { context: 'CalendarService', data: e });
     }
 
     // 2. Sync Supabase (Background)
@@ -112,10 +113,10 @@ export const createEvent = async (event: Omit<CalendarEvent, 'id' | 'created_at'
         (async () => {
             try {
                 const { error } = await supabase.from('eventos_calendario').insert([newEvent]);
-                if (error) console.warn("Background Sync: Supabase insert failed:", error.message);
-                else console.log("Background Sync: Event synced to Supabase");
+                if (error) logger.warn('Background Sync: Supabase insert failed', { context: 'CalendarService', data: error.message });
+                else logger.success('Background Sync: Event synced to Supabase', { context: 'CalendarService' });
             } catch (e) {
-                console.error("Background Sync exception", e);
+                logger.error('Background Sync exception', { context: 'CalendarService', data: e });
             }
         })();
     }
@@ -137,11 +138,11 @@ export const updateEvent = async (event: CalendarEvent): Promise<CalendarEvent> 
             if (index !== -1) {
                 list[index] = event;
                 localStorage.setItem(CALENDAR_STORAGE_KEY, JSON.stringify(list));
-                console.log("✅ Event updated locally");
+                logger.success('Event updated locally', { context: 'CalendarService' });
             }
         }
     } catch (e) {
-        console.error("Error updating local event", e);
+        logger.error('Error updating local event', { context: 'CalendarService', data: e });
     }
 
     // 2. Sync Supabase (Background)
@@ -161,10 +162,10 @@ export const updateEvent = async (event: CalendarEvent): Promise<CalendarEvent> 
                 };
 
                 const { error } = await supabase.from('eventos_calendario').upsert(dbRow);
-                if (error) console.warn("Background Sync: Supabase update failed:", error.message);
-                else console.log("Background Sync: Event updated in Supabase");
+                if (error) logger.warn('Background Sync: Supabase update failed', { context: 'CalendarService', data: error.message });
+                else logger.success('Background Sync: Event updated in Supabase', { context: 'CalendarService' });
             } catch (e) {
-                console.error("Background Sync exception", e);
+                logger.error('Background Sync exception', { context: 'CalendarService', data: e });
             }
         })();
     }
@@ -184,13 +185,13 @@ export const deleteEvent = async (id: string): Promise<void> => {
             const newList = list.filter(e => e.id !== id);
             localStorage.setItem(CALENDAR_STORAGE_KEY, JSON.stringify(newList));
         }
-    } catch (e) { console.error(e); }
+    } catch (e) { logger.error('Delete local event error', { context: 'CalendarService', data: e }); }
 
     // 2. Supabase Delete
     if (supabase) {
         try {
             await supabase.from('eventos_calendario').delete().eq('id', id);
-        } catch (e) { console.warn(e); }
+        } catch (e) { logger.warn('Delete supabase event error', { context: 'CalendarService', data: e }); }
     }
 };
 
@@ -205,34 +206,34 @@ export const syncLocalEvents = async (): Promise<void> => {
 
     if (!supabase) return;
 
-    console.log(`🔄 Syncing ${localEvents.length} calendar events via Supabase Client...`);
+    logger.info(`Syncing ${localEvents.length} calendar events`, { context: 'CalendarService' });
 
     // 2. Prepare Data
-    const dbRows = localEvents.map((e: any) => ({
+    const dbRows = localEvents.map((e: CalendarEvent) => ({
         id: e.id,
-        titulo: e.title || e.titulo || 'Sin Título',
-        tipo: e.type || e.tipo || 'comercial',
-        fecha_inicio: e.start_date || e.fecha_inicio || new Date().toISOString(),
-        fecha_fin: e.end_date || e.fecha_fin || e.start_date || new Date().toISOString(),
-        mensaje: e.description || e.mensaje || '',
-        description: e.description || e.mensaje || '', // Ensure description is populated for the new column
-        prioridad: e.priority || e.prioridad || 1,
+        titulo: e.title || 'Sin Título',
+        tipo: e.type || 'comercial',
+        fecha_inicio: e.start_date || new Date().toISOString(),
+        fecha_fin: e.end_date || e.start_date || new Date().toISOString(),
+        mensaje: e.description || '',
+        description: e.description || '',
+        prioridad: 1,
         created_at: e.created_at || new Date().toISOString(),
         business_id: e.business_id || null
     }));
 
-    // 3. UPSERT using Supabase Client (Handles Auth)
+    // 3. UPSERT using Supabase Client
     try {
         const { error } = await supabase
             .from('eventos_calendario')
             .upsert(dbRows, { onConflict: 'id' });
 
         if (error) {
-            console.error("❌ Sync Failed (Calendar):", error.message);
+            logger.error('Sync Failed (Calendar)', { context: 'CalendarService', data: error.message });
         } else {
-            console.log("✅ Calendar synced successfully!");
+            logger.success('Calendar synced successfully', { context: 'CalendarService' });
         }
     } catch (e) {
-        console.error("❌ Sync Exception (Calendar):", e);
+        logger.error('Sync Exception (Calendar)', { context: 'CalendarService', data: e });
     }
 };

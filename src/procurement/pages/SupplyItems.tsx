@@ -225,61 +225,167 @@ export const SupplyItemsPage: React.FC = () => {
                 </div>
             )}
 
-            {/* Editor Modal */}
+            {/* Editor Modal - EXPANDED */}
             {isEditing && (
-                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
-                    <div className="bg-[#0b1221] border border-white/10 w-full max-w-lg rounded-3xl p-8 shadow-2xl relative">
+                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in overflow-y-auto">
+                    <div className="bg-[#0b1221] border border-white/10 w-full max-w-2xl rounded-3xl p-8 shadow-2xl relative my-8">
                         <button onClick={() => setIsEditing(false)} className="absolute top-4 right-4 text-gray-500 hover:text-white"><X size={20} /></button>
                         <h2 className="text-2xl font-black text-white mb-6 uppercase tracking-tight font-space">
                             {newItem.id ? 'Editar Insumo' : 'Nuevo Insumo'}
                         </h2>
-                        <form onSubmit={handleSave} className="space-y-5">
-                            <div>
-                                <label className="text-[10px] font-black text-brand uppercase tracking-widest ml-1 mb-1 block">Nombre del Producto</label>
-                                <input
-                                    required
-                                    className="w-full bg-black/20 border border-gray-700 rounded-xl p-3 text-white font-bold focus:border-brand outline-none transition-colors"
-                                    value={newItem.nombre || ''}
-                                    onChange={e => setNewItem({ ...newItem, nombre: e.target.value })}
-                                    placeholder="Ej. Ojo de Bife"
-                                />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
+                        <form onSubmit={handleSave} className="space-y-6">
+                            {/* Sección: Datos Básicos */}
+                            <div className="space-y-4">
+                                <h3 className="text-xs font-black text-brand uppercase tracking-widest border-b border-white/10 pb-2">📦 Datos Básicos</h3>
                                 <div>
-                                    <label className="text-[10px] font-black text-brand uppercase tracking-widest ml-1 mb-1 block">Unidad</label>
-                                    <select
-                                        className="w-full bg-black/20 border border-gray-700 rounded-xl p-3 text-white font-bold focus:border-brand outline-none transition-colors appearance-none"
-                                        value={newItem.unidad_medida || 'Kg'}
-                                        onChange={e => setNewItem({ ...newItem, unidad_medida: e.target.value as any })}
-                                    >
-                                        <option value="Kg">Kg</option>
-                                        <option value="Lt">Lt</option>
-                                        <option value="Un">Unidad</option>
-                                        <option value="Paquete">Paquete</option>
-                                    </select>
+                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-1 block">Nombre del Producto</label>
+                                    <input
+                                        required
+                                        className="w-full bg-black/20 border border-gray-700 rounded-xl p-3 text-white font-bold focus:border-brand outline-none transition-colors"
+                                        value={newItem.nombre || ''}
+                                        onChange={e => setNewItem({ ...newItem, nombre: e.target.value })}
+                                        placeholder="Ej. Ojo de Bife"
+                                    />
                                 </div>
-                                <div>
-                                    <label className="text-[10px] font-black text-brand uppercase tracking-widest ml-1 mb-1 block">Precio Actual</label>
-                                    <div className="relative">
-                                        <span className="absolute left-3 top-3 text-gray-500">$</span>
+                                <div className="grid grid-cols-3 gap-4">
+                                    <div>
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-1 block">Unidad</label>
+                                        <select
+                                            className="w-full bg-black/20 border border-gray-700 rounded-xl p-3 text-white font-bold focus:border-brand outline-none transition-colors appearance-none"
+                                            value={newItem.unidad_medida || 'Kg'}
+                                            onChange={e => setNewItem({ ...newItem, unidad_medida: e.target.value as any })}
+                                        >
+                                            <option value="Kg">Kg</option>
+                                            <option value="Lt">Lt</option>
+                                            <option value="Un">Unidad</option>
+                                            <option value="Paquete">Paquete</option>
+                                            <option value="Bolsa">Bolsa</option>
+                                            <option value="Bidón">Bidón</option>
+                                            <option value="Caja">Caja</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-1 block">Precio Ref.</label>
+                                        <div className="relative">
+                                            <span className="absolute left-3 top-3 text-gray-500">$</span>
+                                            <input
+                                                type="number"
+                                                step="0.01"
+                                                className="w-full bg-black/20 border border-gray-700 rounded-xl p-3 pl-6 text-white font-bold focus:border-brand outline-none transition-colors"
+                                                value={newItem.precio_ultimo || ''}
+                                                onChange={e => setNewItem({ ...newItem, precio_ultimo: Number(e.target.value) })}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-1 block">Categoría</label>
+                                        <select
+                                            className="w-full bg-black/20 border border-gray-700 rounded-xl p-3 text-white font-bold focus:border-brand outline-none transition-colors appearance-none"
+                                            value={newItem.categoria || 'Varios'}
+                                            onChange={e => setNewItem({ ...newItem, categoria: e.target.value as any })}
+                                        >
+                                            <option value="Carnes">Carnes</option>
+                                            <option value="Verduras">Verduras</option>
+                                            <option value="Lácteos">Lácteos</option>
+                                            <option value="Panificados">Panificados</option>
+                                            <option value="Almacén">Almacén</option>
+                                            <option value="Limpieza">Limpieza</option>
+                                            <option value="Descartables">Descartables</option>
+                                            <option value="Bebidas">Bebidas</option>
+                                            <option value="Varios">Varios</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Sección: Gestión de Stock */}
+                            <div className="space-y-4">
+                                <h3 className="text-xs font-black text-brand uppercase tracking-widest border-b border-white/10 pb-2">📊 Gestión de Stock</h3>
+                                <div className="grid grid-cols-3 gap-4">
+                                    <div>
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-1 block">Stock Actual</label>
                                         <input
                                             type="number"
-                                            className="w-full bg-black/20 border border-gray-700 rounded-xl p-3 pl-6 text-white font-bold focus:border-brand outline-none transition-colors"
-                                            value={newItem.precio_ultimo || ''}
-                                            onChange={e => setNewItem({ ...newItem, precio_ultimo: Number(e.target.value) })}
+                                            step="0.1"
+                                            className="w-full bg-black/20 border border-gray-700 rounded-xl p-3 text-white font-bold focus:border-brand outline-none transition-colors"
+                                            value={newItem.stock_actual ?? ''}
+                                            onChange={e => setNewItem({ ...newItem, stock_actual: Number(e.target.value) })}
+                                            placeholder="0"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] font-black text-red-400 uppercase tracking-widest ml-1 mb-1 block">Stock Mínimo</label>
+                                        <input
+                                            type="number"
+                                            step="0.1"
+                                            className="w-full bg-red-900/10 border border-red-900/30 rounded-xl p-3 text-white font-bold focus:border-red-500 outline-none transition-colors"
+                                            value={newItem.stock_min ?? ''}
+                                            onChange={e => setNewItem({ ...newItem, stock_min: Number(e.target.value) })}
+                                            placeholder="Punto crítico"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] font-black text-green-400 uppercase tracking-widest ml-1 mb-1 block">Stock Máximo</label>
+                                        <input
+                                            type="number"
+                                            step="0.1"
+                                            className="w-full bg-green-900/10 border border-green-900/30 rounded-xl p-3 text-white font-bold focus:border-green-500 outline-none transition-colors"
+                                            value={newItem.stock_max ?? ''}
+                                            onChange={e => setNewItem({ ...newItem, stock_max: Number(e.target.value) })}
+                                            placeholder="Objetivo"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-1 block">Lead Time (días)</label>
+                                        <input
+                                            type="number"
+                                            className="w-full bg-black/20 border border-gray-700 rounded-xl p-3 text-white font-bold focus:border-brand outline-none transition-colors"
+                                            value={newItem.lead_time_dias ?? ''}
+                                            onChange={e => setNewItem({ ...newItem, lead_time_dias: Number(e.target.value) })}
+                                            placeholder="Días de reposición"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-1 block">Pack Proveedor</label>
+                                        <input
+                                            type="number"
+                                            step="0.1"
+                                            className="w-full bg-black/20 border border-gray-700 rounded-xl p-3 text-white font-bold focus:border-brand outline-none transition-colors"
+                                            value={newItem.pack_proveedor ?? ''}
+                                            onChange={e => setNewItem({ ...newItem, pack_proveedor: Number(e.target.value) })}
+                                            placeholder="Unidades por pack"
                                         />
                                     </div>
                                 </div>
                             </div>
 
-                            <div>
-                                <label className="text-[10px] font-black text-brand uppercase tracking-widest ml-1 mb-1 block">Categoría</label>
-                                <input
-                                    className="w-full bg-black/20 border border-gray-700 rounded-xl p-3 text-white font-bold focus:border-brand outline-none transition-colors"
-                                    value={newItem.categoria || ''}
-                                    onChange={e => setNewItem({ ...newItem, categoria: e.target.value as any })}
-                                    placeholder="Ej. Carnes"
-                                />
+                            {/* Sección: Proveedor */}
+                            <div className="space-y-4">
+                                <h3 className="text-xs font-black text-brand uppercase tracking-widest border-b border-white/10 pb-2">🏢 Proveedor</h3>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-1 block">Proveedor Principal</label>
+                                        <input
+                                            className="w-full bg-black/20 border border-gray-700 rounded-xl p-3 text-white font-bold focus:border-brand outline-none transition-colors"
+                                            value={newItem.proveedor_principal || ''}
+                                            onChange={e => setNewItem({ ...newItem, proveedor_principal: e.target.value })}
+                                            placeholder="Nombre del proveedor"
+                                        />
+                                    </div>
+                                    <div className="flex items-end">
+                                        <label className="flex items-center gap-3 cursor-pointer p-3 bg-black/20 border border-gray-700 rounded-xl w-full hover:border-brand transition-colors">
+                                            <input
+                                                type="checkbox"
+                                                checked={newItem.activo !== false}
+                                                onChange={e => setNewItem({ ...newItem, activo: e.target.checked })}
+                                                className="w-5 h-5 rounded accent-brand"
+                                            />
+                                            <span className="text-white font-bold">Activo</span>
+                                        </label>
+                                    </div>
+                                </div>
                             </div>
 
                             <div className="pt-4 flex gap-3">

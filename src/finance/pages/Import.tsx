@@ -7,6 +7,7 @@ import { formatCurrency } from '../utils/calculations';
 import { Camera, Loader2, CheckCircle2, ChevronLeft, ChevronRight, FileText, Sparkles, AlertTriangle, Trash2, Info, RotateCcw, FileUp, CreditCard } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useFinanza } from '../context/FinanzaContext';
+import { logger } from '../../services/logger';
 import Tesseract from 'tesseract.js';
 import * as pdfjsLib from 'pdfjs-dist';
 
@@ -51,7 +52,7 @@ export const ImportPage: React.FC = () => {
       setRules(r);
       setExistingTransactions(t);
     } catch (error) {
-      console.error("Error loading import data:", error);
+      logger.error('Error loading import data', { context: 'ImportPage', data: error });
     } finally {
       setLoading(false);
     }
@@ -79,7 +80,7 @@ export const ImportPage: React.FC = () => {
 
       return fullText;
     } catch (pdfError) {
-      console.error('Error procesando PDF:', pdfError);
+      logger.error('Error procesando PDF', { context: 'ImportPage', data: pdfError });
       throw new Error('No se pudo leer el PDF. Puede que esté protegido o dañado.');
     }
   };
@@ -116,7 +117,7 @@ export const ImportPage: React.FC = () => {
       setRawText(prev => (prev ? prev + '\n\n' : '') + extractedText);
       setScanStatus('¡Completado!');
     } catch (err) {
-      console.error('Error procesando archivo:', err);
+      logger.error('Error procesando archivo', { context: 'ImportPage', data: err });
       alert("Error al procesar el archivo. Intenta con otro formato o archivo más claro.");
     } finally {
       setIsScanning(false);
@@ -141,7 +142,7 @@ export const ImportPage: React.FC = () => {
       if (ccStatement && ccStatement.lines.length > 0) {
         // Convertir a ImportLines y aplicar reglas
         lines = ccToImportLines(ccStatement).map(l => ({ ...l, categoryId: undefined, subCategoryId: undefined })) as ImportLine[];
-        console.log(`📄 Resumen de TC detectado: ${ccStatement.cardType} - ${ccStatement.lines.length} consumos`);
+        logger.debug('Resumen de TC detectado', { context: 'ImportPage', data: { cardType: ccStatement.cardType, count: ccStatement.lines.length } });
       }
     }
 
@@ -222,7 +223,7 @@ export const ImportPage: React.FC = () => {
               isActive: true
             }, bId);
           } catch (e) {
-            console.log('Error creating rule:', e);
+            logger.warn('Error creating rule', { context: 'ImportPage', data: e });
           }
         }
       }
@@ -230,7 +231,7 @@ export const ImportPage: React.FC = () => {
       alert(`${toImport.length} movimientos importados con éxito.${learnedPatterns.size > 0 ? ` Se crearon ${learnedPatterns.size} reglas automáticamente.` : ''}`);
       navigate('/finance/transactions');
     } catch (error) {
-      console.error("Error importing transactions:", error);
+      logger.error('Error importing transactions', { context: 'ImportPage', data: error });
       alert("Ocurrió un error al importar los movimientos.");
       setIsImporting(false);
     }

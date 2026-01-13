@@ -3,6 +3,7 @@ import { Project } from '../types';
 import { createClient } from '@supabase/supabase-js';
 import { supabase } from './supabase';
 import { runWithRetryAndTimeout } from './network';
+import { logger } from './logger';
 
 const PROJECTS_STORAGE_KEY = 'octopus_projects_local';
 
@@ -11,7 +12,7 @@ const PROJECTS_STORAGE_KEY = 'octopus_projects_local';
  * @param filterIds Optional array of business IDs to filter results.
  */
 export const getAllProjects = async (filterIds?: string[]): Promise<Project[]> => {
-    console.log("🚀 ProjectService v2.3 - Fetching projects...", filterIds ? `(Filtered: ${filterIds.length})` : "(All)");
+    logger.debug('Fetching projects', { context: 'ProjectService', data: filterIds ? `Filtered: ${filterIds.length}` : 'All' });
     let localProjects: Project[] = [];
     try {
         const localData = localStorage.getItem(PROJECTS_STORAGE_KEY);
@@ -19,7 +20,7 @@ export const getAllProjects = async (filterIds?: string[]): Promise<Project[]> =
             localProjects = JSON.parse(localData);
         }
     } catch (e) {
-        console.warn("Error reading local projects", e);
+        logger.warn('Error reading local projects', { context: 'ProjectService', data: e });
     }
 
     const client = supabase;
@@ -51,7 +52,7 @@ export const getAllProjects = async (filterIds?: string[]): Promise<Project[]> =
         const { data, error } = response as any;
 
         if (error) {
-            console.warn("Supabase fetch failed (likely dev mode/RLS), using local only.", error.message);
+            logger.warn('Supabase fetch failed, using local only', { context: 'ProjectService', data: error.message });
             return localProjects;
         }
 
@@ -69,7 +70,7 @@ export const getAllProjects = async (filterIds?: string[]): Promise<Project[]> =
             return combined;
         }
     } catch (error) {
-        console.error("Supabase fetch exception (retry)", error);
+        logger.error('Supabase fetch exception', { context: 'ProjectService', data: error });
     }
 
     return localProjects;
@@ -84,7 +85,7 @@ export const getProjectById = async (id: string): Promise<Project | null> => {
             if (localProject) return localProject;
         }
     } catch (e) {
-        console.warn("Error reading local project by id", e);
+        logger.warn('Error reading local project by id', { context: 'ProjectService', data: e });
     }
 
     const client = supabase;
@@ -125,14 +126,14 @@ export const getProjectById = async (id: string): Promise<Project | null> => {
             const { data, error } = response as any;
 
             if (data) return data;
-            if (error) console.warn("Supabase fetch project by id error:", error.message);
+            if (error) logger.warn('Supabase fetch project by id error', { context: 'ProjectService', data: error.message });
         } catch (error) {
-            console.warn("Supabase fetch project failed (retry).", error);
+            logger.warn('Supabase fetch project failed', { context: 'ProjectService', data: error });
         }
     }
 
     if (id === '16326af3-462f-45b7-897e-0d83461ebf46') {
-        console.warn("?? Project not found. Generating MOCK PROJECT for Dev/Testing.");
+        logger.warn('Project not found - generating MOCK for dev', { context: 'ProjectService' });
         return {
             id: '16326af3-462f-45b7-897e-0d83461ebf46',
             created_at: new Date().toISOString(),
@@ -192,9 +193,9 @@ export const createProject = async (project: Omit<Project, 'id' | 'created_at'>)
         const currentList: Project[] = localData ? JSON.parse(localData) : [];
         const newList = [newProject, ...currentList];
         localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(newList));
-        console.log("✅ Project saved locally:", newProject.business_name);
+        logger.success('Project saved locally', { context: 'ProjectService', data: newProject.business_name });
     } catch (e) {
-        console.error("Error saving local project", e);
+        logger.error('Error saving local project', { context: 'ProjectService', data: e });
     }
 
     // 3. Save Supabase (Fire and forget-ish, but check error)
@@ -209,17 +210,17 @@ export const createProject = async (project: Omit<Project, 'id' | 'created_at'>)
             const result = await Promise.race([insertPromise, timeoutPromise]);
 
             if ('timeout' in result) {
-                console.error("❌ Supabase INSERT timed out. Saved locally only.");
+                logger.error('Supabase INSERT timed out', { context: 'ProjectService' });
             } else {
                 const { error } = result as any;
                 if (error) {
-                    console.warn("⚠️ Supabase Insert Failed (Dev Mode/RLS?):", error.message);
+                    logger.warn('Supabase Insert Failed', { context: 'ProjectService', data: error.message });
                 } else {
-                    console.log("✅ Project synced to Supabase");
+                    logger.success('Project synced to Supabase', { context: 'ProjectService' });
                 }
             }
         } catch (e) {
-            console.warn("Supabase insert exception", e);
+            logger.warn('Supabase insert exception', { context: 'ProjectService', data: e });
         }
     }
 
@@ -254,9 +255,9 @@ export const updateProject = async (project: Project): Promise<Project | null> =
         }
 
         localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(currentList));
-        console.log("✅ Project updated locally:", project.business_name);
+        logger.success('Project updated locally', { context: 'ProjectService', data: project.business_name });
     } catch (e) {
-        console.error("Error updating local project", e);
+        logger.error('Error updating local project', { context: 'ProjectService', data: e });
     }
 
     // 2. Update Supabase
@@ -269,7 +270,7 @@ export const updateProject = async (project: Project): Promise<Project | null> =
             // SANITIZE: Remove virtual/joined fields that don't exist in the 'projects' table
             const { tasks, deliverables, project_members, business_memberships, ...cleanProject } = safeProject as any;
 
-            console.log("🧹 Sanitized project for upsert:", Object.keys(cleanProject));
+            logger.debug('Sanitized project for upsert', { context: 'ProjectService', data: Object.keys(cleanProject) });
 
             // Use upsert to handle both updates and potential recovery of missing records
             const upsertPromise = supabase
@@ -280,19 +281,18 @@ export const updateProject = async (project: Project): Promise<Project | null> =
             const result = await Promise.race([upsertPromise, timeoutPromise]);
 
             if ('timeout' in result) {
-                console.error("❌ Supabase UPDATE timed out. Saved locally only.");
+                logger.error('Supabase UPDATE timed out', { context: 'ProjectService' });
             } else {
                 const { error, data } = result as any;
                 if (error) {
-                    console.error("⚠️ Supabase Update/Upsert Failed:", error.message, error.details, error.hint);
-                    // Return null to signal failure to UI
+                    logger.error('Supabase Update/Upsert Failed', { context: 'ProjectService', data: { msg: error.message, details: error.details } });
                     return null;
                 } else {
-                    console.log("✅ Project synced to Supabase:", data?.[0]?.business_name);
+                    logger.success('Project synced to Supabase', { context: 'ProjectService', data: data?.[0]?.business_name });
                 }
             }
         } catch (e) {
-            console.error("Supabase update exception", e);
+            logger.error('Supabase update exception', { context: 'ProjectService', data: e });
             return null;
         }
     }
@@ -314,11 +314,11 @@ export const deleteProject = async (id: string): Promise<void> => {
 
             if (currentList.length < initialLength) {
                 localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(currentList));
-                console.log("✅ Project deleted locally:", id);
+                logger.success('Project deleted locally', { context: 'ProjectService', data: id });
             }
         }
     } catch (e) {
-        console.error("Error deleting local project", e);
+        logger.error('Error deleting local project', { context: 'ProjectService', data: e });
     }
 
     // 2. Delete Supabase
@@ -336,17 +336,17 @@ export const deleteProject = async (id: string): Promise<void> => {
             const result = await Promise.race([deletePromise, timeoutPromise]);
 
             if ('timeout' in result) {
-                console.error("❌ Supabase DELETE timed out. Deleted locally only.");
+                logger.error('Supabase DELETE timed out', { context: 'ProjectService' });
             } else {
                 const { error } = result as any;
                 if (error) {
-                    console.error("⚠️ Supabase Delete Failed:", error.message);
+                    logger.error('Supabase Delete Failed', { context: 'ProjectService', data: error.message });
                 } else {
-                    console.log("✅ Project deleted from Supabase");
+                    logger.success('Project deleted from Supabase', { context: 'ProjectService' });
                 }
             }
         } catch (e) {
-            console.error("Supabase delete exception", e);
+            logger.error('Supabase delete exception', { context: 'ProjectService', data: e });
         }
     }
 };
@@ -366,14 +366,13 @@ export const syncLocalProjects = async (): Promise<void> => {
         const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
         const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-        console.log(`🔄 Syncing ${localProjects.length} projects via RAW FETCH (No Client)...`);
+        logger.info(`Syncing ${localProjects.length} projects via RAW FETCH`, { context: 'ProjectService' });
 
         let successCount = 0;
         let failCount = 0;
 
         for (const project of localProjects) {
             try {
-                // Use Raw REST API to bypass Supabase Client issues
                 const response = await fetch(`${SUPABASE_URL}/rest/v1/projects`, {
                     method: 'POST',
                     headers: {
@@ -387,14 +386,14 @@ export const syncLocalProjects = async (): Promise<void> => {
 
                 if (!response.ok) {
                     const text = await response.text();
-                    console.error(`❌ Fetch Failed for "${project.business_name}": ${response.status} - ${text}`);
+                    logger.error('Fetch Failed', { context: 'ProjectService', data: { name: project.business_name, status: response.status, text } });
                     failCount++;
                 } else {
-                    console.log(`✅ Raw Sync Success: "${project.business_name}"`);
+                    logger.success('Raw Sync Success', { context: 'ProjectService', data: project.business_name });
                     successCount++;
                 }
             } catch (innerError) {
-                console.error(`❌ Network Exception for "${project.business_name}":`, innerError);
+                logger.error('Network Exception', { context: 'ProjectService', data: { name: project.business_name, error: innerError } });
                 failCount++;
             }
         }
@@ -402,13 +401,13 @@ export const syncLocalProjects = async (): Promise<void> => {
         if (failCount > 0) {
             throw new Error(`Sync completed with errors: ${successCount} success, ${failCount} failed.`);
         } else {
-            console.log("✅ All local projects synced successfully via REST!");
+            logger.success('All local projects synced successfully via REST', { context: 'ProjectService' });
             alert("✅ Sincronización completada (Método REST).");
             window.location.reload();
         }
 
     } catch (e) {
-        console.error("Sync exception", e);
+        logger.error('Sync exception', { context: 'ProjectService', data: e });
         alert("Error en sincronización: " + (e as Error).message);
     }
 };

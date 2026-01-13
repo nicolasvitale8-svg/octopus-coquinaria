@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom';
 import Button from '../components/ui/Button';
 import { supabase } from '../services/supabase';
 import { useAuth } from '../contexts/AuthContext';
+import { logger } from '../services/logger';
 
 const CalendarPage = () => {
   const { profile } = useAuth();
@@ -34,7 +35,7 @@ const CalendarPage = () => {
       .select('*')
       .order('fecha_inicio', { ascending: true });
 
-    console.log("DEBUG Calendar: fetched events:", data?.length, "error:", error?.message);
+    logger.debug('Fetched calendar events', { context: 'Calendar', data: { count: data?.length, error: error?.message } });
 
     if (data) {
       setEvents(data);

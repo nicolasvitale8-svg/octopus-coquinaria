@@ -15,6 +15,7 @@ import {
 import { es } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight, Plus, Calendar as CalendarIcon, X, Trash2, Clock } from 'lucide-react';
 import { getEvents, createEvent, deleteEvent, CalendarEvent } from '../services/calendarService';
+import { logger } from '../services/logger';
 import Button from '../components/ui/Button';
 
 // Tipos
@@ -54,7 +55,7 @@ const AdminCalendar = () => {
         // 2. SLOW: Fetch remote
         if (local.length === 0) setIsLoading(true);
         const data = await getEvents();
-        console.log("📅 AdminCalendar Fetched:", data);
+        logger.debug('AdminCalendar Fetched', { context: 'AdminCalendar', data: { count: data.length } });
         setEvents(data);
         setIsLoading(false);
     };

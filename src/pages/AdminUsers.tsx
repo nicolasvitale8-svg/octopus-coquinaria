@@ -4,6 +4,7 @@ import { Users, Search, AlertCircle, Trash2, Edit2, Plus } from 'lucide-react';
 import Button from '../components/ui/Button';
 import { AdminUserModal } from '../components/admin/AdminUserModal';
 import { UserRole } from '../types';
+import { logger } from '../services/logger';
 
 // Tipos alineados con AuthContext y DB
 interface UserData {
@@ -56,14 +57,15 @@ const AdminUsers = () => {
                 .order('created_at', { ascending: false });
 
             if (data) {
-                setUsers(data as any);
+                setUsers(data as UserData[]);
             } else if (error) {
-                console.error("Error fetching users:", error);
+                logger.error('Error fetching users', { context: 'AdminUsers', data: error });
                 setError(error.message);
             }
-        } catch (err: any) {
-            console.error("Unexpected error fetching users:", err);
-            setError(err.message || 'Error desconocido');
+        } catch (err: unknown) {
+            const error = err as Error;
+            logger.error('Unexpected error fetching users', { context: 'AdminUsers', data: error });
+            setError(error.message || 'Error desconocido');
         } finally {
             setIsLoading(false);
         }
@@ -96,7 +98,7 @@ const AdminUsers = () => {
                 ?.map((pm: any) => pm.projects?.id || pm.project_id)
                 .filter(Boolean) || []
         };
-        console.log("DEBUG: Editing user with mapped businessIds:", mappedUser.businessIds);
+        logger.debug('Editing user with mapped businessIds', { context: 'AdminUsers', data: mappedUser.businessIds });
         setSelectedUser(mappedUser);
         setIsModalOpen(true);
     };

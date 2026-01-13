@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import { X, UserPlus, Shield, Star, Trash2, Search, Check } from 'lucide-react';
 import { Project, AppUser, Role } from '../../types';
 import { memberService } from '../../services/memberService';
+import { logger } from '../../services/logger';
 import Button from '../ui/Button';
 
 interface ProjectMembersModalProps {
@@ -41,7 +42,7 @@ const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({ project, isOp
 
     const handleAddUser = async (user: Partial<AppUser>) => {
         setIsSaving(true);
-        console.log("DEBUG: Adding user:", user.id, "to project:", project.id, "with default role: consultant");
+        logger.debug('Adding user to project', { context: 'ProjectMembersModal', data: { userId: user.id, projectId: project.id } });
         const success = await memberService.addOrUpdateMember({
             project_id: project.id,
             user_id: user.id,
@@ -59,7 +60,7 @@ const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({ project, isOp
     const handleRemoveMember = async (userId: string) => {
         if (!confirm('¿Eliminar a este miembro del proyecto?')) return;
         setIsSaving(true);
-        console.log("DEBUG: Removing user:", userId, "from project:", project.id);
+        logger.debug('Removing user from project', { context: 'ProjectMembersModal', data: { userId, projectId: project.id } });
         const success = await memberService.removeMember(project.id, userId);
         if (success) {
             await loadData();
@@ -72,7 +73,7 @@ const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({ project, isOp
 
     const handleUpdateRole = async (userId: string, roleId: string) => {
         setIsSaving(true);
-        console.log("DEBUG: Updating role for user:", userId, "in project:", project.id, "to roleId:", roleId);
+        logger.debug('Updating role', { context: 'ProjectMembersModal', data: { userId, projectId: project.id, roleId } });
         const success = await memberService.addOrUpdateMember({
             project_id: project.id,
             user_id: userId,
@@ -96,7 +97,7 @@ const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({ project, isOp
     );
 
     // Debugging Roles
-    console.log("DEBUG: Available Roles:", roles);
+    logger.debug('Available Roles', { context: 'ProjectMembersModal', data: roles });
 
     return ReactDOM.createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">

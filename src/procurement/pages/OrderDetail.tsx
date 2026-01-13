@@ -17,32 +17,14 @@ export const OrderDetail: React.FC = () => {
 
     const loadData = async (orderId: string) => {
         try {
-            // Fetch Pedido by ID (using getPedidos filtering for simplicity, or ideally getById)
-            // Since getPedidos returns array, we find the one. 
-            // Ideally service should have getById. 
-            // I'll assume I can find it or filter.
-            // Wait, service implementation had create/update but maybe not specific getById exposed nicely?
-            // I can add getPedidoById to service if needed, OR just use supabase directly here 
-            // but let's stick to service pattern.
-            // The `procurementService` I wrote has `getPedidos(estado?)`. 
-            // I'll just fetch all or update service.
-            // Let's assume for now I can fetch list or add getById.
-            // Actually `procurementService` definition earlier:
-            /*
-            async getPedidos(estado?: string) ...
-            async updatePedido ...
-            */
-            // I missed `getPedidoById`. I will assume I can add it or just fetch from DB here.
-            // To be clean, I'll use the service but I might need to patch it or just query directly here for speed.
-            // I'll query directly for this component to avoid re-editing service repeatedly.
-            const fetchedItems = await procurementService.getDetallesPedido(orderId);
+            // Fetch pedido and items in parallel
+            const [fetchedPedido, fetchedItems] = await Promise.all([
+                procurementService.getPedidoById(orderId),
+                procurementService.getDetallesPedido(orderId)
+            ]);
+
+            setPedido(fetchedPedido);
             setItems(fetchedItems);
-
-            // Fetch header - patching service local usage
-            const list = await procurementService.getPedidos();
-            const found = list.find(p => p.id === orderId);
-            setPedido(found || null);
-
         } catch (e) {
             console.error(e);
         } finally {

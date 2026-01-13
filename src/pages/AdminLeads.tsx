@@ -7,16 +7,17 @@ import { MessageCircle, Search, Download, Users, User, Calendar, FileText, X, Pi
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../services/supabase';
 import Button from '../components/ui/Button';
-import { DiagnosticStatus } from '../types';
+import { DiagnosticStatus, Lead } from '../types';
 import { formatPercent, formatCurrency } from '../services/calculations';
+import { logger } from '../services/logger';
 
 const AdminLeads = () => {
-  const [leads, setLeads] = useState<any[]>([]);
+  const [leads, setLeads] = useState<Lead[]>([]);
   const [filter, setFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedLead, setSelectedLead] = useState<any>(null);
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -27,7 +28,7 @@ const AdminLeads = () => {
     }
   }, [location.state]);
 
-  const createProjectFromLead = async (lead: any) => {
+  const createProjectFromLead = async (lead: Lead) => {
     if (!confirm(`¿Crear proyecto para ${lead.leadData?.business}?`)) return;
 
     if (!supabase) return;
@@ -56,8 +57,9 @@ const AdminLeads = () => {
 
       alert("🎉 ¡Proyecto creado con éxito!");
       navigate(`/admin/projects/${data.id}`);
-    } catch (e: any) {
-      alert(`Error al crear proyecto: ${e.message}`);
+    } catch (e) {
+      const error = e as Error;
+      alert(`Error al crear proyecto: ${error.message}`);
     }
   };
 
@@ -66,7 +68,7 @@ const AdminLeads = () => {
     // 1. FAST: Load from LocalStorage immediately
     const { getDiagnosticHistory } = await import('../services/storage');
     const history = getDiagnosticHistory();
-    const localLeads = history.filter((h: any) => h.type === 'quick' || !h.type);
+    const localLeads = history.filter((h: Lead) => h.type === 'quick' || !h.type);
 
     if (localLeads.length > 0) {
       setLeads(localLeads);
@@ -79,9 +81,10 @@ const AdminLeads = () => {
 
       const loadedLeads = await getAllLeads();
       setLeads(loadedLeads);
-    } catch (e: any) {
-      console.error("Error loading leads:", e);
-      setError(e.message || "Error desconocido al cargar leads.");
+    } catch (e) {
+      const error = e as Error;
+      logger.error('Error loading leads', { context: 'AdminLeads', data: error });
+      setError(error.message || 'Error desconocido al cargar leads.');
     } finally {
       setIsLoading(false);
     }
@@ -102,7 +105,7 @@ const AdminLeads = () => {
     return matchesSearch && matchesStatus;
   });
 
-  const generateWhatsappLink = (lead: any) => {
+  const generateWhatsappLink = (lead: Lead) => {
     if (!lead) return '#';
     const phone = lead.leadData?.phone?.replace(/\D/g, '') || '';
     const name = lead.leadData?.name?.split(' ')[0] || 'Hola';
@@ -152,10 +155,11 @@ const AdminLeads = () => {
                 const loadedLeads = await getAllLeads();
                 setLeads(loadedLeads);
                 alert(`✅ Sincronización exitosa.\n\nSe encontraron ${loadedLeads.length} leads en la nube.`);
-              } catch (e: any) {
-                console.error("Manual sync failed", e);
-                setError(`Fallo en la sincronización: ${e.message}`);
-                alert(`❌ Error al sincronizar: ${e.message}`);
+              } catch (e: unknown) {
+                const error = e as Error;
+                logger.error('Manual sync failed', { context: 'AdminLeads', data: error });
+                setError(`Fallo en la sincronización: ${error.message}`);
+                alert(`❌ Error al sincronizar: ${error.message}`);
               } finally {
                 setIsLoading(false);
               }
@@ -231,8 +235,8 @@ const AdminLeads = () => {
                       <div className="text-xs text-slate-500">{lead.leadData?.phone}</div>
                     </td>
                     <td className="p-4 text-center">
-                      <div className={`font-bold font-mono ${getStatusColor(lead.scoreGlobal)}`}>
-                        {formatPercent(lead.scoreGlobal)}
+                      <div className={`font-bold font-mono ${getStatusColor(lead.scoreGlobal || 0)}`}>
+                        {formatPercent(lead.scoreGlobal || 0)}
                       </div>
                     </td>
                     <td className="p-4 text-center flex justify-center gap-2">
@@ -283,8 +287,8 @@ const AdminLeads = () => {
                 <div className="flex items-center gap-4 mt-2 text-sm text-slate-400">
                   <span className="flex items-center gap-1"><User className="w-3 h-3" /> {selectedLead.leadData?.name}</span>
                   <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {new Date(selectedLead.date).toLocaleDateString()}</span>
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-bold bg-slate-800 ${getStatusColor(selectedLead.scoreGlobal)} border border-slate-700`}>
-                    Score: {Math.round(selectedLead.scoreGlobal)}/100
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-bold bg-slate-800 ${getStatusColor(selectedLead.scoreGlobal || 0)} border border-slate-700`}>
+                    Score: {Math.round(selectedLead.scoreGlobal || 0)}/100
                   </span>
                 </div>
               </div>
@@ -303,16 +307,16 @@ const AdminLeads = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700 text-center">
                   <span className="text-slate-400 text-xs uppercase tracking-wider block mb-1">Costo Mercadería</span>
-                  <span className="text-xl font-bold text-white font-mono">{formatPercent(selectedLead.cogsPercentage)}</span>
+                  <span className="text-xl font-bold text-white font-mono">{formatPercent(selectedLead.cogsPercentage || 0)}</span>
                 </div>
                 <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700 text-center">
                   <span className="text-slate-400 text-xs uppercase tracking-wider block mb-1">Costo Laboral</span>
-                  <span className="text-xl font-bold text-white font-mono">{formatPercent(selectedLead.laborPercentage)}</span>
+                  <span className="text-xl font-bold text-white font-mono">{formatPercent(selectedLead.laborPercentage || 0)}</span>
                 </div>
                 <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700 text-center">
                   <span className="text-slate-400 text-xs uppercase tracking-wider block mb-1">Margen Bruto</span>
-                  <span className={`text-xl font-bold font-mono ${selectedLead.marginPercentage < 15 ? 'text-red-400' : 'text-green-400'}`}>
-                    {formatPercent(selectedLead.marginPercentage)}
+                  <span className={`text-xl font-bold font-mono ${(selectedLead.marginPercentage || 0) < 15 ? 'text-red-400' : 'text-green-400'}`}>
+                    {formatPercent(selectedLead.marginPercentage || 0)}
                   </span>
                 </div>
               </div>

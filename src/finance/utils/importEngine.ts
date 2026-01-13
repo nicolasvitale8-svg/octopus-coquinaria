@@ -1,4 +1,5 @@
 import { ImportLine, TextCategoryRule, TransactionType } from "../financeTypes";
+import { logger } from "../../services/logger";
 
 /**
  * Parses raw text copied from an app screenshot or statement into structured data.
@@ -236,7 +237,7 @@ export const parseImportText = (text: string): ImportLine[] => {
  * Applies learned rules to categorize imported lines.
  */
 export const applyRules = (lines: ImportLine[], rules: TextCategoryRule[]): ImportLine[] => {
-    console.log('[applyRules] Aplicando', rules.length, 'reglas a', lines.length, 'líneas');
+    logger.debug('Applying rules', { context: 'ImportEngine', data: { rulesCount: rules.length, linesCount: lines.length } });
 
     return lines.map(line => {
         const match = rules.find(r => {
@@ -256,7 +257,7 @@ export const applyRules = (lines: ImportLine[], rules: TextCategoryRule[]): Impo
         });
 
         if (match) {
-            console.log('[applyRules] Match found:', line.description, '→', match.pattern, '→ categoryId:', match.categoryId);
+            logger.debug('Rule match found', { context: 'ImportEngine', data: { desc: line.description, pattern: match.pattern, categoryId: match.categoryId } });
             return {
                 ...line,
                 categoryId: match.categoryId,
