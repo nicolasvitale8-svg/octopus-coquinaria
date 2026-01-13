@@ -2,12 +2,6 @@
 import { supabase } from './supabase';
 import { logger } from './logger';
 
-// Define Interface locally or import if available in types.ts (prefer types.ts if exists)
-// Based on previous chats, it seems user has a Calendar event type.
-// Let's check typical structure or just use 'any' temporarily if types aren't clear, 
-// BUT better to check usage in AdminCalendar.tsx first. 
-// For now, I'll infer from the error message "eventos_calendario".
-
 export interface CalendarEvent {
     id: string; // UUID
     title: string;
@@ -18,6 +12,19 @@ export interface CalendarEvent {
     created_at?: string;
     author_id?: string;
     business_id?: string; // New: For private business events
+}
+
+// Database row type for eventos_calendario (Spanish columns)
+interface DBCalendarRow {
+    id: string;
+    titulo: string;
+    mensaje?: string;
+    fecha_inicio: string;
+    fecha_fin?: string;
+    tipo: 'feriado' | 'comercial' | 'interno';
+    created_at?: string;
+    author_id?: string;
+    business_id?: string;
 }
 
 const CALENDAR_STORAGE_KEY = 'octopus_calendar_local';
@@ -58,7 +65,7 @@ export const getEvents = async (): Promise<CalendarEvent[]> => {
         if (data) {
             // Merge strategy: Server wins + Local unique
             // MAP SERVER DATA (Spanish -> English)
-            const mappedServerData: CalendarEvent[] = data.map((e: any) => ({
+            const mappedServerData: CalendarEvent[] = data.map((e: DBCalendarRow) => ({
                 id: e.id,
                 title: e.titulo,
                 description: e.mensaje,

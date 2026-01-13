@@ -5,6 +5,24 @@ import { supabase } from './supabase';
 import { runWithRetryAndTimeout } from './network';
 import { logger } from './logger';
 
+// Generic Supabase response type
+interface SupabaseResponse<T> {
+    data: T[] | null;
+    error: { message: string } | null;
+}
+
+// Single item response
+interface SupabaseSingleResponse<T> {
+    data: T | null;
+    error: { message: string } | null;
+}
+
+// Mutation response (insert/update/delete)
+interface SupabaseMutationResponse {
+    data: unknown;
+    error: { message: string } | null;
+}
+
 const PROJECTS_STORAGE_KEY = 'octopus_projects_local';
 
 /**
@@ -49,7 +67,7 @@ export const getAllProjects = async (filterIds?: string[]): Promise<Project[]> =
             { timeoutMs: 15000, retries: 1, backoffMs: 1000, label: 'Cargar proyectos' }
         );
 
-        const { data, error } = response as any;
+        const { data, error } = response as SupabaseResponse<Project>;
 
         if (error) {
             logger.warn('Supabase fetch failed, using local only', { context: 'ProjectService', data: error.message });
@@ -123,7 +141,7 @@ export const getProjectById = async (id: string): Promise<Project | null> => {
                 { timeoutMs: 5000, retries: 2, backoffMs: 1200, label: `Proyecto ${id}` }
             );
 
-            const { data, error } = response as any;
+            const { data, error } = response as SupabaseSingleResponse<Project>;
 
             if (data) return data;
             if (error) logger.warn('Supabase fetch project by id error', { context: 'ProjectService', data: error.message });
@@ -212,7 +230,7 @@ export const createProject = async (project: Omit<Project, 'id' | 'created_at'>)
             if ('timeout' in result) {
                 logger.error('Supabase INSERT timed out', { context: 'ProjectService' });
             } else {
-                const { error } = result as any;
+                const { error } = result as SupabaseMutationResponse;
                 if (error) {
                     logger.warn('Supabase Insert Failed', { context: 'ProjectService', data: error.message });
                 } else {
@@ -283,9 +301,9 @@ export const updateProject = async (project: Project): Promise<Project | null> =
             if ('timeout' in result) {
                 logger.error('Supabase UPDATE timed out', { context: 'ProjectService' });
             } else {
-                const { error, data } = result as any;
+                const { error, data } = result as SupabaseResponse<Project>;
                 if (error) {
-                    logger.error('Supabase Update/Upsert Failed', { context: 'ProjectService', data: { msg: error.message, details: error.details } });
+                    logger.error('Supabase Update/Upsert Failed', { context: 'ProjectService', data: error.message });
                     return null;
                 } else {
                     logger.success('Project synced to Supabase', { context: 'ProjectService', data: data?.[0]?.business_name });
@@ -338,7 +356,7 @@ export const deleteProject = async (id: string): Promise<void> => {
             if ('timeout' in result) {
                 logger.error('Supabase DELETE timed out', { context: 'ProjectService' });
             } else {
-                const { error } = result as any;
+                const { error } = result as SupabaseMutationResponse;
                 if (error) {
                     logger.error('Supabase Delete Failed', { context: 'ProjectService', data: error.message });
                 } else {
