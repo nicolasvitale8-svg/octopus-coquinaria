@@ -1,10 +1,45 @@
-import { QuickDiagnosticResult, DeepDiagnosticResult, Lead } from '../types';
+import { QuickDiagnosticResult, DeepDiagnosticResult, Lead, LeadData } from '../types';
 import { supabase } from './supabase';
 import { runWithRetryAndTimeout } from './network';
 import { logger } from './logger';
 
 const STORAGE_KEY = 'octopus_diagnostic_result';
 const HISTORY_KEY = 'octopus_diagnostic_history';
+
+// Full data embedded in diagnosticos_express
+interface DBFullData {
+  profileName?: string;
+  profileDescription?: string;
+  status?: string;
+  scoreGlobal?: number;
+  cogsPercentage?: number;
+  laborPercentage?: number;
+  marginPercentage?: number;
+  monthlyRevenue?: number;
+  cogs?: number;
+  laborCost?: number;
+  leadData?: LeadData;
+}
+
+// Database row type for diagnosticos_express
+interface DBDiagnosticRow {
+  id: string;
+  created_at?: string;
+  contact_name?: string;
+  contact_email?: string;
+  contact_phone?: string;
+  business_name?: string;
+  profile_name?: string;
+  profile_description?: string;
+  status?: string;
+  score_global?: number;
+  cogs_percentage?: number;
+  labor_percentage?: number;
+  margin_percentage?: number;
+  monthly_revenue?: number;
+  full_data?: DBFullData;
+  source?: string;
+}
 
 // --- SAVE FUNCTIONS ---
 
@@ -101,27 +136,28 @@ export const getMyLeads = async (email: string): Promise<Lead[]> => {
 
     if (error) throw error;
 
-    return (data || []).map((row: any) => {
+    return (data || []).map((row: DBDiagnosticRow): Lead => {
       // Prioritize data from full_data (most complete) but use columns as robust fallbacks
       const fd = row.full_data || {};
+      const monthlyRev = fd.monthlyRevenue || 0;
+      const cogs = fd.cogs || 0;
+      const laborCost = fd.laborCost || 0;
       return {
         id: row.id,
-        date: row.created_at,
+        date: row.created_at || new Date().toISOString(),
         profileName: row.profile_name || fd.profileName || 'Diagnóstico',
         profileDescription: row.profile_description || fd.profileDescription || '',
         status: row.status || fd.status || 'Amarillo',
         scoreGlobal: row.score_global ?? fd.scoreGlobal ?? 0,
-        cogsPercentage: row.cogs_percentage ?? fd.cogsPercentage ?? (fd.monthlyRevenue > 0 ? (fd.cogs / fd.monthlyRevenue * 100) : 0),
-        laborPercentage: row.labor_percentage ?? fd.laborPercentage ?? (fd.monthlyRevenue > 0 ? (fd.laborCost / fd.monthlyRevenue * 100) : 0),
+        cogsPercentage: row.cogs_percentage ?? fd.cogsPercentage ?? (monthlyRev > 0 ? (cogs / monthlyRev * 100) : 0),
+        laborPercentage: row.labor_percentage ?? fd.laborPercentage ?? (monthlyRev > 0 ? (laborCost / monthlyRev * 100) : 0),
         marginPercentage: row.margin_percentage ?? fd.marginPercentage ?? 0,
-        monthlyRevenue: row.monthly_revenue ?? fd.monthlyRevenue ?? 0,
         leadData: {
           business: row.business_name || fd.leadData?.business || 'Anonimo',
           name: row.contact_name || fd.leadData?.name || 'Anonimo',
           email: row.contact_email || fd.leadData?.email || '',
           phone: row.contact_phone || fd.leadData?.phone || ''
-        },
-        ...fd // Spread last to ensure all qualitative data is included
+        }
       };
     });
   } catch (error) {
@@ -130,8 +166,8 @@ export const getMyLeads = async (email: string): Promise<Lead[]> => {
   }
 };
 
-export const getAllLeads = async (): Promise<any[]> => {
-  let supabaseData: any[] | null = null;
+export const getAllLeads = async (): Promise<Lead[]> => {
+  let supabaseData: Lead[] | null = null;
 
   const client = supabase;
   if (client) {
@@ -151,24 +187,22 @@ export const getAllLeads = async (): Promise<any[]> => {
       if (response.error) throw response.error;
 
       if (response.data) {
-        supabaseData = response.data.map((row: any) => ({
+        supabaseData = (response.data as DBDiagnosticRow[]).map((row): Lead => ({
           id: row.id,
-          date: row.created_at,
+          date: row.created_at || new Date().toISOString(),
           profileName: row.profile_name,
           profileDescription: row.full_data?.profileDescription || '',
           status: row.status,
           scoreGlobal: row.score_global || 0,
           cogsPercentage: row.cogs_percentage || 0,
           laborPercentage: row.labor_percentage || 0,
-          marginPercentage: row.margin_percentage || row.marginPercentage || 0,
-          monthlyRevenue: row.monthly_revenue || (row.full_data?.monthlyRevenue) || 0,
+          marginPercentage: row.margin_percentage || row.full_data?.marginPercentage || 0,
           leadData: {
             business: row.business_name,
             name: row.contact_name,
             email: row.contact_email,
             phone: row.contact_phone
-          },
-          ...(row.full_data || {})
+          }
         }));
       }
     } catch (error: unknown) {
@@ -251,13 +285,13 @@ export const syncLocalLeads = async (): Promise<void> => {
   }
 };
 
-export const deleteLead = async (lead: any): Promise<void> => {
+export const deleteLead = async (lead: Lead): Promise<void> => {
   // 1. Optimistic Local Delete
   try {
     const historyData = localStorage.getItem(HISTORY_KEY);
     if (historyData) {
-      const history = JSON.parse(historyData);
-      const newHistory = history.filter((h: any) => h.date !== lead.date);
+      const history = JSON.parse(historyData) as Lead[];
+      const newHistory = history.filter((h) => h.date !== lead.date);
       localStorage.setItem(HISTORY_KEY, JSON.stringify(newHistory));
       logger.success('Lead deleted from LocalStorage', { context: 'Storage' });
     }

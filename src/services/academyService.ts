@@ -1,8 +1,61 @@
 import { supabase } from './supabase';
+import { logger } from './logger';
 import { AcademyResource, LearningPath, ResourceCategory, ResourceFormat, ResourceImpactTag, ResourceAccess } from '../types';
 
 const ACADEMY_STORAGE_KEY = 'octopus_academy_v2_cache';
 const PATHS_STORAGE_KEY = 'octopus_learning_paths_cache';
+
+// Database row type for recursos_academia
+interface DBResourceRow {
+    id: string;
+    titulo: string;
+    descripcion?: string;
+    outcome?: string;
+    category?: string;
+    format?: string;
+    impact_tag?: string;
+    level?: number;
+    duration_minutes?: number;
+    access?: string;
+    is_pinned?: boolean;
+    pinned_order?: number;
+    expires_at?: string;
+    created_at?: string;
+    url?: string;
+    url_2?: string;
+    url_3?: string;
+    youtube_id?: string;
+    action_steps?: string[];
+    pilares?: string[];
+    impact_outcome?: string;
+    impact_format?: string;
+    impact_program?: string;
+}
+
+// Input type for creating/updating resources
+export interface ResourceInput {
+    id?: string;
+    titulo?: string;
+    title?: string;
+    description?: string;
+    outcome?: string;
+    category?: ResourceCategory;
+    format?: ResourceFormat;
+    impactTag?: ResourceImpactTag;
+    level?: number;
+    durationMinutes?: number;
+    access?: ResourceAccess;
+    isPinned?: boolean;
+    url?: string;
+    url2?: string;
+    url3?: string;
+    youtube_id?: string;
+    actionSteps?: string[];
+    pilares?: string[];
+    impactOutcome?: string;
+    impactFormat?: string;
+    impactProgram?: string;
+}
 
 /**
  * Fetch all resources
@@ -18,7 +71,7 @@ export const getResources = async (): Promise<AcademyResource[]> => {
 
         if (error) throw error;
 
-        return (data || []).map((r: any) => ({
+        return (data || []).map((r: DBResourceRow) => ({
             id: r.id,
             title: r.titulo,
             description: r.descripcion || '',
@@ -26,14 +79,14 @@ export const getResources = async (): Promise<AcademyResource[]> => {
             category: (r.category || 'OPERACIONES') as ResourceCategory,
             format: (r.format || 'GUIDE') as ResourceFormat,
             impactTag: (r.impact_tag || 'HERRAMIENTA') as ResourceImpactTag,
-            level: r.level || 1,
+            level: (r.level || 1) as 1 | 2 | 3,
             durationMinutes: r.duration_minutes || 5,
             access: (r.access || 'PUBLIC') as ResourceAccess,
             isPinned: r.is_pinned || false,
             pinnedOrder: r.pinned_order,
             expiresAt: r.expires_at,
-            createdAt: r.created_at,
-            downloadUrl: r.url, // Legacy map
+            createdAt: r.created_at || '',
+            downloadUrl: r.url,
             url2: r.url_2,
             url3: r.url_3,
             youtubeId: r.youtube_id,
@@ -44,7 +97,7 @@ export const getResources = async (): Promise<AcademyResource[]> => {
             impactProgram: r.impact_program
         }));
     } catch (e) {
-        console.error("Error fetching resources:", e);
+        logger.error('Error fetching resources', { context: 'AcademyService', data: e });
         return [];
     }
 };
@@ -65,7 +118,7 @@ export const getLearningPaths = async (): Promise<LearningPath[]> => {
         if (error) throw error;
         return data || [];
     } catch (e) {
-        console.error("Error fetching paths:", e);
+        logger.error('Error fetching paths', { context: 'AcademyService', data: e });
         return [];
     }
 };
@@ -131,11 +184,11 @@ export const deleteResource = async (id: string) => {
 /** 
  * Create/Update resource
  */
-export const createResource = async (r: any) => {
+export const createResource = async (r: ResourceInput) => {
     if (!supabase) return;
 
     // Mapping payload to DB columns (snake_case)
-    const dbPayload: any = {
+    const dbPayload: Partial<DBResourceRow> & { tipo?: string; es_premium?: boolean } = {
         titulo: r.titulo || r.title,
         descripcion: r.description,
         outcome: r.outcome,
@@ -171,7 +224,7 @@ export const createResource = async (r: any) => {
         .select();
 
     if (error) {
-        console.error("Supabase direct error:", error);
+        logger.error('Supabase direct error', { context: 'AcademyService', data: error });
         throw error;
     }
     return data;
