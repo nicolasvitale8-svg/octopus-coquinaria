@@ -32,6 +32,8 @@ export const ImportPage: React.FC = () => {
   const [rules, setRules] = useState<TextCategoryRule[]>([]);
   const [existingTransactions, setExistingTransactions] = useState<Transaction[]>([]);
   const [isImporting, setIsImporting] = useState(false);
+  const [importDate, setImportDate] = useState(new Date().toISOString().split('T')[0]);
+  const [importMode, setImportMode] = useState<'manual' | 'auto'>('manual');
 
   useEffect(() => { loadData(); }, [activeEntity]);
 
@@ -149,6 +151,11 @@ export const ImportPage: React.FC = () => {
     // Si no es TC o no se pudo parsear, usar parser normal
     if (lines.length === 0) {
       lines = parseImportText(rawText);
+    }
+
+    // En modo manual, sobrescribir la fecha con la seleccionada por el usuario
+    if (importMode === 'manual' && importDate) {
+      lines = lines.map(line => ({ ...line, date: importDate }));
     }
 
     // Aplicar reglas de auto-categorización
@@ -286,6 +293,59 @@ export const ImportPage: React.FC = () => {
                 Sube capturas de pantalla o el PDF del resumen de Mercado Pago, Lemon, etc.
               </div>
             </div>
+          </div>
+
+          {/* Modo de importación y fecha */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4 border-t border-fin-border/30">
+            <div className="space-y-3">
+              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-fin-muted ml-1 flex items-center gap-2">
+                <FileUp size={12} /> Modo de Importación
+              </label>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setImportMode('manual')}
+                  className={`flex-1 py-3 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${importMode === 'manual'
+                    ? 'bg-brand text-fin-bg shadow-lg shadow-brand/20'
+                    : 'bg-fin-bg border border-fin-border text-fin-muted hover:text-white'
+                    }`}
+                >
+                  📱 Manual (Screenshot)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setImportMode('auto')}
+                  className={`flex-1 py-3 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${importMode === 'auto'
+                    ? 'bg-brand text-fin-bg shadow-lg shadow-brand/20'
+                    : 'bg-fin-bg border border-fin-border text-fin-muted hover:text-white'
+                    }`}
+                >
+                  📄 Auto (PDF)
+                </button>
+              </div>
+              <p className="text-[9px] text-fin-muted/60 ml-1">
+                {importMode === 'manual'
+                  ? 'Screenshots: Seleccioná la fecha manualmente'
+                  : 'PDF estructurado: Las fechas se detectan automáticamente'}
+              </p>
+            </div>
+
+            {importMode === 'manual' && (
+              <div className="space-y-3">
+                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-brand ml-1 flex items-center gap-2">
+                  <CheckCircle2 size={12} /> Fecha de los Movimientos
+                </label>
+                <input
+                  type="date"
+                  value={importDate}
+                  onChange={e => setImportDate(e.target.value)}
+                  className="w-full bg-[#020b14] border border-brand/30 rounded-2xl p-4 text-white font-bold focus:border-brand outline-none transition-all"
+                />
+                <p className="text-[9px] text-fin-muted/60 ml-1">
+                  Los movimientos se importarán con esta fecha
+                </p>
+              </div>
+            )}
           </div>
 
           <div

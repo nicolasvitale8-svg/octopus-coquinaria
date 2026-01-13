@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { SupabaseService } from '../services/supabaseService';
 import { BudgetItem, Category, SubCategory, Transaction, TransactionType } from '../financeTypes';
 import { formatCurrency, formatPercentage, getAdjustedWorkingDay } from '../utils/calculations';
@@ -19,6 +19,7 @@ export const Budget: React.FC = () => {
   const [activeBudgetTab, setActiveBudgetTab] = useState<TransactionType>(TransactionType.OUT);
 
   const [newItem, setNewItem] = useState<Partial<BudgetItem>>({ type: TransactionType.OUT, plannedAmount: 0 });
+  const formRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => { loadData(); }, [activeEntity]);
 
@@ -267,6 +268,8 @@ export const Budget: React.FC = () => {
                             subCategoryId: item.subCategoryId
                           });
                           setIsAdding(true);
+                          // Scroll automático al formulario
+                          setTimeout(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
                         }} className="p-2 bg-fin-bg rounded-lg text-fin-text hover:text-brand border border-fin-border transition-all"><Pencil size={14} /></button>
                         <button onClick={async () => { if (confirm('¿Eliminar proyección definitivamente?')) { await SupabaseService.deleteBudgetItem(item.id); await loadData(); } }} className="p-2 bg-fin-bg rounded-lg text-fin-text hover:text-red-500 border border-fin-border transition-all"><Trash2 size={14} /></button>
                       </div>
@@ -334,7 +337,7 @@ export const Budget: React.FC = () => {
       </div>
 
       {isAdding && (
-        <div className="bg-fin-card p-10 rounded-[32px] border border-fin-border animate-fade-in mb-8 shadow-2xl relative overflow-hidden">
+        <div ref={formRef} className="bg-fin-card p-10 rounded-[32px] border border-fin-border animate-fade-in mb-8 shadow-2xl relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-brand/5 rounded-full -mr-16 -mt-16 blur-3xl"></div>
           <h3 className="text-xl font-black mb-10 text-white uppercase tracking-tight flex items-center gap-3">
             <Plus className="text-brand" size={24} />
