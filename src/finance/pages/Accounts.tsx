@@ -4,6 +4,11 @@ import { Account, AccountType, MonthlyBalance, TextCategoryRule, Category, SubCa
 import { formatCurrency } from '../utils/calculations';
 import { Wallet, Plus, Edit2, X, Trash2, Check, AlertCircle, Info, Zap, Settings2, Sparkles, TrendingUp, TrendingDown } from 'lucide-react';
 import { useFinanza } from '../context/FinanzaContext';
+import { ConciliateModal } from '../components/ConciliateModal';
+import { CategoryModal } from '../components/CategoryModal';
+import { SubCategoryModal } from '../components/SubCategoryModal';
+import { AccountModal } from '../components/AccountModal';
+import { RuleModal } from '../components/RuleModal';
 
 // Función para parsear números en formato argentino (1.000.000,00 -> 1000000.00)
 const parseArgNumber = (value: string): number => {
@@ -136,6 +141,36 @@ export const Accounts: React.FC = () => {
       setEditingRule(null);
     } catch (error) {
       console.error("Error saving rule:", error);
+    }
+  };
+
+  const handleSaveCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const bId = activeEntity.id || undefined;
+      if (editingCategory?.id) {
+        await SupabaseService.updateCategory(editingCategory as Category);
+      } else {
+        await SupabaseService.addCategory(editingCategory as Category, bId);
+      }
+      await loadData();
+      setIsCatModalOpen(false);
+      setEditingCategory(null);
+    } catch (error) {
+      console.error("Error saving category:", error);
+    }
+  };
+
+  const handleSaveSubCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const bId = activeEntity.id || undefined;
+      await SupabaseService.addSubCategory(editingSubCategory as SubCategory, bId);
+      await loadData();
+      setIsSubCatModalOpen(false);
+      setEditingSubCategory(null);
+    } catch (error) {
+      console.error("Error saving subcategory:", error);
     }
   };
 
@@ -531,229 +566,54 @@ export const Accounts: React.FC = () => {
         </div>
       )}
 
-      {/* Category Modal */}
-      {isCatModalOpen && (
-        <div className="fixed inset-0 bg-fin-bg/95 backdrop-blur-xl flex items-center justify-center z-50 p-6">
-          <div className="bg-fin-card rounded-[40px] w-full max-w-md border border-fin-border shadow-[0_0_50px_rgba(0,0,0,0.5)] p-10 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-brand/10 rounded-full -mr-16 -mt-16 blur-3xl"></div>
-            <button
-              onClick={() => setIsCatModalOpen(false)}
-              className="absolute top-6 right-6 p-2 text-white/50 hover:text-white bg-white/5 hover:bg-white/10 rounded-full transition-all z-[60]"
-              title="Cerrar (Esc)"
-            >
-              <X size={20} />
-            </button>
-            <h2 className="text-2xl font-black text-white mb-10 uppercase tracking-tight">{editingCategory?.id ? 'Editar Rubro' : 'Nuevo Rubro'}</h2>
-            <form onSubmit={async (e) => {
-              e.preventDefault();
-              const bId = activeEntity.id || undefined;
-              if (editingCategory?.id) await SupabaseService.updateCategory(editingCategory as Category);
-              else await SupabaseService.addCategory(editingCategory as Category, bId);
-              await loadData(); setIsCatModalOpen(false);
-            }} className="space-y-6 relative z-10 text-left">
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase text-fin-muted ml-1 tracking-widest">Nombre del Rubro</label>
-                <input type="text" value={editingCategory?.name || ''} onChange={e => setEditingCategory({ ...editingCategory, name: e.target.value })} className="w-full bg-[#020b14] border border-white/10 rounded-2xl p-4 text-white font-bold outline-none focus:border-cyan-500 transition-all placeholder:text-white/20" placeholder="Ej: Servicios Públicos" required />
-              </div>
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase text-fin-muted ml-1 tracking-widest">Tipo de Flujo</label>
-                <select value={editingCategory?.type || ''} onChange={e => setEditingCategory({ ...editingCategory, type: e.target.value as any })} className="w-full bg-[#020b14] border border-white/10 rounded-2xl p-4 text-white text-xs font-black uppercase tracking-widest outline-none focus:border-cyan-500 appearance-none cursor-pointer" required>
-                  <option value="IN">Ingresos</option>
-                  <option value="OUT">Gastos</option>
-                  <option value="MIX">Mixto (Ambos)</option>
-                </select>
-              </div>
-              <button type="submit" className="w-full py-5 bg-cyan-500 text-[#020b14] rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-lg shadow-cyan-500/20 active:scale-95 transition-all">Guardar Rubro</button>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* Modal Components */}
+      <CategoryModal
+        isOpen={isCatModalOpen}
+        onClose={() => setIsCatModalOpen(false)}
+        editingCategory={editingCategory}
+        setEditingCategory={setEditingCategory}
+        onSave={handleSaveCategory}
+      />
 
-      {/* SubCategory Modal */}
-      {isSubCatModalOpen && (
-        <div className="fixed inset-0 bg-fin-bg/95 backdrop-blur-xl flex items-center justify-center z-50 p-6">
-          <div className="bg-fin-card rounded-[40px] w-full max-w-md border border-fin-border shadow-[0_0_50px_rgba(0,0,0,0.5)] p-10 relative overflow-hidden">
-            <button
-              onClick={() => setIsSubCatModalOpen(false)}
-              className="absolute top-6 right-6 p-2 text-white/50 hover:text-white bg-white/5 hover:bg-white/10 rounded-full transition-all z-[60]"
-              title="Cerrar (Esc)"
-            >
-              <X size={20} />
-            </button>
-            <h2 className="text-2xl font-black text-white mb-10 uppercase tracking-tight">Nuevo Sub-Rubro</h2>
-            <form onSubmit={async (e) => {
-              e.preventDefault();
-              const bId = activeEntity.id || undefined;
-              await SupabaseService.addSubCategory(editingSubCategory as SubCategory, bId);
-              await loadData(); setIsSubCatModalOpen(false);
-            }} className="space-y-6 relative z-10 text-left">
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase text-fin-muted ml-1 tracking-widest">Nombre Detallado</label>
-                <input type="text" value={editingSubCategory?.name || ''} onChange={e => setEditingSubCategory({ ...editingSubCategory, name: e.target.value })} className="w-full bg-[#020b14] border border-white/10 rounded-2xl p-4 text-white font-bold outline-none focus:border-cyan-500 transition-all placeholder:text-white/20" placeholder="Ej: Luz Edesur" required />
-              </div>
-              <button type="submit" className="w-full py-5 bg-cyan-500 text-[#020b14] rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-lg shadow-cyan-500/20 active:scale-95 transition-all">Añadir Sub-Rubro</button>
-            </form>
-          </div>
-        </div>
-      )}
+      <SubCategoryModal
+        isOpen={isSubCatModalOpen}
+        onClose={() => setIsSubCatModalOpen(false)}
+        editingSubCategory={editingSubCategory}
+        setEditingSubCategory={setEditingSubCategory}
+        onSave={handleSaveSubCategory}
+      />
 
-      {/* Account Modal */}
-      {isAccModalOpen && (
-        <div className="fixed inset-0 bg-fin-bg/90 backdrop-blur-xl flex items-center justify-center z-50 p-6">
-          <div className="bg-fin-card rounded-[32px] w-full max-w-lg border border-fin-border shadow-2xl p-10 relative">
-            <button
-              onClick={() => setIsAccModalOpen(false)}
-              className="absolute top-6 right-6 p-2 text-white/50 hover:text-white bg-white/5 hover:bg-white/10 rounded-full transition-all z-[60]"
-              title="Cerrar (Esc)"
-            >
-              <X size={20} />
-            </button>
-            <h2 className="text-2xl font-black text-white mb-10 uppercase tracking-tight">{editingAccount?.id ? 'Editar Cuenta' : 'Nueva Cuenta'}</h2>
-            <form onSubmit={handleSaveAccount} className="space-y-6 text-left">
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase text-fin-muted ml-1 tracking-widest">Nombre de la Cuenta</label>
-                <input type="text" value={editingAccount?.name || ''} onChange={e => setEditingAccount({ ...editingAccount, name: e.target.value })} className="w-full bg-[#020b14] border border-white/10 rounded-2xl p-4 text-white font-bold outline-none focus:border-brand transition-all placeholder:text-white/20" placeholder="Ej: Brubank Personal" required />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase text-fin-muted ml-1 tracking-widest">Tipo</label>
-                  <select
-                    value={editingAccount?.accountTypeId || ''}
-                    onChange={e => setEditingAccount({ ...editingAccount, accountTypeId: e.target.value })}
-                    className="w-full bg-[#020b14] border border-white/10 rounded-2xl p-4 text-white text-[10px] font-black uppercase tracking-widest outline-none focus:border-brand cursor-pointer appearance-none"
-                    required
-                  >
-                    <option value="">Seleccionar Tipo...</option>
-                    {accountTypes.map(t => <option key={t.id} value={t.id} className="bg-fin-card py-2">{t.name}</option>)}
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase text-fin-muted ml-1 tracking-widest">Moneda</label>
-                  <select value={editingAccount?.currency || 'ARS'} onChange={e => setEditingAccount({ ...editingAccount, currency: e.target.value })} className="w-full bg-[#020b14] border border-white/10 rounded-2xl p-4 text-white text-xs font-black uppercase outline-none focus:border-brand cursor-pointer appearance-none">
-                    <option value="ARS">ARS</option>
-                    <option value="USD">USD</option>
-                  </select>
-                </div>
-              </div>
-              {/* Límite de Crédito - Solo para Tarjetas */}
-              {accountTypes.find(t => t.id === editingAccount?.accountTypeId)?.name?.toLowerCase().includes('crédit') || accountTypes.find(t => t.id === editingAccount?.accountTypeId)?.name?.toLowerCase().includes('credito') || accountTypes.find(t => t.id === editingAccount?.accountTypeId)?.name?.toLowerCase().includes('tarjeta') ? (
-                <div className="space-y-2 p-4 bg-orange-500/5 rounded-2xl border border-orange-500/20">
-                  <label className="text-[10px] font-black uppercase text-orange-400 ml-1 tracking-widest flex items-center gap-2">
-                    <Sparkles size={12} /> Límite de Crédito
-                  </label>
-                  <input
-                    type="text"
-                    value={(editingAccount as any)?.creditLimit ? formatArgNumber((editingAccount as any).creditLimit) : ''}
-                    onChange={e => setEditingAccount({ ...editingAccount, creditLimit: parseArgNumber(e.target.value) } as any)}
-                    className="w-full bg-[#020b14] border border-orange-500/30 rounded-2xl p-4 text-white font-bold outline-none focus:border-orange-500 transition-all placeholder:text-white/20"
-                    placeholder="Ej: 500.000,00"
-                  />
-                </div>
-              ) : null}
-              <button type="submit" className="w-full py-5 bg-brand text-[#020b14] rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-lg shadow-brand/20 active:scale-95 transition-all mt-4">Guardar Cambios</button>
-            </form>
-          </div>
-        </div>
-      )}
+      <AccountModal
+        isOpen={isAccModalOpen}
+        onClose={() => setIsAccModalOpen(false)}
+        editingAccount={editingAccount}
+        setEditingAccount={setEditingAccount}
+        accountTypes={accountTypes}
+        onSave={handleSaveAccount}
+        formatArgNumber={formatArgNumber}
+        parseArgNumber={parseArgNumber}
+      />
 
-      {/* Rule Modal */}
-      {isRuleModalOpen && (
-        <div className="fixed inset-0 bg-fin-bg/90 backdrop-blur-xl flex items-center justify-center z-50 p-6">
-          <div className="bg-fin-card rounded-[32px] w-full max-w-lg border border-fin-border shadow-2xl p-10 relative">
-            <button
-              onClick={() => setIsRuleModalOpen(false)}
-              className="absolute top-6 right-6 p-2 text-white/50 hover:text-white bg-white/5 hover:bg-white/10 rounded-full transition-all z-[60]"
-              title="Cerrar (Esc)"
-            >
-              <X size={20} />
-            </button>
-            <h2 className="text-2xl font-black text-white mb-10 uppercase tracking-tight">Nueva Regla Inteligente</h2>
-            <form onSubmit={handleSaveRule} className="space-y-6">
-              <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase text-fin-muted ml-1">Palabra Clave (Pattern)</label>
-                <input type="text" value={editingRule?.pattern || ''} onChange={e => setEditingRule({ ...editingRule, pattern: e.target.value })} className="w-full bg-fin-bg border border-fin-border rounded-xl p-4 text-white font-bold" placeholder="Ej: Carcor, Netflix, Sueldo" required />
-              </div>
-              <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase text-fin-muted ml-1">Asignar Rubro</label>
-                <select value={editingRule?.categoryId || ''} onChange={e => setEditingRule({ ...editingRule, categoryId: e.target.value, subCategoryId: undefined })} className="w-full bg-fin-bg border border-fin-border rounded-xl p-4 text-white text-xs font-bold" required>
-                  <option value="">Seleccionar rubro...</option>
-                  {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                </select>
-              </div>
-              <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase text-fin-muted ml-1">Sub-Rubro (Opcional)</label>
-                <select
-                  value={editingRule?.subCategoryId || ''}
-                  onChange={e => setEditingRule({ ...editingRule, subCategoryId: e.target.value || undefined })}
-                  className="w-full bg-fin-bg border border-fin-border rounded-xl p-4 text-white text-xs font-bold disabled:opacity-30 disabled:cursor-not-allowed"
-                  disabled={!editingRule?.categoryId}
-                >
-                  <option value="">Sin sub-rubro específico</option>
-                  {subCategories
-                    .filter(s => s.categoryId === editingRule?.categoryId)
-                    .map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                </select>
-              </div>
-              <button type="submit" className="w-full py-4 bg-brand text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-brand/20">Crear Regla</button>
-            </form>
-          </div>
-        </div>
-      )}
+      <RuleModal
+        isOpen={isRuleModalOpen}
+        onClose={() => setIsRuleModalOpen(false)}
+        editingRule={editingRule}
+        setEditingRule={setEditingRule}
+        categories={categories}
+        subCategories={subCategories}
+        onSave={handleSaveRule}
+      />
 
-      {/* Conciliate Modal */}
-      {isConciliateModalOpen && (
-        <div className="fixed inset-0 bg-fin-bg/95 backdrop-blur-2xl flex items-center justify-center z-50 p-6 animate-in fade-in duration-300">
-          <div className="bg-fin-card rounded-[40px] w-full max-w-md border border-brand/20 shadow-[0_0_100px_rgba(16,185,129,0.1)] p-10 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-brand/10 rounded-full -mr-16 -mt-16 blur-3xl"></div>
-            <button
-              onClick={() => setIsConciliateModalOpen(false)}
-              className="absolute top-6 right-6 p-2 text-white/50 hover:text-white bg-white/5 hover:bg-white/10 rounded-full transition-all z-[60]"
-            >
-              <X size={20} />
-            </button>
-
-            <div className="flex items-center gap-4 mb-8">
-              <div className="p-3 bg-brand/20 text-brand rounded-2xl shadow-lg shadow-brand/10">
-                <Zap size={24} />
-              </div>
-              <div>
-                <h2 className="text-xl font-black text-white uppercase tracking-tight">Conciliar Cuenta</h2>
-                <p className="text-[10px] font-black text-brand uppercase tracking-widest">{conciliatingAccount?.name}</p>
-              </div>
-            </div>
-
-            <div className="space-y-6 relative z-10">
-              <div className="p-4 bg-[#020b14] rounded-2xl border border-white/5">
-                <p className="text-[10px] font-black text-fin-muted uppercase tracking-widest mb-2">Instrucciones</p>
-                <p className="text-[11px] text-white/70 leading-relaxed">
-                  Ingresa el saldo real que ves en tu aplicación bancaria. El sistema ajustará el <span className="text-brand font-bold">Saldo Inicial</span> del mes automáticamente para que tu saldo final coincida exactamente.
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase text-brand ml-1 tracking-widest">Saldo Real Actual (ARS)</label>
-                <input
-                  type="text"
-                  value={realBalance}
-                  onChange={e => setRealBalance(e.target.value)}
-                  onBlur={() => setRealBalance(formatArgNumber(parseArgNumber(realBalance)))}
-                  className="w-full bg-[#020b14] border border-brand/20 focus:border-brand rounded-2xl p-5 text-2xl font-black text-white outline-none transition-all placeholder:text-white/10 tabular-nums"
-                  placeholder="0,00"
-                  autoFocus
-                />
-              </div>
-
-              <button
-                onClick={handleConciliate}
-                disabled={!realBalance || realBalance === '0,00'}
-                className="w-full py-5 bg-brand text-[#020b14] rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl shadow-brand/20 hover:bg-white transition-all active:scale-95 disabled:opacity-30"
-              >
-                Ajustar y Conciliar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConciliateModal
+        isOpen={isConciliateModalOpen}
+        onClose={() => setIsConciliateModalOpen(false)}
+        account={conciliatingAccount}
+        realBalance={realBalance}
+        setRealBalance={setRealBalance}
+        onConciliate={handleConciliate}
+        formatArgNumber={formatArgNumber}
+        parseArgNumber={parseArgNumber}
+      />
     </div>
   );
 };
