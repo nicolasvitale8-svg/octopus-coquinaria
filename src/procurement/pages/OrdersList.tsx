@@ -54,7 +54,7 @@ export const OrdersList: React.FC = () => {
                     <div className="flex gap-3 pt-2">
                         <button
                             onClick={() => navigate('/admin/procurement/new')}
-                            className="bg-neon-blue hover:bg-blue-600 text-black font-bold py-2 px-6 rounded-lg shadow-lg hover:shadow-neon-blue/50 transition-all"
+                            className="bg-brand hover:bg-brand-hover text-black font-bold py-2 px-6 rounded-lg shadow-lg hover:shadow-brand/50 transition-all"
                         >
                             + Nuevo Pedido
                         </button>
@@ -76,7 +76,7 @@ export const OrdersList: React.FC = () => {
             <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
                 <div className="p-4 border-b border-gray-800 flex justify-between items-center bg-gray-800/50">
                     <h2 className="font-semibold text-white">Historial de Pedidos</h2>
-                    <select className="bg-gray-900 border border-gray-700 text-gray-300 text-sm rounded-lg p-2 focus:border-neon-blue outline-none">
+                    <select className="bg-gray-900 border border-gray-700 text-gray-300 text-sm rounded-lg p-2 focus:border-brand outline-none">
                         <option value="ALL">Todos los estados</option>
                         <option value="BORRADOR">Borrador</option>
                         <option value="ENVIADO">Enviado</option>
@@ -122,7 +122,7 @@ export const OrdersList: React.FC = () => {
                                         <td className="px-6 py-4 text-right">
                                             <button
                                                 onClick={() => navigate(`/admin/procurement/${pedido.id}`)}
-                                                className="text-neon-blue hover:text-white font-bold text-sm"
+                                                className="text-brand hover:text-white font-bold text-sm"
                                             >
                                                 Ver Detalles
                                             </button>

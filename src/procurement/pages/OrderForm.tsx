@@ -173,7 +173,7 @@ export const OrderForm: React.FC = () => {
                     <label className="block text-gray-400 text-sm mb-2">Proveedor</label>
                     <input
                         type="text"
-                        className="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-white focus:border-neon-blue outline-none"
+                        className="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-white focus:border-brand outline-none"
                         value={proveedor}
                         onChange={e => setProveedor(e.target.value)}
                         placeholder="Ej. Distribuidora Central"
@@ -183,7 +183,7 @@ export const OrderForm: React.FC = () => {
                     <label className="block text-gray-400 text-sm mb-2">Nota</label>
                     <input
                         type="text"
-                        className="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-white focus:border-neon-blue outline-none"
+                        className="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-white focus:border-brand outline-none"
                         value={nota}
                         onChange={e => setNota(e.target.value)}
                         placeholder="Nota interna..."
@@ -216,7 +216,7 @@ export const OrderForm: React.FC = () => {
                         <tr>
                             <th className="px-4 py-3">Insumo</th>
                             <th className="px-4 py-3 w-32 bg-blue-900/20 text-blue-300 text-center">Sugerido</th>
-                            <th className="px-4 py-3 w-32 bg-neon-blue/10 text-neon-blue text-center">A Pedir</th>
+                            <th className="px-4 py-3 w-32 bg-brand/10 text-brand text-center">A Pedir</th>
                             <th className="px-4 py-3 w-24">Unidad</th>
                             <th className="px-4 py-3 w-32">Precio Ref.</th>
                             <th className="px-4 py-3 w-32 text-right">Subtotal</th>
@@ -235,7 +235,7 @@ export const OrderForm: React.FC = () => {
                                 <td className="px-4 py-3 bg-neon-blue/5">
                                     <input
                                         type="number"
-                                        className="w-full bg-gray-800 border border-gray-600 rounded p-1 text-center text-neon-blue font-bold focus:border-neon-blue outline-none"
+                                        className="w-full bg-gray-800 border border-gray-600 rounded p-1 text-center text-brand font-bold focus:border-brand outline-none"
                                         value={item.cantidad_real}
                                         onChange={e => handleUpdateItem(index, 'cantidad_real', parseFloat(e.target.value))}
                                     />
@@ -246,7 +246,7 @@ export const OrderForm: React.FC = () => {
                                         <span className="absolute left-2 top-1">$</span>
                                         <input
                                             type="number"
-                                            className="w-full bg-transparent pl-4 border-b border-gray-700 focus:border-neon-blue outline-none"
+                                            className="w-full bg-transparent pl-4 border-b border-gray-700 focus:border-brand outline-none"
                                             value={item.precio_unitario}
                                             onChange={e => handleUpdateItem(index, 'precio_unitario', parseFloat(e.target.value))}
                                         />
@@ -283,8 +283,8 @@ export const OrderForm: React.FC = () => {
                 <button
                     onClick={handleSubmit}
                     className={`px-8 py-3 rounded-lg font-bold shadow-lg transition-all ${presupCheck.excedido
-                            ? 'bg-red-600 hover:bg-red-700 text-white shadow-red-500/20'
-                            : 'bg-neon-blue hover:bg-blue-600 text-black shadow-neon-blue/20'
+                        ? 'bg-red-600 hover:bg-red-700 text-white shadow-red-500/20'
+                        : 'bg-brand hover:bg-brand-hover text-black shadow-brand/20'
                         }`}
                 >
                     {presupCheck.excedido ? 'Confirmar (Excede Presupuesto)' : 'Generar Pedido'}

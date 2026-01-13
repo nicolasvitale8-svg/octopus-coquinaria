@@ -111,7 +111,7 @@ export const OrderDetail: React.FC = () => {
                     <tfoot className="bg-gray-800/50">
                         <tr>
                             <td colSpan={4} className="px-6 py-4 text-right font-bold text-white">TOTAL</td>
-                            <td className="px-6 py-4 text-right font-mono text-neon-blue text-lg font-bold">
+                            <td className="px-6 py-4 text-right font-mono text-brand text-lg font-bold">
                                 ${items.reduce((sum, i) => sum + (i.cantidad_real * i.precio_unitario), 0).toLocaleString()}
                             </td>
                         </tr>
