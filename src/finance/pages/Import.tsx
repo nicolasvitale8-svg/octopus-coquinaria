@@ -86,7 +86,7 @@ export const ImportPage: React.FC = () => {
     setMpSyncResult(null);
     try {
       // Usar nueva Edge Function que solo fetchea (no inserta)
-      const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_VqNqrcKqNFsE53xeSKtjnw_dmP0RIYt';
+      const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhteXp1dXVqeXVydnl1dXN2eXpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ3MDUyMjgsImV4cCI6MjA4MDI4MTIyOH0.PSXTNZoGg2alqdtlGuluWsvMbu2dnGIJuxjdGPCTWrQ';
       const response = await fetch(
         `https://hmyzuuujyurvyuusvyzp.supabase.co/functions/v1/mp-fetch-movements?days=${mpSyncDays}`,
         {
