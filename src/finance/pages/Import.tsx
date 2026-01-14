@@ -39,6 +39,9 @@ export const ImportPage: React.FC = () => {
   const [mpSyncStatus, setMpSyncStatus] = useState<'idle' | 'syncing' | 'success' | 'error'>('idle');
   const [mpSyncResult, setMpSyncResult] = useState<{ inserted: number; skipped: number; total: number } | null>(null);
   const [mpSyncDays, setMpSyncDays] = useState(30);
+  const [mpFilterMode, setMpFilterMode] = useState<'days' | 'range'>('days');
+  const [mpDateFrom, setMpDateFrom] = useState(new Date().toISOString().split('T')[0]);
+  const [mpDateTo, setMpDateTo] = useState(new Date().toISOString().split('T')[0]);
 
   useEffect(() => { loadData(); }, [activeEntity]);
 
@@ -87,8 +90,15 @@ export const ImportPage: React.FC = () => {
     try {
       // Usar nueva Edge Function que solo fetchea (no inserta)
       const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhteXp1dXVqeXVydnl1dXN2eXpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ3MDUyMjgsImV4cCI6MjA4MDI4MTIyOH0.PSXTNZoGg2alqdtlGuluWsvMbu2dnGIJuxjdGPCTWrQ';
+
+      // Construir URL según modo de filtro
+      const baseUrl = 'https://hmyzuuujyurvyuusvyzp.supabase.co/functions/v1/mp-fetch-movements';
+      const queryParams = mpFilterMode === 'range'
+        ? `?dateFrom=${mpDateFrom}&dateTo=${mpDateTo}`
+        : `?days=${mpSyncDays}`;
+
       const response = await fetch(
-        `https://hmyzuuujyurvyuusvyzp.supabase.co/functions/v1/mp-fetch-movements?days=${mpSyncDays}`,
+        `${baseUrl}${queryParams}`,
         {
           headers: {
             'apikey': SUPABASE_ANON_KEY,
@@ -366,8 +376,30 @@ export const ImportPage: React.FC = () => {
               </div>
 
               <div className="flex flex-wrap items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <label className="text-[10px] font-bold text-fin-muted uppercase">Últimos</label>
+                {/* Toggle modo */}
+                <div className="flex items-center gap-2 bg-fin-bg/50 rounded-xl p-1">
+                  <button
+                    onClick={() => setMpFilterMode('days')}
+                    className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all ${mpFilterMode === 'days'
+                        ? 'bg-[#009ee3] text-white'
+                        : 'text-fin-muted hover:text-white'
+                      }`}
+                  >
+                    Últimos días
+                  </button>
+                  <button
+                    onClick={() => setMpFilterMode('range')}
+                    className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all ${mpFilterMode === 'range'
+                        ? 'bg-[#009ee3] text-white'
+                        : 'text-fin-muted hover:text-white'
+                      }`}
+                  >
+                    Rango fechas
+                  </button>
+                </div>
+
+                {/* Selector según modo */}
+                {mpFilterMode === 'days' ? (
                   <select
                     value={mpSyncDays}
                     onChange={e => setMpSyncDays(Number(e.target.value))}
@@ -379,7 +411,23 @@ export const ImportPage: React.FC = () => {
                     <option value={60}>60 días</option>
                     <option value={90}>90 días</option>
                   </select>
-                </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="date"
+                      value={mpDateFrom}
+                      onChange={e => setMpDateFrom(e.target.value)}
+                      className="bg-fin-bg border border-white/10 rounded-xl px-3 py-2 text-white font-bold text-sm focus:border-brand outline-none"
+                    />
+                    <span className="text-fin-muted text-xs">a</span>
+                    <input
+                      type="date"
+                      value={mpDateTo}
+                      onChange={e => setMpDateTo(e.target.value)}
+                      className="bg-fin-bg border border-white/10 rounded-xl px-3 py-2 text-white font-bold text-sm focus:border-brand outline-none"
+                    />
+                  </div>
+                )}
 
                 <button
                   onClick={syncMercadoPago}

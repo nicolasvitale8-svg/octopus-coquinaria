@@ -34,13 +34,25 @@ serve(async (req: Request) => {
             throw new Error("Missing MP_ACCESS_TOKEN");
         }
 
-        // Obtener parámetros
+        // Obtener parámetros - soporta rango de fechas O días hacia atrás
         const url = new URL(req.url);
+        const dateFromParam = url.searchParams.get("dateFrom");
+        const dateToParam = url.searchParams.get("dateTo");
         const daysBack = parseInt(url.searchParams.get("days") || "30");
 
-        const dateFrom = new Date();
-        dateFrom.setDate(dateFrom.getDate() - daysBack);
-        const dateTo = new Date();
+        let dateFrom: Date;
+        let dateTo: Date;
+
+        if (dateFromParam && dateToParam) {
+            // Usar fechas específicas
+            dateFrom = new Date(dateFromParam + "T00:00:00");
+            dateTo = new Date(dateToParam + "T23:59:59");
+        } else {
+            // Fallback a días hacia atrás
+            dateFrom = new Date();
+            dateFrom.setDate(dateFrom.getDate() - daysBack);
+            dateTo = new Date();
+        }
 
         console.log(`Fetching MP movements from ${dateFrom.toISOString()} to ${dateTo.toISOString()}`);
 
