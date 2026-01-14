@@ -18,8 +18,29 @@ interface MPPayment {
     transaction_amount: number;
     status: string;
     operation_type: string;
-    payer?: { id?: string };
+    payer?: {
+        id?: string;
+        first_name?: string;
+        last_name?: string;
+        email?: string;
+    };
     collector?: { id?: string };
+    external_reference?: string;
+    statement_descriptor?: string;
+    additional_info?: {
+        items?: Array<{ title?: string; description?: string }>;
+        payer?: { first_name?: string; last_name?: string };
+    };
+    point_of_interaction?: {
+        transaction_data?: {
+            bank_info?: {
+                payer?: { account_holder_name?: string };
+                collector?: { account_holder_name?: string };
+            };
+        };
+        business_info?: { sub_unit?: string; unit?: string };
+    };
+    money_release_schema?: string;
 }
 
 serve(async (req: Request) => {
@@ -88,10 +109,44 @@ serve(async (req: Request) => {
 
             const type = isExpense ? "OUT" : "IN";
 
+            // Construir descripción con la mejor información disponible
+            let description = "";
+
+            // 1. Nombre del pagador (para transferencias recibidas)
+            const payerName = payment.payer?.first_name && payment.payer?.last_name
+                ? `${payment.payer.first_name} ${payment.payer.last_name}`.trim()
+                : payment.additional_info?.payer?.first_name && payment.additional_info?.payer?.last_name
+                    ? `${payment.additional_info.payer.first_name} ${payment.additional_info.payer.last_name}`.trim()
+                    : payment.point_of_interaction?.transaction_data?.bank_info?.payer?.account_holder_name || "";
+
+            // 2. Título del item (si existe)
+            const itemTitle = payment.additional_info?.items?.[0]?.title || "";
+
+            // 3. statement_descriptor o external_reference
+            const descriptor = payment.statement_descriptor || payment.external_reference || "";
+
+            // 4. Descripción original
+            const originalDesc = payment.description || "";
+
+            // Elegir la mejor descripción disponible
+            if (type === "IN" && payerName && !payerName.toLowerCase().includes("null")) {
+                description = `Cobro de ${payerName}`;
+            } else if (itemTitle && itemTitle.length > 3) {
+                description = itemTitle;
+            } else if (descriptor && descriptor.length > 3) {
+                description = descriptor;
+            } else if (originalDesc && !["Producto", "Varios", "account_money", "null"].includes(originalDesc)) {
+                description = originalDesc;
+            } else if (payerName) {
+                description = type === "IN" ? `Cobro de ${payerName}` : `Pago a ${payerName}`;
+            } else {
+                description = payment.payment_method_id || "Movimiento MP";
+            }
+
             return {
                 id: payment.id.toString(),
                 date: (payment.date_approved || payment.date_created)?.split("T")[0] || new Date().toISOString().split("T")[0],
-                description: `[MP] ${payment.description || payment.payment_method_id || "Movimiento MP"}`,
+                description: `[MP] ${description}`,
                 amount: Math.abs(payment.transaction_amount),
                 type: type,
                 external_id: payment.id.toString(),
