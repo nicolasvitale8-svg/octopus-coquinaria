@@ -7,6 +7,7 @@ import { formatCurrency } from '../utils/calculations';
 import { Camera, Loader2, CheckCircle2, ChevronLeft, ChevronRight, FileText, Sparkles, AlertTriangle, Trash2, Info, RotateCcw, FileUp, CreditCard, RefreshCcw, Zap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useFinanza } from '../context/FinanzaContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { logger } from '../../services/logger';
 import Tesseract from 'tesseract.js';
 import * as pdfjsLib from 'pdfjs-dist';
@@ -16,6 +17,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLi
 
 export const ImportPage: React.FC = () => {
   const { activeEntity } = useFinanza();
+  const { isAdmin } = useAuth();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [step, setStep] = useState<1 | 2>(1);
@@ -63,23 +65,71 @@ export const ImportPage: React.FC = () => {
     }
   };
 
-  // Sincronizar movimientos desde Mercado Pago API
+  // Sincronizar movimientos desde Mercado Pago API - Ahora con preview y validación
   const syncMercadoPago = async () => {
+    if (!selectedAccountId) {
+      alert("Por favor, selecciona primero la cuenta destino antes de sincronizar.");
+      return;
+    }
+
     setMpSyncStatus('syncing');
     setMpSyncResult(null);
     try {
+      // Usar nueva Edge Function que solo fetchea (no inserta)
       const response = await fetch(
-        `https://hmyzuuujyurvyuusvyzp.supabase.co/functions/v1/mp-sync-movements?days=${mpSyncDays}`
+        `https://hmyzuuujyurvyuusvyzp.supabase.co/functions/v1/mp-fetch-movements?days=${mpSyncDays}`
       );
       const data = await response.json();
 
-      if (data.success) {
+      if (data.success && data.movements) {
+        // Convertir movimientos de MP a formato ImportLine
+        const mpLines: ImportLine[] = data.movements.map((mov: any) => ({
+          id: crypto.randomUUID(),
+          rawText: mov.description,
+          date: mov.date,
+          description: mov.description,
+          amount: mov.amount,
+          type: mov.type as TransactionType,
+          isSelected: true,
+          isDuplicate: false,
+          categoryId: undefined,
+          subCategoryId: undefined,
+          // Metadata para tracking
+          external_id: mov.external_id,
+          source: mov.source,
+        }));
+
+        // Aplicar reglas de auto-categorización
+        let linesWithRules = applyRules(mpLines, rules);
+
+        // Marcar duplicados
+        linesWithRules = linesWithRules.map(line => ({
+          ...line,
+          isDuplicate: !!existingTransactions.find(t =>
+            t.accountId === selectedAccountId &&
+            Math.abs(t.amount - line.amount) < 0.01 &&
+            t.type === line.type &&
+            t.date === line.date
+          ),
+          isSelected: !existingTransactions.find(t =>
+            t.accountId === selectedAccountId &&
+            Math.abs(t.amount - line.amount) < 0.01 &&
+            t.type === line.type &&
+            t.date === line.date
+          )
+        }));
+
         setMpSyncStatus('success');
-        setMpSyncResult({ inserted: data.inserted, skipped: data.skipped, total: data.total });
-        // Recargar transacciones para ver las nuevas
-        const bId = activeEntity.id || undefined;
-        const t = await SupabaseService.getTransactions(bId);
-        setExistingTransactions(t);
+        setMpSyncResult({ inserted: 0, skipped: 0, total: data.total });
+
+        // Cargar en la tabla de validación (Step 2)
+        setImportedLines(linesWithRules);
+        setStep(2);
+
+        logger.info('MP movements loaded for validation', {
+          context: 'ImportPage',
+          data: { total: linesWithRules.length, withRules: linesWithRules.filter(l => l.categoryId).length }
+        });
       } else {
         setMpSyncStatus('error');
         logger.error('Error syncing MP', { context: 'ImportPage', data });
@@ -282,64 +332,66 @@ export const ImportPage: React.FC = () => {
           <p className="text-fin-muted max-w-lg mx-auto font-medium">Carga capturas de tus billeteras digitales (MercadoPago, Lemon, Brubank) para automatizar tu registro.</p>
         </div>
 
-        {/* Sincronización Automática con Mercado Pago */}
-        <div className="bg-gradient-to-r from-[#009ee3]/20 to-brand/20 p-8 rounded-[32px] border border-[#009ee3]/30 shadow-xl relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-40 h-40 bg-[#009ee3]/10 rounded-full -mr-20 -mt-20 blur-3xl"></div>
-          <div className="relative z-10">
-            <div className="flex items-center gap-4 mb-6">
-              <div className="w-14 h-14 bg-[#009ee3] rounded-2xl flex items-center justify-center shadow-lg shadow-[#009ee3]/30">
-                <Zap className="text-white" size={28} />
+        {/* Sincronización Automática con Mercado Pago - Solo Admin */}
+        {isAdmin && (
+          <div className="bg-gradient-to-r from-[#009ee3]/20 to-brand/20 p-8 rounded-[32px] border border-[#009ee3]/30 shadow-xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-40 h-40 bg-[#009ee3]/10 rounded-full -mr-20 -mt-20 blur-3xl"></div>
+            <div className="relative z-10">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-14 h-14 bg-[#009ee3] rounded-2xl flex items-center justify-center shadow-lg shadow-[#009ee3]/30">
+                  <Zap className="text-white" size={28} />
+                </div>
+                <div>
+                  <h2 className="text-xl font-black text-white">Mercado Pago API</h2>
+                  <p className="text-fin-muted text-sm">Sincronización automática de movimientos</p>
+                </div>
               </div>
-              <div>
-                <h2 className="text-xl font-black text-white">Mercado Pago API</h2>
-                <p className="text-fin-muted text-sm">Sincronización automática de movimientos</p>
-              </div>
-            </div>
 
-            <div className="flex flex-wrap items-center gap-4">
-              <div className="flex items-center gap-2">
-                <label className="text-[10px] font-bold text-fin-muted uppercase">Últimos</label>
-                <select
-                  value={mpSyncDays}
-                  onChange={e => setMpSyncDays(Number(e.target.value))}
-                  className="bg-fin-bg border border-white/10 rounded-xl px-3 py-2 text-white font-bold text-sm focus:border-brand outline-none"
+              <div className="flex flex-wrap items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <label className="text-[10px] font-bold text-fin-muted uppercase">Últimos</label>
+                  <select
+                    value={mpSyncDays}
+                    onChange={e => setMpSyncDays(Number(e.target.value))}
+                    className="bg-fin-bg border border-white/10 rounded-xl px-3 py-2 text-white font-bold text-sm focus:border-brand outline-none"
+                  >
+                    <option value={7}>7 días</option>
+                    <option value={15}>15 días</option>
+                    <option value={30}>30 días</option>
+                    <option value={60}>60 días</option>
+                    <option value={90}>90 días</option>
+                  </select>
+                </div>
+
+                <button
+                  onClick={syncMercadoPago}
+                  disabled={mpSyncStatus === 'syncing'}
+                  className="flex items-center gap-3 px-6 py-3 bg-[#009ee3] hover:bg-[#00b1ff] disabled:opacity-50 disabled:cursor-not-allowed text-white font-black text-sm uppercase tracking-wider rounded-xl shadow-lg shadow-[#009ee3]/30 transition-all active:scale-95"
                 >
-                  <option value={7}>7 días</option>
-                  <option value={15}>15 días</option>
-                  <option value={30}>30 días</option>
-                  <option value={60}>60 días</option>
-                  <option value={90}>90 días</option>
-                </select>
-              </div>
+                  {mpSyncStatus === 'syncing' ? (
+                    <><Loader2 className="animate-spin" size={18} /> Sincronizando...</>
+                  ) : (
+                    <><RefreshCcw size={18} /> Sincronizar MP</>
+                  )}
+                </button>
 
-              <button
-                onClick={syncMercadoPago}
-                disabled={mpSyncStatus === 'syncing'}
-                className="flex items-center gap-3 px-6 py-3 bg-[#009ee3] hover:bg-[#00b1ff] disabled:opacity-50 disabled:cursor-not-allowed text-white font-black text-sm uppercase tracking-wider rounded-xl shadow-lg shadow-[#009ee3]/30 transition-all active:scale-95"
-              >
-                {mpSyncStatus === 'syncing' ? (
-                  <><Loader2 className="animate-spin" size={18} /> Sincronizando...</>
-                ) : (
-                  <><RefreshCcw size={18} /> Sincronizar MP</>
+                {mpSyncStatus === 'success' && mpSyncResult && (
+                  <div className="flex items-center gap-2 text-emerald-400 text-sm font-bold animate-fade-in">
+                    <CheckCircle2 size={18} />
+                    <span>{mpSyncResult.inserted} nuevos, {mpSyncResult.skipped} existentes</span>
+                  </div>
                 )}
-              </button>
 
-              {mpSyncStatus === 'success' && mpSyncResult && (
-                <div className="flex items-center gap-2 text-emerald-400 text-sm font-bold animate-fade-in">
-                  <CheckCircle2 size={18} />
-                  <span>{mpSyncResult.inserted} nuevos, {mpSyncResult.skipped} existentes</span>
-                </div>
-              )}
-
-              {mpSyncStatus === 'error' && (
-                <div className="flex items-center gap-2 text-red-400 text-sm font-bold animate-fade-in">
-                  <AlertTriangle size={18} />
-                  <span>Error al sincronizar</span>
-                </div>
-              )}
+                {mpSyncStatus === 'error' && (
+                  <div className="flex items-center gap-2 text-red-400 text-sm font-bold animate-fade-in">
+                    <AlertTriangle size={18} />
+                    <span>Error al sincronizar</span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         <div className="bg-fin-card p-10 rounded-[32px] border border-fin-border shadow-2xl space-y-10 relative overflow-hidden">
           {/* Progress Overlay during Scan */}
