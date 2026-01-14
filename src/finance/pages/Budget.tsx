@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { SupabaseService } from '../services/supabaseService';
 import { BudgetItem, Category, SubCategory, Transaction, TransactionType } from '../financeTypes';
 import { formatCurrency, formatPercentage, getAdjustedWorkingDay } from '../utils/calculations';
-import { Plus, Trash2, Pencil, ChevronRight, PieChart, Sparkles, Calendar as CalendarIcon, Clock } from 'lucide-react';
+import { Plus, Trash2, Pencil, ChevronRight, PieChart, Sparkles, Calendar as CalendarIcon, Clock, X } from 'lucide-react';
 import { useFinanza } from '../context/FinanzaContext';
 
 export const Budget: React.FC = () => {
@@ -339,6 +339,14 @@ export const Budget: React.FC = () => {
       {isAdding && (
         <div ref={formRef} className="bg-fin-card p-10 rounded-[32px] border border-fin-border animate-fade-in mb-8 shadow-2xl relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-brand/5 rounded-full -mr-16 -mt-16 blur-3xl"></div>
+          {/* Botón de cierre */}
+          <button
+            type="button"
+            onClick={() => { setIsAdding(false); setEditingId(null); setNewItem({ type: TransactionType.OUT, plannedAmount: 0, label: '' }); }}
+            className="absolute top-6 right-6 p-2 text-fin-muted hover:text-white transition-colors z-20"
+          >
+            <X size={24} />
+          </button>
           <h3 className="text-xl font-black mb-10 text-white uppercase tracking-tight flex items-center gap-3">
             <Plus className="text-brand" size={24} />
             {editingId ? 'Modificar Proyección' : 'Nueva Planificación Mensual'}
