@@ -67,10 +67,20 @@ export const ImportPage: React.FC = () => {
 
   // Sincronizar movimientos desde Mercado Pago API - Ahora con preview y validación
   const syncMercadoPago = async () => {
-    if (!selectedAccountId) {
-      alert("Por favor, selecciona primero la cuenta destino antes de sincronizar.");
+    // Auto-seleccionar cuenta de Mercado Pago
+    const mpAccount = accounts.find(a =>
+      a.name.toLowerCase().includes('mercado pago') ||
+      a.name.toLowerCase().includes('mercadopago') ||
+      a.name.toLowerCase() === 'mp'
+    );
+
+    if (!mpAccount) {
+      alert("No se encontró una cuenta de Mercado Pago. Por favor, crea una cuenta con ese nombre primero.");
       return;
     }
+
+    // Auto-seleccionar la cuenta de MP para la importación
+    setSelectedAccountId(mpAccount.id);
 
     setMpSyncStatus('syncing');
     setMpSyncResult(null);
@@ -106,13 +116,13 @@ export const ImportPage: React.FC = () => {
         linesWithRules = linesWithRules.map(line => ({
           ...line,
           isDuplicate: !!existingTransactions.find(t =>
-            t.accountId === selectedAccountId &&
+            t.accountId === mpAccount.id &&
             Math.abs(t.amount - line.amount) < 0.01 &&
             t.type === line.type &&
             t.date === line.date
           ),
           isSelected: !existingTransactions.find(t =>
-            t.accountId === selectedAccountId &&
+            t.accountId === mpAccount.id &&
             Math.abs(t.amount - line.amount) < 0.01 &&
             t.type === line.type &&
             t.date === line.date
