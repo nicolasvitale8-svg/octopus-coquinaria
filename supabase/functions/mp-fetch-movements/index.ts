@@ -24,7 +24,11 @@ interface MPPayment {
         last_name?: string;
         email?: string;
     };
-    collector?: { id?: string };
+    collector?: {
+        id?: string;
+        first_name?: string;
+        last_name?: string;
+    };
     external_reference?: string;
     statement_descriptor?: string;
     additional_info?: {
@@ -112,35 +116,49 @@ serve(async (req: Request) => {
             // Construir descripción con la mejor información disponible
             let description = "";
 
-            // 1. Nombre del pagador (para transferencias recibidas)
+            // Nombre del pagador (quien envía dinero)
             const payerName = payment.payer?.first_name && payment.payer?.last_name
                 ? `${payment.payer.first_name} ${payment.payer.last_name}`.trim()
                 : payment.additional_info?.payer?.first_name && payment.additional_info?.payer?.last_name
                     ? `${payment.additional_info.payer.first_name} ${payment.additional_info.payer.last_name}`.trim()
                     : payment.point_of_interaction?.transaction_data?.bank_info?.payer?.account_holder_name || "";
 
-            // 2. Título del item (si existe)
+            // Nombre del comercio receptor (quien recibe el pago)
+            const collectorName = payment.collector?.first_name && payment.collector?.last_name
+                ? `${payment.collector.first_name} ${payment.collector.last_name}`.trim()
+                : payment.point_of_interaction?.transaction_data?.bank_info?.collector?.account_holder_name
+                || payment.statement_descriptor || "";
+
+            // Título del item o referencia externa
             const itemTitle = payment.additional_info?.items?.[0]?.title || "";
-
-            // 3. statement_descriptor o external_reference
-            const descriptor = payment.statement_descriptor || payment.external_reference || "";
-
-            // 4. Descripción original
+            const externalRef = payment.external_reference || "";
             const originalDesc = payment.description || "";
 
-            // Elegir la mejor descripción disponible
-            if (type === "IN" && payerName && !payerName.toLowerCase().includes("null")) {
-                description = `Cobro de ${payerName}`;
-            } else if (itemTitle && itemTitle.length > 3) {
-                description = itemTitle;
-            } else if (descriptor && descriptor.length > 3) {
-                description = descriptor;
-            } else if (originalDesc && !["Producto", "Varios", "account_money", "null"].includes(originalDesc)) {
-                description = originalDesc;
-            } else if (payerName) {
-                description = type === "IN" ? `Cobro de ${payerName}` : `Pago a ${payerName}`;
+            // Elegir según tipo de movimiento
+            if (type === "OUT") {
+                // Para pagos, priorizar: comercio receptor > item > referencia > descripción
+                if (collectorName && collectorName.length > 2 && !collectorName.toLowerCase().includes("null")) {
+                    description = collectorName;
+                } else if (itemTitle && itemTitle.length > 3) {
+                    description = itemTitle;
+                } else if (externalRef && externalRef.length > 3) {
+                    description = externalRef;
+                } else if (originalDesc && !["Producto", "Varios", "account_money", "null"].includes(originalDesc)) {
+                    description = originalDesc;
+                } else {
+                    description = payment.payment_method_id || "Pago MP";
+                }
             } else {
-                description = payment.payment_method_id || "Movimiento MP";
+                // Para cobros, priorizar: nombre del pagador > item > referencia
+                if (payerName && payerName.length > 2 && !payerName.toLowerCase().includes("null")) {
+                    description = `Cobro de ${payerName}`;
+                } else if (itemTitle && itemTitle.length > 3) {
+                    description = itemTitle;
+                } else if (originalDesc && !["Producto", "Varios", "account_money", "null"].includes(originalDesc)) {
+                    description = originalDesc;
+                } else {
+                    description = "Cobro MP";
+                }
             }
 
             return {
