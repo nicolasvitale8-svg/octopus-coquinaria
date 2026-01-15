@@ -19,6 +19,10 @@ const CalendarPage = () => {
   const [expandedMonths, setExpandedMonths] = useState<Record<string, boolean>>({});
   const [showGuide, setShowGuide] = useState(false);
 
+  // Filtro por tipo de negocio
+  const [filterByBusinessType, setFilterByBusinessType] = useState(true); // ON por defecto
+  const [myBusinessType, setMyBusinessType] = useState<BusinessType>('RESTAURANTE'); // Tipo del usuario
+
   // Event Edit State
   const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
   const [editMode, setEditMode] = useState(false);
@@ -111,8 +115,16 @@ const CalendarPage = () => {
   };
 
 
+  // Filtrar eventos por tipo de negocio si está activo
+  const filteredEvents = filterByBusinessType
+    ? events.filter(event => {
+      const eventBusinessTypes = event.business_types || ALL_BUSINESS_TYPES;
+      return eventBusinessTypes.includes(myBusinessType);
+    })
+    : events;
+
   // Group events by Month
-  const eventsByMonth = events.reduce((groups, event) => {
+  const eventsByMonth = filteredEvents.reduce((groups, event) => {
     // Robust Fix: Force Local Date (YYYY-MM-DD T 00:00:00)
     const datePart = event.fecha_inicio.split('T')[0];
     const date = new Date(`${datePart}T00:00:00`);
@@ -193,6 +205,46 @@ const CalendarPage = () => {
                   <MessageCircle className="w-4 h-4 mr-2" /> Sugerir un evento
                 </Button>
               </a>
+            </div>
+          </div>
+
+          {/* Filtro por tipo de negocio */}
+          <div className="bg-slate-900/50 border border-slate-700 rounded-xl p-4 mb-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setFilterByBusinessType(!filterByBusinessType)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${filterByBusinessType ? 'bg-[#1FB6D5]' : 'bg-slate-600'
+                  }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${filterByBusinessType ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                />
+              </button>
+              <span className="text-sm text-white font-medium">
+                {filterByBusinessType ? 'Eventos para mi tipo de local' : 'Ver todos los eventos'}
+              </span>
+            </div>
+
+            {filterByBusinessType && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-slate-400">Mi negocio:</span>
+                <select
+                  value={myBusinessType}
+                  onChange={(e) => setMyBusinessType(e.target.value as BusinessType)}
+                  className="bg-slate-950 border border-slate-600 rounded-lg px-3 py-1.5 text-sm text-white focus:border-[#1FB6D5] outline-none"
+                >
+                  {ALL_BUSINESS_TYPES.map((bt) => (
+                    <option key={bt} value={bt}>
+                      {BUSINESS_TYPE_LABELS[bt]}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            <div className="text-xs text-slate-500 ml-auto">
+              {filteredEvents.length} de {events.length} eventos
             </div>
           </div>
 
@@ -452,8 +504,8 @@ const CalendarPage = () => {
                         <label
                           key={bt}
                           className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-all ${editForm.businessTypes.includes(bt)
-                              ? 'bg-[#1FB6D5]/20 border-[#1FB6D5] text-white'
-                              : 'bg-slate-950 border-slate-700 text-slate-400'
+                            ? 'bg-[#1FB6D5]/20 border-[#1FB6D5] text-white'
+                            : 'bg-slate-950 border-slate-700 text-slate-400'
                             } border`}
                         >
                           <input
@@ -475,8 +527,8 @@ const CalendarPage = () => {
                             className="sr-only"
                           />
                           <span className={`w-4 h-4 rounded flex items-center justify-center border ${editForm.businessTypes.includes(bt)
-                              ? 'bg-[#1FB6D5] border-[#1FB6D5]'
-                              : 'border-slate-600'
+                            ? 'bg-[#1FB6D5] border-[#1FB6D5]'
+                            : 'border-slate-600'
                             }`}>
                             {editForm.businessTypes.includes(bt) && (
                               <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
