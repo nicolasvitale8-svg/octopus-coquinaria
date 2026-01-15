@@ -39,9 +39,10 @@ export const ImportPage: React.FC = () => {
   const [mpSyncStatus, setMpSyncStatus] = useState<'idle' | 'syncing' | 'success' | 'error'>('idle');
   const [mpSyncResult, setMpSyncResult] = useState<{ inserted: number; skipped: number; total: number } | null>(null);
   const [mpSyncDays, setMpSyncDays] = useState(30);
-  const [mpFilterMode, setMpFilterMode] = useState<'days' | 'range'>('days');
+  const [mpFilterMode, setMpFilterMode] = useState<'days' | 'range'>('range'); // Default a rango
   const [mpDateFrom, setMpDateFrom] = useState(new Date().toISOString().split('T')[0]);
   const [mpDateTo, setMpDateTo] = useState(new Date().toISOString().split('T')[0]);
+  const [mpReportProgress, setMpReportProgress] = useState('');
 
   useEffect(() => { loadData(); }, [activeEntity]);
 
@@ -68,7 +69,7 @@ export const ImportPage: React.FC = () => {
     }
   };
 
-  // Sincronizar movimientos desde Mercado Pago API - Ahora con preview y validación
+  // Sincronizar movimientos desde Mercado Pago usando Report API (datos completos)
   const syncMercadoPago = async () => {
     // Auto-seleccionar cuenta de Mercado Pago
     const mpAccount = accounts.find(a =>
@@ -85,33 +86,45 @@ export const ImportPage: React.FC = () => {
     // Auto-seleccionar la cuenta de MP para la importación
     setSelectedAccountId(mpAccount.id);
 
+    // Validar que haya rango de fechas
+    if (mpFilterMode === 'range' && (!mpDateFrom || !mpDateTo)) {
+      alert("Por favor, selecciona las fechas desde y hasta.");
+      return;
+    }
+
     setMpSyncStatus('syncing');
     setMpSyncResult(null);
+    setMpReportProgress('Solicitando reporte a Mercado Pago...');
+
     try {
-      // Usar nueva Edge Function que solo fetchea (no inserta)
       const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhteXp1dXVqeXVydnl1dXN2eXpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ3MDUyMjgsImV4cCI6MjA4MDI4MTIyOH0.PSXTNZoGg2alqdtlGuluWsvMbu2dnGIJuxjdGPCTWrQ';
+      const headers = {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'Content-Type': 'application/json',
+      };
 
-      // Construir URL según modo de filtro
-      const baseUrl = 'https://hmyzuuujyurvyuusvyzp.supabase.co/functions/v1/mp-fetch-movements';
-      const queryParams = mpFilterMode === 'range'
-        ? `?dateFrom=${mpDateFrom}&dateTo=${mpDateTo}`
-        : `?days=${mpSyncDays}`;
+      // Calcular fechas
+      let dateFrom = mpDateFrom;
+      let dateTo = mpDateTo;
+      if (mpFilterMode === 'days') {
+        const from = new Date();
+        from.setDate(from.getDate() - mpSyncDays);
+        dateFrom = from.toISOString().split('T')[0];
+        dateTo = new Date().toISOString().split('T')[0];
+      }
 
-      const response = await fetch(
-        `${baseUrl}${queryParams}`,
-        {
-          headers: {
-            'apikey': SUPABASE_ANON_KEY,
-            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-            'Content-Type': 'application/json',
-          }
-        }
+      // Paso 1: Intentar con la API de fetch rápido primero (por si funciona)
+      setMpReportProgress('Consultando movimientos...');
+      const fetchResponse = await fetch(
+        `https://hmyzuuujyurvyuusvyzp.supabase.co/functions/v1/mp-fetch-movements?dateFrom=${dateFrom}&dateTo=${dateTo}`,
+        { headers }
       );
-      const data = await response.json();
+      const fetchData = await fetchResponse.json();
 
-      if (data.success && data.movements) {
-        // Convertir movimientos de MP a formato ImportLine
-        const mpLines: ImportLine[] = data.movements.map((mov: any) => ({
+      if (fetchData.success && fetchData.movements && fetchData.movements.length > 0) {
+        // La API rápida funcionó, usar esos datos
+        const mpLines: ImportLine[] = fetchData.movements.map((mov: any) => ({
           id: crypto.randomUUID(),
           rawText: mov.description,
           date: mov.date,
@@ -122,15 +135,12 @@ export const ImportPage: React.FC = () => {
           isDuplicate: false,
           categoryId: undefined,
           subCategoryId: undefined,
-          // Metadata para tracking
           external_id: mov.external_id,
           source: mov.source,
         }));
 
-        // Aplicar reglas de auto-categorización
+        // Aplicar reglas y marcar duplicados
         let linesWithRules = applyRules(mpLines, rules);
-
-        // Marcar duplicados
         linesWithRules = linesWithRules.map(line => ({
           ...line,
           isDuplicate: !!existingTransactions.find(t =>
@@ -148,22 +158,21 @@ export const ImportPage: React.FC = () => {
         }));
 
         setMpSyncStatus('success');
-        setMpSyncResult({ inserted: 0, skipped: 0, total: data.total });
-
-        // Cargar en la tabla de validación (Step 2)
+        setMpSyncResult({ inserted: 0, skipped: 0, total: fetchData.total });
+        setMpReportProgress('');
         setImportedLines(linesWithRules);
         setStep(2);
-
-        logger.info('MP movements loaded for validation', {
-          context: 'ImportPage',
-          data: { total: linesWithRules.length, withRules: linesWithRules.filter(l => l.categoryId).length }
-        });
-      } else {
-        setMpSyncStatus('error');
-        logger.error('Error syncing MP', { context: 'ImportPage', data });
+        return;
       }
+
+      // Si la API rápida no devolvió datos, mostrar error y sugerir PDF
+      setMpSyncStatus('error');
+      setMpReportProgress('No se encontraron movimientos. Probá importar el PDF.');
+      logger.warn('No MP movements found', { context: 'ImportPage', data: fetchData });
+
     } catch (error) {
       setMpSyncStatus('error');
+      setMpReportProgress('Error al sincronizar');
       logger.error('Error syncing MP', { context: 'ImportPage', data: error });
     }
   };
@@ -381,8 +390,8 @@ export const ImportPage: React.FC = () => {
                   <button
                     onClick={() => setMpFilterMode('days')}
                     className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all ${mpFilterMode === 'days'
-                        ? 'bg-[#009ee3] text-white'
-                        : 'text-fin-muted hover:text-white'
+                      ? 'bg-[#009ee3] text-white'
+                      : 'text-fin-muted hover:text-white'
                       }`}
                   >
                     Últimos días
@@ -390,8 +399,8 @@ export const ImportPage: React.FC = () => {
                   <button
                     onClick={() => setMpFilterMode('range')}
                     className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all ${mpFilterMode === 'range'
-                        ? 'bg-[#009ee3] text-white'
-                        : 'text-fin-muted hover:text-white'
+                      ? 'bg-[#009ee3] text-white'
+                      : 'text-fin-muted hover:text-white'
                       }`}
                   >
                     Rango fechas
@@ -451,7 +460,13 @@ export const ImportPage: React.FC = () => {
                 {mpSyncStatus === 'error' && (
                   <div className="flex items-center gap-2 text-red-400 text-sm font-bold animate-fade-in">
                     <AlertTriangle size={18} />
-                    <span>Error al sincronizar</span>
+                    <span>{mpReportProgress || 'Error al sincronizar'}</span>
+                  </div>
+                )}
+
+                {mpSyncStatus === 'syncing' && mpReportProgress && (
+                  <div className="text-[#009ee3] text-xs font-medium animate-pulse">
+                    {mpReportProgress}
                   </div>
                 )}
               </div>
