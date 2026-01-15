@@ -8,6 +8,7 @@ import Button from '../components/ui/Button';
 import { supabase } from '../services/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { logger } from '../services/logger';
+import { ALL_BUSINESS_TYPES, BUSINESS_TYPE_LABELS, BusinessType } from '../services/calendarService';
 
 const CalendarPage = () => {
   const { profile } = useAuth();
@@ -21,7 +22,7 @@ const CalendarPage = () => {
   // Event Edit State
   const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
   const [editMode, setEditMode] = useState(false);
-  const [editForm, setEditForm] = useState({ titulo: '', mensaje: '', tipo: 'feriado', prioridad: 1 });
+  const [editForm, setEditForm] = useState({ titulo: '', mensaje: '', tipo: 'feriado', prioridad: 1, businessTypes: ALL_BUSINESS_TYPES as BusinessType[] });
   const [isSaving, setIsSaving] = useState(false);
 
   const fetchEvents = async () => {
@@ -60,7 +61,8 @@ const CalendarPage = () => {
       titulo: evt.titulo || '',
       mensaje: evt.mensaje || '',
       tipo: evt.tipo || 'feriado',
-      prioridad: evt.prioridad || 1
+      prioridad: evt.prioridad || 1,
+      businessTypes: evt.business_types || ALL_BUSINESS_TYPES
     });
     setEditMode(false);
   };
@@ -75,7 +77,8 @@ const CalendarPage = () => {
         titulo: editForm.titulo,
         mensaje: editForm.mensaje,
         tipo: editForm.tipo,
-        prioridad: editForm.prioridad
+        prioridad: editForm.prioridad,
+        business_types: editForm.businessTypes
       })
       .eq('id', selectedEvent.id);
 
@@ -438,6 +441,56 @@ const CalendarPage = () => {
                         <option value={3}>Alta</option>
                       </select>
                     </div>
+                  </div>
+
+                  {/* Negocios objetivo */}
+                  <div>
+                    <label className="block text-sm text-slate-400 mb-1">Negocios objetivo</label>
+                    <p className="text-xs text-slate-500 mb-2">¿Para qué tipo de local aplica este evento?</p>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      {ALL_BUSINESS_TYPES.map((bt) => (
+                        <label
+                          key={bt}
+                          className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-all ${editForm.businessTypes.includes(bt)
+                              ? 'bg-[#1FB6D5]/20 border-[#1FB6D5] text-white'
+                              : 'bg-slate-950 border-slate-700 text-slate-400'
+                            } border`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={editForm.businessTypes.includes(bt)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setEditForm({
+                                  ...editForm,
+                                  businessTypes: [...editForm.businessTypes, bt]
+                                });
+                              } else {
+                                setEditForm({
+                                  ...editForm,
+                                  businessTypes: editForm.businessTypes.filter(t => t !== bt)
+                                });
+                              }
+                            }}
+                            className="sr-only"
+                          />
+                          <span className={`w-4 h-4 rounded flex items-center justify-center border ${editForm.businessTypes.includes(bt)
+                              ? 'bg-[#1FB6D5] border-[#1FB6D5]'
+                              : 'border-slate-600'
+                            }`}>
+                            {editForm.businessTypes.includes(bt) && (
+                              <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                            )}
+                          </span>
+                          <span className="text-sm font-medium">{BUSINESS_TYPE_LABELS[bt]}</span>
+                        </label>
+                      ))}
+                    </div>
+                    <p className="text-[10px] text-slate-500 mt-2">
+                      Todas marcadas = evento general para todos los negocios
+                    </p>
                   </div>
                 </>
               ) : (

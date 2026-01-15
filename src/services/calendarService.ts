@@ -2,6 +2,30 @@
 import { supabase } from './supabase';
 import { logger } from './logger';
 
+// Tipos de negocio para filtrar eventos
+export type BusinessType =
+    | 'RESTAURANTE'
+    | 'BAR'
+    | 'CAFE'
+    | 'PANADERIA'
+    | 'DARK_KITCHEN'
+    | 'HOTEL'
+    | 'OTRO';
+
+export const ALL_BUSINESS_TYPES: BusinessType[] = [
+    'RESTAURANTE', 'BAR', 'CAFE', 'PANADERIA', 'DARK_KITCHEN', 'HOTEL', 'OTRO'
+];
+
+export const BUSINESS_TYPE_LABELS: Record<BusinessType, string> = {
+    RESTAURANTE: 'Restaurante',
+    BAR: 'Bar',
+    CAFE: 'Café',
+    PANADERIA: 'Panadería',
+    DARK_KITCHEN: 'Dark Kitchen',
+    HOTEL: 'Hotel',
+    OTRO: 'Otro'
+};
+
 export interface CalendarEvent {
     id: string; // UUID
     title: string;
@@ -11,7 +35,8 @@ export interface CalendarEvent {
     type: 'feriado' | 'comercial' | 'interno';
     created_at?: string;
     author_id?: string;
-    business_id?: string; // New: For private business events
+    business_id?: string; // For private business events
+    business_types?: BusinessType[]; // NEW: Negocios objetivo
 }
 
 // Database row type for eventos_calendario (Spanish columns)
@@ -25,6 +50,7 @@ interface DBCalendarRow {
     created_at?: string;
     author_id?: string;
     business_id?: string;
+    business_types?: BusinessType[];
 }
 
 const CALENDAR_STORAGE_KEY = 'octopus_calendar_local';
@@ -73,7 +99,8 @@ export const getEvents = async (): Promise<CalendarEvent[]> => {
                 end_date: e.fecha_fin,
                 type: e.tipo, // 'feriado', 'comercial', etc. matches
                 created_at: e.created_at,
-                business_id: e.business_id // Map from DB
+                business_id: e.business_id,
+                business_types: e.business_types || ALL_BUSINESS_TYPES // Default: todos
             }));
 
             const serverIds = new Set(mappedServerData.map(e => e.id));
