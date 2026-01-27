@@ -14,6 +14,7 @@ export const OrderForm: React.FC = () => {
     const [insumos, setInsumos] = useState<Insumo[]>([]);
     const [presupuesto, setPresupuesto] = useState<Presupuesto | null>(null);
     const [items, setItems] = useState<Partial<DetallePedido>[]>([]);
+    const [consumoData, setConsumoData] = useState<Record<string, number>>({});
 
     // Form State
     const [proveedor, setProveedor] = useState('');
@@ -21,9 +22,9 @@ export const OrderForm: React.FC = () => {
     const [loading, setLoading] = useState(true);
 
     // Helper function to add item
-    const addItemFromInsumo = (insumo: Insumo, allItems: Partial<DetallePedido>[]) => {
-        const consumoDiario = 1; // TODO: Fetch real history
-        const pendiente = 0;
+    const addItemFromInsumo = (insumo: Insumo, allItems: Partial<DetallePedido>[], consumoMap: Record<string, number>) => {
+        const consumoDiario = consumoMap[insumo.id] || 1; // Use pre-fetched data
+        const pendiente = 0; // pendiente_recibir would require another query
 
         const sugerido = calcularSugerido(
             insumo.stock_max,
@@ -62,6 +63,16 @@ export const OrderForm: React.FC = () => {
                 setInsumos(fetchedInsumos);
                 setPresupuesto(fetchedPresupuesto);
 
+                // Pre-fetch consumo promedio for all insumos
+                const consumoPromises = fetchedInsumos.map(async (i) => {
+                    const consumo = await procurementService.getConsumoPromedio(i.id, 30);
+                    return { id: i.id, consumo };
+                });
+                const consumoResults = await Promise.all(consumoPromises);
+                const consumoMap: Record<string, number> = {};
+                consumoResults.forEach(c => { consumoMap[c.id] = c.consumo || 1; });
+                setConsumoData(consumoMap);
+
                 // Check for auto-populate from query params
                 const autoIds = searchParams.get('auto');
                 if (autoIds && fetchedInsumos.length > 0) {
@@ -71,7 +82,7 @@ export const OrderForm: React.FC = () => {
                     for (const insumoId of idsArray) {
                         const insumo = fetchedInsumos.find(i => i.id === insumoId);
                         if (insumo) {
-                            newItems = addItemFromInsumo(insumo, newItems);
+                            newItems = addItemFromInsumo(insumo, newItems, consumoMap);
                         }
                     }
 
@@ -104,9 +115,9 @@ export const OrderForm: React.FC = () => {
         const insumo = insumos.find(i => i.id === insumoId);
         if (!insumo) return;
 
-        // Calcular sugerido inicial (Mock values para consumo/pendiente por ahora)
-        const consumoDiario = 1; // TODO: Fetch real history
-        const pendiente = 0; // TODO: Fetch real pending
+        // Usar datos de consumo pre-cargados
+        const consumoDiario = consumoData[insumo.id] || 1;
+        const pendiente = 0; // pendiente_recibir would require order tracking
 
         const sugerido = calcularSugerido(
             insumo.stock_max,

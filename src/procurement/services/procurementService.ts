@@ -236,13 +236,13 @@ export const procurementService = {
     // --- ALERTAS DE STOCK ---
     async getInsumosConAlerta(): Promise<(Insumo & { alerta: 'CRITICO' | 'ALERTA' | 'OK'; punto_pedido: number })[]> {
         const insumos = await this.getInsumos();
+        const activos = insumos.filter(i => i.activo !== false);
 
-        return insumos
-            .filter(i => i.activo !== false)
-            .map(insumo => {
+        // Fetch consumo promedio for all insumos in parallel
+        const insumosConConsumo = await Promise.all(
+            activos.map(async (insumo) => {
                 // Punto de pedido = stock_min + (consumo_estimado * lead_time)
-                // Por ahora usamos un estimado básico
-                const consumoEstimado = 1; // TODO: calcular desde historial
+                const consumoEstimado = await this.getConsumoPromedio(insumo.id, 30) || 1;
                 const puntoPedido = (insumo.stock_min || 0) + (consumoEstimado * (insumo.lead_time_dias || 0));
 
                 let alerta: 'CRITICO' | 'ALERTA' | 'OK' = 'OK';
@@ -258,11 +258,13 @@ export const procurementService = {
                     punto_pedido: puntoPedido
                 };
             })
-            .sort((a, b) => {
-                // Ordenar: CRITICO primero, luego ALERTA, luego OK
-                const orden = { CRITICO: 0, ALERTA: 1, OK: 2 };
-                return orden[a.alerta] - orden[b.alerta];
-            });
+        );
+
+        // Ordenar: CRITICO primero, luego ALERTA, luego OK
+        return insumosConConsumo.sort((a, b) => {
+            const orden = { CRITICO: 0, ALERTA: 1, OK: 2 };
+            return orden[a.alerta] - orden[b.alerta];
+        });
     },
 
     // --- CONSUMO PROMEDIO ---
