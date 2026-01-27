@@ -2,13 +2,14 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import { WHATSAPP_NUMBER } from '../constants';
-import { Calendar as CalendarIcon, AlertTriangle, TrendingUp, Sun, ShoppingCart, Info, ArrowLeft, MessageCircle, ChevronDown, ChevronRight, X, HelpCircle, Edit3, Trash2, Save } from 'lucide-react';
+import { Calendar as CalendarIcon, AlertTriangle, TrendingUp, Sun, ShoppingCart, Info, ArrowLeft, MessageCircle, ChevronDown, ChevronRight, X, HelpCircle, Edit3, Trash2, Save, Download } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Button from '../components/ui/Button';
 import { supabase } from '../services/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { logger } from '../services/logger';
-import { ALL_BUSINESS_TYPES, BUSINESS_TYPE_LABELS, BusinessType } from '../services/calendarService';
+import { ALL_BUSINESS_TYPES, BUSINESS_TYPE_LABELS, BusinessType, CalendarEvent } from '../services/calendarService';
+import { exportCalendarToGoogleCSV } from '../services/googleCalendarExport';
 
 const CalendarPage = () => {
   const { profile } = useAuth();
@@ -199,6 +200,26 @@ const CalendarPage = () => {
             <div className="flex gap-3">
               <Button onClick={() => setShowGuide(true)} variant="outline" className="border-slate-700 text-slate-300 hover:bg-slate-800">
                 <HelpCircle className="w-4 h-4 mr-2" /> Cómo leer
+              </Button>
+              <Button
+                onClick={() => {
+                  // Mapear eventos DB a CalendarEvent
+                  const mappedEvents: CalendarEvent[] = events.map(e => ({
+                    id: e.id,
+                    title: e.titulo,
+                    description: e.mensaje,
+                    start_date: e.fecha_inicio,
+                    end_date: e.fecha_fin,
+                    type: e.tipo,
+                    business_types: e.business_types,
+                    tags: e.tags
+                  }));
+                  exportCalendarToGoogleCSV(mappedEvents, new Date().getFullYear());
+                }}
+                variant="outline"
+                className="border-slate-700 text-slate-300 hover:bg-slate-800"
+              >
+                <Download className="w-4 h-4 mr-2" /> Exportar CSV
               </Button>
               <a href={`https://wa.me/${WHATSAPP_NUMBER}`} target="_blank" rel="noreferrer">
                 <Button className="bg-[#1FB6D5] text-[#021019] hover:bg-white font-bold">
