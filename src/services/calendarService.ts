@@ -26,6 +26,44 @@ export const BUSINESS_TYPE_LABELS: Record<BusinessType, string> = {
     OTRO: 'Otro'
 };
 
+// Tags de evento para categorización por ángulo/uso
+export type EventTag =
+    | 'CLIMA'
+    | 'FERIADO'
+    | 'GESTION_FINANZAS'
+    | 'GESTION_OPERACION'
+    | 'GESTION_MANTENIMIENTO'
+    | 'GESTION_PRODUCTO'
+    | 'GESTION_EQUIPO'
+    | 'DEPORTES'
+    | 'EFEMERIDE_GASTRO'
+    | 'FIESTAS'
+    | 'MARKETING'
+    | 'TURISMO'
+    | 'OTRO';
+
+export const ALL_EVENT_TAGS: EventTag[] = [
+    'CLIMA', 'FERIADO', 'GESTION_FINANZAS', 'GESTION_OPERACION',
+    'GESTION_MANTENIMIENTO', 'GESTION_PRODUCTO', 'GESTION_EQUIPO',
+    'DEPORTES', 'EFEMERIDE_GASTRO', 'FIESTAS', 'MARKETING', 'TURISMO', 'OTRO'
+];
+
+export const EVENT_TAG_LABELS: Record<EventTag, string> = {
+    CLIMA: 'Clima',
+    FERIADO: 'Feriado',
+    GESTION_FINANZAS: 'Gestión - Finanzas',
+    GESTION_OPERACION: 'Gestión - Operación',
+    GESTION_MANTENIMIENTO: 'Mantenimiento',
+    GESTION_PRODUCTO: 'Producto / Carta',
+    GESTION_EQUIPO: 'Equipo / RRHH',
+    DEPORTES: 'Deportes',
+    EFEMERIDE_GASTRO: 'Efeméride Gastro',
+    FIESTAS: 'Fiestas',
+    MARKETING: 'Marketing',
+    TURISMO: 'Turismo',
+    OTRO: 'Otro'
+};
+
 export interface CalendarEvent {
     id: string; // UUID
     title: string;
@@ -36,7 +74,8 @@ export interface CalendarEvent {
     created_at?: string;
     author_id?: string;
     business_id?: string; // For private business events
-    business_types?: BusinessType[]; // NEW: Negocios objetivo
+    business_types?: BusinessType[]; // Negocios objetivo
+    tags?: EventTag[]; // Tags para categorización (máx 3)
 }
 
 // Database row type for eventos_calendario (Spanish columns)
@@ -51,6 +90,7 @@ interface DBCalendarRow {
     author_id?: string;
     business_id?: string;
     business_types?: BusinessType[];
+    tags?: EventTag[];
 }
 
 const CALENDAR_STORAGE_KEY = 'octopus_calendar_local';
@@ -100,7 +140,8 @@ export const getEvents = async (): Promise<CalendarEvent[]> => {
                 type: e.tipo, // 'feriado', 'comercial', etc. matches
                 created_at: e.created_at,
                 business_id: e.business_id,
-                business_types: e.business_types || ALL_BUSINESS_TYPES // Default: todos
+                business_types: e.business_types || ALL_BUSINESS_TYPES, // Default: todos
+                tags: e.tags || [] // Tags de categorización
             }));
 
             const serverIds = new Set(mappedServerData.map(e => e.id));

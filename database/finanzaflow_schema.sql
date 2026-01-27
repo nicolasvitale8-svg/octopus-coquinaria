@@ -87,6 +87,9 @@ CREATE TABLE IF NOT EXISTS public.fin_budget_items (
     type TEXT CHECK (type IN ('IN', 'OUT')),
     planned_amount NUMERIC(15,2) NOT NULL,
     planned_date INTEGER, -- Day of month
+    is_recurring BOOLEAN DEFAULT false,
+    total_installments INTEGER DEFAULT 1,
+    current_installment INTEGER DEFAULT 1,
     user_id UUID REFERENCES public.usuarios(id) ON DELETE CASCADE,
     business_id UUID REFERENCES public.businesses(id) ON DELETE CASCADE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL

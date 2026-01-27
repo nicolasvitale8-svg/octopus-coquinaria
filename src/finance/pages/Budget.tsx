@@ -109,6 +109,55 @@ export const Budget: React.FC = () => {
     }
   };
 
+  const importFromPreviousMonth = async () => {
+    if (!confirm('¿Importar items recurrentes del mes anterior? Esto no duplicará items existentes.')) return;
+
+    setLoading(true);
+    try {
+      const prevDate = new Date(currentYear, currentMonth - 1, 1);
+      const prevMonth = prevDate.getMonth();
+      const prevYear = prevDate.getFullYear();
+
+      const bId = activeEntity.id || undefined;
+      const [prevItems, currentItems] = await Promise.all([
+        SupabaseService.getBudgetItems(bId),
+        SupabaseService.getBudgetItems(bId) // Fetch fresh current items
+      ]);
+
+      const sourceItems = prevItems.filter(i => i.month === prevMonth && i.year === prevYear);
+      const existingLabels = new Set(currentItems.filter(i => i.month === currentMonth && i.year === currentYear).map(i => i.label.toLowerCase().trim()));
+
+      let importCount = 0;
+      for (const item of sourceItems) {
+        // Condition: Must be recurring OR have installments remaining
+        const isRecurring = item.isRecurring;
+        const hasInstallments = (item.totalInstallments || 1) > (item.currentInstallment || 1);
+
+        if (!isRecurring && !hasInstallments) continue;
+
+        // Avoid duplicates checking label
+        if (existingLabels.has(item.label.toLowerCase().trim())) continue;
+
+        let newItem = { ...item, id: undefined, month: currentMonth, year: currentYear };
+
+        if (hasInstallments && !isRecurring) {
+          newItem.currentInstallment = (item.currentInstallment || 1) + 1;
+        }
+
+        await SupabaseService.saveBudgetItem(newItem, bId);
+        importCount++;
+      }
+
+      await loadData();
+      alert(`Se importaron ${importCount} items del mes anterior.`);
+    } catch (error) {
+      console.error(error);
+      alert('Error al importar items');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const calculateActual = (item: BudgetItem) => {
     return transactions.reduce((sum, t) => {
       const tDate = new Date(t.date);
@@ -317,6 +366,9 @@ export const Budget: React.FC = () => {
           </div>
           <button onClick={() => { setIsAdding(!isAdding); setEditingId(null); setNewItem({ type: TransactionType.OUT, plannedAmount: 0, label: '' }); }} className="bg-brand text-fin-bg px-5 py-3 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-brand-hover transition-all">
             {isAdding ? 'CERRAR FORM' : 'NUEVO ITEM'}
+          </button>
+          <button onClick={importFromPreviousMonth} className="bg-fin-card border border-fin-border text-fin-muted hover:text-white px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:border-brand transition-all" title="Importar recurrentes del mes anterior">
+            <Sparkles size={16} />
           </button>
         </div>
       </div>
