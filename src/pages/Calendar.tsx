@@ -191,7 +191,7 @@ const CalendarPage = () => {
           </Link>
 
           {/* Sticky Header */}
-          <div className="sticky top-0 z-30 bg-[#021019]/95 backdrop-blur-md -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-4 border-b border-slate-800/50">
+          <div className="sticky top-16 z-30 bg-[#021019] backdrop-blur-md -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-4 border-b border-slate-800/50">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
               <div>
                 <h1 className="text-2xl md:text-3xl font-extrabold text-white font-space">Calendario Gastronómico</h1>
