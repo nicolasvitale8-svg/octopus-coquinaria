@@ -186,74 +186,73 @@ const CalendarPage = () => {
       <div className="bg-[#021019] min-h-screen pt-8 pb-12">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
 
-          <Link to="/" className="inline-flex items-center text-slate-400 hover:text-white mb-8 text-sm transition-colors">
+          <Link to="/" className="inline-flex items-center text-slate-400 hover:text-white mb-4 text-sm transition-colors">
             <ArrowLeft className="w-4 h-4 mr-1" /> Volver al Inicio
           </Link>
 
-          <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
-            <div>
-              <h1 className="text-4xl font-extrabold text-white mb-4 font-space">Calendario Gastronómico</h1>
-              <p className="text-xl text-slate-400 max-w-2xl">
-                Anticipate a lo que viene. Feriados, alertas climáticas y tendencias para ajustar tu operación a tiempo.
-              </p>
-            </div>
-            <div className="flex gap-3">
-              <Button onClick={() => setShowGuide(true)} variant="outline" className="border-slate-700 text-slate-300 hover:bg-slate-800">
-                <HelpCircle className="w-4 h-4 mr-2" /> Cómo leer
-              </Button>
-              <Button
-                onClick={() => {
-                  // Mapear eventos DB a CalendarEvent
-                  const mappedEvents: CalendarEvent[] = events.map(e => ({
-                    id: e.id,
-                    title: e.titulo,
-                    description: e.mensaje,
-                    start_date: e.fecha_inicio,
-                    end_date: e.fecha_fin,
-                    type: e.tipo,
-                    business_types: e.business_types,
-                    tags: e.tags
-                  }));
-                  exportCalendarToGoogleCSV(mappedEvents, new Date().getFullYear());
-                }}
-                variant="outline"
-                className="border-slate-700 text-slate-300 hover:bg-slate-800"
-              >
-                <Download className="w-4 h-4 mr-2" /> Exportar CSV
-              </Button>
-              <a href={`https://wa.me/${WHATSAPP_NUMBER}`} target="_blank" rel="noreferrer">
-                <Button className="bg-[#1FB6D5] text-[#021019] hover:bg-white font-bold">
-                  <MessageCircle className="w-4 h-4 mr-2" /> Sugerir un evento
+          {/* Sticky Header */}
+          <div className="sticky top-0 z-30 bg-[#021019]/95 backdrop-blur-md -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-4 border-b border-slate-800/50">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+              <div>
+                <h1 className="text-2xl md:text-3xl font-extrabold text-white font-space">Calendario Gastronómico</h1>
+                <p className="text-sm text-slate-400 max-w-xl mt-1 hidden md:block">
+                  Anticipate a lo que viene. Feriados, alertas y tendencias.
+                </p>
+              </div>
+              <div className="flex gap-2 flex-wrap">
+                <Button onClick={() => setShowGuide(true)} variant="outline" className="border-slate-700 text-slate-300 hover:bg-slate-800 text-xs px-3 py-2">
+                  <HelpCircle className="w-4 h-4 mr-1" /> Guía
                 </Button>
-              </a>
+                <Button
+                  onClick={() => {
+                    const mappedEvents: CalendarEvent[] = events.map(e => ({
+                      id: e.id,
+                      title: e.titulo,
+                      description: e.mensaje,
+                      start_date: e.fecha_inicio,
+                      end_date: e.fecha_fin,
+                      type: e.tipo,
+                      business_types: e.business_types,
+                      tags: e.tags
+                    }));
+                    exportCalendarToGoogleCSV(mappedEvents, new Date().getFullYear());
+                  }}
+                  variant="outline"
+                  className="border-slate-700 text-slate-300 hover:bg-slate-800 text-xs px-3 py-2"
+                >
+                  <Download className="w-4 h-4 mr-1" /> CSV
+                </Button>
+                <a href={`https://wa.me/${WHATSAPP_NUMBER}`} target="_blank" rel="noreferrer">
+                  <Button className="bg-[#1FB6D5] text-[#021019] hover:bg-white font-bold text-xs px-3 py-2">
+                    <MessageCircle className="w-4 h-4 mr-1" /> Sugerir
+                  </Button>
+                </a>
+              </div>
             </div>
-          </div>
 
-          {/* Filtro por tipo de negocio */}
-          <div className="bg-slate-900/50 border border-slate-700 rounded-xl p-4 mb-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setFilterByBusinessType(!filterByBusinessType)}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${filterByBusinessType ? 'bg-[#1FB6D5]' : 'bg-slate-600'
-                  }`}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${filterByBusinessType ? 'translate-x-6' : 'translate-x-1'
+            {/* Filtro por tipo de negocio */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setFilterByBusinessType(!filterByBusinessType)}
+                  className={`relative inline-flex h-5 w-10 items-center rounded-full transition-colors ${filterByBusinessType ? 'bg-[#1FB6D5]' : 'bg-slate-600'
                     }`}
-                />
-              </button>
-              <span className="text-sm text-white font-medium">
-                {filterByBusinessType ? 'Eventos para mi tipo de local' : 'Ver todos los eventos'}
-              </span>
-            </div>
+                >
+                  <span
+                    className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${filterByBusinessType ? 'translate-x-5' : 'translate-x-1'
+                      }`}
+                  />
+                </button>
+                <span className="text-xs text-white font-medium">
+                  {filterByBusinessType ? 'Filtrado por tipo' : 'Todos'}
+                </span>
+              </div>
 
-            {filterByBusinessType && (
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-slate-400">Mi negocio:</span>
+              {filterByBusinessType && (
                 <select
                   value={myBusinessType}
                   onChange={(e) => setMyBusinessType(e.target.value as BusinessType)}
-                  className="bg-slate-950 border border-slate-600 rounded-lg px-3 py-1.5 text-sm text-white focus:border-[#1FB6D5] outline-none"
+                  className="bg-slate-950 border border-slate-600 rounded-lg px-2 py-1 text-xs text-white focus:border-[#1FB6D5] outline-none"
                 >
                   {ALL_BUSINESS_TYPES.map((bt) => (
                     <option key={bt} value={bt}>
@@ -261,11 +260,11 @@ const CalendarPage = () => {
                     </option>
                   ))}
                 </select>
-              </div>
-            )}
+              )}
 
-            <div className="text-xs text-slate-500 ml-auto">
-              {filteredEvents.length} de {events.length} eventos
+              <div className="text-[10px] text-slate-500 ml-auto">
+                {filteredEvents.length}/{events.length}
+              </div>
             </div>
           </div>
 
