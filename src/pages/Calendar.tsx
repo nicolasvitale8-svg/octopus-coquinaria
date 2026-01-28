@@ -358,6 +358,30 @@ const CalendarPage = () => {
         </div>
       </div>
 
+      {/* Floating Action Button - Exportar CSV */}
+      <button
+        onClick={() => {
+          const mappedEvents: CalendarEvent[] = events.map(e => ({
+            id: e.id,
+            title: e.titulo,
+            description: e.mensaje,
+            start_date: e.fecha_inicio,
+            end_date: e.fecha_fin,
+            type: e.tipo,
+            business_types: e.business_types,
+            tags: e.tags
+          }));
+          exportCalendarToGoogleCSV(mappedEvents, new Date().getFullYear());
+        }}
+        className="fixed bottom-6 right-6 z-40 bg-[#1FB6D5] hover:bg-white text-[#021019] p-4 rounded-full shadow-2xl shadow-[#1FB6D5]/30 transition-all hover:scale-110 active:scale-95 group"
+        title="Exportar calendario a Google Calendar (CSV)"
+      >
+        <Download className="w-6 h-6" />
+        <span className="absolute right-full mr-3 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-xs font-bold px-3 py-2 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity shadow-lg">
+          Exportar a Google Calendar
+        </span>
+      </button>
+
       {/* Modal de Guía */}
       {showGuide && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-fade-in">
