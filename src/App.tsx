@@ -41,6 +41,7 @@ const AdminConfig = lazy(() => import('./pages/AdminPages').then(m => ({ default
 // Finance Module - Lazy loaded
 const FinanceLayout = lazy(() => import('./finance/components/FinanceLayout'));
 const FinanceDashboard = lazy(() => import('./finance/pages/Dashboard').then(m => ({ default: m.Dashboard })));
+const FinanceAnnualSummary = lazy(() => import('./finance/pages/AnnualSummary').then(m => ({ default: m.AnnualSummary })));
 const FinanceTransactions = lazy(() => import('./finance/pages/Transactions').then(m => ({ default: m.Transactions })));
 const FinanceBudget = lazy(() => import('./finance/pages/Budget').then(m => ({ default: m.Budget })));
 const FinanceJars = lazy(() => import('./finance/pages/Jars').then(m => ({ default: m.Jars })));
@@ -148,6 +149,7 @@ const App = () => {
                 {/* Finance Module Routes */}
                 <Route element={<ProtectedRoute><FinanceLayout /></ProtectedRoute>}>
                   <Route path="/finance" element={<FinanceDashboard />} />
+                  <Route path="/finance/annual" element={<FinanceAnnualSummary />} />
                   <Route path="/finance/transactions" element={<FinanceTransactions />} />
                   <Route path="/finance/budget" element={<FinanceBudget />} />
                   <Route path="/finance/jars" element={<FinanceJars />} />

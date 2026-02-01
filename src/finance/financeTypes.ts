@@ -125,3 +125,56 @@ export interface ImportBatch {
   lines: ImportLine[];
   status: 'draft' | 'imported';
 }
+
+// --- ANNUAL VIEW & REPORTS ---
+
+export interface MonthSummary {
+  month: number; // 0-11
+  year: number;
+  totalIn: number;
+  totalOut: number;
+  netBalance: number;
+  transactionCount: number;
+  topCategories: { categoryId: string; categoryName: string; amount: number }[];
+  isClosed: boolean; // true if month is in the past
+}
+
+export interface YearSummary {
+  year: number;
+  months: MonthSummary[];
+  totalIn: number;
+  totalOut: number;
+  netBalance: number;
+  averageMonthlyIn: number;
+  averageMonthlyOut: number;
+  bestMonth: MonthSummary | null;
+  worstMonth: MonthSummary | null;
+}
+
+export interface CategoryBreakdown {
+  categoryId: string;
+  categoryName: string;
+  amount: number;
+  percentage: number;
+  transactionCount: number;
+}
+
+export interface MonthReport {
+  month: number;
+  year: number;
+  entityName: string;
+  generatedAt: string;
+  totalIn: number;
+  totalOut: number;
+  netBalance: number;
+  openingBalance: number;
+  closingBalance: number;
+  incomeBreakdown: CategoryBreakdown[];
+  expenseBreakdown: CategoryBreakdown[];
+  comparison: {
+    prevMonth: { totalIn: number; totalOut: number; netBalance: number } | null;
+    incomeDelta: number;
+    expenseDelta: number;
+    balanceDelta: number;
+  };
+}

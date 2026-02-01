@@ -187,3 +187,224 @@ export const calculateBudgetAlerts = (
     return !hasMatch;
   });
 };
+
+// --- ANNUAL VIEW & REPORTS ---
+
+import { MonthSummary, YearSummary, CategoryBreakdown, MonthReport, Category } from '../financeTypes';
+
+// Helper para parsear fechas string "YYYY-MM-DD" en local sin timezone shift
+const parseDate = (dateStr: string) => {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  return new Date(y, m - 1, d);
+};
+
+/**
+ * Calcula el resumen anual con datos de cada mes
+ */
+export const calculateYearSummary = (
+  transactions: Transaction[],
+  categories: Category[],
+  year: number
+): YearSummary => {
+  const today = new Date();
+  const currentMonth = today.getMonth();
+  const currentYear = today.getFullYear();
+
+  const months: MonthSummary[] = [];
+
+  for (let month = 0; month < 12; month++) {
+    const monthTransactions = transactions.filter(t => {
+      const d = parseDate(t.date);
+      const isTransfer = t.description?.toLowerCase().includes('transferencia');
+      return d.getMonth() === month && d.getFullYear() === year && !isTransfer;
+    });
+
+    const totalIn = monthTransactions
+      .filter(t => t.type === TransactionType.IN)
+      .reduce((sum, t) => sum + t.amount, 0);
+
+    const totalOut = monthTransactions
+      .filter(t => t.type === TransactionType.OUT)
+      .reduce((sum, t) => sum + t.amount, 0);
+
+    // Top categories for expenses
+    const categoryMap: Record<string, number> = {};
+    monthTransactions
+      .filter(t => t.type === TransactionType.OUT)
+      .forEach(t => {
+        categoryMap[t.categoryId] = (categoryMap[t.categoryId] || 0) + t.amount;
+      });
+
+    const topCategories = Object.entries(categoryMap)
+      .map(([categoryId, amount]) => ({
+        categoryId,
+        categoryName: categories.find(c => c.id === categoryId)?.name || 'Sin Categoría',
+        amount
+      }))
+      .sort((a, b) => b.amount - a.amount)
+      .slice(0, 3);
+
+    const isClosed = year < currentYear || (year === currentYear && month < currentMonth);
+
+    months.push({
+      month,
+      year,
+      totalIn,
+      totalOut,
+      netBalance: totalIn - totalOut,
+      transactionCount: monthTransactions.length,
+      topCategories,
+      isClosed
+    });
+  }
+
+  const totalIn = months.reduce((sum, m) => sum + m.totalIn, 0);
+  const totalOut = months.reduce((sum, m) => sum + m.totalOut, 0);
+  const monthsWithData = months.filter(m => m.transactionCount > 0);
+
+  const bestMonth = monthsWithData.length > 0
+    ? monthsWithData.reduce((best, m) => m.netBalance > best.netBalance ? m : best)
+    : null;
+
+  const worstMonth = monthsWithData.length > 0
+    ? monthsWithData.reduce((worst, m) => m.netBalance < worst.netBalance ? m : worst)
+    : null;
+
+  return {
+    year,
+    months,
+    totalIn,
+    totalOut,
+    netBalance: totalIn - totalOut,
+    averageMonthlyIn: monthsWithData.length > 0 ? totalIn / monthsWithData.length : 0,
+    averageMonthlyOut: monthsWithData.length > 0 ? totalOut / monthsWithData.length : 0,
+    bestMonth,
+    worstMonth
+  };
+};
+
+/**
+ * Genera un informe detallado de un mes específico
+ */
+export const generateMonthReport = (
+  transactions: Transaction[],
+  categories: Category[],
+  accounts: Account[],
+  monthlyBalances: MonthlyBalance[],
+  month: number,
+  year: number,
+  entityName: string
+): MonthReport => {
+  const monthTransactions = transactions.filter(t => {
+    const d = parseDate(t.date);
+    const isTransfer = t.description?.toLowerCase().includes('transferencia');
+    return d.getMonth() === month && d.getFullYear() === year && !isTransfer;
+  });
+
+  const totalIn = monthTransactions
+    .filter(t => t.type === TransactionType.IN)
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  const totalOut = monthTransactions
+    .filter(t => t.type === TransactionType.OUT)
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  // Calcular opening balance sumando todos los balances de apertura de las cuentas activas
+  const openingBalance = accounts
+    .filter(a => a.isActive)
+    .reduce((sum, acc) => {
+      const mb = monthlyBalances.find(b => b.accountId === acc.id && b.year === year && b.month === month);
+      return sum + (mb?.amount || 0);
+    }, 0);
+
+  const closingBalance = openingBalance + totalIn - totalOut;
+
+  // Income breakdown by category
+  const incomeMap: Record<string, { amount: number; count: number }> = {};
+  monthTransactions
+    .filter(t => t.type === TransactionType.IN)
+    .forEach(t => {
+      if (!incomeMap[t.categoryId]) incomeMap[t.categoryId] = { amount: 0, count: 0 };
+      incomeMap[t.categoryId].amount += t.amount;
+      incomeMap[t.categoryId].count += 1;
+    });
+
+  const incomeBreakdown: CategoryBreakdown[] = Object.entries(incomeMap)
+    .map(([categoryId, data]) => ({
+      categoryId,
+      categoryName: categories.find(c => c.id === categoryId)?.name || 'Sin Categoría',
+      amount: data.amount,
+      percentage: totalIn > 0 ? (data.amount / totalIn) * 100 : 0,
+      transactionCount: data.count
+    }))
+    .sort((a, b) => b.amount - a.amount);
+
+  // Expense breakdown by category
+  const expenseMap: Record<string, { amount: number; count: number }> = {};
+  monthTransactions
+    .filter(t => t.type === TransactionType.OUT)
+    .forEach(t => {
+      if (!expenseMap[t.categoryId]) expenseMap[t.categoryId] = { amount: 0, count: 0 };
+      expenseMap[t.categoryId].amount += t.amount;
+      expenseMap[t.categoryId].count += 1;
+    });
+
+  const expenseBreakdown: CategoryBreakdown[] = Object.entries(expenseMap)
+    .map(([categoryId, data]) => ({
+      categoryId,
+      categoryName: categories.find(c => c.id === categoryId)?.name || 'Sin Categoría',
+      amount: data.amount,
+      percentage: totalOut > 0 ? (data.amount / totalOut) * 100 : 0,
+      transactionCount: data.count
+    }))
+    .sort((a, b) => b.amount - a.amount);
+
+  // Comparativa con el mes anterior
+  let prevMonth = month - 1;
+  let prevYear = year;
+  if (prevMonth < 0) {
+    prevMonth = 11;
+    prevYear = year - 1;
+  }
+
+  const prevTransactions = transactions.filter(t => {
+    const d = parseDate(t.date);
+    const isTransfer = t.description?.toLowerCase().includes('transferencia');
+    return d.getMonth() === prevMonth && d.getFullYear() === prevYear && !isTransfer;
+  });
+
+  const prevTotalIn = prevTransactions
+    .filter(t => t.type === TransactionType.IN)
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  const prevTotalOut = prevTransactions
+    .filter(t => t.type === TransactionType.OUT)
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  const hasPrevData = prevTransactions.length > 0;
+
+  return {
+    month,
+    year,
+    entityName,
+    generatedAt: new Date().toISOString(),
+    totalIn,
+    totalOut,
+    netBalance: totalIn - totalOut,
+    openingBalance,
+    closingBalance,
+    incomeBreakdown,
+    expenseBreakdown,
+    comparison: {
+      prevMonth: hasPrevData ? {
+        totalIn: prevTotalIn,
+        totalOut: prevTotalOut,
+        netBalance: prevTotalIn - prevTotalOut
+      } : null,
+      incomeDelta: hasPrevData && prevTotalIn > 0 ? ((totalIn - prevTotalIn) / prevTotalIn) * 100 : 0,
+      expenseDelta: hasPrevData && prevTotalOut > 0 ? ((totalOut - prevTotalOut) / prevTotalOut) * 100 : 0,
+      balanceDelta: hasPrevData ? (totalIn - totalOut) - (prevTotalIn - prevTotalOut) : 0
+    }
+  };
+};
+

@@ -2,14 +2,15 @@
 import React, { useEffect, useState } from 'react';
 import { SupabaseService } from '../services/supabaseService';
 import { chequeService, Cheque } from '../services/chequeService';
-import { calculatePeriodBalance, calculateJar, formatCurrency, calculateBudgetAlerts } from '../utils/calculations';
-import { Account, Transaction, Jar, MonthlyBalance, Category, SubCategory, BudgetItem } from '../financeTypes';
-import { TrendingUp, TrendingDown, DollarSign, Lock, ChevronRight, LayoutGrid, List, Wallet, ArrowUpRight, UploadCloud, PlusCircle, Settings, Sparkles, User, Building2, PieChart as PieIcon, X, Bell, AlertTriangle } from 'lucide-react';
+import { calculatePeriodBalance, calculateJar, formatCurrency, calculateBudgetAlerts, generateMonthReport } from '../utils/calculations';
+import { Account, Transaction, Jar, MonthlyBalance, Category, SubCategory, BudgetItem, MonthReport } from '../financeTypes';
+import { TrendingUp, TrendingDown, DollarSign, Lock, ChevronRight, LayoutGrid, List, Wallet, ArrowUpRight, UploadCloud, PlusCircle, Settings, Sparkles, User, Building2, PieChart as PieIcon, X, Bell, AlertTriangle, FileText } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, AreaChart, Area, CartesianGrid } from 'recharts';
 import { useNavigate } from 'react-router-dom';
 import { useFinanza } from '../context/FinanzaContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { BudgetRPMGauge } from '../components/BudgetRPMGauge';
+import { MonthlyReportModal } from '../components/MonthlyReportModal';
 
 interface PeriodAccountState {
   account: Account;
@@ -168,6 +169,7 @@ export const Dashboard: React.FC = () => {
   const [budgetItems, setBudgetItems] = useState<BudgetItem[]>([]);
   const [cheques, setCheques] = useState<Cheque[]>([]);
   const [activeDetail, setActiveDetail] = useState<'IN' | 'OUT' | 'BALANCE' | 'INVESTED' | null>(null);
+  const [monthReport, setMonthReport] = useState<MonthReport | null>(null);
 
   useEffect(() => { loadData(); }, [activeEntity]);
   useEffect(() => { calculateDashboardData(); }, [currentMonth, currentYear, transactions, monthlyBalances, accounts]);
@@ -361,6 +363,29 @@ export const Dashboard: React.FC = () => {
           </button>
         </div>
 
+        {/* Generate Report Button - Only for past months */}
+        {(currentYear < new Date().getFullYear() || (currentYear === new Date().getFullYear() && currentMonth < new Date().getMonth())) && (
+          <button
+            onClick={() => {
+              const report = generateMonthReport(
+                transactions,
+                categories,
+                accounts,
+                monthlyBalances,
+                currentMonth,
+                currentYear,
+                activeEntity.name
+              );
+              setMonthReport(report);
+            }}
+            className="flex items-center gap-2 px-4 py-3 bg-brand/10 border border-brand/30 rounded-2xl text-brand hover:bg-brand/20 transition-all shadow-xl group"
+            title="Generar Informe del Mes"
+          >
+            <FileText size={18} />
+            <span className="text-[10px] font-black uppercase tracking-widest hidden md:inline">Informe</span>
+          </button>
+        )}
+
         <button
           onClick={() => navigate('/finance/settings')}
           className="p-4 bg-fin-card border border-fin-border rounded-2xl text-fin-muted hover:text-brand hover:border-brand/40 transition-all shadow-xl group"
@@ -369,6 +394,14 @@ export const Dashboard: React.FC = () => {
           <Settings size={20} className="group-hover:rotate-90 transition-transform duration-500" />
         </button>
       </div>
+
+      {/* Monthly Report Modal */}
+      {monthReport && (
+        <MonthlyReportModal
+          report={monthReport}
+          onClose={() => setMonthReport(null)}
+        />
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {[

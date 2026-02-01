@@ -29,6 +29,7 @@ const FinanceLayout = () => {
 
     const navItems = [
         { path: '/finance', icon: <PieChart size={20} />, label: 'Resumen' },
+        { path: '/finance/annual', icon: <BarChart3 size={20} />, label: 'Vista Anual' },
         { path: '/finance/budget', icon: <Banknote size={20} />, label: 'Presupuesto' },
         { path: '/finance/transactions', icon: <BarChart3 size={20} />, label: 'Movimientos' },
         { path: '/finance/cheques', icon: <Wallet size={20} />, label: 'Libro Cheques' },
