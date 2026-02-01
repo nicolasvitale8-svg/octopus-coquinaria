@@ -122,9 +122,11 @@ export const MonthlyReportModal: React.FC<MonthlyReportModalProps> = ({ report, 
                         {/* Top Header Row */}
                         <div className="flex items-start justify-between border-b-4 border-cyan-500 pb-3">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-cyan-600 rounded-lg flex items-center justify-center">
-                                    <span className="text-white font-black text-lg">🐙</span>
-                                </div>
+                                <img
+                                    src="/pulpo_guest_transparente_v2.png"
+                                    alt="Octopus Logo"
+                                    className="w-12 h-12 object-contain"
+                                />
                                 <div>
                                     <div className="text-lg font-black text-gray-800 tracking-wide">FINANZAFLOW</div>
                                     <div className="text-xs text-gray-500">Informe Financiero | Documento controlado</div>
