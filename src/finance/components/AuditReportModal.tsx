@@ -367,7 +367,7 @@ export const AuditReportModal: React.FC<AuditReportModalProps> = ({ report, onCl
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-sm">
                                         <thead>
-                                            <tr className="bg-gray-100">
+                                            <tr className="bg-gray-100 text-gray-700">
                                                 <th className="text-left p-3 font-bold">Categoría</th>
                                                 <th className="text-right p-3 font-bold">Planificado</th>
                                                 <th className="text-right p-3 font-bold">Real</th>
@@ -474,7 +474,7 @@ export const AuditReportModal: React.FC<AuditReportModalProps> = ({ report, onCl
                                     <div className="overflow-x-auto">
                                         <table className="w-full text-sm border border-gray-200 rounded-lg overflow-hidden">
                                             <thead>
-                                                <tr className="bg-gray-100">
+                                                <tr className="bg-gray-100 text-gray-700">
                                                     <th className="text-left p-3 font-bold">Acción</th>
                                                     <th className="text-center p-3 font-bold">Impacto</th>
                                                     <th className="text-center p-3 font-bold">Dificultad</th>
@@ -485,10 +485,10 @@ export const AuditReportModal: React.FC<AuditReportModalProps> = ({ report, onCl
                                             <tbody className="divide-y divide-gray-100">
                                                 {report.recommendedActions.map((action, idx) => (
                                                     <tr key={idx} className="hover:bg-gray-50">
-                                                        <td className="p-3">{action.action}</td>
+                                                        <td className="p-3 text-gray-800 font-medium">{action.action}</td>
                                                         <td className="p-3 text-center">{getImpactBadge(action.impact)}</td>
                                                         <td className="p-3 text-center">{getImpactBadge(action.difficulty)}</td>
-                                                        <td className="p-3 font-medium">{action.owner}</td>
+                                                        <td className="p-3 text-gray-700 font-medium">{action.owner}</td>
                                                         <td className="p-3 text-gray-600">{action.dueDate}</td>
                                                     </tr>
                                                 ))}
