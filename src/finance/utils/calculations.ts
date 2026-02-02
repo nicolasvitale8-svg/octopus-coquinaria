@@ -423,38 +423,58 @@ const detectVarianceReason = (
   prevMonthActual: number | null
 ): { reason: VarianceReason; detail: string; confidence: number } => {
   if (transactions.length === 0 && planned > 0) {
-    return { reason: 'unknown', detail: 'Sin transacciones', confidence: 50 };
+    return { reason: 'unknown', detail: 'Sin transacciones registradas', confidence: 50 };
   }
 
   const txCount = transactions.length;
   const amounts = transactions.map(t => t.amount);
   const maxTx = Math.max(...amounts, 0);
   const avgTx = actual / Math.max(txCount, 1);
+  const deviation = actual - planned;
+  const deviationPct = planned > 0 ? (deviation / planned) * 100 : 0;
 
   // Sin presupuesto
   if (planned === 0 && actual > 0) {
     return { reason: 'unbudgeted', detail: 'Categoría sin presupuesto asignado', confidence: 95 };
   }
 
-  // 1 tx grande = evento puntual
-  if (txCount === 1 || (txCount <= 3 && maxTx > avgTx * 2)) {
-    return { reason: 'one_off', detail: `Evento puntual: ${txCount} tx, máx ${formatCurrency(maxTx)}`, confidence: 85 };
+  // Si está dentro de margen, no hay varianza significativa
+  if (Math.abs(deviationPct) < 10) {
+    return { reason: 'unknown', detail: 'Dentro del rango esperado', confidence: 90 };
   }
 
-  // Muchas tx chicas = derrame
-  if (txCount > 5 && maxTx < avgTx * 1.5) {
-    return { reason: 'leak', detail: `Derrame: ${txCount} transacciones pequeñas`, confidence: 80 };
+  // 1-2 tx concentradas = evento puntual
+  if (txCount <= 2 && txCount > 0) {
+    return { reason: 'one_off', detail: `${txCount} transacción${txCount > 1 ? 'es' : ''} puntual${txCount > 1 ? 'es' : ''}`, confidence: 90 };
   }
 
-  // Tendencia vs mes anterior
+  // Pocas tx con una muy grande = evento puntual
+  if (txCount <= 5 && maxTx > actual * 0.5) {
+    return { reason: 'one_off', detail: `Transacción dominante: ${formatCurrency(maxTx)} (${((maxTx / actual) * 100).toFixed(0)}% del total)`, confidence: 85 };
+  }
+
+  // Tendencia vs mes anterior (+20% o más)
   if (prevMonthActual !== null && prevMonthActual > 0) {
     const change = ((actual - prevMonthActual) / prevMonthActual) * 100;
-    if (change > 20) {
-      return { reason: 'trend', detail: `Tendencia alcista: +${change.toFixed(0)}% vs mes anterior`, confidence: 75 };
+    if (change > 25) {
+      return { reason: 'trend', detail: `+${change.toFixed(0)}% vs mes anterior`, confidence: 80 };
+    }
+    if (change < -25) {
+      return { reason: 'trend', detail: `${change.toFixed(0)}% vs mes anterior`, confidence: 80 };
     }
   }
 
-  return { reason: 'unknown', detail: 'Varianza sin patrón claro', confidence: 40 };
+  // Muchas tx pequeñas = derrame/leak
+  if (txCount > 4 && maxTx < avgTx * 2) {
+    return { reason: 'leak', detail: `${txCount} transacciones distribuidas`, confidence: 75 };
+  }
+
+  // Fallback con descripción útil
+  if (deviation > 0) {
+    return { reason: 'unknown', detail: `Exceso de ${formatCurrency(deviation)} en ${txCount} tx`, confidence: 50 };
+  } else {
+    return { reason: 'unknown', detail: `Ahorro de ${formatCurrency(Math.abs(deviation))}`, confidence: 50 };
+  }
 };
 
 /**
@@ -536,26 +556,40 @@ export const generateAuditReport = (
   avg3M.netBalance = avg3M.totalIn - avg3M.totalOut;
 
   // ============ 1. TOP 5 DESVÍOS ============
+  // Agrupar presupuestos por categoría para evitar duplicados
+  const budgetByCategory: Record<string, { planned: number; labels: string[] }> = {};
+  for (const budget of monthBudgets) {
+    if (!budgetByCategory[budget.categoryId]) {
+      budgetByCategory[budget.categoryId] = { planned: 0, labels: [] };
+    }
+    budgetByCategory[budget.categoryId].planned += budget.plannedAmount;
+    if (budget.label && !budgetByCategory[budget.categoryId].labels.includes(budget.label)) {
+      budgetByCategory[budget.categoryId].labels.push(budget.label);
+    }
+  }
+
   const budgetExecutions: DeviationItem[] = [];
 
-  // Calcular ejecución por cada item de presupuesto
-  for (const budget of monthBudgets) {
-    const categoryTx = monthTx.filter(t => t.categoryId === budget.categoryId && t.type === TransactionType.OUT);
+  // Calcular ejecución por categoría (no por item individual)
+  for (const [categoryId, budgetData] of Object.entries(budgetByCategory)) {
+    const categoryTx = monthTx.filter(t => t.categoryId === categoryId && t.type === TransactionType.OUT);
     const actual = categoryTx.reduce((s, t) => s + t.amount, 0);
-    const deviation = actual - budget.plannedAmount;
-    const deviationPercent = budget.plannedAmount > 0 ? (deviation / budget.plannedAmount) * 100 : 0;
+    const planned = budgetData.planned;
+    const deviation = actual - planned;
+    const deviationPercent = planned > 0 ? (deviation / planned) * 100 : 0;
 
     // Obtener mes anterior para esta categoría
-    const prevCatTx = prevMonthTx.filter(t => t.categoryId === budget.categoryId && t.type === TransactionType.OUT);
+    const prevCatTx = prevMonthTx.filter(t => t.categoryId === categoryId && t.type === TransactionType.OUT);
     const prevActual = prevCatTx.reduce((s, t) => s + t.amount, 0);
 
-    const { reason, detail, confidence } = detectVarianceReason(categoryTx, budget.plannedAmount, actual, prevActual);
+    const { reason, detail, confidence } = detectVarianceReason(categoryTx, planned, actual, prevActual);
+    const categoryName = categories.find(c => c.id === categoryId)?.name || 'Sin Categoría';
 
     budgetExecutions.push({
-      label: budget.label,
-      categoryId: budget.categoryId,
-      categoryName: categories.find(c => c.id === budget.categoryId)?.name || 'Sin Categoría',
-      planned: budget.plannedAmount,
+      label: budgetData.labels.length > 0 ? budgetData.labels.join(', ') : categoryName,
+      categoryId,
+      categoryName,
+      planned,
       actual,
       deviation,
       deviationPercent,
