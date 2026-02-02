@@ -1,4 +1,9 @@
-import { Jar, JarCalculation, Transaction, TransactionType, Account, MonthlyBalance, BudgetItem } from '../financeTypes';
+import {
+  Jar, JarCalculation, Transaction, TransactionType, Account, MonthlyBalance, BudgetItem,
+  AuditReport, DeviationItem, CategoryHealth, ExceedDriver, RiskAlert, RecommendedAction,
+  VarianceReason, HealthStatus, ForecastRank, Category, MonthSummary, YearSummary,
+  CategoryBreakdown, MonthReport
+} from '../financeTypes';
 
 export const calculateJar = (jar: Jar): JarCalculation => {
   const start = new Date(jar.startDate);
@@ -189,8 +194,6 @@ export const calculateBudgetAlerts = (
 };
 
 // --- ANNUAL VIEW & REPORTS ---
-
-import { MonthSummary, YearSummary, CategoryBreakdown, MonthReport, Category } from '../financeTypes';
 
 // Helper para parsear fechas string "YYYY-MM-DD" en local sin timezone shift
 const parseDate = (dateStr: string) => {
@@ -408,3 +411,523 @@ export const generateMonthReport = (
   };
 };
 
+// ============ AUDIT REPORT GENERATION ============
+
+/**
+ * Detecta la razón de la varianza basándose en patrones de transacciones
+ */
+const detectVarianceReason = (
+  transactions: Transaction[],
+  planned: number,
+  actual: number,
+  prevMonthActual: number | null
+): { reason: VarianceReason; detail: string; confidence: number } => {
+  if (transactions.length === 0 && planned > 0) {
+    return { reason: 'unknown', detail: 'Sin transacciones', confidence: 50 };
+  }
+
+  const txCount = transactions.length;
+  const amounts = transactions.map(t => t.amount);
+  const maxTx = Math.max(...amounts, 0);
+  const avgTx = actual / Math.max(txCount, 1);
+
+  // Sin presupuesto
+  if (planned === 0 && actual > 0) {
+    return { reason: 'unbudgeted', detail: 'Categoría sin presupuesto asignado', confidence: 95 };
+  }
+
+  // 1 tx grande = evento puntual
+  if (txCount === 1 || (txCount <= 3 && maxTx > avgTx * 2)) {
+    return { reason: 'one_off', detail: `Evento puntual: ${txCount} tx, máx ${formatCurrency(maxTx)}`, confidence: 85 };
+  }
+
+  // Muchas tx chicas = derrame
+  if (txCount > 5 && maxTx < avgTx * 1.5) {
+    return { reason: 'leak', detail: `Derrame: ${txCount} transacciones pequeñas`, confidence: 80 };
+  }
+
+  // Tendencia vs mes anterior
+  if (prevMonthActual !== null && prevMonthActual > 0) {
+    const change = ((actual - prevMonthActual) / prevMonthActual) * 100;
+    if (change > 20) {
+      return { reason: 'trend', detail: `Tendencia alcista: +${change.toFixed(0)}% vs mes anterior`, confidence: 75 };
+    }
+  }
+
+  return { reason: 'unknown', detail: 'Varianza sin patrón claro', confidence: 40 };
+};
+
+/**
+ * Calcula el estado de salud de una categoría
+ */
+const calculateHealthStatus = (planned: number, actual: number, trendPct: number): HealthStatus => {
+  if (planned === 0) return actual > 0 ? 'warning' : 'good';
+
+  const executionRate = (actual / planned) * 100;
+
+  if (executionRate <= 90) return 'excellent';
+  if (executionRate <= 110) return 'good';
+  if (executionRate <= 130) return 'warning';
+  return 'critical';
+};
+
+/**
+ * Genera el reporte de auditoría completo
+ */
+export const generateAuditReport = (
+  transactions: Transaction[],
+  categories: Category[],
+  accounts: Account[],
+  monthlyBalances: MonthlyBalance[],
+  budgetItems: BudgetItem[],
+  month: number,
+  year: number,
+  entityName: string
+): AuditReport => {
+  // Fechas de referencia
+  const prevMonth = month === 0 ? 11 : month - 1;
+  const prevYear = month === 0 ? year - 1 : year;
+
+  // Filtrar transacciones del mes actual (sin transferencias)
+  const monthTx = transactions.filter(t => {
+    const d = parseDate(t.date);
+    const isTransfer = t.description?.toLowerCase().includes('transferencia');
+    return d.getMonth() === month && d.getFullYear() === year && !isTransfer;
+  });
+
+  // Transacciones de los últimos 3 meses para comparativo
+  const get3MonthsTx = () => {
+    const result: Transaction[][] = [];
+    for (let i = 1; i <= 3; i++) {
+      const m = (month - i + 12) % 12;
+      const y = month - i < 0 ? year - 1 : year;
+      result.push(transactions.filter(t => {
+        const d = parseDate(t.date);
+        return d.getMonth() === m && d.getFullYear() === y;
+      }));
+    }
+    return result;
+  };
+  const prev3MonthsTx = get3MonthsTx();
+
+  // Totales del mes
+  const totalIn = monthTx.filter(t => t.type === TransactionType.IN).reduce((s, t) => s + t.amount, 0);
+  const totalOut = monthTx.filter(t => t.type === TransactionType.OUT).reduce((s, t) => s + t.amount, 0);
+  const netBalance = totalIn - totalOut;
+
+  // Presupuesto del mes (solo gastos)
+  const monthBudgets = budgetItems.filter(b => b.month === month && b.year === year && b.type === TransactionType.OUT);
+  const totalPlanned = monthBudgets.reduce((s, b) => s + b.plannedAmount, 0);
+
+  // Mes anterior
+  const prevMonthTx = transactions.filter(t => {
+    const d = parseDate(t.date);
+    return d.getMonth() === prevMonth && d.getFullYear() === prevYear;
+  });
+  const prevTotalIn = prevMonthTx.filter(t => t.type === TransactionType.IN).reduce((s, t) => s + t.amount, 0);
+  const prevTotalOut = prevMonthTx.filter(t => t.type === TransactionType.OUT).reduce((s, t) => s + t.amount, 0);
+
+  // Promedio 3 meses
+  const avg3M = {
+    totalIn: prev3MonthsTx.reduce((s, txs) => s + txs.filter(t => t.type === TransactionType.IN).reduce((a, t) => a + t.amount, 0), 0) / 3,
+    totalOut: prev3MonthsTx.reduce((s, txs) => s + txs.filter(t => t.type === TransactionType.OUT).reduce((a, t) => a + t.amount, 0), 0) / 3,
+    netBalance: 0
+  };
+  avg3M.netBalance = avg3M.totalIn - avg3M.totalOut;
+
+  // ============ 1. TOP 5 DESVÍOS ============
+  const budgetExecutions: DeviationItem[] = [];
+
+  // Calcular ejecución por cada item de presupuesto
+  for (const budget of monthBudgets) {
+    const categoryTx = monthTx.filter(t => t.categoryId === budget.categoryId && t.type === TransactionType.OUT);
+    const actual = categoryTx.reduce((s, t) => s + t.amount, 0);
+    const deviation = actual - budget.plannedAmount;
+    const deviationPercent = budget.plannedAmount > 0 ? (deviation / budget.plannedAmount) * 100 : 0;
+
+    // Obtener mes anterior para esta categoría
+    const prevCatTx = prevMonthTx.filter(t => t.categoryId === budget.categoryId && t.type === TransactionType.OUT);
+    const prevActual = prevCatTx.reduce((s, t) => s + t.amount, 0);
+
+    const { reason, detail, confidence } = detectVarianceReason(categoryTx, budget.plannedAmount, actual, prevActual);
+
+    budgetExecutions.push({
+      label: budget.label,
+      categoryId: budget.categoryId,
+      categoryName: categories.find(c => c.id === budget.categoryId)?.name || 'Sin Categoría',
+      planned: budget.plannedAmount,
+      actual,
+      deviation,
+      deviationPercent,
+      reason,
+      reasonDetail: detail,
+      confidence,
+      transactionCount: categoryTx.length
+    });
+  }
+
+  const topExceeded = budgetExecutions
+    .filter(b => b.deviation > 0)
+    .sort((a, b) => b.deviation - a.deviation)
+    .slice(0, 5);
+
+  const topSaved = budgetExecutions
+    .filter(b => b.deviation < 0)
+    .sort((a, b) => a.deviation - b.deviation)
+    .slice(0, 5);
+
+  // ============ 2. GASTOS NO PRESUPUESTADOS ============
+  const budgetedCategoryIds = new Set(monthBudgets.map(b => b.categoryId));
+  const unbudgetedTx = monthTx.filter(t =>
+    t.type === TransactionType.OUT && !budgetedCategoryIds.has(t.categoryId)
+  );
+  const totalUnbudgeted = unbudgetedTx.reduce((s, t) => s + t.amount, 0);
+
+  // Agrupar por categoría
+  const unbudgetedByCategory: Record<string, number> = {};
+  unbudgetedTx.forEach(t => {
+    unbudgetedByCategory[t.categoryId] = (unbudgetedByCategory[t.categoryId] || 0) + t.amount;
+  });
+
+  // ============ 3. SEMÁFORO POR CATEGORÍA ============
+  const categoryHealth: CategoryHealth[] = [];
+  const categoryIds = [...new Set(monthTx.filter(t => t.type === TransactionType.OUT).map(t => t.categoryId))];
+
+  for (const catId of categoryIds) {
+    const catTx = monthTx.filter(t => t.categoryId === catId && t.type === TransactionType.OUT);
+    const actual = catTx.reduce((s, t) => s + t.amount, 0);
+    const planned = monthBudgets.filter(b => b.categoryId === catId).reduce((s, b) => s + b.plannedAmount, 0);
+
+    // Promedio 3M para esta categoría
+    const cat3MTotal = prev3MonthsTx.reduce((s, txs) =>
+      s + txs.filter(t => t.categoryId === catId && t.type === TransactionType.OUT).reduce((a, t) => a + t.amount, 0), 0);
+    const cat3MAvg = cat3MTotal / 3;
+
+    // Mes anterior
+    const catPrevTotal = prevMonthTx.filter(t => t.categoryId === catId && t.type === TransactionType.OUT)
+      .reduce((s, t) => s + t.amount, 0);
+
+    const trend3M = cat3MAvg > 0 ? ((actual - cat3MAvg) / cat3MAvg) * 100 : 0;
+    const trendPrevMonth = catPrevTotal > 0 ? ((actual - catPrevTotal) / catPrevTotal) * 100 : 0;
+
+    categoryHealth.push({
+      categoryId: catId,
+      categoryName: categories.find(c => c.id === catId)?.name || 'Sin Categoría',
+      planned,
+      actual,
+      status: calculateHealthStatus(planned, actual, trend3M),
+      weight: totalOut > 0 ? (actual / totalOut) * 100 : 0,
+      trend3M,
+      trendPrevMonth
+    });
+  }
+
+  categoryHealth.sort((a, b) => b.actual - a.actual);
+
+  // ============ 4. DRIVERS DEL EXCEDENTE ============
+  const exceedDrivers: Record<string, ExceedDriver[]> = {};
+
+  for (const exceeded of topExceeded) {
+    const catTx = monthTx.filter(t => t.categoryId === exceeded.categoryId && t.type === TransactionType.OUT);
+    const drivers: ExceedDriver[] = [];
+
+    // Por cuenta
+    const byAccount: Record<string, number> = {};
+    catTx.forEach(t => {
+      byAccount[t.accountId] = (byAccount[t.accountId] || 0) + t.amount;
+    });
+
+    Object.entries(byAccount)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 2)
+      .forEach(([accId, amount]) => {
+        const acc = accounts.find(a => a.id === accId);
+        drivers.push({
+          type: 'account',
+          label: acc?.name || 'Cuenta desconocida',
+          amount,
+          percentage: (amount / exceeded.actual) * 100
+        });
+      });
+
+    // Por vendor (extraer de description)
+    const byVendor: Record<string, number> = {};
+    catTx.forEach(t => {
+      const vendor = t.description.split(/[\s\-\/]/)[0]?.toUpperCase() || 'OTROS';
+      byVendor[vendor] = (byVendor[vendor] || 0) + t.amount;
+    });
+
+    Object.entries(byVendor)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 2)
+      .forEach(([vendor, amount]) => {
+        drivers.push({
+          type: 'vendor',
+          label: vendor,
+          amount,
+          percentage: (amount / exceeded.actual) * 100
+        });
+      });
+
+    // Por timing (semana del mes)
+    const byWeek: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0 };
+    catTx.forEach(t => {
+      const day = parseDate(t.date).getDate();
+      const week = Math.ceil(day / 7);
+      byWeek[week] = (byWeek[week] || 0) + t.amount;
+    });
+
+    const maxWeek = Object.entries(byWeek).sort((a, b) => b[1] - a[1])[0];
+    if (maxWeek && maxWeek[1] > exceeded.actual * 0.4) {
+      drivers.push({
+        type: 'timing',
+        label: `Semana ${maxWeek[0]}`,
+        amount: maxWeek[1],
+        percentage: (maxWeek[1] / exceeded.actual) * 100
+      });
+    }
+
+    exceedDrivers[exceeded.categoryId] = drivers;
+  }
+
+  // ============ 5. SCORE DE PREVISIBILIDAD ============
+  const tolerance = 0.1; // ±10%
+  const withinTolerance = budgetExecutions.filter(b =>
+    b.planned > 0 && Math.abs(b.deviationPercent) <= tolerance * 100
+  ).length;
+  const totalBudgetItems = budgetExecutions.filter(b => b.planned > 0).length;
+  const withinTolerancePct = totalBudgetItems > 0 ? (withinTolerance / totalBudgetItems) * 100 : 0;
+
+  const absoluteDeviation = budgetExecutions.reduce((s, b) => s + Math.abs(b.deviation), 0);
+  const totalDeviationPct = totalPlanned > 0 ? (absoluteDeviation / totalPlanned) * 100 : 0;
+
+  let forecastRank: ForecastRank = 'fantasy';
+  if (withinTolerancePct >= 70 && totalDeviationPct <= 15) forecastRank = 'solid';
+  else if (withinTolerancePct >= 50 && totalDeviationPct <= 30) forecastRank = 'acceptable';
+
+  // ============ 6. ALERTAS DE RIESGO ============
+  const riskAlerts: RiskAlert[] = [];
+
+  // Items sin ejecutar que podrían ser críticos
+  const unusedBudgets = monthBudgets.filter(b => {
+    const executed = monthTx.filter(t => t.categoryId === b.categoryId && t.type === TransactionType.OUT)
+      .reduce((s, t) => s + t.amount, 0);
+    return executed === 0 && b.plannedAmount > 0;
+  });
+
+  unusedBudgets.forEach(b => {
+    riskAlerts.push({
+      type: 'unused_critical',
+      severity: b.plannedAmount > totalPlanned * 0.1 ? 'high' : 'medium',
+      message: `"${b.label}" presupuestado pero sin ejecutar`,
+      category: categories.find(c => c.id === b.categoryId)?.name,
+      amount: b.plannedAmount
+    });
+  });
+
+  // Concentración
+  const topCategory = categoryHealth[0];
+  if (topCategory && topCategory.weight > 30) {
+    riskAlerts.push({
+      type: 'concentration',
+      severity: topCategory.weight > 50 ? 'high' : 'medium',
+      message: `${topCategory.weight.toFixed(0)}% del gasto concentrado en "${topCategory.categoryName}"`,
+      category: topCategory.categoryName,
+      amount: topCategory.actual
+    });
+  }
+
+  // Gastos no presupuestados significativos
+  if (totalUnbudgeted > totalPlanned * 0.1) {
+    riskAlerts.push({
+      type: 'unbudgeted',
+      severity: totalUnbudgeted > totalPlanned * 0.2 ? 'high' : 'medium',
+      message: `${formatCurrency(totalUnbudgeted)} en gastos sin presupuesto (${((totalUnbudgeted / totalOut) * 100).toFixed(0)}% del total)`,
+      amount: totalUnbudgeted
+    });
+  }
+
+  // Tendencia peligrosa vs 3M
+  categoryHealth.filter(c => c.trend3M > 30 && c.weight > 10).forEach(c => {
+    riskAlerts.push({
+      type: 'trend',
+      severity: c.trend3M > 50 ? 'high' : 'medium',
+      message: `"${c.categoryName}" subió ${c.trend3M.toFixed(0)}% vs promedio 3M`,
+      category: c.categoryName
+    });
+  });
+
+  // ============ 7. ACCIONES RECOMENDADAS ============
+  const recommendedActions: RecommendedAction[] = [];
+  const nextMonthDate = new Date(year, month + 1, 15);
+  const formatDate = (d: Date) => d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+  // Por cada excedente significativo
+  topExceeded.slice(0, 3).forEach(ex => {
+    if (ex.deviation > totalPlanned * 0.05) {
+      let action = '';
+      let difficulty: 'low' | 'medium' | 'high' = 'medium';
+
+      if (ex.reason === 'leak') {
+        action = `${ex.categoryName}: crear tope semanal y aprobación previa > ${formatCurrency(ex.actual / 4)}`;
+        difficulty = 'low';
+      } else if (ex.reason === 'one_off') {
+        action = `${ex.categoryName}: revisar si es recurrente, ajustar presupuesto si aplica`;
+        difficulty = 'low';
+      } else if (ex.reason === 'trend') {
+        action = `${ex.categoryName}: negociar precios o buscar alternativas`;
+        difficulty = 'high';
+      } else {
+        action = `${ex.categoryName}: investigar causa y definir límite`;
+        difficulty = 'medium';
+      }
+
+      recommendedActions.push({
+        action,
+        impact: ex.deviation > totalPlanned * 0.1 ? 'high' : 'medium',
+        difficulty,
+        owner: 'Finanzas',
+        dueDate: formatDate(nextMonthDate),
+        category: ex.categoryName
+      });
+    }
+  });
+
+  // Por concentración
+  if (topCategory && topCategory.weight > 40) {
+    recommendedActions.push({
+      action: `Diversificar: ${topCategory.categoryName} representa ${topCategory.weight.toFixed(0)}% del gasto`,
+      impact: 'medium',
+      difficulty: 'high',
+      owner: 'Operaciones',
+      dueDate: formatDate(new Date(year, month + 2, 1)),
+      category: topCategory.categoryName
+    });
+  }
+
+  // Por no presupuestados
+  if (totalUnbudgeted > totalPlanned * 0.15) {
+    recommendedActions.push({
+      action: `Crear presupuestos para categorías con ${formatCurrency(totalUnbudgeted)} sin asignar`,
+      impact: 'high',
+      difficulty: 'low',
+      owner: 'Finanzas',
+      dueDate: formatDate(nextMonthDate)
+    });
+  }
+
+  // ============ 8. FORECAST ============
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const today = new Date();
+  const currentDay = today.getMonth() === month && today.getFullYear() === year ? today.getDate() : daysInMonth;
+  const projectedClose = (totalOut / currentDay) * daysInMonth;
+
+  // Ajustes recomendados para próximo mes
+  const adjustmentsByCategory = topExceeded
+    .filter(e => e.reason === 'trend' || e.reason === 'leak')
+    .map(e => ({
+      categoryId: e.categoryId,
+      categoryName: e.categoryName,
+      suggested: e.actual * 1.1 // +10% sobre lo real
+    }));
+
+  // ============ 9. FOTO DE CAJA ============
+  const openingBalance = monthlyBalances
+    .filter(mb => mb.month === month && mb.year === year)
+    .reduce((s, mb) => s + mb.amount, 0);
+
+  const closingBalance = openingBalance + totalIn - totalOut;
+  const burnRate = totalOut;
+
+  // ============ HEALTH SCORE GLOBAL ============
+  const executionRate = totalPlanned > 0 ? (totalOut / totalPlanned) * 100 : 0;
+  let healthScore: HealthStatus = 'good';
+
+  const criticalCategories = categoryHealth.filter(c => c.status === 'critical').length;
+  const warningCategories = categoryHealth.filter(c => c.status === 'warning').length;
+
+  if (executionRate <= 95 && criticalCategories === 0 && riskAlerts.filter(a => a.severity === 'high').length === 0) {
+    healthScore = 'excellent';
+  } else if (executionRate <= 110 && criticalCategories <= 1) {
+    healthScore = 'good';
+  } else if (executionRate <= 130 || criticalCategories <= 2) {
+    healthScore = 'warning';
+  } else {
+    healthScore = 'critical';
+  }
+
+  // ============ INCOME/EXPENSE BREAKDOWNS (compat) ============
+  const expenseBreakdown = categoryHealth.map(c => ({
+    categoryId: c.categoryId,
+    categoryName: c.categoryName,
+    amount: c.actual,
+    percentage: c.weight,
+    transactionCount: monthTx.filter(t => t.categoryId === c.categoryId && t.type === TransactionType.OUT).length
+  }));
+
+  const incomeByCategory: Record<string, { name: string; amount: number; count: number }> = {};
+  monthTx.filter(t => t.type === TransactionType.IN).forEach(t => {
+    const cat = categories.find(c => c.id === t.categoryId);
+    if (!incomeByCategory[t.categoryId]) {
+      incomeByCategory[t.categoryId] = { name: cat?.name || 'Sin Categoría', amount: 0, count: 0 };
+    }
+    incomeByCategory[t.categoryId].amount += t.amount;
+    incomeByCategory[t.categoryId].count++;
+  });
+
+  const incomeBreakdown = Object.entries(incomeByCategory).map(([id, data]) => ({
+    categoryId: id,
+    categoryName: data.name,
+    amount: data.amount,
+    percentage: totalIn > 0 ? (data.amount / totalIn) * 100 : 0,
+    transactionCount: data.count
+  }));
+
+  return {
+    month,
+    year,
+    entityName,
+    generatedAt: new Date().toISOString(),
+    totalIn,
+    totalOut,
+    netBalance,
+    totalPlanned,
+    totalUnbudgeted,
+    executionRate,
+    healthScore,
+    topExceeded,
+    topSaved,
+    comparison: {
+      prevMonth: prevMonthTx.length > 0 ? { totalIn: prevTotalIn, totalOut: prevTotalOut, netBalance: prevTotalIn - prevTotalOut } : null,
+      avg3M: prev3MonthsTx.some(arr => arr.length > 0) ? avg3M : null,
+      deltaPrevMonth: prevTotalOut > 0 ? ((totalOut - prevTotalOut) / prevTotalOut) * 100 : 0,
+      delta3M: avg3M.totalOut > 0 ? ((totalOut - avg3M.totalOut) / avg3M.totalOut) * 100 : 0
+    },
+    categoryHealth,
+    exceedDrivers,
+    forecastScore: {
+      withinTolerance: withinTolerancePct,
+      totalDeviation: totalDeviationPct,
+      absoluteDeviation,
+      rank: forecastRank
+    },
+    riskAlerts: riskAlerts.sort((a, b) => {
+      const severityOrder = { high: 0, medium: 1, low: 2 };
+      return severityOrder[a.severity] - severityOrder[b.severity];
+    }),
+    recommendedActions: recommendedActions.slice(0, 5),
+    forecast: {
+      projectedClose,
+      nextMonthRecommendation: Math.max(totalPlanned, projectedClose) * 1.05,
+      adjustmentsByCategory
+    },
+    cashPosition: {
+      openingBalance,
+      closingBalance,
+      netCashChange: closingBalance - openingBalance,
+      burnRate
+    },
+    incomeBreakdown,
+    expenseBreakdown
+  };
+};

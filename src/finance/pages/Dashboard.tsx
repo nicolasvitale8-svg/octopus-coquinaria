@@ -2,15 +2,15 @@
 import React, { useEffect, useState } from 'react';
 import { SupabaseService } from '../services/supabaseService';
 import { chequeService, Cheque } from '../services/chequeService';
-import { calculatePeriodBalance, calculateJar, formatCurrency, calculateBudgetAlerts, generateMonthReport } from '../utils/calculations';
-import { Account, Transaction, Jar, MonthlyBalance, Category, SubCategory, BudgetItem, MonthReport } from '../financeTypes';
+import { calculatePeriodBalance, calculateJar, formatCurrency, calculateBudgetAlerts, generateAuditReport } from '../utils/calculations';
+import { Account, Transaction, Jar, MonthlyBalance, Category, SubCategory, BudgetItem, AuditReport } from '../financeTypes';
 import { TrendingUp, TrendingDown, DollarSign, Lock, ChevronRight, LayoutGrid, List, Wallet, ArrowUpRight, UploadCloud, PlusCircle, Settings, Sparkles, User, Building2, PieChart as PieIcon, X, Bell, AlertTriangle, FileText } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, AreaChart, Area, CartesianGrid } from 'recharts';
 import { useNavigate } from 'react-router-dom';
 import { useFinanza } from '../context/FinanzaContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { BudgetRPMGauge } from '../components/BudgetRPMGauge';
-import { MonthlyReportModal } from '../components/MonthlyReportModal';
+import { AuditReportModal } from '../components/AuditReportModal';
 
 interface PeriodAccountState {
   account: Account;
@@ -169,7 +169,7 @@ export const Dashboard: React.FC = () => {
   const [budgetItems, setBudgetItems] = useState<BudgetItem[]>([]);
   const [cheques, setCheques] = useState<Cheque[]>([]);
   const [activeDetail, setActiveDetail] = useState<'IN' | 'OUT' | 'BALANCE' | 'INVESTED' | null>(null);
-  const [monthReport, setMonthReport] = useState<MonthReport | null>(null);
+  const [monthReport, setMonthReport] = useState<AuditReport | null>(null);
 
   useEffect(() => { loadData(); }, [activeEntity]);
   useEffect(() => { calculateDashboardData(); }, [currentMonth, currentYear, transactions, monthlyBalances, accounts]);
@@ -367,11 +367,12 @@ export const Dashboard: React.FC = () => {
         {(currentYear < new Date().getFullYear() || (currentYear === new Date().getFullYear() && currentMonth < new Date().getMonth())) && (
           <button
             onClick={() => {
-              const report = generateMonthReport(
+              const report = generateAuditReport(
                 transactions,
                 categories,
                 accounts,
                 monthlyBalances,
+                budgetItems,
                 currentMonth,
                 currentYear,
                 activeEntity.name
@@ -397,7 +398,7 @@ export const Dashboard: React.FC = () => {
 
       {/* Monthly Report Modal */}
       {monthReport && (
-        <MonthlyReportModal
+        <AuditReportModal
           report={monthReport}
           onClose={() => setMonthReport(null)}
         />
