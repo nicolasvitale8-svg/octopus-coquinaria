@@ -379,9 +379,9 @@ export const AuditReportModal: React.FC<AuditReportModalProps> = ({ report, onCl
                                         <tbody className="divide-y divide-gray-100">
                                             {report.categoryHealth.map((cat, idx) => (
                                                 <tr key={idx} className="hover:bg-gray-50">
-                                                    <td className="p-3 font-medium">{cat.categoryName}</td>
+                                                    <td className="p-3 font-bold text-gray-900">{cat.categoryName}</td>
                                                     <td className="p-3 text-right text-gray-800">{formatCurrency(cat.planned)}</td>
-                                                    <td className="p-3 text-right font-bold">{formatCurrency(cat.actual)}</td>
+                                                    <td className="p-3 text-right font-bold text-gray-900">{formatCurrency(cat.actual)}</td>
                                                     <td className="p-3 text-center">
                                                         <span className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-bold ${getStatusColor(cat.status)}`}>
                                                             {getStatusIcon(cat.status)}
@@ -389,7 +389,7 @@ export const AuditReportModal: React.FC<AuditReportModalProps> = ({ report, onCl
                                                         </span>
                                                     </td>
                                                     <td className="p-3 text-right">
-                                                        <span className="text-gray-600">{cat.weight.toFixed(0)}%</span>
+                                                        <span className="text-gray-800 font-medium">{cat.weight.toFixed(0)}%</span>
                                                     </td>
                                                     <td className="p-3 text-right">
                                                         <span className={cat.trend3M > 20 ? 'text-red-600 font-bold' : cat.trend3M < -10 ? 'text-emerald-600' : 'text-gray-500'}>
