@@ -247,7 +247,7 @@ export const Dashboard: React.FC = () => {
 
   const totalBudgeted = React.useMemo(() => {
     return budgetItems
-      .filter(item => item.month === currentMonth && item.year === currentYear)
+      .filter(item => item.month === currentMonth && item.year === currentYear && item.type === 'OUT')
       .reduce((sum, item) => sum + item.plannedAmount, 0);
   }, [budgetItems, currentMonth, currentYear]);
 
