@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Search } from 'lucide-react';
+import { Search, FileText } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import Button from '../components/ui/Button';
 import LoadingOverlay from '../components/ui/LoadingOverlay';
 import { getResources, createResource, deleteResource } from '../services/academyService';
 import { AcademyResource } from '../types';
@@ -10,6 +12,7 @@ import AcademyResourceTable from '../components/academy/AcademyResourceTable';
 import AcademyResourceModal from '../components/academy/AcademyResourceModal';
 
 const AdminAcademy = () => {
+    const navigate = useNavigate();
     const [resources, setResources] = useState<AcademyResource[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [search, setSearch] = useState('');
@@ -75,10 +78,20 @@ const AdminAcademy = () => {
 
     return (
         <div className="space-y-6">
-            <AcademyHeader onNewResource={() => {
-                setEditingResource(null);
-                setIsModalOpen(true);
-            }} />
+            <AcademyHeader
+                onNewResource={() => {
+                    setEditingResource(null);
+                    setIsModalOpen(true);
+                }}
+                actions={
+                    <Button
+                        onClick={() => navigate('/admin/academy/documents')}
+                        className="bg-slate-800 text-slate-200 border border-slate-700 hover:bg-slate-700 hover:text-white flex items-center gap-2"
+                    >
+                        <FileText className="w-4 h-4" /> Generador PDF
+                    </Button>
+                }
+            />
 
             <div className="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden shadow-xl">
                 {/* Search Bar Inline */}
