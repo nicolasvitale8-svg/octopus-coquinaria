@@ -123,7 +123,7 @@ export const MonthlyReportModal: React.FC<MonthlyReportModalProps> = ({ report, 
                         <div className="flex items-start justify-between border-b-4 border-cyan-500 pb-3">
                             <div className="flex items-center gap-3">
                                 <img
-                                    src="/pulpo_guest_transparente_v2.png"
+                                    src="/logo_simple.png"
                                     alt="Octopus Logo"
                                     className="w-12 h-12 object-contain"
                                 />

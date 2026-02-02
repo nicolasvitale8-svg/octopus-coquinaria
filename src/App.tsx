@@ -30,6 +30,7 @@ const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 const AdminLeads = lazy(() => import('./pages/AdminLeads'));
 const AdminCalendar = lazy(() => import('./pages/AdminCalendar'));
 const AdminAcademy = lazy(() => import('./pages/AdminAcademy'));
+const AcademyDocumentGenerator = lazy(() => import('./academy/pages/DocumentGenerator'));
 const AdminProjects = lazy(() => import('./pages/AdminProjects'));
 const AdminProjectHub = lazy(() => import('./pages/AdminProjectHub'));
 const AdminUsers = lazy(() => import('./pages/AdminUsers'));
@@ -97,6 +98,7 @@ const App = () => {
                     <Route path="users" element={<AdminUsers />} />
                     <Route path="calendar" element={<AdminCalendar />} />
                     <Route path="academy" element={<AdminAcademy />} />
+                    <Route path="academy/documents" element={<AcademyDocumentGenerator />} />
                     <Route path="board" element={<AdminBoard />} />
                     <Route path="config" element={<AdminConfig />} />
                     <Route path="profile" element={<UserProfile />} />
