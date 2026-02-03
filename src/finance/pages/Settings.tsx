@@ -4,6 +4,18 @@ import { RefreshCcw, Github, Sparkles, Shield, Package, Bug } from 'lucide-react
 
 const CHANGELOG = [
   {
+    version: '2.7.0',
+    date: '2026-02-03',
+    type: 'feature' as const,
+    title: 'Demo Mode & Calendar',
+    items: [
+      'Modo Demo en sección Finanzas para pruebas seguras',
+      'Nuevo tipo de evento "TEMPORADA" en el Calendario',
+      'Refactorización total a IFinanceService (Arquitectura)',
+      'Limpieza de UI: Botón Finanzas removido de navbar'
+    ]
+  },
+  {
     version: '2.6.0',
     date: '2026-01-13',
     type: 'feature' as const,
@@ -120,7 +132,7 @@ export const SettingsPage: React.FC = () => {
       <div className="text-center space-y-6">
         <div className="h-px bg-fin-border w-32 mx-auto"></div>
         <div className="flex flex-col items-center gap-2">
-          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-fin-muted">Versión 2.6.0 Stable</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-fin-muted">Versión 2.7.0 Stable</p>
           <div className="flex items-center gap-4 text-fin-muted">
             <a href="#" className="hover:text-white transition-colors"><Github size={18} /></a>
             <span className="text-xs font-bold italic">Hecho con ❤️ para tu libertad financiera</span>
