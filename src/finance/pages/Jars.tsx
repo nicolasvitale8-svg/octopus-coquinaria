@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { SupabaseService } from '../services/supabaseService';
 import { Jar, Account } from '../financeTypes';
 import { calculateJar, formatCurrency } from '../utils/calculations';
 import { Plus, Trash2, PiggyBank, Clock, TrendingUp, ChevronRight, Sparkles } from 'lucide-react';
 import { useFinanza } from '../context/FinanzaContext';
 
 export const Jars: React.FC = () => {
-   const { activeEntity } = useFinanza();
+   const { activeEntity, service, isDemoMode } = useFinanza();
    const [loading, setLoading] = useState(true);
    const [jars, setJars] = useState<Jar[]>([]);
    const [accounts, setAccounts] = useState<Account[]>([]);
@@ -20,8 +19,8 @@ export const Jars: React.FC = () => {
       try {
          const bId = activeEntity.id || undefined;
          const [j, acc] = await Promise.all([
-            SupabaseService.getJars(bId),
-            SupabaseService.getAccounts(bId)
+            service.getJars(bId),
+            service.getAccounts(bId)
          ]);
          setJars(j);
          setAccounts(acc);
@@ -38,7 +37,7 @@ export const Jars: React.FC = () => {
 
       try {
          const bId = activeEntity.id || undefined;
-         await SupabaseService.saveJar(newJar, bId);
+         await service.saveJar(newJar, bId);
          await loadData();
          setIsAdding(false); setNewJar({ annualRate: 40 });
       } catch (error) {
@@ -57,6 +56,7 @@ export const Jars: React.FC = () => {
                <h1 className="text-3xl font-bold tracking-tight text-fin-text uppercase">Frascos</h1>
                <p className="text-fin-muted text-sm mt-1">Fondos reservados e inversiones activas</p>
             </div>
+            {isDemoMode && <div className="px-4 py-2 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-lg text-xs font-black uppercase tracking-widest animate-pulse">MODO DEMO</div>}
             <button onClick={() => setIsAdding(!isAdding)} className="bg-brand text-fin-bg px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-brand-hover transition-all">
                Nuevo Frasco
             </button>
@@ -150,7 +150,7 @@ export const Jars: React.FC = () => {
                            <span>{new Date(jar.endDate).toLocaleDateString()}</span>
                         </div>
 
-                        <button onClick={async () => { if (confirm('Eliminar frasco?')) { await SupabaseService.deleteJar(jar.id); await loadData(); } }} className="absolute bottom-8 right-8 text-fin-muted hover:text-red-500 opacity-20 group-hover:opacity-100 transition-opacity">
+                        <button onClick={async () => { if (confirm('Eliminar frasco?')) { await service.deleteJar(jar.id); await loadData(); } }} className="absolute bottom-8 right-8 text-fin-muted hover:text-red-500 opacity-20 group-hover:opacity-100 transition-opacity">
                            <Trash2 size={16} />
                         </button>
                      </div>

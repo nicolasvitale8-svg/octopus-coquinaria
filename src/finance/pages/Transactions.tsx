@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { SupabaseService } from '../services/supabaseService';
 import { Transaction, Account, Category, SubCategory, TransactionType } from '../financeTypes';
 import { Plus, X, Tag, Calendar, Wallet, Filter, ListFilter, RotateCcw, TrendingUp, TrendingDown, DollarSign, Search, Sparkles, Edit2, Trash2 } from 'lucide-react';
 import { formatCurrency } from '../utils/calculations';
 import { useFinanza } from '../context/FinanzaContext';
 
 export const Transactions: React.FC = () => {
-  const { activeEntity } = useFinanza();
+  const { activeEntity, service, isDemoMode } = useFinanza();
   const [loading, setLoading] = useState(true);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
@@ -42,10 +41,10 @@ export const Transactions: React.FC = () => {
     try {
       const bId = activeEntity.id || undefined;
       const [t, acc, cat, subCat] = await Promise.all([
-        SupabaseService.getTransactions(bId),
-        SupabaseService.getAccounts(bId),
-        SupabaseService.getCategories(bId),
-        SupabaseService.getAllSubCategories(bId)
+        service.getTransactions(bId),
+        service.getAccounts(bId),
+        service.getCategories(bId),
+        service.getAllSubCategories(bId)
       ]);
       setTransactions(t);
       setAccounts(acc);
@@ -80,7 +79,7 @@ export const Transactions: React.FC = () => {
           transCat = categories[0];
         }
 
-        await SupabaseService.performTransfer({
+        await service.performTransfer({
           fromAccountId: formData.accountId,
           toAccountId: formData.toAccountId,
           amount: formData.amount,
@@ -96,13 +95,13 @@ export const Transactions: React.FC = () => {
 
         if (editingTransaction) {
           // Update existing transaction
-          await SupabaseService.updateTransaction({
+          await service.updateTransaction({
             ...editingTransaction,
             ...formData,
           } as Transaction);
         } else {
           // Create new transaction
-          await SupabaseService.addTransaction(formData, bId);
+          await service.addTransaction(formData, bId);
         }
       }
 
@@ -147,7 +146,7 @@ export const Transactions: React.FC = () => {
   const handleDelete = async (id: string) => {
     if (!confirm('¿Estás seguro de eliminar este movimiento?')) return;
     try {
-      await SupabaseService.deleteTransaction(id);
+      await service.deleteTransaction(id);
       await loadData();
     } catch (error) {
       console.error("Error deleting transaction:", error);
@@ -213,6 +212,7 @@ export const Transactions: React.FC = () => {
               {activeEntity.name}
             </span>
             <p className="text-fin-muted text-sm font-medium">Analiza y filtra tu actividad financiera</p>
+            {isDemoMode && <div className="px-3 py-0.5 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-lg text-[10px] font-black uppercase tracking-widest animate-pulse">MODO DEMO</div>}
           </div>
         </div>
         <div className="flex gap-3 w-full md:w-auto">
