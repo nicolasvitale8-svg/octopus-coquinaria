@@ -12,14 +12,12 @@ import {
     Transaction,
     TransactionType
 } from '../financeTypes';
+import { IFinanceService } from './IFinanceService';
 
-export const SupabaseService = {
-    // --- CONTEXT HELPERS ---
-    private: {
-        async getUserId() {
-            const { data: { user } } = await supabase.auth.getUser();
-            return user?.id;
-        }
+export const SupabaseService: IFinanceService = {
+    async getUserId(): Promise<string | null> {
+        const { data: { user } } = await supabase.auth.getUser();
+        return user?.id || null;
     },
 
     // --- ACCOUNT TYPES ---
@@ -44,7 +42,7 @@ export const SupabaseService = {
 
     // --- ACCOUNTS (CAJAS) ---
     getAccounts: async (businessId?: string): Promise<Account[]> => {
-        const userId = await SupabaseService.private.getUserId();
+        const userId = await SupabaseService.getUserId();
         const query = supabase.from('fin_accounts').select('*');
         if (businessId) {
             query.eq('business_id', businessId);
@@ -65,7 +63,7 @@ export const SupabaseService = {
     },
 
     addAccount: async (acc: Partial<Account>, businessId?: string) => {
-        const userId = await SupabaseService.private.getUserId();
+        const userId = await SupabaseService.getUserId();
         const dbObj: any = {
             name: acc.name,
             account_type_id: acc.accountTypeId,
@@ -108,7 +106,7 @@ export const SupabaseService = {
 
     // --- MONTHLY BALANCES ---
     getMonthlyBalances: async (businessId?: string): Promise<MonthlyBalance[]> => {
-        const userId = await SupabaseService.private.getUserId();
+        const userId = await SupabaseService.getUserId();
         const query = supabase.from('fin_monthly_balances').select('*');
         if (businessId) query.eq('business_id', businessId);
         else query.is('business_id', null).eq('user_id', userId);
@@ -125,7 +123,7 @@ export const SupabaseService = {
     },
 
     saveMonthlyBalance: async (balance: Partial<MonthlyBalance>, businessId?: string) => {
-        const userId = await SupabaseService.private.getUserId();
+        const userId = await SupabaseService.getUserId();
         const dbObj = {
             id: balance.id,
             account_id: balance.accountId,
@@ -143,7 +141,7 @@ export const SupabaseService = {
 
     // --- CATEGORIES ---
     getCategories: async (businessId?: string): Promise<Category[]> => {
-        const userId = await SupabaseService.private.getUserId();
+        const userId = await SupabaseService.getUserId();
         const query = supabase.from('fin_categories').select('*');
         if (businessId) {
             query.or(`business_id.is.null,business_id.eq.${businessId}`);
@@ -162,7 +160,7 @@ export const SupabaseService = {
     },
 
     addCategory: async (cat: Partial<Category>, businessId?: string) => {
-        const userId = await SupabaseService.private.getUserId();
+        const userId = await SupabaseService.getUserId();
         const dbObj = {
             name: cat.name,
             type: cat.type,
@@ -231,7 +229,7 @@ export const SupabaseService = {
     },
 
     addSubCategory: async (sub: Partial<SubCategory>, businessId?: string) => {
-        const userId = await SupabaseService.private.getUserId();
+        const userId = await SupabaseService.getUserId();
         const dbObj = {
             category_id: sub.categoryId,
             name: sub.name,
@@ -257,7 +255,7 @@ export const SupabaseService = {
 
     // --- TRANSACTIONS ---
     getTransactions: async (businessId?: string): Promise<Transaction[]> => {
-        const userId = await SupabaseService.private.getUserId();
+        const userId = await SupabaseService.getUserId();
         const query = supabase.from('fin_transactions').select('*');
         if (businessId) query.eq('business_id', businessId);
         else query.is('business_id', null).eq('user_id', userId);
@@ -278,7 +276,7 @@ export const SupabaseService = {
     },
 
     addTransaction: async (t: Partial<Transaction>, businessId?: string) => {
-        const userId = await SupabaseService.private.getUserId();
+        const userId = await SupabaseService.getUserId();
         const dbObj = {
             date: t.date,
             category_id: t.categoryId,
@@ -327,7 +325,7 @@ export const SupabaseService = {
         date: string,
         categoryId: string
     }, businessId?: string) => {
-        const userId = await SupabaseService.private.getUserId();
+        const userId = await SupabaseService.getUserId();
 
         // 1. Transaction OUT (from source)
         const outTransaction = {
@@ -362,7 +360,7 @@ export const SupabaseService = {
 
     // --- BUDGET ---
     getBudgetItems: async (businessId?: string): Promise<BudgetItem[]> => {
-        const userId = await SupabaseService.private.getUserId();
+        const userId = await SupabaseService.getUserId();
         const query = supabase.from('fin_budget_items').select('*');
         if (businessId) query.eq('business_id', businessId);
         else query.is('business_id', null).eq('user_id', userId);
@@ -386,7 +384,7 @@ export const SupabaseService = {
     },
 
     saveBudgetItem: async (item: Partial<BudgetItem>, businessId?: string) => {
-        const userId = await SupabaseService.private.getUserId();
+        const userId = await SupabaseService.getUserId();
         const dbObj = {
             id: item.id,
             year: item.year,
@@ -411,7 +409,7 @@ export const SupabaseService = {
 
     // --- JARS ---
     getJars: async (businessId?: string): Promise<Jar[]> => {
-        const userId = await SupabaseService.private.getUserId();
+        const userId = await SupabaseService.getUserId();
         const query = supabase.from('fin_jars').select('*');
         if (businessId) query.eq('business_id', businessId);
         else query.is('business_id', null).eq('user_id', userId);
@@ -430,7 +428,7 @@ export const SupabaseService = {
     },
 
     saveJar: async (jar: Partial<Jar>, businessId?: string) => {
-        const userId = await SupabaseService.private.getUserId();
+        const userId = await SupabaseService.getUserId();
         const dbObj = {
             id: jar.id,
             account_id: jar.accountId,
@@ -450,7 +448,7 @@ export const SupabaseService = {
 
     // --- RULES ---
     getRules: async (businessId?: string): Promise<TextCategoryRule[]> => {
-        const userId = await SupabaseService.private.getUserId();
+        const userId = await SupabaseService.getUserId();
         const query = supabase.from('fin_rules').select('*');
         if (businessId) query.eq('business_id', businessId);
         else query.is('business_id', null).eq('user_id', userId);
@@ -469,7 +467,7 @@ export const SupabaseService = {
     },
 
     saveRule: async (rule: Partial<TextCategoryRule>, businessId?: string) => {
-        const userId = await SupabaseService.private.getUserId();
+        const userId = await SupabaseService.getUserId();
         const dbObj = {
             id: rule.id,
             pattern: rule.pattern,

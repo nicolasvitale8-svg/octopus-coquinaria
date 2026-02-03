@@ -1,5 +1,8 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { IFinanceService } from '../services/IFinanceService';
+import { SupabaseService } from '../services/supabaseService';
+import { DemoFinanceService } from '../services/demoFinanceService';
 
 export interface FinanceEntity {
     id: string | null; // null for personal
@@ -14,6 +17,10 @@ interface FinanzaContextProps {
     alertCount: number;
     setAlertCount: (n: number) => void;
     isLoading: boolean;
+    // Demo Mode Types
+    isDemoMode: boolean;
+    toggleDemoMode: () => void;
+    service: IFinanceService;
 }
 
 const FinanzaContext = createContext<FinanzaContextProps | undefined>(undefined);
@@ -23,6 +30,16 @@ export const FinanzaProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const [availableEntities, setAvailableEntities] = useState<FinanceEntity[]>([]);
     const [alertCount, setAlertCount] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
+
+    // Demo Mode State
+    const [isDemoMode, setIsDemoMode] = useState<boolean>(false);
+    const [demoService] = useState(() => new DemoFinanceService());
+
+    const toggleDemoMode = () => {
+        setIsDemoMode(prev => !prev);
+    };
+
+    const service = isDemoMode ? demoService : SupabaseService;
 
     // Initial load of entities
     useEffect(() => {
@@ -115,7 +132,10 @@ export const FinanzaProvider: React.FC<{ children: React.ReactNode }> = ({ child
             availableEntities,
             alertCount,
             setAlertCount,
-            isLoading
+            isLoading,
+            isDemoMode,
+            toggleDemoMode,
+            service
         }}>
             {children}
         </FinanzaContext.Provider>

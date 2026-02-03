@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { SupabaseService } from '../services/supabaseService';
 import { Account, AccountType, MonthlyBalance, TextCategoryRule, Category, SubCategory, TransactionType, Transaction } from '../financeTypes';
 import { formatCurrency } from '../utils/calculations';
 import { Wallet, Plus, Edit2, X, Trash2, Check, AlertCircle, Info, Zap, Settings2, Sparkles, TrendingUp, TrendingDown } from 'lucide-react';
@@ -26,7 +25,7 @@ const formatArgNumber = (value: number): string => {
 };
 
 export const Accounts: React.FC = () => {
-  const { activeEntity } = useFinanza();
+  const { activeEntity, service, isDemoMode, toggleDemoMode } = useFinanza();
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'BALANCES' | 'ACCOUNTS' | 'CATEGORIES' | 'RULES'>('BALANCES');
   const [accounts, setAccounts] = useState<Account[]>([]);
@@ -71,13 +70,13 @@ export const Accounts: React.FC = () => {
     try {
       const bId = activeEntity.id || undefined;
       const [acc, accTypes, mb, r, cat, subCat, t] = await Promise.all([
-        SupabaseService.getAccounts(bId),
-        SupabaseService.getAccountTypes(bId),
-        SupabaseService.getMonthlyBalances(bId),
-        SupabaseService.getRules(bId),
-        SupabaseService.getCategories(bId),
-        SupabaseService.getAllSubCategories(bId),
-        SupabaseService.getTransactions(bId)
+        service.getAccounts(bId),
+        service.getAccountTypes(bId),
+        service.getMonthlyBalances(bId),
+        service.getRules(bId),
+        service.getCategories(bId),
+        service.getAllSubCategories(bId),
+        service.getTransactions(bId)
       ]);
       setAccounts(acc);
       setAccountTypes(accTypes);
@@ -97,7 +96,7 @@ export const Accounts: React.FC = () => {
     try {
       const bId = activeEntity.id || undefined;
       const balance = monthlyBalances.find(mb => mb.accountId === accountId && mb.month === currentMonth && mb.year === currentYear);
-      await SupabaseService.saveMonthlyBalance({
+      await service.saveMonthlyBalance({
         id: balance?.id,
         accountId,
         year: currentYear,
@@ -117,9 +116,9 @@ export const Accounts: React.FC = () => {
     try {
       const bId = activeEntity.id || undefined;
       if (editingAccount.id) {
-        await SupabaseService.updateAccount(editingAccount as Account);
+        await service.updateAccount(editingAccount as Account);
       } else {
-        await SupabaseService.addAccount(editingAccount, bId);
+        await service.addAccount(editingAccount, bId);
       }
       await loadData();
       setIsAccModalOpen(false);
@@ -135,7 +134,7 @@ export const Accounts: React.FC = () => {
 
     try {
       const bId = activeEntity.id || undefined;
-      await SupabaseService.saveRule(editingRule, bId);
+      await service.saveRule(editingRule, bId);
       await loadData();
       setIsRuleModalOpen(false);
       setEditingRule(null);
@@ -149,9 +148,9 @@ export const Accounts: React.FC = () => {
     try {
       const bId = activeEntity.id || undefined;
       if (editingCategory?.id) {
-        await SupabaseService.updateCategory(editingCategory as Category);
+        await service.updateCategory(editingCategory as Category);
       } else {
-        await SupabaseService.addCategory(editingCategory as Category, bId);
+        await service.addCategory(editingCategory as Category, bId);
       }
       await loadData();
       setIsCatModalOpen(false);
@@ -165,7 +164,7 @@ export const Accounts: React.FC = () => {
     e.preventDefault();
     try {
       const bId = activeEntity.id || undefined;
-      await SupabaseService.addSubCategory(editingSubCategory as SubCategory, bId);
+      await service.addSubCategory(editingSubCategory as SubCategory, bId);
       await loadData();
       setIsSubCatModalOpen(false);
       setEditingSubCategory(null);
@@ -216,7 +215,20 @@ export const Accounts: React.FC = () => {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
         <div>
           <h1 className="text-4xl font-extrabold text-white tracking-tight leading-none">Administración</h1>
-          <p className="text-fin-muted mt-3 text-sm font-medium">Configura el motor de la aplicación y tus activos.</p>
+          <div className="flex items-center gap-3 mt-3">
+            <p className="text-fin-muted text-sm font-medium">Configura el motor de la aplicación y tus activos.</p>
+            {isDemoMode && (
+              <span className="px-3 py-1 bg-amber-500/10 text-amber-500 border border-amber-500/20 rounded-full text-[10px] font-black uppercase tracking-widest animate-pulse">
+                Modo Demo Activo
+              </span>
+            )}
+          </div>
+          <button
+            onClick={toggleDemoMode}
+            className={`mt-4 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wide transition-all border ${isDemoMode ? 'bg-amber-500 text-black border-amber-500 hover:bg-amber-400' : 'bg-white/5 text-fin-muted border-white/10 hover:bg-white/10 hover:text-white'}`}
+          >
+            {isDemoMode ? 'Salir del Modo Demo' : 'Probar Modo Demo'}
+          </button>
         </div>
 
         <div className="flex bg-fin-card p-1 rounded-2xl border border-fin-border shadow-lg">
@@ -333,7 +345,7 @@ export const Accounts: React.FC = () => {
               <div key={acc.id} className={`${bgAccent} p-8 rounded-[32px] border ${borderColor} flex flex-col justify-between group relative overflow-hidden hover:scale-[1.02] transition-all shadow-xl`}>
                 <div className="absolute top-6 right-6 flex gap-2 opacity-0 group-hover:opacity-100 transition-all">
                   <button onClick={() => { setEditingAccount(acc); setIsAccModalOpen(true); }} className="p-2.5 text-fin-muted hover:text-brand bg-fin-bg rounded-xl border border-fin-border transition-all"><Edit2 size={16} /></button>
-                  <button onClick={async () => { if (confirm('¿Borrar definitivamente esta cuenta?')) { await SupabaseService.deleteAccount(acc.id); await loadData(); } }} className="p-2.5 text-fin-muted hover:text-red-500 bg-fin-bg rounded-xl border border-fin-border transition-all"><Trash2 size={16} /></button>
+                  <button onClick={async () => { if (confirm('¿Borrar definitivamente esta cuenta?')) { await service.deleteAccount(acc.id); await loadData(); } }} className="p-2.5 text-fin-muted hover:text-red-500 bg-fin-bg rounded-xl border border-fin-border transition-all"><Trash2 size={16} /></button>
                 </div>
                 <div className="flex items-start gap-4 mb-8">
                   <div className={`p-4 rounded-2xl bg-fin-bg border border-fin-border transition-transform group-hover:scale-110 ${iconColor}`}>
@@ -399,7 +411,7 @@ export const Accounts: React.FC = () => {
                         <button onClick={async () => {
                           if (confirm('¿Borrar rubro y todos sus subrubros?')) {
                             try {
-                              await SupabaseService.deleteCategory(cat.id);
+                              await service.deleteCategory(cat.id);
                               await loadData();
                             } catch (e: any) {
                               alert("No se puede borrar el rubro porque tiene movimientos asociados. Primero borra los movimientos o cámbialos de rubro.");
@@ -416,7 +428,7 @@ export const Accounts: React.FC = () => {
                           <button onClick={async () => {
                             if (confirm('¿Borrar subrubro?')) {
                               try {
-                                await SupabaseService.deleteSubCategory(sub.id);
+                                await service.deleteSubCategory(sub.id);
                                 await loadData();
                               } catch (e: any) {
                                 alert("No se puede borrar el ítem porque tiene movimientos asociados.");
@@ -459,7 +471,7 @@ export const Accounts: React.FC = () => {
                         <button onClick={async () => {
                           if (confirm('¿Borrar rubro y todos sus subrubros?')) {
                             try {
-                              await SupabaseService.deleteCategory(cat.id);
+                              await service.deleteCategory(cat.id);
                               await loadData();
                             } catch (e: any) {
                               alert("No se puede borrar el rubro porque tiene movimientos asociados.");
@@ -476,7 +488,7 @@ export const Accounts: React.FC = () => {
                           <button onClick={async () => {
                             if (confirm('¿Borrar subrubro?')) {
                               try {
-                                await SupabaseService.deleteSubCategory(sub.id);
+                                await service.deleteSubCategory(sub.id);
                                 await loadData();
                               } catch (e: any) {
                                 alert("No se puede borrar el ítem porque tiene movimientos asociados.");
@@ -556,7 +568,7 @@ export const Accounts: React.FC = () => {
                     </div>
                     <div className="flex gap-2 mt-auto pt-2 border-t border-white/5">
                       <button onClick={() => { setEditingRule(rule); setIsRuleModalOpen(true); }} className="flex-1 p-2 text-fin-muted hover:text-white bg-fin-bg/50 rounded-lg text-[9px] font-bold uppercase flex items-center justify-center gap-1"><Edit2 size={12} /> Editar</button>
-                      <button onClick={async () => { if (confirm('¿Borrar regla?')) { await SupabaseService.deleteRule(rule.id); await loadData(); } }} className="p-2 text-fin-muted hover:text-red-500 bg-fin-bg/50 rounded-lg"><Trash2 size={12} /></button>
+                      <button onClick={async () => { if (confirm('¿Borrar regla?')) { await service.deleteRule(rule.id); await loadData(); } }} className="p-2 text-fin-muted hover:text-red-500 bg-fin-bg/50 rounded-lg"><Trash2 size={12} /></button>
                     </div>
                   </div>
                 );
