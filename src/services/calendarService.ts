@@ -70,7 +70,7 @@ export interface CalendarEvent {
     description?: string;
     start_date: string; // ISO
     end_date?: string; // ISO
-    type: 'feriado' | 'comercial' | 'interno';
+    type: 'feriado' | 'comercial' | 'interno' | 'temporada';
     created_at?: string;
     author_id?: string;
     business_id?: string; // For private business events

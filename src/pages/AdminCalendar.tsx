@@ -31,7 +31,7 @@ const AdminCalendar = () => {
 
     // Form State
     const [newEventTitle, setNewEventTitle] = useState('');
-    const [newEventType, setNewEventType] = useState<'feriado' | 'comercial' | 'interno'>('interno');
+    const [newEventType, setNewEventType] = useState<'feriado' | 'comercial' | 'interno' | 'temporada'>('interno');
     const [newEventMsg, setNewEventMsg] = useState('');
 
     // --- Date Logic ---
@@ -132,6 +132,7 @@ const AdminCalendar = () => {
         switch (type) {
             case 'feriado': return 'bg-red-500/20 text-red-400 border-red-500/30';
             case 'comercial': return 'bg-green-500/20 text-green-400 border-green-500/30';
+            case 'temporada': return 'bg-purple-500/20 text-purple-400 border-purple-500/30';
             default: return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
         }
     };
@@ -261,8 +262,8 @@ const AdminCalendar = () => {
 
                             <div>
                                 <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Tipo de Evento</label>
-                                <div className="grid grid-cols-3 gap-2">
-                                    {['feriado', 'comercial', 'interno'].map((type) => (
+                                <div className="grid grid-cols-2 gap-2">
+                                    {['feriado', 'comercial', 'interno', 'temporada'].map((type) => (
                                         <button
                                             key={type}
                                             type="button"
