@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, BarChart2, LogOut, User as UserIcon, Database, Briefcase } from 'lucide-react';
+import { Menu, X, LogOut, User as UserIcon, Database } from 'lucide-react';
 import { APP_NAME, INSTAGRAM_URL, DISPLAY_PHONE, CONTACT_EMAIL, YOUTUBE_URL, WHATSAPP_NUMBER, GLOBAL_LOGO_URL, GLOBAL_BACKGROUND_IMAGE_URL, LOGO_ADMIN_URL, LOGO_USER_URL, LOGO_PREMIUM_URL, LOGO_GUEST_URL } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../services/supabase';
@@ -139,11 +139,6 @@ const Layout: React.FC<LayoutProps> = ({ children, user: propUser }) => {
               <div className="flex items-center md:ml-4 gap-2 lg:gap-4">
                 {internalUser ? (
                   <>
-                    <Link to="/finance" className="flex items-center gap-2 bg-[#00344F] hover:bg-[#1FB6D5]/20 hover:text-[#1FB6D5] border border-[#1FB6D5]/30 px-3 py-2 rounded-md transition-all text-white text-sm font-medium shadow-md">
-                      <BarChart2 className="w-4 h-4" />
-                      <span className="hidden xl:inline">Finanzas</span>
-                      <span className="inline xl:hidden">Fin.</span>
-                    </Link>
                     <Link to="/dashboard" className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 px-3 py-2 rounded-md transition-all text-white text-sm font-medium shadow-md">
                       Tablero <span className="hidden xl:inline">({internalUser.email?.split('@')[0]})</span>
                     </Link>
