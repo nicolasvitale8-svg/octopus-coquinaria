@@ -19,6 +19,10 @@ export const Budget: React.FC = () => {
   const [activeBudgetTab, setActiveBudgetTab] = useState<TransactionType>(TransactionType.OUT);
 
   const [newItem, setNewItem] = useState<Partial<BudgetItem>>({ type: TransactionType.OUT, plannedAmount: 0 });
+
+  // Sorting State
+  const [sortConfig, setSortConfig] = useState<{ key: 'date' | 'amount' | 'category' | 'label', direction: 'asc' | 'desc' }>({ key: 'date', direction: 'asc' });
+
   const formRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => { loadData(); }, [activeEntity]);
@@ -224,9 +228,44 @@ export const Budget: React.FC = () => {
 
   const renderBudgetTable = (type: TransactionType, title: string) => {
     const items = budgetItems.filter(i => i.month === currentMonth && i.year === currentYear && i.type === type);
+
+    // Logic for sorting
+    const sortedItems = [...items].sort((a, b) => {
+      let comparison = 0;
+      switch (sortConfig.key) {
+        case 'date':
+          comparison = (a.plannedDate || 32) - (b.plannedDate || 32);
+          break;
+        case 'amount':
+          comparison = a.plannedAmount - b.plannedAmount;
+          break;
+        case 'category':
+          const catA = categories.find(c => c.id === a.categoryId)?.name || '';
+          const catB = categories.find(c => c.id === b.categoryId)?.name || '';
+          comparison = catA.localeCompare(catB);
+          break;
+        case 'label':
+          comparison = a.label.localeCompare(b.label);
+          break;
+      }
+      return sortConfig.direction === 'asc' ? comparison : -comparison;
+    });
+
     const totalPlanned = items.reduce((s, i) => s + i.plannedAmount, 0);
     const totalActual = items.reduce((s, i) => s + calculateActual(i), 0);
     const totalPct = totalPlanned > 0 ? totalActual / totalPlanned : 0;
+
+    const handleHeaderClick = (key: 'date' | 'amount' | 'category' | 'label') => {
+      setSortConfig(current => ({
+        key,
+        direction: current.key === key && current.direction === 'asc' ? 'desc' : 'asc'
+      }));
+    };
+
+    const SortIcon = ({ colKey }: { colKey: 'date' | 'amount' | 'category' | 'label' }) => {
+      if (sortConfig.key !== colKey) return null;
+      return <span className="ml-1 text-[8px]">{sortConfig.direction === 'asc' ? '▲' : '▼'}</span>;
+    };
 
     return (
       <div className="bg-fin-card rounded-2xl border border-fin-border overflow-hidden mb-10">
@@ -243,17 +282,23 @@ export const Budget: React.FC = () => {
           <table className="w-full text-left text-xs">
             <thead className="text-[9px] text-fin-muted uppercase tracking-widest border-b border-fin-border">
               <tr>
-                <th className="px-8 py-4 font-black">Plan</th>
-                <th className="px-8 py-4 font-black">Ajuste</th>
-                <th className="px-8 py-4 font-black">Concepto</th>
-                <th className="px-8 py-4 text-right font-black">Previsto</th>
-                <th className="px-8 py-4 text-right font-black">Real</th>
-                <th className="px-8 py-4 text-right font-black">Eje.</th>
-                <th className="px-8 py-4 text-right font-black">Acciones</th>
+                <th className="px-8 py-4 font-black cursor-pointer hover:text-white transition-colors select-none" onClick={() => handleHeaderClick('date')}>
+                  Plan <SortIcon colKey="date" />
+                </th>
+                <th className="px-8 py-4 font-black text-xs opacity-50 select-none">Ajuste</th>
+                <th className="px-8 py-4 font-black cursor-pointer hover:text-white transition-colors select-none" onClick={() => handleHeaderClick('category')}>
+                  Concepto / Rubro <SortIcon colKey="category" />
+                </th>
+                <th className="px-8 py-4 text-right font-black cursor-pointer hover:text-white transition-colors select-none" onClick={() => handleHeaderClick('amount')}>
+                  Previsto <SortIcon colKey="amount" />
+                </th>
+                <th className="px-8 py-4 text-right font-black select-none">Real</th>
+                <th className="px-8 py-4 text-right font-black select-none">Eje.</th>
+                <th className="px-8 py-4 text-right font-black select-none">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-fin-border/50">
-              {items.map(item => {
+              {sortedItems.map(item => {
                 const actual = calculateActual(item);
                 const pct = item.plannedAmount > 0 ? actual / item.plannedAmount : 0;
                 let barColor = 'bg-brand';
