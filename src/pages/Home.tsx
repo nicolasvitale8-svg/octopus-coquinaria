@@ -106,15 +106,16 @@ const Home = () => {
                 </a>
               </div>
 
-              <div className="mb-2">
-                <span className="text-[#1FB6D5] font-bold tracking-widest uppercase text-xs border border-[#1FB6D5]/30 px-3 py-1 rounded bg-[#1FB6D5]/10">
-                  Octopus Coquinaria
+              <div className="mb-6 animate-fade-in">
+                <span className="text-[#1FB6D5] font-black tracking-[0.2em] uppercase text-[10px] bg-[#1FB6D5]/5 border border-[#1FB6D5]/20 px-3 py-1.5 rounded-lg backdrop-blur-md">
+                  Sistema de Gestión Gastronómico
                 </span>
               </div>
 
-              <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold text-[#F9F7F4] tracking-tight mb-8 font-space leading-[1.1]">
-                Tu restaurante <br /> no necesita más ideas. <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#1FB6D5] to-blue-500">Necesita control.</span>
+              <h1 className="text-5xl md:text-7xl lg:text-8xl font-black text-white tracking-tighter mb-8 font-space leading-[0.95]">
+                Tu restaurante <br />
+                <span className="text-slate-500">no necesita ideas.</span> <br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#1FB6D5] via-white to-[#1FB6D5] animate-shine bg-[length:200%_auto]">Necesita Control.</span>
               </h1>
 
               <p className="text-xl text-slate-300 mb-10 max-w-lg leading-relaxed font-light">
@@ -122,16 +123,16 @@ const Home = () => {
                 Transformamos el caos operativo en <span className="animate-shine font-bold text-white">rentabilidad medible</span>.
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-5">
+              <div className="flex flex-col sm:flex-row gap-4 mt-8">
                 <Link to="/quick-diagnostic">
-                  <Button size="lg" className="w-full sm:w-auto shadow-[0_0_20px_rgba(31,182,213,0.3)] border border-[#1FB6D5]/20 bg-[#1FB6D5] text-[#021019] hover:bg-white hover:text-[#021019] font-bold">
-                    Hacer diagnóstico rápido (5 min)
+                  <Button size="lg" className="h-14 px-8 w-full sm:w-auto bg-[#1FB6D5] text-[#021420] hover:bg-white font-black uppercase tracking-widest text-xs transition-all hover:scale-105 shadow-[0_0_30px_rgba(31,182,213,0.3)] border-0">
+                    Diagnóstico Rápido
                   </Button>
                 </Link>
                 <a href={`https://wa.me/${WHATSAPP_NUMBER}`} target="_blank" rel="noreferrer">
-                  <Button variant="outline" size="lg" className="w-full sm:w-auto border-slate-600 text-slate-300 hover:bg-slate-800 hover:text-white">
-                    <MessageCircle className="w-5 h-5 mr-2" />
-                    Hablar por WhatsApp
+                  <Button variant="outline" size="lg" className="h-14 px-8 w-full sm:w-auto border-white/10 text-slate-300 hover:bg-white/5 hover:text-white font-bold uppercase tracking-widest text-xs backdrop-blur-sm">
+                    <MessageCircle className="w-4 h-4 mr-2" />
+                    Hablar con un Humano
                   </Button>
                 </a>
               </div>
