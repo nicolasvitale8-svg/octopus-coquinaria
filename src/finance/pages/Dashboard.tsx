@@ -4,13 +4,14 @@ import { SupabaseService } from '../services/supabaseService';
 import { chequeService, Cheque } from '../services/chequeService';
 import { calculatePeriodBalance, calculateJar, formatCurrency, calculateBudgetAlerts, generateAuditReport } from '../utils/calculations';
 import { Account, Transaction, Jar, MonthlyBalance, Category, SubCategory, BudgetItem, AuditReport } from '../financeTypes';
-import { TrendingUp, TrendingDown, DollarSign, Lock, ChevronRight, LayoutGrid, List, Wallet, ArrowUpRight, UploadCloud, PlusCircle, Settings, Sparkles, User, Building2, PieChart as PieIcon, X, Bell, AlertTriangle, FileText } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, Lock, ChevronRight, LayoutGrid, List, Wallet, ArrowUpRight, UploadCloud, PlusCircle, Settings, Sparkles, User, Building2, PieChart as PieIcon, X, Bell, AlertTriangle, FileText, CreditCard, PiggyBank } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, AreaChart, Area, CartesianGrid } from 'recharts';
 import { useNavigate } from 'react-router-dom';
 import { useFinanza } from '../context/FinanzaContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { BudgetRPMGauge } from '../components/BudgetRPMGauge';
 import { AuditReportModal } from '../components/AuditReportModal';
+import { loanService, Loan, LoanPayment } from '../services/loanService';
 
 interface PeriodAccountState {
   account: Account;
@@ -170,6 +171,8 @@ export const Dashboard: React.FC = () => {
   const [cheques, setCheques] = useState<Cheque[]>([]);
   const [activeDetail, setActiveDetail] = useState<'IN' | 'OUT' | 'BALANCE' | 'INVESTED' | null>(null);
   const [monthReport, setMonthReport] = useState<AuditReport | null>(null);
+  const [loansList, setLoansList] = useState<Loan[]>([]);
+  const [loanPaymentsMap, setLoanPaymentsMap] = useState<Record<string, LoanPayment[]>>({});
 
   useEffect(() => { loadData(); }, [activeEntity]);
   useEffect(() => { calculateDashboardData(); }, [currentMonth, currentYear, transactions, monthlyBalances, accounts]);
@@ -207,6 +210,24 @@ export const Dashboard: React.FC = () => {
       setSubCategories(subCat);
       setBudgetItems(budget);
       setCheques(chqs);
+
+      // Cargar préstamos
+      try {
+        const loans = await loanService.getAll(bId);
+        setLoansList(loans);
+        if (loans.length > 0) {
+          const payMap: Record<string, LoanPayment[]> = {};
+          const ids = loans.map(l => l.id);
+          const allPay = await loanService.getAllPayments(ids);
+          allPay.forEach(p => {
+            if (!payMap[p.loan_id]) payMap[p.loan_id] = [];
+            payMap[p.loan_id].push(p);
+          });
+          setLoanPaymentsMap(payMap);
+        }
+      } catch (e) {
+        console.warn('Loans not available:', e);
+      }
     } catch (error) {
       console.error("Error loading dashboard data:", error);
     } finally {
@@ -254,7 +275,7 @@ export const Dashboard: React.FC = () => {
   // Distribución de gastos por categoría para el Donut
   const expensesByCategory = React.useMemo(() => {
     const categoryMap: Record<string, { name: string; amount: number; color: string }> = {};
-    const COLORS = ['#10B981', '#3B82F6', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#14B8A6', '#F97316'];
+    const COLORS = ['#06b6d4', '#8b5cf6', '#f59e0b', '#ef4444', '#10b981', '#ec4899', '#3b82f6', '#f97316'];
 
     transactions
       .filter(t => {
@@ -302,6 +323,44 @@ export const Dashboard: React.FC = () => {
       })
       .sort((a, b) => new Date(a.payment_date).getTime() - new Date(b.payment_date).getTime());
   }, [cheques]);
+
+  // Upcoming Loan Installments
+  const upcomingInstallments = React.useMemo(() => {
+    const today = new Date().toISOString().split('T')[0];
+    const nextMonth = new Date();
+    nextMonth.setMonth(nextMonth.getMonth() + 2);
+    const limit = nextMonth.toISOString().split('T')[0];
+
+    const items: { loan: Loan; payment: LoanPayment; isOverdue: boolean }[] = [];
+
+    loansList.filter(l => l.status === 'ACTIVO' && l.direction !== 'GIVEN').forEach(loan => {
+      const payments = loanPaymentsMap[loan.id] || [];
+      payments
+        .filter(p => p.status === 'PENDIENTE' && p.due_date <= limit)
+        .forEach(p => {
+          items.push({ loan, payment: p, isOverdue: p.due_date < today });
+        });
+    });
+
+    return items.sort((a, b) => a.payment.due_date.localeCompare(b.payment.due_date));
+  }, [loansList, loanPaymentsMap]);
+
+  const totalDebtRemaining = React.useMemo(() => {
+    return loansList
+      .filter(l => l.status === 'ACTIVO' && l.direction !== 'GIVEN')
+      .reduce((sum, l) => {
+        const paid = (loanPaymentsMap[l.id] || []).filter(p => p.status === 'PAGADA').reduce((s, p) => s + p.amount, 0);
+        return sum + (l.total_amount - paid);
+      }, 0);
+  }, [loansList, loanPaymentsMap]);
+
+  // Jar Performance
+  const jarPerformance = React.useMemo(() => {
+    return jars.map(j => {
+      const calc = calculateJar(j);
+      return { ...calc, progressPct: j ? Math.min(100, (calc.daysElapsed / Math.max(calc.daysTotal, 1)) * 100) : 0 };
+    });
+  }, [jars]);
 
   // Sync alert count with context
   useEffect(() => {
@@ -538,6 +597,130 @@ export const Dashboard: React.FC = () => {
         <div className="lg:col-span-1">
           <BudgetRPMGauge spent={totalOut} budgeted={totalBudgeted} />
         </div>
+      </div>
+
+      {/* Loans & Jars Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+        {/* Upcoming Installments Widget */}
+        {(upcomingInstallments.length > 0 || totalDebtRemaining > 0) && (
+          <div className="bg-fin-card border border-fin-border rounded-[32px] p-6 shadow-2xl overflow-hidden relative group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/5 rounded-full blur-[60px] -mr-8 -mt-8 pointer-events-none"></div>
+
+            <div className="flex items-center justify-between mb-5 relative z-10">
+              <div>
+                <h3 className="text-lg font-black text-white flex items-center gap-2">
+                  <CreditCard size={18} className="text-cyan-400" /> Próximas Cuotas
+                </h3>
+                <p className="text-[10px] font-bold text-fin-muted uppercase tracking-widest mt-1">Deuda total: {formatCurrency(totalDebtRemaining)}</p>
+              </div>
+              <button
+                onClick={() => navigate('/finance/loans')}
+                className="p-2 bg-cyan-500/10 rounded-xl border border-cyan-500/20 text-cyan-400 hover:bg-cyan-500/20 transition-all text-[10px] font-black uppercase tracking-widest flex items-center gap-1"
+              >
+                Ver <ChevronRight size={14} />
+              </button>
+            </div>
+
+            <div className="space-y-3 relative z-10">
+              {upcomingInstallments.slice(0, 5).map((item, i) => {
+                const dueDate = new Date(item.payment.due_date + 'T12:00:00');
+                const dayStr = dueDate.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
+                return (
+                  <div key={i} className={`p-3 rounded-2xl border transition-all flex items-center justify-between ${item.isOverdue ? 'bg-red-500/5 border-red-500/20 hover:border-red-500/40' : 'bg-[#0b1221]/80 border-white/5 hover:border-cyan-500/30'}`}>
+                    <div className="flex items-center gap-3">
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-[10px] font-black ${item.isOverdue ? 'bg-red-500/10 text-red-400' : 'bg-cyan-500/10 text-cyan-400'}`}>
+                        {item.payment.installment_number}/{item.loan.total_installments}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-white truncate max-w-[140px]">{item.loan.counterparty}</p>
+                        <p className="text-[9px] text-fin-muted font-bold uppercase tracking-wider">{dayStr}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className={`text-sm font-black tabular-nums ${item.isOverdue ? 'text-red-400' : 'text-white'}`}>
+                        {formatCurrency(item.payment.amount)}
+                      </p>
+                      {item.isOverdue && <p className="text-[8px] font-black text-red-500 uppercase animate-pulse">Vencida</p>}
+                    </div>
+                  </div>
+                );
+              })}
+              {upcomingInstallments.length === 0 && (
+                <div className="py-6 text-center">
+                  <p className="text-xs font-bold text-fin-muted/60">Sin cuotas pendientes próximas</p>
+                </div>
+              )}
+              {upcomingInstallments.length > 0 && (
+                <div className="pt-2 border-t border-white/5 flex justify-between items-center">
+                  <span className="text-[10px] font-black text-fin-muted uppercase tracking-widest">Total próximo</span>
+                  <span className="text-sm font-black text-cyan-400 tabular-nums">
+                    {formatCurrency(upcomingInstallments.slice(0, 5).reduce((s, i) => s + i.payment.amount, 0))}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Jar Performance Widget */}
+        {jarPerformance.length > 0 && (
+          <div className="bg-fin-card border border-fin-border rounded-[32px] p-6 shadow-2xl overflow-hidden relative group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full blur-[60px] -mr-8 -mt-8 pointer-events-none"></div>
+
+            <div className="flex items-center justify-between mb-5 relative z-10">
+              <div>
+                <h3 className="text-lg font-black text-white flex items-center gap-2">
+                  <PiggyBank size={18} className="text-amber-400" /> Rendimiento de Frascos
+                </h3>
+                <p className="text-[10px] font-bold text-fin-muted uppercase tracking-widest mt-1">
+                  Ganancia total: <span className="text-emerald-400">{formatCurrency(jarPerformance.reduce((s, j) => s + j.interestAccrued, 0))}</span>
+                </p>
+              </div>
+              <button
+                onClick={() => navigate('/finance/jars')}
+                className="p-2 bg-amber-500/10 rounded-xl border border-amber-500/20 text-amber-400 hover:bg-amber-500/20 transition-all text-[10px] font-black uppercase tracking-widest flex items-center gap-1"
+              >
+                Ver <ChevronRight size={14} />
+              </button>
+            </div>
+
+            <div className="space-y-3 relative z-10">
+              {jarPerformance.map((jp, i) => (
+                <div key={i} className="p-3 bg-[#0b1221]/80 rounded-2xl border border-white/5 hover:border-amber-500/30 transition-all">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-amber-500/10 flex items-center justify-center">
+                        <Sparkles size={16} className="text-amber-400" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-white">{jp.jar.name}</p>
+                        <p className="text-[9px] text-fin-muted font-bold">{jp.jar.annualRate}% anual • {jp.daysRemaining}d restantes</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-black text-white tabular-nums">{formatCurrency(jp.currentValue)}</p>
+                      <p className="text-[9px] font-black text-emerald-400">+{formatCurrency(jp.interestAccrued)}</p>
+                    </div>
+                  </div>
+                  {/* Progress bar */}
+                  <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-amber-500 to-emerald-400 transition-all duration-1000"
+                      style={{ width: `${jp.progressPct}%` }}
+                    ></div>
+                  </div>
+                </div>
+              ))}
+              <div className="pt-2 border-t border-white/5 flex justify-between items-center">
+                <span className="text-[10px] font-black text-fin-muted uppercase tracking-widest">Capital Invertido</span>
+                <span className="text-sm font-black text-amber-400 tabular-nums">
+                  {formatCurrency(jars.reduce((s, j) => s + j.principal, 0))}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Sidebar right side */}
