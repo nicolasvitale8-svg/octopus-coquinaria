@@ -89,29 +89,37 @@ export const Loans: React.FC = () => {
     const loadData = async () => {
         setLoading(true);
         try {
-            const [loansData, accs, cats, subs] = await Promise.all([
-                loanService.getAll(projectId),
+            // Load accounts, categories, subcategories (these always work)
+            const [accs, cats, subs] = await Promise.all([
                 service.getAccounts(projectId ?? undefined),
                 service.getCategories(projectId ?? undefined),
                 service.getAllSubCategories(projectId ?? undefined),
             ]);
-            setLoans(loansData);
             setAccounts(accs);
             setCategories(cats);
             setSubCategories(subs);
 
-            // Load all payments
-            if (loansData.length > 0) {
-                const allPayments = await loanService.getAllPayments(loansData.map(l => l.id));
-                const grouped: Record<string, LoanPayment[]> = {};
-                allPayments.forEach(p => {
-                    if (!grouped[p.loan_id]) grouped[p.loan_id] = [];
-                    grouped[p.loan_id].push(p);
-                });
-                setPayments(grouped);
+            // Load loans separately (may fail if table/column doesn't exist yet)
+            try {
+                const loansData = await loanService.getAll(projectId);
+                setLoans(loansData);
+
+                if (loansData.length > 0) {
+                    const allPayments = await loanService.getAllPayments(loansData.map(l => l.id));
+                    const grouped: Record<string, LoanPayment[]> = {};
+                    allPayments.forEach(p => {
+                        if (!grouped[p.loan_id]) grouped[p.loan_id] = [];
+                        grouped[p.loan_id].push(p);
+                    });
+                    setPayments(grouped);
+                }
+            } catch (loanErr) {
+                console.warn('Error loading loans (table may not exist yet):', loanErr);
+                setLoans([]);
+                setPayments({});
             }
         } catch (err) {
-            console.error('Error loading loans:', err);
+            console.error('Error loading finance data:', err);
         } finally {
             setLoading(false);
         }
