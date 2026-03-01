@@ -185,6 +185,23 @@ export const Loans: React.FC = () => {
         }
     };
 
+    const syncAllLoansToBudget = async () => {
+        if (saving) return;
+        setSaving(true);
+        try {
+            const { categoryId, subcategoryId } = await ensureLoanCategory();
+            for (const loan of loans.filter(l => l.status === 'ACTIVO')) {
+                await createBudgetItemsForLoan(loan, categoryId, subcategoryId);
+            }
+            alert(`✅ Se sincronizaron ${loans.filter(l => l.status === 'ACTIVO').length} préstamos al presupuesto`);
+        } catch (err: any) {
+            console.error('Error syncing:', err);
+            alert('Error al sincronizar: ' + (err?.message || 'Error desconocido'));
+        } finally {
+            setSaving(false);
+        }
+    };
+
     // ======== FORM HANDLERS ========
 
     const recalculateInstallment = (totalAmount: number, totalInstallments: number, interestRate: number) => {
@@ -417,13 +434,24 @@ export const Loans: React.FC = () => {
                     </h1>
                     <p className="text-sm text-white/40 mt-1">Gestión de deudas, préstamos y compras en cuotas</p>
                 </div>
-                <button
-                    onClick={() => { resetForm(); setForm(prev => ({ ...prev, direction: activeTab })); setShowModal(true); }}
-                    className="flex items-center gap-2 px-5 py-3 bg-cyan-500 hover:bg-cyan-400 text-black font-bold rounded-2xl transition-all shadow-lg shadow-cyan-500/20 hover:shadow-cyan-400/30 hover:scale-105"
-                >
-                    <Plus size={18} />
-                    <span>Nuevo</span>
-                </button>
+                <div className="flex gap-2">
+                    <button
+                        onClick={syncAllLoansToBudget}
+                        disabled={saving}
+                        className="flex items-center gap-2 px-4 py-3 bg-white/5 hover:bg-white/10 text-white/60 hover:text-white border border-white/10 font-bold rounded-2xl transition-all text-sm disabled:opacity-50"
+                        title="Sincronizar préstamos existentes con el presupuesto"
+                    >
+                        <Calendar size={16} />
+                        <span>{saving ? 'Sincronizando...' : 'Sync Presupuesto'}</span>
+                    </button>
+                    <button
+                        onClick={() => { resetForm(); setForm(prev => ({ ...prev, direction: activeTab })); setShowModal(true); }}
+                        className="flex items-center gap-2 px-5 py-3 bg-cyan-500 hover:bg-cyan-400 text-black font-bold rounded-2xl transition-all shadow-lg shadow-cyan-500/20 hover:shadow-cyan-400/30 hover:scale-105"
+                    >
+                        <Plus size={18} />
+                        <span>Nuevo</span>
+                    </button>
+                </div>
             </div>
 
             {/* Summary Cards */}
