@@ -49,12 +49,14 @@ async function getUserId(): Promise<string | null> {
  * Genera el cronograma de cuotas para un préstamo.
  * Si interestRate > 0, calcula cuota fija (sistema francés).
  * Si interestRate === 0, divide monto total / cantidad de cuotas.
+ * Si paymentDay se especifica, las cuotas vencen en ese día del mes.
  */
 export function generateInstallments(
     totalAmount: number,
     totalInstallments: number,
     interestRate: number,
-    startDate: string
+    startDate: string,
+    paymentDay?: number
 ): Omit<LoanPayment, 'id' | 'loan_id' | 'created_at'>[] {
     const installments: Omit<LoanPayment, 'id' | 'loan_id' | 'created_at'>[] = [];
     const start = new Date(startDate + 'T12:00:00');
@@ -75,6 +77,10 @@ export function generateInstallments(
     for (let i = 1; i <= totalInstallments; i++) {
         const dueDate = new Date(start);
         dueDate.setMonth(dueDate.getMonth() + i);
+        // Si se especifica día de vencimiento, usar ese día
+        if (paymentDay && paymentDay >= 1 && paymentDay <= 28) {
+            dueDate.setDate(paymentDay);
+        }
         const dueDateStr = dueDate.toISOString().split('T')[0];
 
         installments.push({
@@ -112,7 +118,7 @@ export const loanService = {
         return data as Loan[];
     },
 
-    async create(businessId: string | null | undefined, loan: CreateLoanDTO, paidInstallments: number = 0): Promise<Loan> {
+    async create(businessId: string | null | undefined, loan: CreateLoanDTO, paidInstallments: number = 0, paymentDay?: number): Promise<Loan> {
         const userId = await getUserId();
 
         const insertObj = {
@@ -135,7 +141,8 @@ export const loanService = {
             loan.total_amount,
             loan.total_installments,
             loan.interest_rate,
-            loan.start_date
+            loan.start_date,
+            paymentDay
         );
 
         const today = new Date().toISOString().split('T')[0];

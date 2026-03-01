@@ -67,6 +67,7 @@ export const Loans: React.FC = () => {
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [paidInstallments, setPaidInstallments] = useState(0);
+    const [paymentDay, setPaymentDay] = useState<number | undefined>(undefined);
 
     // Form
     const [form, setForm] = useState<Partial<CreateLoanDTO>>({
@@ -186,6 +187,7 @@ export const Loans: React.FC = () => {
             account_id: '',
         });
         setPaidInstallments(0);
+        setPaymentDay(undefined);
         setEditingLoan(null);
     };
 
@@ -217,7 +219,7 @@ export const Loans: React.FC = () => {
             if (editingLoan) {
                 await loanService.update(editingLoan.id, loanData);
             } else {
-                await loanService.create(projectId, loanData, paidInstallments);
+                await loanService.create(projectId, loanData, paidInstallments, paymentDay);
             }
 
             await loadData();
@@ -470,6 +472,8 @@ export const Loans: React.FC = () => {
                     error={error}
                     paidInstallments={paidInstallments}
                     onPaidInstallmentsChange={setPaidInstallments}
+                    paymentDay={paymentDay}
+                    onPaymentDayChange={setPaymentDay}
                     onChange={handleFormChange}
                     onSubmit={handleSubmit}
                     onClose={() => { setShowModal(false); resetForm(); setError(null); }}
@@ -672,10 +676,12 @@ const LoanModal: React.FC<{
     error: string | null;
     paidInstallments: number;
     onPaidInstallmentsChange: (n: number) => void;
+    paymentDay: number | undefined;
+    onPaymentDayChange: (n: number | undefined) => void;
     onChange: (field: string, value: any) => void;
     onSubmit: (e: React.FormEvent) => void;
     onClose: () => void;
-}> = ({ form, accounts, editing, saving, error, paidInstallments, onPaidInstallmentsChange, onChange, onSubmit, onClose }) => {
+}> = ({ form, accounts, editing, saving, error, paidInstallments, onPaidInstallmentsChange, paymentDay, onPaymentDayChange, onChange, onSubmit, onClose }) => {
     const totalWithInterest = (form.installment_amount || 0) * (form.total_installments || 1);
     const interestTotal = totalWithInterest - (form.total_amount || 0);
 
@@ -775,8 +781,8 @@ const LoanModal: React.FC<{
                         </div>
                     )}
 
-                    {/* Interest + Start Date */}
-                    <div className="grid grid-cols-2 gap-4">
+                    {/* Interest + Start Date + Payment Day */}
+                    <div className="grid grid-cols-3 gap-4">
                         <div>
                             <label className="text-[10px] font-black text-white/40 uppercase tracking-widest block mb-2">Tasa Anual %</label>
                             <input
@@ -797,6 +803,21 @@ const LoanModal: React.FC<{
                                 onChange={e => onChange('start_date', e.target.value)}
                                 className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-cyan-500/50 transition-all [color-scheme:dark]"
                                 required
+                            />
+                        </div>
+                        <div>
+                            <label className="text-[10px] font-black text-white/40 uppercase tracking-widest block mb-2">Día Vto.</label>
+                            <input
+                                type="number"
+                                value={paymentDay ?? ''}
+                                onChange={e => {
+                                    const v = Number(e.target.value);
+                                    onPaymentDayChange(v >= 1 && v <= 28 ? v : undefined);
+                                }}
+                                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-cyan-500/50 transition-all"
+                                placeholder="10"
+                                min="1"
+                                max="28"
                             />
                         </div>
                     </div>
