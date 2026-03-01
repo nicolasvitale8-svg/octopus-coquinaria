@@ -8,7 +8,8 @@ import { formatCurrency } from '../utils/calculations';
 import {
     loanService, Loan, LoanPayment, CreateLoanDTO, LoanDirection, generateInstallments
 } from '../services/loanService';
-import { Category, SubCategory, TransactionType, Account } from '../financeTypes';
+import { Category, SubCategory, TransactionType, Account, BudgetItem } from '../financeTypes';
+import { SupabaseService } from '../services/supabaseService';
 
 // ======== CONSTANTS ========
 
@@ -147,6 +148,43 @@ export const Loans: React.FC = () => {
         return { categoryId: cat.id, subcategoryId: sub.id };
     };
 
+    // ======== AUTO-CREATE BUDGET ITEMS ========
+
+    const createBudgetItemsForLoan = async (loan: Loan, categoryId: string, subcategoryId: string) => {
+        try {
+            const loanPayments = await loanService.getPayments(loan.id);
+            const pendingPayments = loanPayments.filter(p => p.status === 'PENDIENTE');
+            const bId = projectId ?? undefined;
+
+            // Determinar tipo: préstamos recibidos/tarjeta = EGRESO, otorgados = INGRESO
+            const type = loan.direction === 'GIVEN' ? TransactionType.IN : TransactionType.OUT;
+
+            for (const payment of pendingPayments) {
+                const dueDate = new Date(payment.due_date + 'T12:00:00');
+                const month = dueDate.getMonth(); // 0-11
+                const year = dueDate.getFullYear();
+                const day = dueDate.getDate();
+
+                const budgetItem: Partial<BudgetItem> = {
+                    year,
+                    month,
+                    categoryId,
+                    subCategoryId: subcategoryId,
+                    label: `${loan.counterparty} (${payment.installment_number}/${loan.total_installments})`,
+                    type,
+                    plannedAmount: payment.amount,
+                    plannedDate: day,
+                    totalInstallments: loan.total_installments,
+                    currentInstallment: payment.installment_number,
+                };
+
+                await SupabaseService.saveBudgetItem(budgetItem, bId);
+            }
+        } catch (err) {
+            console.warn('Error creating budget items:', err);
+        }
+    };
+
     // ======== FORM HANDLERS ========
 
     const recalculateInstallment = (totalAmount: number, totalInstallments: number, interestRate: number) => {
@@ -216,11 +254,15 @@ export const Loans: React.FC = () => {
                 subcategory_id: subcategoryId,
             };
 
+            let savedLoan: Loan;
             if (editingLoan) {
-                await loanService.update(editingLoan.id, loanData, paymentDay);
+                savedLoan = await loanService.update(editingLoan.id, loanData, paymentDay);
             } else {
-                await loanService.create(projectId, loanData, paidInstallments, paymentDay);
+                savedLoan = await loanService.create(projectId, loanData, paidInstallments, paymentDay);
             }
+
+            // Auto-crear items de presupuesto
+            await createBudgetItemsForLoan(savedLoan, categoryId, subcategoryId);
 
             await loadData();
             setShowModal(false);

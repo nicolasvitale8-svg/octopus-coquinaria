@@ -118,6 +118,7 @@ export const loanService = {
         return data as Loan[];
     },
 
+
     async create(businessId: string | null | undefined, loan: CreateLoanDTO, paidInstallments: number = 0, paymentDay?: number): Promise<Loan> {
         const userId = await getUserId();
 
