@@ -87,10 +87,6 @@ export const Loans: React.FC = () => {
     }, [projectId]);
 
     const loadData = async () => {
-        if (!projectId) {
-            setLoading(false);
-            return;
-        }
         setLoading(true);
         try {
             const [loansData, accs, cats, subs] = await Promise.all([
@@ -184,7 +180,7 @@ export const Loans: React.FC = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!projectId || saving) return;
+        if (saving) return;
         setSaving(true);
 
         try {

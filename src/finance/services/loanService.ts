@@ -8,7 +8,8 @@ export type PaymentStatus = 'PENDIENTE' | 'PAGADA';
 
 export interface Loan {
     id: string;
-    project_id: string;
+    project_id?: string;
+    user_id?: string;
     direction: LoanDirection;
     counterparty: string;
     total_amount: number;
@@ -35,9 +36,14 @@ export interface LoanPayment {
     created_at?: string;
 }
 
-export type CreateLoanDTO = Omit<Loan, 'id' | 'created_at' | 'project_id'>;
+export type CreateLoanDTO = Omit<Loan, 'id' | 'created_at' | 'project_id' | 'user_id'>;
 
 // ========== HELPERS ==========
+
+async function getUserId(): Promise<string | null> {
+    const { data: { user } } = await supabase.auth.getUser();
+    return user?.id || null;
+}
 
 /**
  * Genera el cronograma de cuotas para un préstamo.
@@ -86,23 +92,38 @@ export function generateInstallments(
 
 export const loanService = {
 
-    async getAll(projectId: string): Promise<Loan[]> {
-        if (!projectId) return [];
+    /**
+     * Get all loans. If businessId is provided, filter by project_id.
+     * If businessId is null/undefined, filter by user_id (personal).
+     */
+    async getAll(businessId?: string | null): Promise<Loan[]> {
+        const query = supabase.from('finance_loans').select('*');
 
-        const { data, error } = await supabase
-            .from('finance_loans')
-            .select('*')
-            .eq('project_id', projectId)
-            .order('created_at', { ascending: false });
+        if (businessId) {
+            query.eq('project_id', businessId);
+        } else {
+            const userId = await getUserId();
+            if (!userId) return [];
+            query.is('project_id', null).eq('user_id', userId);
+        }
 
+        const { data, error } = await query.order('created_at', { ascending: false });
         if (error) throw error;
         return data as Loan[];
     },
 
-    async create(projectId: string, loan: CreateLoanDTO): Promise<Loan> {
+    async create(businessId: string | null | undefined, loan: CreateLoanDTO): Promise<Loan> {
+        const userId = await getUserId();
+
+        const insertObj = {
+            ...loan,
+            project_id: businessId || null,
+            user_id: userId,
+        };
+
         const { data, error } = await supabase
             .from('finance_loans')
-            .insert([{ ...loan, project_id: projectId }])
+            .insert([insertObj])
             .select()
             .single();
 
@@ -144,7 +165,6 @@ export const loanService = {
     },
 
     async delete(id: string): Promise<void> {
-        // Payments cascade-delete thanks to FK
         const { error } = await supabase
             .from('finance_loans')
             .delete()
