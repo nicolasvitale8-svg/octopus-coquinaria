@@ -769,11 +769,11 @@ const LoanModal: React.FC<{
                         <select
                             value={form.account_id || ''}
                             onChange={e => onChange('account_id', e.target.value)}
-                            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-cyan-500/50 transition-all [color-scheme:dark]"
+                            className="w-full px-4 py-3 bg-[#0b1221] border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-cyan-500/50 transition-all"
                         >
-                            <option value="">Sin asociar</option>
+                            <option value="" style={{ background: '#0b1221', color: '#fff' }}>Sin asociar</option>
                             {accounts.map(a => (
-                                <option key={a.id} value={a.id}>{a.name}</option>
+                                <option key={a.id} value={a.id} style={{ background: '#0b1221', color: '#fff' }}>{a.name}</option>
                             ))}
                         </select>
                     </div>
