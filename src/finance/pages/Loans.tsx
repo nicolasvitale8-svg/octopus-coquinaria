@@ -87,7 +87,10 @@ export const Loans: React.FC = () => {
     }, [projectId]);
 
     const loadData = async () => {
-        if (!projectId) return;
+        if (!projectId) {
+            setLoading(false);
+            return;
+        }
         setLoading(true);
         try {
             const [loansData, accs, cats, subs] = await Promise.all([
