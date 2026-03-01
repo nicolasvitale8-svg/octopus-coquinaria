@@ -296,12 +296,41 @@ export const Dashboard: React.FC = () => {
     return Object.values(categoryMap).sort((a, b) => b.amount - a.amount);
   }, [transactions, categories, currentMonth, currentYear]);
 
-  // Legacy chartData (mantener por compatibilidad si se necesita)
-  const chartData = [
-    { name: 'Entradas', amount: totalIn, color: 'url(#colorIn)' },
-    { name: 'Salidas', amount: totalOut, color: 'url(#colorOut)' },
-    { name: 'Neto', amount: totalIn - totalOut, color: 'url(#colorNet)' },
-  ];
+  // Budget vs Actual per category
+  const budgetVsActual = React.useMemo(() => {
+    const currentItems = budgetItems.filter(
+      i => i.month === currentMonth && i.year === currentYear && i.type === 'OUT'
+    );
+
+    // Group by category
+    const catMap: Record<string, { name: string; budgeted: number; actual: number }> = {};
+    currentItems.forEach(item => {
+      const cat = categories.find(c => c.id === item.categoryId);
+      const catName = cat?.name || 'Sin Categoría';
+      if (!catMap[catName]) catMap[catName] = { name: catName, budgeted: 0, actual: 0 };
+      catMap[catName].budgeted += item.plannedAmount;
+    });
+
+    // Match actuals from transactions
+    transactions
+      .filter(t => {
+        const d = parseDate(t.date);
+        return d.getMonth() === currentMonth && d.getFullYear() === currentYear && t.type === 'OUT';
+      })
+      .forEach(t => {
+        const cat = categories.find(c => c.id === t.categoryId);
+        const catName = cat?.name || 'Sin Categoría';
+        if (!catMap[catName]) catMap[catName] = { name: catName, budgeted: 0, actual: 0 };
+        catMap[catName].actual += t.amount;
+      });
+
+    return Object.values(catMap)
+      .filter(c => c.budgeted > 0 || c.actual > 0)
+      .sort((a, b) => b.budgeted - a.budgeted);
+  }, [budgetItems, transactions, categories, currentMonth, currentYear]);
+
+  const totalBudgetedOut = budgetVsActual.reduce((s, c) => s + c.budgeted, 0);
+  const totalActualOut = budgetVsActual.reduce((s, c) => s + c.actual, 0);
 
   // Logic for Alerts (V2 Phase 1)
   const alerts = React.useMemo(() => {
@@ -593,9 +622,66 @@ export const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Budget Health (RPM Gauge) */}
-        <div className="lg:col-span-1">
+        {/* Budget Health Column */}
+        <div className="lg:col-span-1 space-y-6">
           <BudgetRPMGauge spent={totalOut} budgeted={totalBudgeted} />
+
+          {/* Budget vs Actual Breakdown */}
+          {budgetVsActual.length > 0 && (
+            <div className="bg-fin-card border border-fin-border rounded-[32px] p-6 shadow-2xl relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-violet-500/40 to-transparent"></div>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-black text-white uppercase tracking-widest flex items-center gap-2">
+                  <LayoutGrid size={16} className="text-violet-400" /> Presupuesto vs Real
+                </h3>
+                <button
+                  onClick={() => navigate('/finance/budget')}
+                  className="text-[9px] font-black text-fin-muted hover:text-violet-400 uppercase tracking-widest transition-colors flex items-center gap-1"
+                >
+                  Ver <ChevronRight size={12} />
+                </button>
+              </div>
+
+              <div className="space-y-3 max-h-[300px] overflow-y-auto scrollbar-hide">
+                {budgetVsActual.map((cat, i) => {
+                  const pct = cat.budgeted > 0 ? Math.min((cat.actual / cat.budgeted) * 100, 150) : (cat.actual > 0 ? 100 : 0);
+                  const isOver = cat.actual > cat.budgeted && cat.budgeted > 0;
+                  return (
+                    <div key={i} className="group">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[10px] font-bold text-white/80 truncate max-w-[100px]" title={cat.name}>{cat.name}</span>
+                        <div className="flex gap-2 items-center">
+                          <span className={`text-[10px] font-black tabular-nums ${isOver ? 'text-red-400' : 'text-emerald-400'}`}>
+                            {formatCurrency(cat.actual)}
+                          </span>
+                          <span className="text-[9px] text-fin-muted font-bold">/ {formatCurrency(cat.budgeted)}</span>
+                        </div>
+                      </div>
+                      <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all duration-700 ${isOver ? 'bg-gradient-to-r from-red-500 to-red-400' : 'bg-gradient-to-r from-violet-500 to-cyan-400'}`}
+                          style={{ width: `${Math.min(pct, 100)}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="mt-4 pt-3 border-t border-white/5 grid grid-cols-2 gap-2">
+                <div>
+                  <p className="text-[9px] font-black text-fin-muted uppercase tracking-widest">Presupuestado</p>
+                  <p className="text-sm font-black text-white tabular-nums">{formatCurrency(totalBudgetedOut)}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-[9px] font-black text-fin-muted uppercase tracking-widest">Gastado</p>
+                  <p className={`text-sm font-black tabular-nums ${totalActualOut > totalBudgetedOut ? 'text-red-400' : 'text-emerald-400'}`}>
+                    {formatCurrency(totalActualOut)}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
