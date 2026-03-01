@@ -65,6 +65,7 @@ export const Loans: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     // Form
     const [form, setForm] = useState<Partial<CreateLoanDTO>>({
@@ -190,6 +191,7 @@ export const Loans: React.FC = () => {
         e.preventDefault();
         if (saving) return;
         setSaving(true);
+        setError(null);
 
         try {
             // Auto-create category
@@ -205,7 +207,7 @@ export const Loans: React.FC = () => {
                 start_date: form.start_date || new Date().toISOString().split('T')[0],
                 status: 'ACTIVO',
                 description: form.description,
-                account_id: form.account_id,
+                account_id: form.account_id || undefined,
                 category_id: categoryId,
                 subcategory_id: subcategoryId,
             };
@@ -219,8 +221,9 @@ export const Loans: React.FC = () => {
             await loadData();
             setShowModal(false);
             resetForm();
-        } catch (err) {
+        } catch (err: any) {
             console.error('Error saving loan:', err);
+            setError(err?.message || 'Error al guardar el préstamo');
         } finally {
             setSaving(false);
         }
@@ -462,9 +465,10 @@ export const Loans: React.FC = () => {
                     accounts={accounts}
                     editing={!!editingLoan}
                     saving={saving}
+                    error={error}
                     onChange={handleFormChange}
                     onSubmit={handleSubmit}
-                    onClose={() => { setShowModal(false); resetForm(); }}
+                    onClose={() => { setShowModal(false); resetForm(); setError(null); }}
                 />
             )}
         </div>
@@ -661,10 +665,11 @@ const LoanModal: React.FC<{
     accounts: Account[];
     editing: boolean;
     saving: boolean;
+    error: string | null;
     onChange: (field: string, value: any) => void;
     onSubmit: (e: React.FormEvent) => void;
     onClose: () => void;
-}> = ({ form, accounts, editing, saving, onChange, onSubmit, onClose }) => {
+}> = ({ form, accounts, editing, saving, error, onChange, onSubmit, onClose }) => {
     const totalWithInterest = (form.installment_amount || 0) * (form.total_installments || 1);
     const interestTotal = totalWithInterest - (form.total_amount || 0);
 
@@ -822,6 +827,13 @@ const LoanModal: React.FC<{
                                     <span className="text-amber-400 font-bold">{formatCurrency(interestTotal)}</span>
                                 </div>
                             )}
+                        </div>
+                    )}
+
+                    {/* Error Banner */}
+                    {error && (
+                        <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-bold">
+                            ⚠️ {error}
                         </div>
                     )}
 
