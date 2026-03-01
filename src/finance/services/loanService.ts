@@ -112,7 +112,7 @@ export const loanService = {
         return data as Loan[];
     },
 
-    async create(businessId: string | null | undefined, loan: CreateLoanDTO): Promise<Loan> {
+    async create(businessId: string | null | undefined, loan: CreateLoanDTO, paidInstallments: number = 0): Promise<Loan> {
         const userId = await getUserId();
 
         const insertObj = {
@@ -138,9 +138,12 @@ export const loanService = {
             loan.start_date
         );
 
-        const paymentsToInsert = installments.map(inst => ({
+        const today = new Date().toISOString().split('T')[0];
+        const paymentsToInsert = installments.map((inst, idx) => ({
             ...inst,
             loan_id: created.id,
+            // Marcar las primeras N cuotas como pagadas
+            ...(idx < paidInstallments ? { status: 'PAGADA', paid_date: today } : {}),
         }));
 
         const { error: payError } = await supabase

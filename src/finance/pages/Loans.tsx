@@ -66,6 +66,7 @@ export const Loans: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [paidInstallments, setPaidInstallments] = useState(0);
 
     // Form
     const [form, setForm] = useState<Partial<CreateLoanDTO>>({
@@ -184,6 +185,7 @@ export const Loans: React.FC = () => {
             description: '',
             account_id: '',
         });
+        setPaidInstallments(0);
         setEditingLoan(null);
     };
 
@@ -215,7 +217,7 @@ export const Loans: React.FC = () => {
             if (editingLoan) {
                 await loanService.update(editingLoan.id, loanData);
             } else {
-                await loanService.create(projectId, loanData);
+                await loanService.create(projectId, loanData, paidInstallments);
             }
 
             await loadData();
@@ -466,6 +468,8 @@ export const Loans: React.FC = () => {
                     editing={!!editingLoan}
                     saving={saving}
                     error={error}
+                    paidInstallments={paidInstallments}
+                    onPaidInstallmentsChange={setPaidInstallments}
                     onChange={handleFormChange}
                     onSubmit={handleSubmit}
                     onClose={() => { setShowModal(false); resetForm(); setError(null); }}
@@ -666,10 +670,12 @@ const LoanModal: React.FC<{
     editing: boolean;
     saving: boolean;
     error: string | null;
+    paidInstallments: number;
+    onPaidInstallmentsChange: (n: number) => void;
     onChange: (field: string, value: any) => void;
     onSubmit: (e: React.FormEvent) => void;
     onClose: () => void;
-}> = ({ form, accounts, editing, saving, error, onChange, onSubmit, onClose }) => {
+}> = ({ form, accounts, editing, saving, error, paidInstallments, onPaidInstallmentsChange, onChange, onSubmit, onClose }) => {
     const totalWithInterest = (form.installment_amount || 0) * (form.total_installments || 1);
     const interestTotal = totalWithInterest - (form.total_amount || 0);
 
@@ -749,6 +755,25 @@ const LoanModal: React.FC<{
                             />
                         </div>
                     </div>
+
+                    {/* Paid Installments - only for new loans */}
+                    {!editing && (
+                        <div>
+                            <label className="text-[10px] font-black text-white/40 uppercase tracking-widest block mb-2">Cuotas ya pagadas</label>
+                            <input
+                                type="number"
+                                value={paidInstallments || ''}
+                                onChange={e => onPaidInstallmentsChange(Math.min(Number(e.target.value) || 0, Number(form.total_installments) || 0))}
+                                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-cyan-500/50 transition-all"
+                                placeholder="0"
+                                min="0"
+                                max={form.total_installments || 1}
+                            />
+                            {paidInstallments > 0 && (
+                                <p className="text-[10px] text-cyan-400/60 mt-1">Se marcarán las primeras {paidInstallments} cuota(s) como pagadas</p>
+                            )}
+                        </div>
+                    )}
 
                     {/* Interest + Start Date */}
                     <div className="grid grid-cols-2 gap-4">
