@@ -552,6 +552,54 @@ export const Budget: React.FC = () => {
         </div>
       )}
 
+      {/* Budget Summary Cards */}
+      {(() => {
+        const monthItems = budgetItems.filter(i => i.month === currentMonth && i.year === currentYear);
+        const totalInBudget = monthItems.filter(i => i.type === 'IN').reduce((s, i) => s + i.plannedAmount, 0);
+        const totalOutBudget = monthItems.filter(i => i.type === 'OUT').reduce((s, i) => s + i.plannedAmount, 0);
+        const diff = totalInBudget - totalOutBudget;
+        const totalInActual = monthItems.filter(i => i.type === 'IN').reduce((s, i) => s + calculateActual(i), 0);
+        const totalOutActual = monthItems.filter(i => i.type === 'OUT').reduce((s, i) => s + calculateActual(i), 0);
+        const diffActual = totalInActual - totalOutActual;
+
+        return (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="bg-fin-card rounded-2xl border border-fin-border p-5 relative overflow-hidden">
+              <div className="absolute -top-6 -right-6 w-16 h-16 bg-emerald-500/10 rounded-full blur-xl"></div>
+              <p className="text-[9px] font-black text-fin-muted uppercase tracking-widest mb-1">Ingreso Presup.</p>
+              <p className="text-xl font-black text-emerald-400 tabular-nums">{formatCurrency(totalInBudget)}</p>
+              <p className="text-[9px] font-bold text-fin-muted mt-1">Real: <span className="text-white">{formatCurrency(totalInActual)}</span></p>
+            </div>
+            <div className="bg-fin-card rounded-2xl border border-fin-border p-5 relative overflow-hidden">
+              <div className="absolute -top-6 -right-6 w-16 h-16 bg-red-500/10 rounded-full blur-xl"></div>
+              <p className="text-[9px] font-black text-fin-muted uppercase tracking-widest mb-1">Egreso Presup.</p>
+              <p className="text-xl font-black text-red-400 tabular-nums">{formatCurrency(totalOutBudget)}</p>
+              <p className="text-[9px] font-bold text-fin-muted mt-1">Real: <span className="text-white">{formatCurrency(totalOutActual)}</span></p>
+            </div>
+            <div className="bg-fin-card rounded-2xl border border-fin-border p-5 relative overflow-hidden">
+              <div className={`absolute -top-6 -right-6 w-16 h-16 ${diff >= 0 ? 'bg-cyan-500/10' : 'bg-red-500/10'} rounded-full blur-xl`}></div>
+              <p className="text-[9px] font-black text-fin-muted uppercase tracking-widest mb-1">Diferencia Presup.</p>
+              <p className={`text-xl font-black tabular-nums ${diff >= 0 ? 'text-cyan-400' : 'text-red-400'}`}>
+                {diff >= 0 ? '+' : ''}{formatCurrency(diff)}
+              </p>
+              <p className={`text-[9px] font-black uppercase tracking-widest mt-1 ${diff >= 0 ? 'text-cyan-500/60' : 'text-red-500/60'}`}>
+                {diff >= 0 ? '▲ Superávit' : '▼ Déficit'}
+              </p>
+            </div>
+            <div className="bg-fin-card rounded-2xl border border-fin-border p-5 relative overflow-hidden">
+              <div className={`absolute -top-6 -right-6 w-16 h-16 ${diffActual >= 0 ? 'bg-emerald-500/10' : 'bg-red-500/10'} rounded-full blur-xl`}></div>
+              <p className="text-[9px] font-black text-fin-muted uppercase tracking-widest mb-1">Resultado Real</p>
+              <p className={`text-xl font-black tabular-nums ${diffActual >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                {diffActual >= 0 ? '+' : ''}{formatCurrency(diffActual)}
+              </p>
+              <p className={`text-[9px] font-black uppercase tracking-widest mt-1 ${diffActual >= 0 ? 'text-emerald-500/60' : 'text-red-500/60'}`}>
+                {diffActual >= 0 ? '▲ Ganancia' : '▼ Pérdida'}
+              </p>
+            </div>
+          </div>
+        );
+      })()}
+
       {activeBudgetTab === TransactionType.IN
         ? renderBudgetTable(TransactionType.IN, 'Planificación de Ingresos')
         : renderBudgetTable(TransactionType.OUT, 'Planificación de Gastos')
