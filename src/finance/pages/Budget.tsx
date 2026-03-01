@@ -426,15 +426,21 @@ export const Budget: React.FC = () => {
       <div className="bg-fin-card p-1 rounded-2xl border border-fin-border w-fit">
         <button
           onClick={() => setActiveBudgetTab(TransactionType.OUT)}
-          className={`px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeBudgetTab === TransactionType.OUT ? 'bg-red-500 text-white shadow-lg shadow-red-500/20' : 'text-fin-muted hover:text-white'}`}
+          className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeBudgetTab === TransactionType.OUT ? 'bg-red-500 text-white shadow-lg shadow-red-500/20' : 'text-fin-muted hover:text-white'}`}
         >
           Salidas
         </button>
         <button
           onClick={() => setActiveBudgetTab(TransactionType.IN)}
-          className={`px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeBudgetTab === TransactionType.IN ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'text-fin-muted hover:text-white'}`}
+          className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeBudgetTab === TransactionType.IN ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'text-fin-muted hover:text-white'}`}
         >
           Ingresos
+        </button>
+        <button
+          onClick={() => setActiveBudgetTab(TransactionType.SAVINGS)}
+          className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeBudgetTab === TransactionType.SAVINGS ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20' : 'text-fin-muted hover:text-white'}`}
+        >
+          Ahorro
         </button>
       </div>
 
@@ -459,6 +465,7 @@ export const Budget: React.FC = () => {
               <select value={newItem.type} onChange={e => setNewItem({ ...newItem, type: e.target.value as TransactionType, categoryId: undefined, subCategoryId: undefined })} className="w-full bg-[#050f1a] border border-white/10 rounded-2xl p-4 text-sm text-white font-bold outline-none focus:border-brand transition-all appearance-none cursor-pointer">
                 <option value={TransactionType.IN}>Ingreso</option>
                 <option value={TransactionType.OUT}>Gasto (Salida)</option>
+                <option value={TransactionType.SAVINGS}>Ahorro / Inversión</option>
               </select>
             </div>
 
@@ -557,13 +564,13 @@ export const Budget: React.FC = () => {
         const monthItems = budgetItems.filter(i => i.month === currentMonth && i.year === currentYear);
         const totalInBudget = monthItems.filter(i => i.type === 'IN').reduce((s, i) => s + i.plannedAmount, 0);
         const totalOutBudget = monthItems.filter(i => i.type === 'OUT').reduce((s, i) => s + i.plannedAmount, 0);
-        const diff = totalInBudget - totalOutBudget;
+        const totalSavingsBudget = monthItems.filter(i => i.type === 'SAVINGS').reduce((s, i) => s + i.plannedAmount, 0);
+        const disponible = totalInBudget - totalOutBudget - totalSavingsBudget;
         const totalInActual = monthItems.filter(i => i.type === 'IN').reduce((s, i) => s + calculateActual(i), 0);
         const totalOutActual = monthItems.filter(i => i.type === 'OUT').reduce((s, i) => s + calculateActual(i), 0);
-        const diffActual = totalInActual - totalOutActual;
 
         return (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
             <div className="bg-fin-card rounded-2xl border border-fin-border p-5 relative overflow-hidden">
               <div className="absolute -top-6 -right-6 w-16 h-16 bg-emerald-500/10 rounded-full blur-xl"></div>
               <p className="text-[9px] font-black text-fin-muted uppercase tracking-widest mb-1">Ingreso Presup.</p>
@@ -577,23 +584,27 @@ export const Budget: React.FC = () => {
               <p className="text-[9px] font-bold text-fin-muted mt-1">Real: <span className="text-white">{formatCurrency(totalOutActual)}</span></p>
             </div>
             <div className="bg-fin-card rounded-2xl border border-fin-border p-5 relative overflow-hidden">
-              <div className={`absolute -top-6 -right-6 w-16 h-16 ${diff >= 0 ? 'bg-cyan-500/10' : 'bg-red-500/10'} rounded-full blur-xl`}></div>
-              <p className="text-[9px] font-black text-fin-muted uppercase tracking-widest mb-1">Diferencia Presup.</p>
-              <p className={`text-xl font-black tabular-nums ${diff >= 0 ? 'text-cyan-400' : 'text-red-400'}`}>
-                {diff >= 0 ? '+' : ''}{formatCurrency(diff)}
-              </p>
-              <p className={`text-[9px] font-black uppercase tracking-widest mt-1 ${diff >= 0 ? 'text-cyan-500/60' : 'text-red-500/60'}`}>
-                {diff >= 0 ? '▲ Superávit' : '▼ Déficit'}
-              </p>
+              <div className="absolute -top-6 -right-6 w-16 h-16 bg-amber-500/10 rounded-full blur-xl"></div>
+              <p className="text-[9px] font-black text-fin-muted uppercase tracking-widest mb-1">Ahorro Planif.</p>
+              <p className="text-xl font-black text-amber-400 tabular-nums">{formatCurrency(totalSavingsBudget)}</p>
+              <p className="text-[9px] font-bold text-amber-500/60 mt-1">Inversiones & Frascos</p>
             </div>
             <div className="bg-fin-card rounded-2xl border border-fin-border p-5 relative overflow-hidden">
-              <div className={`absolute -top-6 -right-6 w-16 h-16 ${diffActual >= 0 ? 'bg-emerald-500/10' : 'bg-red-500/10'} rounded-full blur-xl`}></div>
-              <p className="text-[9px] font-black text-fin-muted uppercase tracking-widest mb-1">Resultado Real</p>
-              <p className={`text-xl font-black tabular-nums ${diffActual >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                {diffActual >= 0 ? '+' : ''}{formatCurrency(diffActual)}
+              <div className={`absolute -top-6 -right-6 w-16 h-16 ${disponible >= 0 ? 'bg-cyan-500/10' : 'bg-red-500/10'} rounded-full blur-xl`}></div>
+              <p className="text-[9px] font-black text-fin-muted uppercase tracking-widest mb-1">Disponible</p>
+              <p className={`text-xl font-black tabular-nums ${disponible >= 0 ? 'text-cyan-400' : 'text-red-400'}`}>
+                {formatCurrency(disponible)}
               </p>
-              <p className={`text-[9px] font-black uppercase tracking-widest mt-1 ${diffActual >= 0 ? 'text-emerald-500/60' : 'text-red-500/60'}`}>
-                {diffActual >= 0 ? '▲ Ganancia' : '▼ Pérdida'}
+              <p className="text-[9px] font-bold text-fin-muted mt-1">Ingreso - Egreso - Ahorro</p>
+            </div>
+            <div className="bg-fin-card rounded-2xl border border-fin-border p-5 relative overflow-hidden">
+              <div className={`absolute -top-6 -right-6 w-16 h-16 ${(totalInActual - totalOutActual) >= 0 ? 'bg-emerald-500/10' : 'bg-red-500/10'} rounded-full blur-xl`}></div>
+              <p className="text-[9px] font-black text-fin-muted uppercase tracking-widest mb-1">Resultado Real</p>
+              <p className={`text-xl font-black tabular-nums ${(totalInActual - totalOutActual) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                {(totalInActual - totalOutActual) >= 0 ? '+' : ''}{formatCurrency(totalInActual - totalOutActual)}
+              </p>
+              <p className={`text-[9px] font-black uppercase tracking-widest mt-1 ${(totalInActual - totalOutActual) >= 0 ? 'text-emerald-500/60' : 'text-red-500/60'}`}>
+                {(totalInActual - totalOutActual) >= 0 ? '▲ Ganancia' : '▼ Pérdida'}
               </p>
             </div>
           </div>
@@ -602,7 +613,9 @@ export const Budget: React.FC = () => {
 
       {activeBudgetTab === TransactionType.IN
         ? renderBudgetTable(TransactionType.IN, 'Planificación de Ingresos')
-        : renderBudgetTable(TransactionType.OUT, 'Planificación de Gastos')
+        : activeBudgetTab === TransactionType.SAVINGS
+          ? renderBudgetTable(TransactionType.SAVINGS, 'Planificación de Ahorro / Inversiones')
+          : renderBudgetTable(TransactionType.OUT, 'Planificación de Gastos')
       }
     </div>
   );

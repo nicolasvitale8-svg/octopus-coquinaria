@@ -1,6 +1,7 @@
 export enum TransactionType {
   IN = 'IN',
   OUT = 'OUT',
+  SAVINGS = 'SAVINGS',
 }
 
 export interface AccountType {
