@@ -765,17 +765,23 @@ const LoanModal: React.FC<{
 
                     {/* Account */}
                     <div>
-                        <label className="text-[10px] font-black text-white/40 uppercase tracking-widest block mb-2">Cuenta / Tarjeta</label>
-                        <select
-                            value={form.account_id || ''}
-                            onChange={e => onChange('account_id', e.target.value)}
-                            className="w-full px-4 py-3 bg-[#0b1221] border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-cyan-500/50 transition-all"
-                        >
-                            <option value="" style={{ background: '#0b1221', color: '#fff' }}>Sin asociar</option>
-                            {accounts.map(a => (
-                                <option key={a.id} value={a.id} style={{ background: '#0b1221', color: '#fff' }}>{a.name}</option>
-                            ))}
-                        </select>
+                        <label className="text-[10px] font-black text-white/40 uppercase tracking-widest block mb-2">Cuenta / Tarjeta (opcional)</label>
+                        {accounts.length > 0 ? (
+                            <select
+                                value={form.account_id || ''}
+                                onChange={e => onChange('account_id', e.target.value)}
+                                className="w-full px-4 py-3 bg-[#0b1221] border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-cyan-500/50 transition-all"
+                            >
+                                <option value="" style={{ background: '#0b1221', color: '#fff' }}>Sin asociar</option>
+                                {accounts.map(a => (
+                                    <option key={a.id} value={a.id} style={{ background: '#0b1221', color: '#fff' }}>{a.name}</option>
+                                ))}
+                            </select>
+                        ) : (
+                            <p className="text-xs text-white/30 py-3 px-4 bg-white/5 rounded-xl border border-white/5">
+                                No hay cuentas cargadas. Podés crearlas desde <span className="text-cyan-400">Administración</span>.
+                            </p>
+                        )}
                     </div>
 
                     {/* Description */}
