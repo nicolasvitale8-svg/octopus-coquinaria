@@ -6,7 +6,7 @@ import { Plus, Trash2, Pencil, ChevronRight, PieChart, Sparkles, Calendar as Cal
 import { useFinanza } from '../context/FinanzaContext';
 
 export const Budget: React.FC = () => {
-  const { activeEntity } = useFinanza();
+  const { activeEntity, service } = useFinanza();
   const [loading, setLoading] = useState(true);
   const [budgetItems, setBudgetItems] = useState<BudgetItem[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -40,8 +40,24 @@ export const Budget: React.FC = () => {
       ]);
       setBudgetItems(items);
       setTransactions(t);
-      setCategories(cat);
       setSubCategories(subCat);
+
+      // Auto-crear categoría Inversiones/Ahorro si no existe
+      const savingsCatName = 'Inversiones / Ahorro';
+      let updatedCats = cat;
+      let savingsCat = cat.find(c => c.name === savingsCatName);
+      if (!savingsCat) {
+        savingsCat = await service.addCategory({ name: savingsCatName, type: 'MIX', isActive: true }, bId);
+        updatedCats = [...cat, savingsCat];
+
+        // Crear subcategorías
+        const subs = ['Frascos (Plazo Fijo)', 'Cripto', 'Acciones / FCI', 'Ahorro en USD', 'Otro'];
+        for (const subName of subs) {
+          const newSub = await service.addSubCategory({ categoryId: savingsCat.id, name: subName, isActive: true }, bId);
+          setSubCategories(prev => [...prev, newSub]);
+        }
+      }
+      setCategories(updatedCats);
     } catch (error) {
       console.error("Error loading budget data:", error);
     } finally {
