@@ -311,20 +311,31 @@ export const Loans: React.FC = () => {
                 return sum + (l.total_amount - collected);
             }, 0);
 
-        // Cuotas pendientes este mes
+        // IDs de préstamos que YO pago (excluir los que me deben)
+        const myDebtLoanIds = new Set(
+            activeLoans.filter(l => l.direction === 'TAKEN' || l.direction === 'CREDIT_CARD').map(l => l.id)
+        );
+
+        // Cuotas pendientes este mes (solo lo que yo pago)
         let pendingThisMonth = 0;
-        Object.values(payments).flat().forEach(p => {
-            if (p.status === 'PENDIENTE' && p.due_date.substring(0, 7) === currentMonth) {
-                pendingThisMonth += p.amount;
-            }
+        Object.entries(payments).forEach(([loanId, loanPayments]) => {
+            if (!myDebtLoanIds.has(loanId)) return;
+            loanPayments.forEach(p => {
+                if (p.status === 'PENDIENTE' && p.due_date.substring(0, 7) === currentMonth) {
+                    pendingThisMonth += p.amount;
+                }
+            });
         });
 
-        // Cuotas vencidas
+        // Cuotas vencidas (solo lo que yo pago)
         let overdue = 0;
-        Object.values(payments).flat().forEach(p => {
-            if (p.status === 'PENDIENTE' && p.due_date < today) {
-                overdue++;
-            }
+        Object.entries(payments).forEach(([loanId, loanPayments]) => {
+            if (!myDebtLoanIds.has(loanId)) return;
+            loanPayments.forEach(p => {
+                if (p.status === 'PENDIENTE' && p.due_date < today) {
+                    overdue++;
+                }
+            });
         });
 
         return { totalDebt, totalReceivable, pendingThisMonth, overdue };
