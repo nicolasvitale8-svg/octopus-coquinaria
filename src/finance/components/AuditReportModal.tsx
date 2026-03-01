@@ -6,8 +6,8 @@ import {
 } from 'lucide-react';
 import { AuditReport, HealthStatus, ForecastRank, DeviationItem, CategoryHealth, RiskAlert, RecommendedAction } from '../financeTypes';
 import { formatCurrency } from '../utils/calculations';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
+
+// html2canvas y jspdf se cargan dinámicamente al exportar PDF
 
 interface AuditReportModalProps {
     report: AuditReport;
@@ -117,6 +117,12 @@ export const AuditReportModal: React.FC<AuditReportModalProps> = ({ report, onCl
             // Expand all sections for export
             setExpandedSections(new Set(['summary', 'deviations', 'health', 'drivers', 'forecast-score', 'risks', 'actions', 'forecast', 'cash']));
             await new Promise(r => setTimeout(r, 300));
+
+            // Dynamic import — html2canvas (~40KB) y jspdf (~80KB) se cargan solo al exportar
+            const html2canvasModule = await import('html2canvas');
+            const html2canvas = html2canvasModule.default;
+            const jsPDFModule = await import('jspdf');
+            const jsPDF = jsPDFModule.default;
 
             const canvas = await html2canvas(reportRef.current, {
                 scale: 2,

@@ -2,8 +2,7 @@ import React, { useRef, useState } from 'react';
 import { X, Download, TrendingUp, TrendingDown, ArrowUp, ArrowDown, Minus, FileText, Loader2 } from 'lucide-react';
 import { MonthReport } from '../financeTypes';
 import { formatCurrency } from '../utils/calculations';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
+// html2canvas y jspdf se cargan dinámicamente al exportar PDF
 
 interface MonthlyReportModalProps {
     report: MonthReport;
@@ -30,6 +29,11 @@ export const MonthlyReportModal: React.FC<MonthlyReportModalProps> = ({ report, 
 
         setExporting(true);
         try {
+            const html2canvasModule = await import('html2canvas');
+            const html2canvas = html2canvasModule.default;
+            const jsPDFModule = await import('jspdf');
+            const jsPDF = jsPDFModule.default;
+
             const canvas = await html2canvas(reportRef.current, {
                 scale: 2,
                 backgroundColor: '#ffffff',

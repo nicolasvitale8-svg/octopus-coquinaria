@@ -1,24 +1,27 @@
 import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import Home from './pages/Home';
-import QuickDiagnostic from './pages/QuickDiagnostic';
-import DeepDiagnostic from './pages/DeepDiagnostic';
-import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
-import ResetPassword from './pages/ResetPassword';
-import Methodology from './pages/Methodology';
-import Academy from './pages/Academy';
-import ResourceDetail from './pages/ResourceDetail';
-import About from './pages/About';
-import Services from './pages/Services';
-import CalendarPage from './pages/Calendar';
 import ProtectedRoute from './components/ProtectedRoute';
 import ScrollToTop from './components/ScrollToTop';
 import ErrorBoundary from './components/ErrorBoundary';
 import { AuthProvider } from './contexts/AuthContext';
-import { FinanzaProvider } from './finance/context/FinanzaContext';
-import HubCalendar from './pages/HubCalendar';
-import ClientProjectRedirect from './pages/ClientProjectRedirect';
+
+// ============================================
+// LAZY LOADED — Páginas Públicas
+// ============================================
+const Home = lazy(() => import('./pages/Home'));
+const QuickDiagnostic = lazy(() => import('./pages/QuickDiagnostic'));
+const DeepDiagnostic = lazy(() => import('./pages/DeepDiagnostic'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword'));
+const Methodology = lazy(() => import('./pages/Methodology'));
+const Academy = lazy(() => import('./pages/Academy'));
+const ResourceDetail = lazy(() => import('./pages/ResourceDetail'));
+const About = lazy(() => import('./pages/About'));
+const Services = lazy(() => import('./pages/Services'));
+const CalendarPage = lazy(() => import('./pages/Calendar'));
+const HubCalendar = lazy(() => import('./pages/HubCalendar'));
+const ClientProjectRedirect = lazy(() => import('./pages/ClientProjectRedirect'));
 
 // ============================================
 // LAZY LOADED MODULES (Code Splitting)
@@ -39,7 +42,8 @@ const ConsultantDashboard = lazy(() => import('./pages/ConsultantDashboard'));
 const UserProfile = lazy(() => import('./pages/UserProfile'));
 const AdminConfig = lazy(() => import('./pages/AdminPages').then(m => ({ default: m.AdminConfig })));
 
-// Finance Module - Lazy loaded
+// Finance Module - Lazy loaded (incluye FinanzaProvider)
+const FinanzaProvider = lazy(() => import('./finance/context/FinanzaContext').then(m => ({ default: m.FinanzaProvider })));
 const FinanceLayout = lazy(() => import('./finance/components/FinanceLayout'));
 const FinanceDashboard = lazy(() => import('./finance/pages/Dashboard').then(m => ({ default: m.Dashboard })));
 const FinanceAnnualSummary = lazy(() => import('./finance/pages/AnnualSummary').then(m => ({ default: m.AnnualSummary })));
@@ -51,6 +55,7 @@ const FinanceImport = lazy(() => import('./finance/pages/Import').then(m => ({ d
 const FinanceSettings = lazy(() => import('./finance/pages/Settings').then(m => ({ default: m.SettingsPage })));
 const FinanceCheques = lazy(() => import('./finance/pages/Cheques').then(m => ({ default: m.Cheques })));
 const FinanceCashFlow = lazy(() => import('./finance/pages/CashFlow').then(m => ({ default: m.CashFlow })));
+const FinanceLoans = lazy(() => import('./finance/pages/Loans').then(m => ({ default: m.Loans })));
 
 // Procurement / Gatekeeper
 const OrdersList = lazy(() => import('./procurement/pages/OrdersList').then(m => ({ default: m.OrdersList })));
@@ -74,99 +79,98 @@ const App = () => {
   return (
     <ErrorBoundary>
       <AuthProvider>
-        <FinanzaProvider>
-          <Router>
-            <ScrollToTop />
-            <Suspense fallback={<LoadingFallback />}>
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/quick-diagnostic" element={<QuickDiagnostic />} />
-                <Route path="/deep-diagnostic" element={<DeepDiagnostic />} />
-                <Route element={<ProtectedRoute />}>
-                  <Route path="/dashboard" element={<Dashboard />} />
+        <Router>
+          <ScrollToTop />
+          <Suspense fallback={<LoadingFallback />}>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/quick-diagnostic" element={<QuickDiagnostic />} />
+              <Route path="/deep-diagnostic" element={<DeepDiagnostic />} />
+              <Route element={<ProtectedRoute />}>
+                <Route path="/dashboard" element={<Dashboard />} />
+              </Route>
+
+              {/* Rutas ADMINISTRADOR (Módulo Consultor/Admin) */}
+              <Route element={<ProtectedRoute requirePrivileged={true} />}>
+                <Route path="/admin" element={<AdminLayout />}>
+                  <Route index element={<Navigate to="/admin/dashboard" replace />} />
+                  <Route path="dashboard" element={<AdminDashboard />} />
+                  <Route path="consultant-dashboard" element={<ConsultantDashboard />} />
+                  <Route path="leads" element={<AdminLeads />} />
+                  <Route path="projects" element={<AdminProjects />} />
+                  <Route path="projects/:id" element={<AdminProjectHub />} />
+                  <Route path="users" element={<AdminUsers />} />
+                  <Route path="calendar" element={<AdminCalendar />} />
+                  <Route path="academy" element={<AdminAcademy />} />
+                  <Route path="academy/documents" element={<AcademyDocumentGenerator />} />
+                  <Route path="board" element={<AdminBoard />} />
+                  <Route path="config" element={<AdminConfig />} />
+                  <Route path="profile" element={<UserProfile />} />
+
+                  {/* Procurement Routes (Admin) */}
+                  <Route path="procurement" element={<OrdersList />} />
+                  <Route path="procurement/new" element={<OrderForm />} />
+                  <Route path="procurement/alerts" element={<StockAlerts />} />
+                  <Route path="procurement/movements" element={<StockMovements />} />
+                  <Route path="procurement/:id" element={<OrderDetail />} />
+                  <Route path="supply" element={<SupplyItemsPage />} />
                 </Route>
+              </Route>
 
-                {/* Rutas ADMINISTRADOR (Módulo Consultor/Admin) */}
-                <Route element={<ProtectedRoute requirePrivileged={true} />}>
-                  <Route path="/admin" element={<AdminLayout />}>
-                    <Route index element={<Navigate to="/admin/dashboard" replace />} />
-                    <Route path="dashboard" element={<AdminDashboard />} />
-                    <Route path="consultant-dashboard" element={<ConsultantDashboard />} />
-                    <Route path="leads" element={<AdminLeads />} />
-                    <Route path="projects" element={<AdminProjects />} />
-                    <Route path="projects/:id" element={<AdminProjectHub />} />
-                    <Route path="users" element={<AdminUsers />} />
-                    <Route path="calendar" element={<AdminCalendar />} />
-                    <Route path="academy" element={<AdminAcademy />} />
-                    <Route path="academy/documents" element={<AcademyDocumentGenerator />} />
-                    <Route path="board" element={<AdminBoard />} />
-                    <Route path="config" element={<AdminConfig />} />
-                    <Route path="profile" element={<UserProfile />} />
+              {/* New Hub Routes for Clients/Managers */}
+              <Route path="/hub/profile" element={
+                <ProtectedRoute>
+                  <UserProfile />
+                </ProtectedRoute>
+              } />
+              <Route path="/hub/calendar" element={
+                <ProtectedRoute>
+                  <HubCalendar />
+                </ProtectedRoute>
+              } />
 
-                    {/* Procurement Routes (Admin) */}
-                    <Route path="procurement" element={<OrdersList />} />
-                    <Route path="procurement/new" element={<OrderForm />} />
-                    <Route path="procurement/alerts" element={<StockAlerts />} />
-                    <Route path="procurement/movements" element={<StockMovements />} />
-                    <Route path="procurement/:id" element={<OrderDetail />} />
-                    <Route path="supply" element={<SupplyItemsPage />} />
-                  </Route>
-                </Route>
+              <Route path="/hub/my-project" element={
+                <ProtectedRoute>
+                  <ClientProjectRedirect />
+                </ProtectedRoute>
+              } />
 
-                {/* New Hub Routes for Clients/Managers */}
-                <Route path="/hub/profile" element={
-                  <ProtectedRoute>
-                    <UserProfile />
-                  </ProtectedRoute>
-                } />
-                <Route path="/hub/calendar" element={
-                  <ProtectedRoute>
-                    <HubCalendar />
-                  </ProtectedRoute>
-                } />
+              {/* Reuse AdminProjectHub for Clients (Read Only logic handled inside) */}
+              <Route path="/hub/projects/:id" element={
+                <ProtectedRoute>
+                  <AdminProjectHub />
+                </ProtectedRoute>
+              } />
 
-                <Route path="/hub/my-project" element={
-                  <ProtectedRoute>
-                    <ClientProjectRedirect />
-                  </ProtectedRoute>
-                } />
+              <Route path="/methodology" element={<Methodology />} />
+              <Route path="/academy" element={<Academy />} />
+              <Route path="/academy/:id" element={<ResourceDetail />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
 
-                {/* Reuse AdminProjectHub for Clients (Read Only logic handled inside) */}
-                <Route path="/hub/projects/:id" element={
-                  <ProtectedRoute>
-                    <AdminProjectHub />
-                  </ProtectedRoute>
-                } />
+              <Route path="/about" element={<About />} />
+              <Route path="/services" element={<Services />} />
+              <Route path="/calendar" element={<CalendarPage />} />
 
-                <Route path="/methodology" element={<Methodology />} />
-                <Route path="/academy" element={<Academy />} />
-                <Route path="/academy/:id" element={<ResourceDetail />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/reset-password" element={<ResetPassword />} />
+              {/* Finance Module Routes — FinanzaProvider SOLO envuelve las rutas de finance */}
+              <Route element={<ProtectedRoute><FinanzaProvider><FinanceLayout /></FinanzaProvider></ProtectedRoute>}>
+                <Route path="/finance" element={<FinanceDashboard />} />
+                <Route path="/finance/annual" element={<FinanceAnnualSummary />} />
+                <Route path="/finance/transactions" element={<FinanceTransactions />} />
+                <Route path="/finance/budget" element={<FinanceBudget />} />
+                <Route path="/finance/jars" element={<FinanceJars />} />
+                <Route path="/finance/accounts" element={<FinanceAccounts />} />
+                <Route path="/finance/import" element={<FinanceImport />} />
+                <Route path="/finance/settings" element={<FinanceSettings />} />
+                <Route path="/finance/cheques" element={<FinanceCheques />} />
+                <Route path="/finance/cashflow" element={<FinanceCashFlow />} />
+                <Route path="/finance/loans" element={<FinanceLoans />} />
+              </Route>
 
-                <Route path="/about" element={<About />} />
-                <Route path="/services" element={<Services />} />
-                <Route path="/calendar" element={<CalendarPage />} />
-
-                {/* Finance Module Routes */}
-                <Route element={<ProtectedRoute><FinanceLayout /></ProtectedRoute>}>
-                  <Route path="/finance" element={<FinanceDashboard />} />
-                  <Route path="/finance/annual" element={<FinanceAnnualSummary />} />
-                  <Route path="/finance/transactions" element={<FinanceTransactions />} />
-                  <Route path="/finance/budget" element={<FinanceBudget />} />
-                  <Route path="/finance/jars" element={<FinanceJars />} />
-                  <Route path="/finance/accounts" element={<FinanceAccounts />} />
-                  <Route path="/finance/import" element={<FinanceImport />} />
-                  <Route path="/finance/settings" element={<FinanceSettings />} />
-                  <Route path="/finance/cheques" element={<FinanceCheques />} />
-                  <Route path="/finance/cashflow" element={<FinanceCashFlow />} />
-                </Route>
-
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
-            </Suspense>
-          </Router>
-        </FinanzaProvider>
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </Suspense>
+        </Router>
       </AuthProvider>
     </ErrorBoundary>
   );

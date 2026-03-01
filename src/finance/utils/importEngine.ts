@@ -170,20 +170,21 @@ export const parseMercadoPagoPDF = (text: string): ImportLine[] => {
     const result: ImportLine[] = [];
 
     // Regex para detectar líneas de transacciones de MP
-    // Formato: DD-MM-YYYY Descripción ID $ Monto $ Saldo
-    const transactionRegex = /(\d{2}-\d{2}-\d{4})\s+(.+?)\s+(\d{10,})\s+\$\s*([\-\d\.,]+)\s+\$\s*([\d\.,]+)/g;
-
-    // También detectar formato alternativo sin ID largo
-    const altRegex = /(\d{2}-\d{2}-\d{4})\s+([A-Za-zÁÉÍÓÚáéíóúñÑ\s\*']+)\s+\$\s*([\-\d\.,]+)/g;
+    // Soporta formatos de fecha: DD-MM-YYYY, DD MM YYYY, DD.MM.YYYY (con o sin cero inicial)
+    // Formato: FECHA Descripción ID $ Monto $ Saldo
+    const transactionRegex = /(\d{1,2}[\s\-\.]+\d{1,2}[\s\-\.]+\d{4})\s+(.+?)\s+(\d{10,})\s+\$\s*([\-\d\.,]+)\s+\$\s*([\d\.,]+)/g;
 
     let match;
 
-    // Primero intentar con el regex principal (con ID)
     while ((match = transactionRegex.exec(text)) !== null) {
         const [, dateStr, description, , valueStr] = match;
 
-        // Convertir fecha de DD-MM-YYYY a YYYY-MM-DD
-        const [day, month, year] = dateStr.split('-');
+        // Normalizar fecha: separar por guiones, espacios o puntos
+        const dateParts = dateStr.split(/[\s\-\.]+/);
+        if (dateParts.length !== 3) continue;
+        const day = dateParts[0].padStart(2, '0');
+        const month = dateParts[1].padStart(2, '0');
+        const year = dateParts[2];
         const formattedDate = `${year}-${month}-${day}`;
 
         // Parsear el valor (quitar puntos de miles y convertir coma a punto)
@@ -220,7 +221,7 @@ export const parseImportText = (text: string): ImportLine[] => {
     const isMercadoPagoPDF = text.includes('RESUMEN DE CUENTA') ||
         text.includes('mercado pago') ||
         text.includes('DETALLE DE MOVIMIENTOS') ||
-        /\d{2}-\d{2}-\d{4}.*\$\s*[\-\d\.,]+\s+\$\s*[\d\.,]+/.test(text);
+        /\d{1,2}[\s\-\.]+\d{1,2}[\s\-\.]+\d{4}.*\$\s*[\-\d\.,]+\s+\$\s*[\d\.,]+/.test(text);
 
     if (isMercadoPagoPDF) {
         const mpResults = parseMercadoPagoPDF(text);

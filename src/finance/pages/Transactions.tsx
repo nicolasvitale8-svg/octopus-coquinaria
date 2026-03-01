@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Transaction, Account, Category, SubCategory, TransactionType } from '../financeTypes';
-import { Plus, X, Tag, Calendar, Wallet, Filter, ListFilter, RotateCcw, TrendingUp, TrendingDown, DollarSign, Search, Sparkles, Edit2, Trash2 } from 'lucide-react';
+import { Plus, X, Tag, Calendar, Wallet, Filter, ListFilter, RotateCcw, TrendingUp, TrendingDown, DollarSign, Search, Sparkles, Edit2, Trash2, FileUp } from 'lucide-react';
 import { formatCurrency } from '../utils/calculations';
 import { useFinanza } from '../context/FinanzaContext';
 
 export const Transactions: React.FC = () => {
+  const navigate = useNavigate();
   const { activeEntity, service, isDemoMode } = useFinanza();
   const [loading, setLoading] = useState(true);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -225,6 +227,13 @@ export const Transactions: React.FC = () => {
           >
             <Filter size={18} />
             Filtros {activeFilterCount > 0 && `(${activeFilterCount})`}
+          </button>
+          <button
+            onClick={() => navigate('/finance/import')}
+            className={`flex-1 md:flex-none px-6 py-3.5 rounded-2xl font-bold text-sm transition-all border flex items-center justify-center gap-3 bg-fin-card border-fin-border text-fin-muted hover:text-white hover:border-brand/30 hover:bg-brand/5`}
+          >
+            <FileUp size={18} />
+            Importar
           </button>
           <button
             onClick={() => setIsModalOpen(true)}

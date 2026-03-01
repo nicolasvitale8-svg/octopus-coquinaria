@@ -9,11 +9,9 @@ import { useNavigate } from 'react-router-dom';
 import { useFinanza } from '../context/FinanzaContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { logger } from '../../services/logger';
-import Tesseract from 'tesseract.js';
-import * as pdfjsLib from 'pdfjs-dist';
 
-// Configurar el worker de pdf.js - usar unpkg como CDN alternativo
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
+// tesseract.js y pdfjs-dist se cargan dinámicamente cuando se necesitan
+// para evitar descargar ~17MB en el bundle inicial
 
 export const ImportPage: React.FC = () => {
   const { activeEntity } = useFinanza();
@@ -180,6 +178,10 @@ export const ImportPage: React.FC = () => {
   // Función para extraer texto de un PDF
   const extractTextFromPDF = async (file: File): Promise<string> => {
     try {
+      // Dynamic import — pdfjs-dist (~2MB) se carga solo cuando se sube un PDF
+      const pdfjsLib = await import('pdfjs-dist');
+      pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
+
       const arrayBuffer = await file.arrayBuffer();
       const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
       const pdf = await loadingTask.promise;
@@ -191,10 +193,17 @@ export const ImportPage: React.FC = () => {
 
         const page = await pdf.getPage(pageNum);
         const textContent = await page.getTextContent();
-        const pageText = textContent.items
-          .map((item: any) => item.str)
-          .join(' ');
-        fullText += pageText + '\n\n';
+        // Usar la posición Y para detectar saltos de línea reales del PDF
+        let lastY: number | null = null;
+        let pageText = '';
+        for (const item of textContent.items as any[]) {
+          if (lastY !== null && Math.abs(item.transform[5] - lastY) > 2) {
+            pageText += '\n';
+          }
+          pageText += item.str + ' ';
+          lastY = item.transform[5];
+        }
+        fullText += pageText.trim() + '\n\n';
       }
 
       return fullText;
@@ -217,11 +226,15 @@ export const ImportPage: React.FC = () => {
       let extractedText = '';
 
       if (file.type === 'application/pdf') {
-        // Procesar PDF
+        // Procesar PDF - auto-cambiar a modo 'auto' para preservar fechas del PDF
+        setImportMode('auto');
         setScanStatus('Extrayendo texto del PDF...');
         extractedText = await extractTextFromPDF(file);
       } else {
         // Procesar imagen con OCR
+        // Dynamic import — tesseract.js (~15MB) se carga solo cuando se sube una imagen
+        setScanStatus('Cargando motor OCR...');
+        const Tesseract = await import('tesseract.js');
         setScanStatus('Reconociendo texto de la imagen...');
         const { data: { text } } = await Tesseract.recognize(file, 'spa', {
           logger: (m: any) => {

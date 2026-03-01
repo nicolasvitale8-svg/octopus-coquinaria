@@ -17,7 +17,8 @@ import {
     PiggyBank,
     TrendingUp,
     ShieldCheck,
-    Archive
+    Archive,
+    Receipt
 } from 'lucide-react';
 import { useFinanza } from '../context/FinanzaContext';
 
@@ -33,6 +34,7 @@ const FinanceLayout = () => {
         { path: '/finance/budget', icon: <Banknote size={20} />, label: 'Presupuesto' },
         { path: '/finance/transactions', icon: <BarChart3 size={20} />, label: 'Movimientos' },
         { path: '/finance/cheques', icon: <Wallet size={20} />, label: 'Libro Cheques' },
+        { path: '/finance/loans', icon: <Receipt size={20} />, label: 'Préstamos' },
         { path: '/finance/cashflow', icon: <TrendingUp size={20} />, label: 'Cash Flow' },
         { path: '/finance/jars', icon: <PiggyBank size={20} />, label: 'Frascos' },
         { path: '/finance/accounts', icon: <Settings size={20} />, label: 'Administración' },

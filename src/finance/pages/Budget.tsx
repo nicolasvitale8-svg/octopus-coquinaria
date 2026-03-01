@@ -15,6 +15,7 @@ export const Budget: React.FC = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [isAdding, setIsAdding] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [activeBudgetTab, setActiveBudgetTab] = useState<TransactionType>(TransactionType.OUT);
 
@@ -93,8 +94,10 @@ export const Budget: React.FC = () => {
 
   const handleSaveItem = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSaving) return;
     if (!newItem.categoryId || !newItem.plannedAmount || !newItem.label) return;
 
+    setIsSaving(true);
     try {
       const bId = activeEntity.id || undefined;
       const itemToSave = {
@@ -110,6 +113,8 @@ export const Budget: React.FC = () => {
       setIsAdding(false); setEditingId(null); setNewItem({ type: TransactionType.OUT, plannedAmount: 0, label: '' });
     } catch (error) {
       console.error("Error saving budget item:", error);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -539,8 +544,8 @@ export const Budget: React.FC = () => {
             </div>
 
             <div className="flex items-end">
-              <button type="submit" className="w-full bg-brand text-fin-bg rounded-2xl py-4 font-black text-xs uppercase tracking-[0.2em] hover:bg-brand-hover transition-all shadow-xl shadow-brand/20 active:scale-95">
-                {editingId ? 'ACTUALIZAR DATOS' : 'CREAR PROYECCIÓN'}
+              <button type="submit" disabled={isSaving} className="w-full bg-brand text-fin-bg rounded-2xl py-4 font-black text-xs uppercase tracking-[0.2em] hover:bg-brand-hover transition-all shadow-xl shadow-brand/20 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
+                {isSaving ? 'GUARDANDO...' : (editingId ? 'ACTUALIZAR DATOS' : 'CREAR PROYECCIÓN')}
               </button>
             </div>
           </form>

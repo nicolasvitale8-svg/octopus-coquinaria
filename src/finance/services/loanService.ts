@@ -1,0 +1,206 @@
+import { supabase } from '../../services/supabase';
+
+// ========== TYPES ==========
+
+export type LoanDirection = 'TAKEN' | 'GIVEN' | 'CREDIT_CARD';
+export type LoanStatus = 'ACTIVO' | 'CANCELADO' | 'COMPLETADO';
+export type PaymentStatus = 'PENDIENTE' | 'PAGADA';
+
+export interface Loan {
+    id: string;
+    project_id: string;
+    direction: LoanDirection;
+    counterparty: string;
+    total_amount: number;
+    total_installments: number;
+    installment_amount: number;
+    interest_rate: number;
+    start_date: string; // YYYY-MM-DD
+    status: LoanStatus;
+    description?: string;
+    account_id?: string;
+    category_id?: string;
+    subcategory_id?: string;
+    created_at?: string;
+}
+
+export interface LoanPayment {
+    id: string;
+    loan_id: string;
+    installment_number: number;
+    due_date: string; // YYYY-MM-DD
+    amount: number;
+    status: PaymentStatus;
+    paid_date?: string;
+    created_at?: string;
+}
+
+export type CreateLoanDTO = Omit<Loan, 'id' | 'created_at' | 'project_id'>;
+
+// ========== HELPERS ==========
+
+/**
+ * Genera el cronograma de cuotas para un préstamo.
+ * Si interestRate > 0, calcula cuota fija (sistema francés).
+ * Si interestRate === 0, divide monto total / cantidad de cuotas.
+ */
+export function generateInstallments(
+    totalAmount: number,
+    totalInstallments: number,
+    interestRate: number,
+    startDate: string
+): Omit<LoanPayment, 'id' | 'loan_id' | 'created_at'>[] {
+    const installments: Omit<LoanPayment, 'id' | 'loan_id' | 'created_at'>[] = [];
+    const start = new Date(startDate + 'T12:00:00');
+
+    let cuotaAmount: number;
+
+    if (interestRate > 0) {
+        // Sistema francés: cuota fija con interés
+        const monthlyRate = interestRate / 100 / 12;
+        cuotaAmount = totalAmount * (monthlyRate * Math.pow(1 + monthlyRate, totalInstallments)) /
+            (Math.pow(1 + monthlyRate, totalInstallments) - 1);
+    } else {
+        cuotaAmount = totalAmount / totalInstallments;
+    }
+
+    cuotaAmount = Math.round(cuotaAmount * 100) / 100;
+
+    for (let i = 1; i <= totalInstallments; i++) {
+        const dueDate = new Date(start);
+        dueDate.setMonth(dueDate.getMonth() + i);
+        const dueDateStr = dueDate.toISOString().split('T')[0];
+
+        installments.push({
+            installment_number: i,
+            due_date: dueDateStr,
+            amount: cuotaAmount,
+            status: 'PENDIENTE' as PaymentStatus,
+        });
+    }
+
+    return installments;
+}
+
+// ========== SERVICE ==========
+
+export const loanService = {
+
+    async getAll(projectId: string): Promise<Loan[]> {
+        if (!projectId) return [];
+
+        const { data, error } = await supabase
+            .from('finance_loans')
+            .select('*')
+            .eq('project_id', projectId)
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        return data as Loan[];
+    },
+
+    async create(projectId: string, loan: CreateLoanDTO): Promise<Loan> {
+        const { data, error } = await supabase
+            .from('finance_loans')
+            .insert([{ ...loan, project_id: projectId }])
+            .select()
+            .single();
+
+        if (error) throw error;
+        const created = data as Loan;
+
+        // Auto-generar cuotas
+        const installments = generateInstallments(
+            loan.total_amount,
+            loan.total_installments,
+            loan.interest_rate,
+            loan.start_date
+        );
+
+        const paymentsToInsert = installments.map(inst => ({
+            ...inst,
+            loan_id: created.id,
+        }));
+
+        const { error: payError } = await supabase
+            .from('finance_loan_payments')
+            .insert(paymentsToInsert);
+
+        if (payError) throw payError;
+
+        return created;
+    },
+
+    async update(id: string, updates: Partial<CreateLoanDTO>): Promise<Loan> {
+        const { data, error } = await supabase
+            .from('finance_loans')
+            .update(updates)
+            .eq('id', id)
+            .select()
+            .single();
+
+        if (error) throw error;
+        return data as Loan;
+    },
+
+    async delete(id: string): Promise<void> {
+        // Payments cascade-delete thanks to FK
+        const { error } = await supabase
+            .from('finance_loans')
+            .delete()
+            .eq('id', id);
+
+        if (error) throw error;
+    },
+
+    async getPayments(loanId: string): Promise<LoanPayment[]> {
+        const { data, error } = await supabase
+            .from('finance_loan_payments')
+            .select('*')
+            .eq('loan_id', loanId)
+            .order('installment_number', { ascending: true });
+
+        if (error) throw error;
+        return data as LoanPayment[];
+    },
+
+    async getAllPayments(loanIds: string[]): Promise<LoanPayment[]> {
+        if (loanIds.length === 0) return [];
+
+        const { data, error } = await supabase
+            .from('finance_loan_payments')
+            .select('*')
+            .in('loan_id', loanIds)
+            .order('installment_number', { ascending: true });
+
+        if (error) throw error;
+        return data as LoanPayment[];
+    },
+
+    async recordPayment(paymentId: string, paidDate: string): Promise<void> {
+        const { error } = await supabase
+            .from('finance_loan_payments')
+            .update({ status: 'PAGADA', paid_date: paidDate })
+            .eq('id', paymentId);
+
+        if (error) throw error;
+    },
+
+    async undoPayment(paymentId: string): Promise<void> {
+        const { error } = await supabase
+            .from('finance_loan_payments')
+            .update({ status: 'PENDIENTE', paid_date: null })
+            .eq('id', paymentId);
+
+        if (error) throw error;
+    },
+
+    async updateStatus(id: string, status: LoanStatus): Promise<void> {
+        const { error } = await supabase
+            .from('finance_loans')
+            .update({ status })
+            .eq('id', id);
+
+        if (error) throw error;
+    },
+};

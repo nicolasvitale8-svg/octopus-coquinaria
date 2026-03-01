@@ -2,8 +2,7 @@ import React, { useState, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { FileText, Download, Eye, Edit3, Plus, Trash2, Loader2, ChevronDown } from 'lucide-react';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
+// html2canvas y jspdf se cargan dinámicamente al exportar PDF
 import {
     DocumentData,
     DocumentMetadata,
@@ -70,6 +69,11 @@ export const DocumentGenerator: React.FC = () => {
             const currentTab = activeTab;
             setActiveTab('preview');
             await new Promise(resolve => setTimeout(resolve, 500));
+
+            const html2canvasModule = await import('html2canvas');
+            const html2canvas = html2canvasModule.default;
+            const jsPDFModule = await import('jspdf');
+            const jsPDF = jsPDFModule.default;
 
             const canvas = await html2canvas(previewRef.current, {
                 scale: 2,
@@ -227,8 +231,8 @@ export const DocumentGenerator: React.FC = () => {
                     <button
                         onClick={() => setActiveTab('edit')}
                         className={`flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-black uppercase tracking-wider transition-all ${activeTab === 'edit'
-                                ? 'bg-amber-500 text-slate-900'
-                                : 'bg-slate-800 text-slate-400 hover:text-white'
+                            ? 'bg-amber-500 text-slate-900'
+                            : 'bg-slate-800 text-slate-400 hover:text-white'
                             }`}
                     >
                         <Edit3 size={16} /> Editor
@@ -236,8 +240,8 @@ export const DocumentGenerator: React.FC = () => {
                     <button
                         onClick={() => setActiveTab('preview')}
                         className={`flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-black uppercase tracking-wider transition-all ${activeTab === 'preview'
-                                ? 'bg-amber-500 text-slate-900'
-                                : 'bg-slate-800 text-slate-400 hover:text-white'
+                            ? 'bg-amber-500 text-slate-900'
+                            : 'bg-slate-800 text-slate-400 hover:text-white'
                             }`}
                     >
                         <Eye size={16} /> Vista Previa
@@ -370,8 +374,8 @@ export const DocumentGenerator: React.FC = () => {
                                                 <td className="py-2 px-3 font-semibold text-gray-600 bg-gray-50 border-r border-gray-300 w-20">Estado</td>
                                                 <td className="py-2 px-3">
                                                     <span className={`px-2 py-0.5 text-xs font-semibold rounded ${document.metadata.status === 'VIGENTE' ? 'bg-emerald-100 text-emerald-700' :
-                                                            document.metadata.status === 'BORRADOR' ? 'bg-amber-100 text-amber-700' :
-                                                                'bg-gray-100 text-gray-700'
+                                                        document.metadata.status === 'BORRADOR' ? 'bg-amber-100 text-amber-700' :
+                                                            'bg-gray-100 text-gray-700'
                                                         }`}>
                                                         {document.metadata.status}
                                                     </span>
