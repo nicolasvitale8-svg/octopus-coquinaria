@@ -217,7 +217,7 @@ export const Loans: React.FC = () => {
             };
 
             if (editingLoan) {
-                await loanService.update(editingLoan.id, loanData);
+                await loanService.update(editingLoan.id, loanData, paymentDay);
             } else {
                 await loanService.create(projectId, loanData, paidInstallments, paymentDay);
             }

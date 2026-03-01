@@ -162,7 +162,7 @@ export const loanService = {
         return created;
     },
 
-    async update(id: string, updates: Partial<CreateLoanDTO>): Promise<Loan> {
+    async update(id: string, updates: Partial<CreateLoanDTO>, paymentDay?: number): Promise<Loan> {
         const { data, error } = await supabase
             .from('finance_loans')
             .update(updates)
@@ -171,7 +171,40 @@ export const loanService = {
             .single();
 
         if (error) throw error;
-        return data as Loan;
+        const updated = data as Loan;
+
+        // Regenerar cuotas si cambiaron valores clave
+        if (updates.total_amount !== undefined || updates.total_installments !== undefined ||
+            updates.interest_rate !== undefined || updates.start_date !== undefined) {
+
+            // Borrar cuotas viejas
+            const { error: delError } = await supabase
+                .from('finance_loan_payments')
+                .delete()
+                .eq('loan_id', id);
+            if (delError) throw delError;
+
+            // Generar nuevas cuotas
+            const installments = generateInstallments(
+                updated.total_amount,
+                updated.total_installments,
+                updated.interest_rate,
+                updated.start_date,
+                paymentDay
+            );
+
+            const paymentsToInsert = installments.map(inst => ({
+                ...inst,
+                loan_id: id,
+            }));
+
+            const { error: payError } = await supabase
+                .from('finance_loan_payments')
+                .insert(paymentsToInsert);
+            if (payError) throw payError;
+        }
+
+        return updated;
     },
 
     async delete(id: string): Promise<void> {
