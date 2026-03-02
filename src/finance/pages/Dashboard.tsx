@@ -809,6 +809,220 @@ export const Dashboard: React.FC = () => {
         )}
       </div>
 
+      {/* Smart Insights Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        {/* Spending Alerts */}
+        {(() => {
+          // Compare current month spending by category with previous month
+          const prevDate = new Date(currentYear, currentMonth - 1, 1);
+          const pm = prevDate.getMonth();
+          const py = prevDate.getFullYear();
+
+          const getSpendByCategory = (m: number, y: number) => {
+            const map: Record<string, { name: string; amount: number }> = {};
+            transactions.filter(t => {
+              const d = new Date(t.date.split('T')[0] + 'T12:00:00');
+              return d.getMonth() === m && d.getFullYear() === y && t.type === 'OUT';
+            }).forEach(t => {
+              const cat = categories.find(c => c.id === t.categoryId);
+              const n = cat?.name || 'Otro';
+              if (!map[n]) map[n] = { name: n, amount: 0 };
+              map[n].amount += t.amount;
+            });
+            return map;
+          };
+
+          const current = getSpendByCategory(currentMonth, currentYear);
+          const prev = getSpendByCategory(pm, py);
+
+          const insights: { text: string; type: 'warn' | 'good' }[] = [];
+
+          Object.entries(current).forEach(([name, { amount }]) => {
+            const prevAmt = prev[name]?.amount || 0;
+            if (prevAmt > 0) {
+              const change = ((amount - prevAmt) / prevAmt) * 100;
+              if (change > 25) {
+                insights.push({ text: `${name}: +${Math.round(change)}% vs mes anterior`, type: 'warn' });
+              } else if (change < -20) {
+                insights.push({ text: `${name}: ${Math.round(change)}% vs mes anterior`, type: 'good' });
+              }
+            }
+          });
+
+          // Savings rate
+          const savingsRate = totalIn > 0 ? ((totalIn - totalOut) / totalIn * 100) : 0;
+          if (savingsRate > 0) {
+            insights.push({ text: `Tasa de ahorro: ${savingsRate.toFixed(0)}% de tus ingresos`, type: 'good' });
+          } else if (totalIn > 0) {
+            insights.push({ text: `Gastaste ${Math.abs(savingsRate).toFixed(0)}% más de lo que ingresaste`, type: 'warn' });
+          }
+
+          if (insights.length === 0) return null;
+
+          return (
+            <div className="bg-fin-card border border-fin-border rounded-[32px] p-6 shadow-2xl overflow-hidden relative">
+              <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-violet-500/40 to-transparent"></div>
+              <h3 className="text-sm font-black text-white uppercase tracking-widest flex items-center gap-2 mb-4">
+                <Sparkles size={16} className="text-violet-400" /> Inteligencia Financiera
+              </h3>
+              <div className="space-y-2">
+                {insights.slice(0, 6).map((ins, i) => (
+                  <div key={i} className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${ins.type === 'warn' ? 'bg-amber-500/5 border-amber-500/20' : 'bg-emerald-500/5 border-emerald-500/20'}`}>
+                    <div className={`w-2 h-2 rounded-full flex-shrink-0 ${ins.type === 'warn' ? 'bg-amber-400' : 'bg-emerald-400'}`}></div>
+                    <p className="text-[11px] font-bold text-white/80">{ins.text}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* Cash Flow Projection - 3 months */}
+        {(() => {
+          const projMonths: { label: string; ingresos: number; egresos: number; cuotas: number }[] = [];
+
+          for (let i = 1; i <= 3; i++) {
+            const futureDate = new Date(currentYear, currentMonth + i, 1);
+            const fm = futureDate.getMonth();
+            const fy = futureDate.getFullYear();
+            const label = futureDate.toLocaleDateString('es-ES', { month: 'short' }).toUpperCase();
+
+            // Recurring budget items
+            const recurringIn = budgetItems
+              .filter(b => b.isRecurring && b.type === 'IN' && b.month === currentMonth && b.year === currentYear)
+              .reduce((s, b) => s + b.plannedAmount, 0);
+            const recurringOut = budgetItems
+              .filter(b => b.isRecurring && b.type === 'OUT' && b.month === currentMonth && b.year === currentYear)
+              .reduce((s, b) => s + b.plannedAmount, 0);
+
+            // Loan installments for that month
+            let loanTotal = 0;
+            const futureStart = `${fy}-${String(fm + 1).padStart(2, '0')}-01`;
+            const futureEnd = `${fy}-${String(fm + 1).padStart(2, '0')}-31`;
+            loansList.filter(l => l.status === 'ACTIVO' && l.direction !== 'GIVEN').forEach(loan => {
+              (loanPaymentsMap[loan.id] || [])
+                .filter(p => p.status === 'PENDIENTE' && p.due_date >= futureStart && p.due_date <= futureEnd)
+                .forEach(p => { loanTotal += p.amount; });
+            });
+
+            projMonths.push({
+              label,
+              ingresos: recurringIn,
+              egresos: recurringOut + loanTotal,
+              cuotas: loanTotal
+            });
+          }
+
+          const maxVal = Math.max(...projMonths.map(p => Math.max(p.ingresos, p.egresos)), 1);
+
+          return (
+            <div className="bg-fin-card border border-fin-border rounded-[32px] p-6 shadow-2xl overflow-hidden relative">
+              <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-cyan-500/40 to-transparent"></div>
+              <h3 className="text-sm font-black text-white uppercase tracking-widest flex items-center gap-2 mb-4">
+                <TrendingUp size={16} className="text-cyan-400" /> Proyección 3 Meses
+              </h3>
+              <div className="space-y-4">
+                {projMonths.map((pm, i) => {
+                  const neto = pm.ingresos - pm.egresos;
+                  return (
+                    <div key={i}>
+                      <div className="flex justify-between items-center mb-1.5">
+                        <span className="text-[10px] font-black text-white uppercase tracking-widest">{pm.label}</span>
+                        <span className={`text-[10px] font-black tabular-nums ${neto >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                          {neto >= 0 ? '+' : ''}{formatCurrency(neto)}
+                        </span>
+                      </div>
+                      <div className="flex gap-1 h-4">
+                        <div
+                          className="bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-l-full transition-all duration-700"
+                          style={{ width: `${(pm.ingresos / maxVal) * 100}%` }}
+                          title={`Ingreso: ${formatCurrency(pm.ingresos)}`}
+                        ></div>
+                        <div
+                          className="bg-gradient-to-r from-red-500 to-red-400 rounded-r-full transition-all duration-700"
+                          style={{ width: `${(pm.egresos / maxVal) * 100}%` }}
+                          title={`Egreso: ${formatCurrency(pm.egresos)}`}
+                        ></div>
+                      </div>
+                      <div className="flex justify-between mt-1">
+                        <span className="text-[9px] text-emerald-500/60 font-bold">{formatCurrency(pm.ingresos)}</span>
+                        <span className="text-[9px] text-red-500/60 font-bold">-{formatCurrency(pm.egresos)}{pm.cuotas > 0 ? ` (${formatCurrency(pm.cuotas)} cuotas)` : ''}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* Savings Rate & Top Spending */}
+        {(() => {
+          const savingsRate = totalIn > 0 ? ((totalIn - totalOut) / totalIn * 100) : 0;
+          const topCats = expensesByCategory.slice(0, 3);
+
+          return (
+            <div className="bg-fin-card border border-fin-border rounded-[32px] p-6 shadow-2xl overflow-hidden relative">
+              <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-emerald-500/40 to-transparent"></div>
+
+              {/* Savings Rate Gauge */}
+              <div className="text-center mb-5">
+                <h3 className="text-sm font-black text-white uppercase tracking-widest flex items-center justify-center gap-2 mb-3">
+                  <PiggyBank size={16} className="text-emerald-400" /> Tasa de Ahorro
+                </h3>
+                <div className="relative w-24 h-24 mx-auto">
+                  <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
+                    <circle cx="50" cy="50" r="40" fill="none" stroke="#1F2937" strokeWidth="8" />
+                    <circle cx="50" cy="50" r="40" fill="none"
+                      stroke={savingsRate >= 20 ? '#10B981' : savingsRate >= 0 ? '#F59E0B' : '#EF4444'}
+                      strokeWidth="8"
+                      strokeDasharray={`${Math.max(0, Math.min(savingsRate, 100)) * 2.51} 251`}
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className={`text-xl font-black ${savingsRate >= 20 ? 'text-emerald-400' : savingsRate >= 0 ? 'text-amber-400' : 'text-red-400'}`}>
+                      {savingsRate.toFixed(0)}%
+                    </span>
+                  </div>
+                </div>
+                <p className="text-[9px] font-bold text-fin-muted mt-1">
+                  {savingsRate >= 20 ? 'Excelente' : savingsRate >= 10 ? 'Bueno' : savingsRate >= 0 ? 'Puede mejorar' : 'Deficit'}
+                </p>
+              </div>
+
+              {/* Top 3 Spending */}
+              <div className="border-t border-white/5 pt-4">
+                <p className="text-[9px] font-black text-fin-muted uppercase tracking-widest mb-3">Top Gastos del Mes</p>
+                <div className="space-y-2">
+                  {topCats.map((cat, i) => {
+                    const pct = totalOut > 0 ? (cat.amount / totalOut * 100) : 0;
+                    return (
+                      <div key={i} className="flex items-center gap-2">
+                        <span className="text-[10px] font-black text-white/40 w-4">{i + 1}</span>
+                        <div className="flex-1">
+                          <div className="flex justify-between mb-0.5">
+                            <span className="text-[10px] font-bold text-white truncate max-w-[90px]">{cat.name}</span>
+                            <span className="text-[10px] font-black text-white/60 tabular-nums">{pct.toFixed(0)}%</span>
+                          </div>
+                          <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                            <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, backgroundColor: cat.color }}></div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {topCats.length === 0 && (
+                    <p className="text-[10px] text-fin-muted/50 text-center py-2">Sin gastos registrados</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+      </div>
+
       {/* Sidebar right side */}
       <div className="lg:col-span-1 space-y-10">
 
