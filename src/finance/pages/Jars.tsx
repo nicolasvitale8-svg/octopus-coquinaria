@@ -204,14 +204,19 @@ export const Jars: React.FC = () => {
          const bId = activeEntity.id || undefined;
          const calc = calculateJar(jar);
 
-         // Generar movimiento de ingreso (reversión) por el valor actual
+         // Ojo con los decimales infinitos en JS y las validaciones de Supabase NUMERIC.
+         const cleanValue = Math.round(calc.currentValue * 100) / 100;
+         const d = new Date();
+         const localDateString = new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+
          const savingsCat = await getOrCreateSavingsCategory(categories, service, bId);
+
          await service.addTransaction({
-            date: new Date().toISOString().split('T')[0],
+            date: localDateString,
             categoryId: savingsCat.id,
             description: `Cancelación Frasco: ${jar.name}`,
-            note: `Capital: ${formatCurrency(jar.principal)} + Interés acumulado: ${formatCurrency(calc.interestAccrued)}`,
-            amount: calc.currentValue,
+            note: `Capital original + intereses`,
+            amount: cleanValue,
             type: TransactionType.IN,
             accountId: jar.accountId,
          }, bId);
@@ -221,7 +226,8 @@ export const Jars: React.FC = () => {
          await loadData();
       } catch (error) {
          console.error("Error deleting jar:", error);
-         alert("Hubo un error al eliminar el frasco.");
+         const errMsg = error instanceof Error ? error.message : String(error);
+         alert("Hubo un error al eliminar el frasco: " + errMsg);
       } finally {
          setDeletingId(null);
       }
