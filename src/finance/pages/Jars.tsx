@@ -1,16 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { Jar, Account } from '../financeTypes';
 import { calculateJar, formatCurrency } from '../utils/calculations';
-import { Plus, Trash2, PiggyBank, Clock, TrendingUp, ChevronRight, Sparkles } from 'lucide-react';
+import { Trash2, Pencil, X, Target } from 'lucide-react';
 import { useFinanza } from '../context/FinanzaContext';
+
+/** Parsea 'YYYY-MM-DD' sin desfase de timezone (evita interpretación UTC) */
+const formatDateLocal = (dateStr: string): string => {
+   const [y, m, d] = dateStr.split('-').map(Number);
+   return new Date(y, m - 1, d).toLocaleDateString();
+};
 
 export const Jars: React.FC = () => {
    const { activeEntity, service, isDemoMode } = useFinanza();
    const [loading, setLoading] = useState(true);
    const [jars, setJars] = useState<Jar[]>([]);
    const [accounts, setAccounts] = useState<Account[]>([]);
-   const [isAdding, setIsAdding] = useState(false);
-   const [newJar, setNewJar] = useState<Partial<Jar>>({ annualRate: 40 });
+   const [isFormOpen, setIsFormOpen] = useState(false);
+   const [editingJar, setEditingJar] = useState<Partial<Jar>>({ annualRate: 40 });
+   const [isEditing, setIsEditing] = useState(false);
 
    useEffect(() => { loadData(); }, [activeEntity]);
 
@@ -31,15 +38,33 @@ export const Jars: React.FC = () => {
       }
    };
 
-   const handleAdd = async (e: React.FormEvent) => {
+   const openNewForm = () => {
+      setEditingJar({ annualRate: 40 });
+      setIsEditing(false);
+      setIsFormOpen(true);
+   };
+
+   const openEditForm = (jar: Jar) => {
+      setEditingJar({ ...jar });
+      setIsEditing(true);
+      setIsFormOpen(true);
+   };
+
+   const closeForm = () => {
+      setIsFormOpen(false);
+      setEditingJar({ annualRate: 40 });
+      setIsEditing(false);
+   };
+
+   const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
-      if (!newJar.name || !newJar.principal || !newJar.startDate || !newJar.endDate) return;
+      if (!editingJar.name || !editingJar.principal || !editingJar.startDate || !editingJar.endDate) return;
 
       try {
          const bId = activeEntity.id || undefined;
-         await service.saveJar(newJar, bId);
+         await service.saveJar(editingJar, bId);
          await loadData();
-         setIsAdding(false); setNewJar({ annualRate: 40 });
+         closeForm();
       } catch (error) {
          console.error("Error saving jar:", error);
       }
@@ -57,7 +82,7 @@ export const Jars: React.FC = () => {
                <p className="text-fin-muted text-sm mt-1">Fondos reservados e inversiones activas</p>
             </div>
             {isDemoMode && <div className="px-4 py-2 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-lg text-xs font-black uppercase tracking-widest animate-pulse">MODO DEMO</div>}
-            <button onClick={() => setIsAdding(!isAdding)} className="bg-brand text-fin-bg px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-brand-hover transition-all">
+            <button onClick={openNewForm} className="bg-brand text-fin-bg px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-brand-hover transition-all">
                Nuevo Frasco
             </button>
          </div>
@@ -73,39 +98,53 @@ export const Jars: React.FC = () => {
             </div>
          </div>
 
-         {isAdding && (
+         {isFormOpen && (
             <div className="bg-fin-card p-10 rounded-2xl border border-fin-border animate-fade-in shadow-2xl">
-               <h3 className="text-lg font-black mb-10 text-fin-text uppercase tracking-tight">Configurar Reserva</h3>
-               <form onSubmit={handleAdd} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+               <div className="flex justify-between items-center mb-10">
+                  <h3 className="text-lg font-black text-fin-text uppercase tracking-tight">
+                     {isEditing ? 'Editar Frasco' : 'Configurar Reserva'}
+                  </h3>
+                  <button onClick={closeForm} className="text-fin-muted hover:text-fin-text transition-colors">
+                     <X size={20} />
+                  </button>
+               </div>
+               <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                   <div className="space-y-1">
                      <label className="text-[10px] font-black uppercase tracking-widest text-fin-muted">Nombre</label>
-                     <input className="w-full bg-fin-bg border border-fin-border rounded-xl p-3 text-sm text-fin-text" value={newJar.name || ''} onChange={e => setNewJar({ ...newJar, name: e.target.value })} placeholder="Ej. Viaje" required />
+                     <input className="w-full bg-fin-bg border border-fin-border rounded-xl p-3 text-sm text-fin-text" value={editingJar.name || ''} onChange={e => setEditingJar({ ...editingJar, name: e.target.value })} placeholder="Ej. Viaje" required />
                   </div>
                   <div className="space-y-1">
                      <label className="text-[10px] font-black uppercase tracking-widest text-fin-muted">Cuenta Origen</label>
-                     <select className="w-full bg-fin-bg border border-fin-border rounded-xl p-3 text-sm text-fin-text" value={newJar.accountId || ''} onChange={e => setNewJar({ ...newJar, accountId: e.target.value })} required>
+                     <select className="w-full bg-fin-bg border border-fin-border rounded-xl p-3 text-sm text-fin-text" value={editingJar.accountId || ''} onChange={e => setEditingJar({ ...editingJar, accountId: e.target.value })} required>
                         <option value="">Seleccionar</option>
                         {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
                      </select>
                   </div>
                   <div className="space-y-1">
                      <label className="text-[10px] font-black uppercase tracking-widest text-fin-muted">Capital Inicial</label>
-                     <input type="number" step="0.01" className="w-full bg-fin-bg border border-fin-border rounded-xl p-3 text-sm text-fin-text font-bold" value={newJar.principal || ''} onChange={e => setNewJar({ ...newJar, principal: Number(e.target.value) })} required />
+                     <input type="number" step="0.01" className="w-full bg-fin-bg border border-fin-border rounded-xl p-3 text-sm text-fin-text font-bold" value={editingJar.principal || ''} onChange={e => setEditingJar({ ...editingJar, principal: Number(e.target.value) })} required />
                   </div>
                   <div className="space-y-1">
                      <label className="text-[10px] font-black uppercase tracking-widest text-fin-muted">Inicio</label>
-                     <input type="date" className="w-full bg-fin-bg border border-fin-border rounded-xl p-3 text-sm text-fin-text" value={newJar.startDate || ''} onChange={e => setNewJar({ ...newJar, startDate: e.target.value })} required />
+                     <input type="date" className="w-full bg-fin-bg border border-fin-border rounded-xl p-3 text-sm text-fin-text" value={editingJar.startDate || ''} onChange={e => setEditingJar({ ...editingJar, startDate: e.target.value })} required />
                   </div>
                   <div className="space-y-1">
                      <label className="text-[10px] font-black uppercase tracking-widest text-fin-muted">Fin</label>
-                     <input type="date" className="w-full bg-fin-bg border border-fin-border rounded-xl p-3 text-sm text-fin-text" value={newJar.endDate || ''} onChange={e => setNewJar({ ...newJar, endDate: e.target.value })} required />
+                     <input type="date" className="w-full bg-fin-bg border border-fin-border rounded-xl p-3 text-sm text-fin-text" value={editingJar.endDate || ''} onChange={e => setEditingJar({ ...editingJar, endDate: e.target.value })} required />
                   </div>
                   <div className="space-y-1">
                      <label className="text-[10px] font-black uppercase tracking-widest text-fin-muted">TNA (%)</label>
-                     <input type="number" step="0.01" className="w-full bg-fin-bg border border-fin-border rounded-xl p-3 text-sm text-fin-text" value={newJar.annualRate || ''} onChange={e => setNewJar({ ...newJar, annualRate: Number(e.target.value) })} required />
+                     <input type="number" step="0.01" className="w-full bg-fin-bg border border-fin-border rounded-xl p-3 text-sm text-fin-text" value={editingJar.annualRate || ''} onChange={e => setEditingJar({ ...editingJar, annualRate: Number(e.target.value) })} required />
                   </div>
-                  <div className="md:col-span-2 lg:col-span-3 pt-4">
-                     <button type="submit" className="bg-brand text-fin-bg font-black py-4 px-10 rounded-xl w-full text-xs uppercase tracking-widest">ACTIVAR FRASCO</button>
+                  <div className="md:col-span-2 lg:col-span-3 pt-4 flex gap-4">
+                     <button type="submit" className="bg-brand text-fin-bg font-black py-4 px-10 rounded-xl flex-1 text-xs uppercase tracking-widest hover:bg-brand-hover transition-all">
+                        {isEditing ? 'GUARDAR CAMBIOS' : 'ACTIVAR FRASCO'}
+                     </button>
+                     {isEditing && (
+                        <button type="button" onClick={closeForm} className="border border-fin-border text-fin-muted font-black py-4 px-10 rounded-xl text-xs uppercase tracking-widest hover:text-fin-text hover:border-fin-text transition-all">
+                           CANCELAR
+                        </button>
+                     )}
                   </div>
                </form>
             </div>
@@ -113,18 +152,23 @@ export const Jars: React.FC = () => {
 
          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {calculations.map(({ jar, currentValue, finalValue, daysRemaining, daysTotal, daysElapsed, interestAccrued }) => {
-               const progress = (daysElapsed / daysTotal) * 100;
+               const timeProgress = (daysElapsed / daysTotal) * 100;
+               const totalInterest = finalValue - jar.principal;
+               const valueProgress = totalInterest > 0 ? (interestAccrued / totalInterest) * 100 : 0;
+
                return (
                   <div key={jar.id} className="bg-fin-card rounded-2xl border border-fin-border overflow-hidden relative group hover:border-brand/30 transition-all">
+                     {/* Barra de progreso temporal (parte superior) */}
                      <div className="h-1 bg-fin-bg w-full absolute top-0">
-                        <div className="h-full bg-brand transition-all duration-1000" style={{ width: `${Math.min(progress, 100)}%` }}></div>
+                        <div className="h-full bg-brand transition-all duration-1000" style={{ width: `${Math.min(timeProgress, 100)}%` }}></div>
                      </div>
                      <div className="p-8">
-                        <div className="flex justify-between items-start mb-10">
+                        <div className="flex justify-between items-start mb-6">
                            <div>
                               <h3 className="text-lg font-black text-fin-text uppercase tracking-tight">{jar.name}</h3>
                               <p className="text-[10px] text-fin-muted font-bold tracking-widest uppercase mt-1">
                                  {accounts.find(a => a.id === jar.accountId)?.name}
+                                 <span className="ml-3 text-brand/60">TNA {jar.annualRate}%</span>
                               </p>
                            </div>
                            <div className="text-right">
@@ -133,7 +177,8 @@ export const Jars: React.FC = () => {
                            </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-8 mb-10">
+                        {/* Grid de métricas: Invertido, Rendimiento, Objetivo Final */}
+                        <div className="grid grid-cols-3 gap-6 mb-6">
                            <div>
                               <p className="text-[9px] font-black uppercase tracking-widest text-fin-muted mb-1">Invertido</p>
                               <p className="text-sm font-bold text-fin-text tabular-nums">{formatCurrency(jar.principal)}</p>
@@ -142,17 +187,52 @@ export const Jars: React.FC = () => {
                               <p className="text-[9px] font-black uppercase tracking-widest text-fin-muted mb-1">Rendimiento</p>
                               <p className="text-sm font-bold text-emerald-500 tabular-nums">+{formatCurrency(interestAccrued)}</p>
                            </div>
+                           <div>
+                              <p className="text-[9px] font-black uppercase tracking-widest text-fin-muted mb-1 flex items-center gap-1">
+                                 <Target size={10} className="text-brand" />
+                                 Objetivo Final
+                              </p>
+                              <p className="text-sm font-bold text-brand tabular-nums">{formatCurrency(finalValue)}</p>
+                           </div>
                         </div>
 
+                        {/* Barra de progreso financiera */}
+                        <div className="mb-6">
+                           <div className="flex justify-between items-center mb-2">
+                              <span className="text-[9px] font-black uppercase tracking-widest text-fin-muted">Evolución del rendimiento</span>
+                              <span className="text-[10px] font-black text-brand tabular-nums">{Math.min(valueProgress, 100).toFixed(1)}%</span>
+                           </div>
+                           <div className="h-2 bg-fin-bg rounded-full overflow-hidden">
+                              <div
+                                 className="h-full rounded-full transition-all duration-1000"
+                                 style={{
+                                    width: `${Math.min(valueProgress, 100)}%`,
+                                    background: 'linear-gradient(90deg, var(--color-brand) 0%, #22c55e 100%)'
+                                 }}
+                              />
+                           </div>
+                           <div className="flex justify-between items-center mt-1">
+                              <span className="text-[9px] text-fin-muted tabular-nums">+{formatCurrency(interestAccrued)}</span>
+                              <span className="text-[9px] text-fin-muted tabular-nums">de +{formatCurrency(totalInterest)}</span>
+                           </div>
+                        </div>
+
+                        {/* Fechas y días restantes */}
                         <div className="flex justify-between items-center text-[10px] font-black text-fin-muted uppercase tracking-widest bg-fin-bg/50 p-3 rounded-lg">
-                           <span>{new Date(jar.startDate).toLocaleDateString()}</span>
+                           <span>{formatDateLocal(jar.startDate)}</span>
                            <span className="text-brand">{daysRemaining} DÍAS RESTANTES</span>
-                           <span>{new Date(jar.endDate).toLocaleDateString()}</span>
+                           <span>{formatDateLocal(jar.endDate)}</span>
                         </div>
 
-                        <button onClick={async () => { if (confirm('Eliminar frasco?')) { await service.deleteJar(jar.id); await loadData(); } }} className="absolute bottom-8 right-8 text-fin-muted hover:text-red-500 opacity-20 group-hover:opacity-100 transition-opacity">
-                           <Trash2 size={16} />
-                        </button>
+                        {/* Botones de editar y eliminar */}
+                        <div className="absolute bottom-8 right-8 flex gap-3 opacity-20 group-hover:opacity-100 transition-opacity">
+                           <button onClick={() => openEditForm(jar)} className="text-fin-muted hover:text-brand transition-colors" title="Editar frasco">
+                              <Pencil size={16} />
+                           </button>
+                           <button onClick={async () => { if (confirm('Eliminar frasco?')) { await service.deleteJar(jar.id); await loadData(); } }} className="text-fin-muted hover:text-red-500 transition-colors" title="Eliminar frasco">
+                              <Trash2 size={16} />
+                           </button>
+                        </div>
                      </div>
                   </div>
                );

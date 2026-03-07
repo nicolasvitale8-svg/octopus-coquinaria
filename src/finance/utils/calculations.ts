@@ -6,12 +6,13 @@ import {
 } from '../financeTypes';
 
 export const calculateJar = (jar: Jar): JarCalculation => {
-  const start = new Date(jar.startDate);
-  const end = new Date(jar.endDate);
+  // Parsear fechas como locales (split YYYY-MM-DD) para evitar desfase UTC
+  const [sy, sm, sd] = jar.startDate.split('-').map(Number);
+  const [ey, em, ed] = jar.endDate.split('-').map(Number);
+  const start = new Date(sy, sm - 1, sd);
+  const end = new Date(ey, em - 1, ed);
   const today = new Date();
 
-  start.setHours(0, 0, 0, 0);
-  end.setHours(0, 0, 0, 0);
   today.setHours(0, 0, 0, 0);
 
   const oneDay = 24 * 60 * 60 * 1000;
