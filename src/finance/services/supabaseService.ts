@@ -428,7 +428,8 @@ export const SupabaseService: IFinanceService = {
             startDate: d.start_date,
             endDate: d.end_date,
             principal: d.principal,
-            annualRate: d.annual_rate
+            annualRate: d.annual_rate,
+            autoReinvest: d.auto_reinvest
         }));
     },
 
@@ -442,6 +443,7 @@ export const SupabaseService: IFinanceService = {
             end_date: jar.endDate,
             principal: jar.principal,
             annual_rate: jar.annualRate,
+            auto_reinvest: jar.autoReinvest || false,
             user_id: userId,
             business_id: businessId || null
         };

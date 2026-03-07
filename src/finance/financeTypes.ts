@@ -79,6 +79,7 @@ export interface Jar {
   endDate: string;
   principal: number; // Initial capital
   annualRate: number; // Percentage, e.g. 45 for 45%
+  autoReinvest?: boolean; // Reinversión automática al vencimiento
 }
 
 export interface JarCalculation {
