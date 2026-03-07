@@ -12,6 +12,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { BudgetRPMGauge } from '../components/BudgetRPMGauge';
 import { AuditReportModal } from '../components/AuditReportModal';
 import { loanService, Loan, LoanPayment } from '../services/loanService';
+import { macroService, InflationDataPoint } from '../services/macroService';
 
 interface PeriodAccountState {
   account: Account;
@@ -173,6 +174,7 @@ export const Dashboard: React.FC = () => {
   const [monthReport, setMonthReport] = useState<AuditReport | null>(null);
   const [loansList, setLoansList] = useState<Loan[]>([]);
   const [loanPaymentsMap, setLoanPaymentsMap] = useState<Record<string, LoanPayment[]>>({});
+  const [inflationData, setInflationData] = useState<InflationDataPoint[]>([]);
 
   useEffect(() => { loadData(); }, [activeEntity]);
   useEffect(() => { calculateDashboardData(); }, [currentMonth, currentYear, transactions, monthlyBalances, accounts]);
@@ -191,7 +193,7 @@ export const Dashboard: React.FC = () => {
 
     try {
       const bId = activeEntity.id || undefined;
-      const [t, acc, j, mb, cat, subCat, budget, chqs] = await Promise.all([
+      const [t, acc, j, mb, cat, subCat, budget, chqs, inflationOut] = await Promise.all([
         SupabaseService.getTransactions(bId),
         SupabaseService.getAccounts(bId),
         SupabaseService.getJars(bId),
@@ -199,7 +201,8 @@ export const Dashboard: React.FC = () => {
         SupabaseService.getCategories(bId),
         SupabaseService.getAllSubCategories(bId),
         SupabaseService.getBudgetItems(bId),
-        chequeService.getAll(bId || '')
+        chequeService.getAll(bId || ''),
+        macroService.getMonthlyInflation()
       ]);
 
       setTransactions(t);
@@ -210,6 +213,7 @@ export const Dashboard: React.FC = () => {
       setSubCategories(subCat);
       setBudgetItems(budget);
       setCheques(chqs);
+      setInflationData(inflationOut);
 
       // Cargar préstamos
       try {
@@ -1123,6 +1127,68 @@ export const Dashboard: React.FC = () => {
                 </button>
               )}
             </div>
+          </div>
+        )}
+
+        {/* Macro Economy Widget */}
+        {inflationData.length > 0 && (
+          <div className="bg-fin-card border border-fin-border rounded-[32px] p-6 shadow-2xl overflow-hidden relative group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 rounded-full blur-[60px] -mr-8 -mt-8 pointer-events-none"></div>
+
+            <div className="flex items-center justify-between mb-4 relative z-10">
+              <div>
+                <h3 className="text-sm font-black text-white flex items-center gap-2 uppercase tracking-widest">
+                  <TrendingUp size={16} className="text-indigo-400" /> Monitoreo Macro
+                </h3>
+                <p className="text-[10px] font-bold text-fin-muted mt-1 flex items-center gap-2">
+                  INFLACIÓN NACIONAL (IPC INDEC)
+                </p>
+              </div>
+              <div className="text-right">
+                <span className="text-2xl font-black text-white tabular-nums drop-shadow-lg">
+                  {inflationData[inflationData.length - 1].percentage}%
+                </span>
+                <p className="text-[9px] font-black uppercase tracking-widest text-indigo-400 mt-0.5">Último reporte</p>
+              </div>
+            </div>
+
+            <div className="h-[140px] mt-4 relative z-10">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={inflationData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
+                  <XAxis
+                    dataKey="date"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#64748B', fontSize: 9, fontWeight: 900 }}
+                    dy={10}
+                  />
+                  <Tooltip
+                    cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                    contentStyle={{ backgroundColor: '#0b1221', borderRadius: '12px', border: '1px solid #1F2937', padding: '8px 12px' }}
+                    labelStyle={{ color: '#94A3B8', fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase' }}
+                    itemStyle={{ color: '#fff', fontSize: '14px', fontWeight: '900' }}
+                    formatter={(value: number) => [`${value}%`, 'Inflación']}
+                  />
+                  <Bar dataKey="percentage" radius={[4, 4, 0, 0]}>
+                    {inflationData.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={index === inflationData.length - 1 ? '#818CF8' : '#334155'}
+                      />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            {/* Context Message */}
+            {totalOut > 0 && (
+              <div className="mt-4 pt-3 border-t border-white/5 flex items-start gap-3">
+                <AlertTriangle size={14} className="text-indigo-400 mt-0.5 flex-shrink-0" />
+                <p className="text-[9px] font-bold text-fin-muted/80 leading-relaxed">
+                  Con una inflación reciente intermensual del <strong className="text-white">{inflationData[inflationData.length - 1].percentage}%</strong>, procurar que el incremento de tus Egresos este próximo mes se mantenga dentro o por debajo de esta banda estadística.
+                </p>
+              </div>
+            )}
           </div>
         )}
 
