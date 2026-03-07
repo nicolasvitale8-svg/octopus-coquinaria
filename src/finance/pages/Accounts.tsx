@@ -373,6 +373,13 @@ export const Accounts: React.FC = () => {
                     <span className="text-sm font-black text-white tabular-nums">{formatCurrency((acc as any).creditLimit)}</span>
                   </div>
                 )}
+                {/* TNA para cuentas/billeteras */}
+                {!isCC && (acc as any).annualRate && (
+                  <div className="mb-4 p-3 bg-emerald-500/10 rounded-xl border border-emerald-500/20 flex justify-between items-center">
+                    <span className="text-[9px] font-black text-emerald-400 uppercase tracking-widest">TNA Rendimiento: </span>
+                    <span className="text-sm font-black text-emerald-400 tabular-nums">{(acc as any).annualRate}%</span>
+                  </div>
+                )}
                 <div className="flex justify-between items-end border-t border-white/5 pt-6">
                   <div>
                     <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">{acc.currency}</span>

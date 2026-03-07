@@ -43,6 +43,10 @@ export const JarSuggestions: React.FC<JarSuggestionsProps> = ({
         }));
     };
 
+    // Buscar si hay una cuenta configurada para sugerencias (Damos prioridad a Naranja X)
+    const suggestedAccount = accounts.find(a => a.name.toLowerCase().includes('naranja')) || accounts[0];
+
+    // Recalcular sugerencias basado en presupuesto y cuenta
     const suggestions = useMemo(() => {
         // Filtrar gastos presupuestados del mes actual
         const currentExpenses = budgetItems.filter(
@@ -78,7 +82,8 @@ export const JarSuggestions: React.FC<JarSuggestionsProps> = ({
             const term = Number(termStr) as 7 | 14 | 28;
             if (data.totalAmount <= 0) return;
 
-            const tna = term === 28 ? 40 : term === 14 ? 38 : 36; // Ligeramente menor para plazos cortos
+            // Usar TNA real de la cuenta seleccionada o valor por defecto
+            const tna = suggestedAccount?.annualRate || DEFAULT_TNA;
             const dailyRate = (tna / 100) / 365;
             const estimatedInterest = data.totalAmount * Math.pow(1 + dailyRate, term) - data.totalAmount;
 
@@ -98,12 +103,9 @@ export const JarSuggestions: React.FC<JarSuggestionsProps> = ({
 
         // Ordenar por mayor monto primero
         return result.sort((a, b) => b.amount - a.amount);
-    }, [budgetItems, currentMonth, currentYear]);
+    }, [budgetItems, currentMonth, currentYear, suggestedAccount]);
 
     if (suggestions.length === 0) return null;
-
-    // Buscar si hay una cuenta Naranja X
-    const suggestedAccount = accounts.find(a => a.name.toLowerCase().includes('naranja')) || accounts[0];
 
     return (
         <div className="mb-8">

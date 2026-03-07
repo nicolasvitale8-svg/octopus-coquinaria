@@ -19,6 +19,7 @@ export interface Account {
   currency: string;
   isActive: boolean;
   creditLimit?: number; // Solo para tarjetas de crédito
+  annualRate?: number; // TNA para rendimientos (ej. billeteras)
 }
 
 export interface MonthlyBalance {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Sparkles, Wallet } from 'lucide-react';
+import { X, Sparkles, Wallet, TrendingUp } from 'lucide-react';
 import { Account, AccountType } from '../financeTypes';
 
 interface AccountModalProps {
@@ -92,6 +92,22 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                                 onChange={e => setEditingAccount({ ...editingAccount, creditLimit: parseArgNumber(e.target.value) } as any)}
                                 className="w-full bg-[#020b14] border border-orange-500/30 rounded-2xl p-4 text-white font-bold outline-none focus:border-orange-500 transition-all placeholder:text-white/20"
                                 placeholder="Ej: 500.000,00"
+                            />
+                        </div>
+                    )}
+                    {/* TNA - Rendimiento Anual (No aplicable a Tarjetas) */}
+                    {!isCreditCard && (
+                        <div className="space-y-2 p-4 bg-emerald-500/5 rounded-2xl border border-emerald-500/20">
+                            <label className="text-[10px] font-black uppercase text-emerald-400 ml-1 tracking-widest flex items-center gap-2">
+                                <TrendingUp size={12} /> TNA Rendimiento Anual (%)
+                            </label>
+                            <input
+                                type="number"
+                                step="0.01"
+                                value={editingAccount?.annualRate || ''}
+                                onChange={e => setEditingAccount({ ...editingAccount, annualRate: e.target.value ? Number(e.target.value) : undefined })}
+                                className="w-full bg-[#020b14] border border-emerald-500/30 rounded-2xl p-4 text-white font-bold outline-none focus:border-emerald-500 transition-all placeholder:text-white/20"
+                                placeholder="Ej: 40.5"
                             />
                         </div>
                     )}

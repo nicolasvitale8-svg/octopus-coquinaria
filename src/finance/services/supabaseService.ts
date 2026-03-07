@@ -58,7 +58,8 @@ export const SupabaseService: IFinanceService = {
             accountTypeId: d.account_type_id,
             currency: d.currency,
             isActive: d.is_active,
-            creditLimit: d.credit_limit || undefined
+            creditLimit: d.credit_limit || undefined,
+            annualRate: d.annual_rate || undefined
         }));
     },
 
@@ -72,7 +73,9 @@ export const SupabaseService: IFinanceService = {
             user_id: userId,
             business_id: businessId || null
         };
-        if (acc.creditLimit) dbObj.credit_limit = acc.creditLimit;
+        if (acc.creditLimit !== undefined) dbObj.credit_limit = acc.creditLimit;
+        if (acc.annualRate !== undefined) dbObj.annual_rate = acc.annualRate;
+
         const { data, error } = await supabase
             .from('fin_accounts')
             .insert([dbObj])
@@ -89,6 +92,8 @@ export const SupabaseService: IFinanceService = {
             is_active: acc.isActive
         };
         if (acc.creditLimit !== undefined) dbObj.credit_limit = acc.creditLimit;
+        if (acc.annualRate !== undefined) dbObj.annual_rate = acc.annualRate;
+        else dbObj.annual_rate = null; // Permitir borrar la TNA
         const { error } = await supabase
             .from('fin_accounts')
             .update(dbObj)
