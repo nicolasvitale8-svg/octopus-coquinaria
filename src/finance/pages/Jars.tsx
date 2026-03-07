@@ -323,6 +323,7 @@ export const Jars: React.FC = () => {
             accounts={accounts}
             currentMonth={currentMonth}
             currentYear={currentYear}
+            jars={jars}
             onCreateJar={handleSuggestionCreate}
          />
 
