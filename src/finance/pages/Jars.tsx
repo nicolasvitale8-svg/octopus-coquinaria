@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Jar, Account, Category, Transaction, TransactionType, BudgetItem } from '../financeTypes';
 import { calculateJar, formatCurrency } from '../utils/calculations';
-import { Trash2, Pencil, X, Target, Sparkles, PiggyBank } from 'lucide-react';
+import { Trash2, Pencil, X, Target, Sparkles, PiggyBank, Repeat } from 'lucide-react';
 import { useFinanza } from '../context/FinanzaContext';
 import { JarSuggestions } from '../components/JarSuggestions';
 
@@ -9,6 +9,13 @@ import { JarSuggestions } from '../components/JarSuggestions';
 const formatDateLocal = (dateStr: string): string => {
    const [y, m, d] = dateStr.split('-').map(Number);
    return new Date(y, m - 1, d).toLocaleDateString();
+};
+
+const addDaysToPosix = (dateStr: string, days: number): string => {
+   const [y, m, d] = dateStr.split('-').map(Number);
+   const dateObj = new Date(y, m - 1, d);
+   dateObj.setDate(dateObj.getDate() + days);
+   return dateObj.toISOString().split('T')[0];
 };
 
 const getOrCreateSavingsCategory = async (
@@ -119,6 +126,36 @@ export const Jars: React.FC = () => {
                      type: TransactionType.IN,
                      accountId: jar.accountId,
                   }, bId);
+
+                  // REINVERSIÓN AUTOMÁTICA
+                  if (jar.autoReinvest) {
+                     const newEndDate = addDaysToPosix(jar.endDate, 14); // Reinversión por defecto a 14 días
+                     const newPrincipal = Math.floor(calc.finalValue * 100) / 100; // Capital + Interés
+
+                     const autoJar: Partial<Jar> = {
+                        accountId: jar.accountId,
+                        name: `${jar.name} (Reinvertido)`,
+                        startDate: jar.endDate, // Empieza el día que cerró el anterior
+                        endDate: newEndDate,
+                        principal: newPrincipal,
+                        annualRate: jar.annualRate,
+                        autoReinvest: true // Sigue re-invirtiéndose
+                     };
+
+                     await service.saveJar(autoJar, bId);
+
+                     // Como la creación por DB manual dentro de este loop no dispara handleSubmit, 
+                     // generamos la transacción de EGRESO enseguida en la misma fecha de corte.
+                     await service.addTransaction({
+                        date: jar.endDate,
+                        categoryId: savingsCat.id,
+                        description: `Frasco: ${autoJar.name}`,
+                        amount: newPrincipal,
+                        type: TransactionType.OUT,
+                        accountId: jar.accountId,
+                     }, bId);
+                  }
+
                   needsReload = true;
                }
             }
@@ -313,6 +350,23 @@ export const Jars: React.FC = () => {
                   <div className="space-y-1">
                      <label className="text-[10px] font-black uppercase tracking-widest text-fin-muted">TNA (%)</label>
                      <input type="number" step="0.01" className="w-full bg-fin-bg border border-fin-border rounded-xl p-3 text-sm text-fin-text" value={editingJar.annualRate || ''} onChange={e => setEditingJar({ ...editingJar, annualRate: Number(e.target.value) })} required />
+                  </div>
+                  <div className="md:col-span-2 lg:col-span-3 pt-4 pb-2 border-b border-fin-border/30">
+                     <label className="flex items-center gap-3 cursor-pointer group w-fit">
+                        <div className="relative flex items-center justify-center w-6 h-6 rounded-lg border-2 border-brand/50 bg-fin-bg group-hover:border-brand transition-colors">
+                           <input
+                              type="checkbox"
+                              className="appearance-none absolute inset-0 cursor-pointer peer"
+                              checked={editingJar.autoReinvest || false}
+                              onChange={e => setEditingJar({ ...editingJar, autoReinvest: e.target.checked })}
+                           />
+                           <svg viewBox="0 0 24 24" className="w-4 h-4 text-brand scale-0 peer-checked:scale-100 transition-all absolute pointer-events-none fill-none stroke-current stroke-[3] stroke-linecap-round stroke-linejoin-round" fill="none"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        </div>
+                        <span className="text-xs font-black uppercase tracking-widest text-fin-text flex items-center gap-2">
+                           <Repeat size={14} className="text-brand" /> Reinvertir Automáticamente (14 días post-cierre)
+                        </span>
+                     </label>
+                     <p className="text-[9px] text-fin-muted mt-2 ml-9">Si se activa, al vencer el frasco actual se autoliquidará y se abrirá uno nuevo sumando capital e intereses a 14 días.</p>
                   </div>
                   <div className="md:col-span-2 lg:col-span-3 pt-4 flex gap-4">
                      <button type="submit" disabled={isSaving} className="bg-brand text-fin-bg font-black py-4 px-10 rounded-xl flex-1 text-xs uppercase tracking-widest hover:bg-brand-hover transition-all disabled:opacity-50 disabled:cursor-not-allowed">
