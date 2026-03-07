@@ -4,7 +4,7 @@ import { SupabaseService } from '../services/supabaseService';
 import { chequeService, Cheque } from '../services/chequeService';
 import { calculatePeriodBalance, calculateJar, formatCurrency, calculateBudgetAlerts, generateAuditReport } from '../utils/calculations';
 import { Account, Transaction, Jar, MonthlyBalance, Category, SubCategory, BudgetItem, AuditReport } from '../financeTypes';
-import { TrendingUp, TrendingDown, DollarSign, Lock, ChevronRight, LayoutGrid, List, Wallet, ArrowUpRight, UploadCloud, PlusCircle, Settings, Sparkles, User, Building2, PieChart as PieIcon, X, Bell, AlertTriangle, FileText, CreditCard, PiggyBank, Clock, ArrowRight, BarChart3 } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, Lock, ChevronRight, LayoutGrid, List, Wallet, ArrowUpRight, UploadCloud, PlusCircle, Settings, Sparkles, User, Building2, PieChart as PieIcon, X, Bell, AlertTriangle, FileText, CreditCard, PiggyBank, Clock, ArrowRight, BarChart3, Percent } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, AreaChart, Area, CartesianGrid, LineChart, Line, Legend } from 'recharts';
 import { useNavigate } from 'react-router-dom';
 import { useFinanza } from '../context/FinanzaContext';
@@ -46,17 +46,17 @@ const DetailModal: React.FC<{
         const d = parseDate(t.date);
         const isTransfer = t.description?.toLowerCase().includes('transferencia');
         let pass = d.getMonth() === month && d.getFullYear() === year && t.type === type && !isTransfer;
-        
+
         if (pass && activeCategoryScope) {
-           const catName = categories.find(c => c.id === t.categoryId)?.name || 'Sin Rubro';
-           pass = catName === activeCategoryScope;
+          const catName = categories.find(c => c.id === t.categoryId)?.name || 'Sin Rubro';
+          pass = catName === activeCategoryScope;
         }
         return pass;
       });
 
       if (activeCategoryScope) {
-         // If a specific category is selected, breakdown by Transaction instead of Category
-         return filtered.map(t => ({ name: t.description || 'Sin detalle', value: t.amount, _id: t.id }));
+        // If a specific category is selected, breakdown by Transaction instead of Category
+        return filtered.map(t => ({ name: t.description || 'Sin detalle', value: t.amount, _id: t.id }));
       }
 
       const byCat = filtered.reduce((acc, t) => {
@@ -434,7 +434,7 @@ export const Dashboard: React.FC = () => {
       const m = d.getMonth();
       const y = d.getFullYear();
       const monthLabel = d.toLocaleDateString('es-ES', { month: 'short' }).substring(0, 3).toUpperCase();
-      
+
       const inFlow = transactions.filter(t => {
         const dt = parseDate(t.date);
         return dt.getMonth() === m && dt.getFullYear() === y && t.type === 'IN' && !t.description?.toLowerCase().includes('transferencia');
@@ -452,25 +452,25 @@ export const Dashboard: React.FC = () => {
 
   // Activos y Pasivos
   const activosList = React.useMemo(() => {
-    const list: {name: string; value: number; color: string; icon: React.ReactNode}[] = [];
+    const list: { name: string; value: number; color: string; icon: React.ReactNode }[] = [];
     let checking = 0;
     periodStates.forEach(st => {
       if (st.finalBalance > 0) checking += st.finalBalance;
     });
-    if (checking > 0) list.push({ name: 'Checking', value: checking, color: 'text-[#10B981]', icon: <Wallet size={14}/> });
-    
+    if (checking > 0) list.push({ name: 'Checking', value: checking, color: 'text-[#10B981]', icon: <Wallet size={14} /> });
+
     let totalJars = 0;
     jars.forEach(j => {
       totalJars += calculateJar(j).currentValue;
     });
-    if (totalJars > 0) list.push({ name: 'Inversiones', value: totalJars, color: 'text-brand', icon: <TrendingUp size={14}/> });
-    
+    if (totalJars > 0) list.push({ name: 'Inversiones', value: totalJars, color: 'text-brand', icon: <TrendingUp size={14} /> });
+
     // Fallback if empty to match mockup visually
     if (list.length === 0) {
-      list.push({ name: 'Checking', value: 125750, color: 'text-[#10B981]', icon: <Wallet size={14}/> });
-      list.push({ name: 'Savings', value: 125600, color: 'text-[#10B981]', icon: <PiggyBank size={14}/> });
-      list.push({ name: 'Inversiones', value: 125900, color: 'text-brand', icon: <TrendingUp size={14}/> });
-      list.push({ name: 'Fondo de Emergencia', value: 85420, color: 'text-[#EF4444]', icon: <Lock size={14}/> });
+      list.push({ name: 'Checking', value: 125750, color: 'text-[#10B981]', icon: <Wallet size={14} /> });
+      list.push({ name: 'Savings', value: 125600, color: 'text-[#10B981]', icon: <PiggyBank size={14} /> });
+      list.push({ name: 'Inversiones', value: 125900, color: 'text-brand', icon: <TrendingUp size={14} /> });
+      list.push({ name: 'Fondo de Emergencia', value: 85420, color: 'text-[#EF4444]', icon: <Lock size={14} /> });
     }
     return list;
   }, [periodStates, jars]);
@@ -478,31 +478,63 @@ export const Dashboard: React.FC = () => {
   const totalActivos = activosList.reduce((s, i) => s + i.value, 0);
 
   const pasivosList = React.useMemo(() => {
-    const list: {name: string; value: number; icon: React.ReactNode}[] = [];
+    const list: { name: string; value: number; icon: React.ReactNode }[] = [];
     let overdrawn = 0;
     periodStates.forEach(st => {
       if (st.finalBalance < 0) overdrawn += Math.abs(st.finalBalance);
     });
-    if (overdrawn > 0) list.push({ name: 'Tarjetas / Descubierto', value: overdrawn, icon: <CreditCard size={14}/> });
-    
-    if (totalDebtRemaining > 0) list.push({ name: 'Préstamos', value: totalDebtRemaining, icon: <Building2 size={14}/> });
-    
+    if (overdrawn > 0) list.push({ name: 'Tarjetas / Descubierto', value: overdrawn, icon: <CreditCard size={14} /> });
+
+    if (totalDebtRemaining > 0) list.push({ name: 'Préstamos', value: totalDebtRemaining, icon: <Building2 size={14} /> });
+
     // Mock if empty to match mockup
     if (list.length === 0) {
-      list.push({ name: 'Tarjetas de Crédito', value: 40329.50, icon: <CreditCard size={14}/> });
-      list.push({ name: 'Préstamo Auto', value: 40329.50, icon: <LayoutGrid size={14}/> });
-      list.push({ name: 'Hipoteca', value: 40329.50, icon: <Building2 size={14}/> });
+      list.push({ name: 'Tarjetas de Crédito', value: 40329.50, icon: <CreditCard size={14} /> });
+      list.push({ name: 'Préstamo Auto', value: 40329.50, icon: <LayoutGrid size={14} /> });
+      list.push({ name: 'Hipoteca', value: 40329.50, icon: <Building2 size={14} /> });
     }
     return list;
   }, [periodStates, totalDebtRemaining]);
 
   const totalPasivos = pasivosList.reduce((s, i) => s + i.value, 0);
-  
-  // Mock savings goals for visual matching
-  const savingsGoals = [
-    { name: 'META DE AHORRO (UNI)', progress: 62, current: 31000, target: 50000, color: 'brand' },
-    { name: 'META DE AHORRO: COMPRA DE CASA', progress: 62, current: 31000, target: 50000, color: 'emerald' }
-  ];
+
+  // Top Savings Goal (Highest finalValue Jar)
+  const topJarGoal = React.useMemo(() => {
+    if (jars.length === 0) return null;
+    const sorted = [...jars].map(j => {
+      const calc = calculateJar(j);
+      return {
+        name: j.name,
+        current: calc.currentValue,
+        target: calc.finalValue,
+        progress: j ? Math.min(100, Math.round((calc.daysElapsed / Math.max(calc.daysTotal, 1)) * 100)) : 0
+      };
+    }).sort((a, b) => b.target - a.target);
+    return sorted[0];
+  }, [jars]);
+
+  // Account Yield (TNA) Data
+  const topYieldAccounts = React.useMemo(() => {
+    return accounts
+      .filter(a => a.isActive && a.annualRate && a.annualRate > 0)
+      .sort((a, b) => (b.annualRate || 0) - (a.annualRate || 0))
+      .slice(0, 5);
+  }, [accounts]);
+
+  // Real Inflation Data
+  const recentInflation = React.useMemo(() => {
+    if (inflationData.length === 0) return { current: '0', trend: [] };
+    const last6 = inflationData.slice(-6);
+    const currentMonthData = last6[last6.length - 1];
+    const currentVal = currentMonthData ? (currentMonthData.real ?? currentMonthData.estimated ?? 0) : 0;
+    return {
+      current: currentVal.toFixed(1),
+      trend: last6.map(d => ({
+        name: d.date,
+        Tasa: d.real ?? d.estimated ?? 0
+      }))
+    };
+  }, [inflationData]);
 
   if (loading && transactions.length === 0) {
     return (
@@ -517,7 +549,7 @@ export const Dashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#0E1629] text-white p-4 md:p-8 font-sans animate-fade-in relative z-0">
-      
+
       {/* Detail Modals (Audits & Lists) */}
       {monthReport && (
         <AuditReportModal
@@ -544,357 +576,388 @@ export const Dashboard: React.FC = () => {
       <div className="flex flex-col mb-6 bg-[#172033] p-6 rounded-2xl border border-[#2A3445] shadow-lg shadow-black/20">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
           <div className="flex items-center gap-4">
-             <div className="flex bg-gradient-to-br from-brand/20 to-brand/10 p-2.5 rounded-xl border border-brand/20">
-               <TrendingUp className="text-brand" size={26}/>
-             </div>
-             <div>
-               <h1 className="text-xl md:text-2xl font-black text-white tracking-widest flex items-center gap-3">
-                 FINANCIAS <span className="text-brand">PRO</span>
-               </h1>
-             </div>
+            <div className="flex bg-gradient-to-br from-brand/20 to-brand/10 p-2.5 rounded-xl border border-brand/20">
+              <TrendingUp className="text-brand" size={26} />
+            </div>
+            <div>
+              <h1 className="text-xl md:text-2xl font-black text-white tracking-widest flex items-center gap-3">
+                FINANCIAS <span className="text-brand">PRO</span>
+              </h1>
+            </div>
           </div>
           <h2 className="text-lg md:text-xl font-black uppercase tracking-widest text-[#94A3B8] hidden lg:block">MI RESUMEN FINANCIERO PERSONAL</h2>
           <div className="flex items-center gap-4 text-[#94A3B8]">
-             {availableEntities.length > 1 && (
-               <select 
-                 className="bg-[#0E1629] border border-[#2A3445] rounded-xl px-4 py-2 text-[11px] font-black uppercase tracking-widest text-white outline-none cursor-pointer hover:border-brand/50 transition-colors"
-                 value={activeEntity.id || ''}
-                 onChange={(e) => setActiveEntity(availableEntities.find(ent => (ent.id || '') === e.target.value) || availableEntities[0])}
-               >
-                 {availableEntities.map(ent => (
-                   <option key={ent.id || 'personal'} value={ent.id || ''}>{ent.name}</option>
-                 ))}
-               </select>
-             )}
-             
-             {/* Generate Report */}
-             {(currentYear < new Date().getFullYear() || (currentYear === new Date().getFullYear() && currentMonth < new Date().getMonth())) && (
-                <button onClick={() => {
-                  const report = generateAuditReport(transactions, categories, accounts, monthlyBalances, budgetItems, currentMonth, currentYear, activeEntity.name);
-                  setMonthReport(report);
-                }} className="w-10 h-10 flex items-center justify-center bg-[#0E1629] border border-[#2A3445] hover:border-brand/50 rounded-xl hover:text-white transition-all">
-                  <FileText size={18}/>
-                </button>
-             )}
-             
-             <button onClick={() => navigate('/finance/settings')} className="w-10 h-10 flex items-center justify-center bg-[#0E1629] border border-[#2A3445] hover:border-brand/50 rounded-xl hover:text-white transition-all">
-               <Settings size={18}/>
-             </button> 
+            {availableEntities.length > 1 && (
+              <select
+                className="bg-[#0E1629] border border-[#2A3445] rounded-xl px-4 py-2 text-[11px] font-black uppercase tracking-widest text-white outline-none cursor-pointer hover:border-brand/50 transition-colors"
+                value={activeEntity.id || ''}
+                onChange={(e) => setActiveEntity(availableEntities.find(ent => (ent.id || '') === e.target.value) || availableEntities[0])}
+              >
+                {availableEntities.map(ent => (
+                  <option key={ent.id || 'personal'} value={ent.id || ''}>{ent.name}</option>
+                ))}
+              </select>
+            )}
+
+            {/* Generate Report */}
+            {(currentYear < new Date().getFullYear() || (currentYear === new Date().getFullYear() && currentMonth < new Date().getMonth())) && (
+              <button onClick={() => {
+                const report = generateAuditReport(transactions, categories, accounts, monthlyBalances, budgetItems, currentMonth, currentYear, activeEntity.name);
+                setMonthReport(report);
+              }} className="w-10 h-10 flex items-center justify-center bg-[#0E1629] border border-[#2A3445] hover:border-brand/50 rounded-xl hover:text-white transition-all">
+                <FileText size={18} />
+              </button>
+            )}
+
+            <button onClick={() => navigate('/finance/settings')} className="w-10 h-10 flex items-center justify-center bg-[#0E1629] border border-[#2A3445] hover:border-brand/50 rounded-xl hover:text-white transition-all">
+              <Settings size={18} />
+            </button>
           </div>
         </div>
-        
+
         {/* SUBHEADER & TABS */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-t border-[#2A3445] pt-6">
-           {/* Date Selector */}
-           <div className="text-[14px] font-black text-white uppercase tracking-widest flex items-center gap-4 bg-[#0E1629] px-4 py-2 rounded-xl border border-[#2A3445]">
-              <button onClick={() => {
-                const d = new Date(currentYear, currentMonth - 1);
-                setCurrentMonth(d.getMonth()); setCurrentYear(d.getFullYear());
-              }} className="text-[#94A3B8] hover:text-brand transition-colors"><ChevronRight className="rotate-180" size={18}/></button>
-              <div className="min-w-[130px] text-center flex items-center justify-center gap-2">
-                {monthName} <span className="text-[#94A3B8]">{currentYear}</span>
-              </div>
-              <button onClick={() => {
-                const d = new Date(currentYear, currentMonth + 1);
-                setCurrentMonth(d.getMonth()); setCurrentYear(d.getFullYear());
-              }} className="text-[#94A3B8] hover:text-brand transition-colors"><ChevronRight size={18}/></button>
-           </div>
-           
-           {/* TABS */}
-           <div className="flex overflow-x-auto gap-2 bg-[#0E1629] p-1.5 rounded-2xl border border-[#2A3445] no-scrollbar">
-             {[
-               {name:'Resumen', action:()=>setActiveDetail(null)}, 
-               {name:'Ingresos', action:()=>{setActiveCategoryScope(undefined); setActiveDetail('IN')}}, 
-               {name:'Gastos', action:()=>{setActiveCategoryScope(undefined); setActiveDetail('OUT')}}, 
-               {name:'Presupuesto', action:()=>navigate('/finance/budget')}, 
-               {name:'Cuentas', action:()=>navigate('/finance/accounts')}, 
-               {name:'Inversiones', action:()=>{setActiveCategoryScope(undefined); setActiveDetail('INVESTED')}}
-             ].map((t, i) => (
-                <button key={i} onClick={t.action} className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-colors ${i === 0 && !activeDetail ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-[#94A3B8] hover:text-white hover:bg-white/5'}`}>{t.name}</button>
-             ))}
-           </div>
+          {/* Date Selector */}
+          <div className="text-[14px] font-black text-white uppercase tracking-widest flex items-center gap-4 bg-[#0E1629] px-4 py-2 rounded-xl border border-[#2A3445]">
+            <button onClick={() => {
+              const d = new Date(currentYear, currentMonth - 1);
+              setCurrentMonth(d.getMonth()); setCurrentYear(d.getFullYear());
+            }} className="text-[#94A3B8] hover:text-brand transition-colors"><ChevronRight className="rotate-180" size={18} /></button>
+            <div className="min-w-[130px] text-center flex items-center justify-center gap-2">
+              {monthName} <span className="text-[#94A3B8]">{currentYear}</span>
+            </div>
+            <button onClick={() => {
+              const d = new Date(currentYear, currentMonth + 1);
+              setCurrentMonth(d.getMonth()); setCurrentYear(d.getFullYear());
+            }} className="text-[#94A3B8] hover:text-brand transition-colors"><ChevronRight size={18} /></button>
+          </div>
+
+          {/* TABS */}
+          <div className="flex overflow-x-auto gap-2 bg-[#0E1629] p-1.5 rounded-2xl border border-[#2A3445] no-scrollbar">
+            {[
+              { name: 'Resumen', action: () => setActiveDetail(null) },
+              { name: 'Ingresos', action: () => { setActiveCategoryScope(undefined); setActiveDetail('IN') } },
+              { name: 'Gastos', action: () => { setActiveCategoryScope(undefined); setActiveDetail('OUT') } },
+              { name: 'Presupuesto', action: () => navigate('/finance/budget') },
+              { name: 'Cuentas', action: () => navigate('/finance/accounts') },
+              { name: 'Inversiones', action: () => { setActiveCategoryScope(undefined); setActiveDetail('INVESTED') } }
+            ].map((t, i) => (
+              <button key={i} onClick={t.action} className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-colors ${i === 0 && !activeDetail ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-[#94A3B8] hover:text-white hover:bg-white/5'}`}>{t.name}</button>
+            ))}
+          </div>
         </div>
       </div>
 
       {/* GRID LAYOUT */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-         
-         {/* COL 1: ESTADO FINANCIERO ACTUAL */}
-         <div className="space-y-6 flex flex-col h-full">
-            
-            {/* Box 1: Saldo */}
-            <div className="bg-[#172033] rounded-2xl p-6 border border-[#2A3445] shadow-lg flex-1">
-                <h3 className="text-[11px] font-black text-white uppercase tracking-widest mb-6">ESTADO FINANCIERO ACTUAL</h3>
-                <p className="text-[10px] text-[#94A3B8] font-black uppercase tracking-widest mb-1">SALDO TOTAL NETO:</p>
-                <div onClick={() => setActiveDetail('BALANCE')} className="cursor-pointer group">
-                  <h2 className="text-4xl font-black text-white mb-6 group-hover:text-brand transition-colors tabular-nums">{formatCurrency(totalFinal)}</h2>
-                </div>
-                
-                {/* Area Chart trend mock - visual representation */}
-                <div className="h-32 mb-8 -mx-2 pointer-events-none">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={last6MonthsFlow} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
-                      <defs>
-                        <linearGradient id="colorNeto" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#10B981" stopOpacity={0.4}/>
-                          <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
-                        </linearGradient>
-                      </defs>
-                      <Area type="monotone" dataKey="Ingresos" stroke="#10B981" strokeWidth={3} fillOpacity={1} fill="url(#colorNeto)" />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
 
-                <div className="grid grid-cols-2 gap-6 border-t border-[#2A3445] pt-6">
-                   <div onClick={() => setActiveDetail('IN')} className="cursor-pointer group">
-                     <p className="text-[10px] text-[#94A3B8] uppercase font-black tracking-widest mb-1">INGRESOS ESTE MES:</p>
-                     <p className="text-xl font-black text-[#10B981] group-hover:opacity-80 transition-opacity tabular-nums">{formatCurrency(totalIn)}</p>
-                   </div>
-                   <div onClick={() => setActiveDetail('OUT')} className="cursor-pointer group">
-                     <p className="text-[10px] text-[#94A3B8] uppercase font-black tracking-widest mb-1">GASTOS ESTE MES:</p>
-                     <p className="text-xl font-black text-[#EF4444] group-hover:opacity-80 transition-opacity tabular-nums">{formatCurrency(totalOut)}</p>
-                   </div>
-                </div>
-                
-                <div className="mt-6 border-t border-[#2A3445] pt-6 flex justify-between items-center">
-                   <div>
-                     <p className="text-[10px] text-[#94A3B8] uppercase font-black tracking-widest mb-1">AHORRO NETO:</p>
-                     <p className="text-xl font-black text-[#10B981] tabular-nums">{formatCurrency(totalIn - totalOut)}</p>
-                   </div>
-                   {totalIn - totalOut < 0 && (
-                     <div className="bg-red-500/10 text-red-500 text-[10px] font-black px-3 py-1 rounded-lg border border-red-500/20">DEFICIT</div>
-                   )}
-                </div>
+        {/* COL 1: ESTADO FINANCIERO ACTUAL */}
+        <div className="space-y-6 flex flex-col h-full">
+
+          {/* Box 1: Saldo */}
+          <div className="bg-[#172033] rounded-2xl p-6 border border-[#2A3445] shadow-lg flex-1">
+            <h3 className="text-[11px] font-black text-white uppercase tracking-widest mb-6">ESTADO FINANCIERO ACTUAL</h3>
+            <p className="text-[10px] text-[#94A3B8] font-black uppercase tracking-widest mb-1">SALDO TOTAL NETO:</p>
+            <div onClick={() => setActiveDetail('BALANCE')} className="cursor-pointer group">
+              <h2 className="text-4xl font-black text-white mb-6 group-hover:text-brand transition-colors tabular-nums">{formatCurrency(totalFinal)}</h2>
             </div>
 
-            {/* Box 2: Meta 1 */}
-            <div className="bg-[#172033] rounded-2xl p-6 border border-[#2A3445] shadow-lg">
-                <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-[11px] font-black text-white uppercase tracking-widest">{savingsGoals[0].name}</h3>
-                  <TrendingUp size={16} className="text-[#94A3B8]"/>
-                </div>
-                <div className="flex justify-between items-end mb-3">
-                   <div className="bg-brand/10 border border-brand/20 text-brand px-3 py-1 rounded-md text-[11px] font-black tabular-nums">{savingsGoals[0].progress}%</div>
-                   <div className="text-[11px] font-black uppercase tracking-widest text-[#94A3B8]"><span className="text-[#10B981]">{formatCurrency(savingsGoals[0].current)}</span> / {formatCurrency(savingsGoals[0].target)}</div>
+            {/* Area Chart trend mock - visual representation */}
+            <div className="h-32 mb-8 -mx-2 pointer-events-none">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={last6MonthsFlow} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorNeto" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#10B981" stopOpacity={0.4} />
+                      <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <Area type="monotone" dataKey="Ingresos" stroke="#10B981" strokeWidth={3} fillOpacity={1} fill="url(#colorNeto)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+
+            <div className="grid grid-cols-2 gap-6 border-t border-[#2A3445] pt-6">
+              <div onClick={() => setActiveDetail('IN')} className="cursor-pointer group">
+                <p className="text-[10px] text-[#94A3B8] uppercase font-black tracking-widest mb-1">INGRESOS ESTE MES:</p>
+                <p className="text-xl font-black text-[#10B981] group-hover:opacity-80 transition-opacity tabular-nums">{formatCurrency(totalIn)}</p>
+              </div>
+              <div onClick={() => setActiveDetail('OUT')} className="cursor-pointer group">
+                <p className="text-[10px] text-[#94A3B8] uppercase font-black tracking-widest mb-1">GASTOS ESTE MES:</p>
+                <p className="text-xl font-black text-[#EF4444] group-hover:opacity-80 transition-opacity tabular-nums">{formatCurrency(totalOut)}</p>
+              </div>
+            </div>
+
+            <div className="mt-6 border-t border-[#2A3445] pt-6 flex justify-between items-center">
+              <div>
+                <p className="text-[10px] text-[#94A3B8] uppercase font-black tracking-widest mb-1">AHORRO NETO:</p>
+                <p className="text-xl font-black text-[#10B981] tabular-nums">{formatCurrency(totalIn - totalOut)}</p>
+              </div>
+              {totalIn - totalOut < 0 && (
+                <div className="bg-red-500/10 text-red-500 text-[10px] font-black px-3 py-1 rounded-lg border border-red-500/20">DEFICIT</div>
+              )}
+            </div>
+          </div>
+
+          {/* Box 2: Meta Principal (Frascos) */}
+          <div className="bg-[#172033] rounded-2xl p-6 border border-[#2A3445] shadow-lg flex flex-col justify-between">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-[11px] font-black text-white uppercase tracking-widest">
+                {topJarGoal ? `INVERSIÓN: ${topJarGoal.name}` : 'MÁXIMA INVERSIÓN'}
+              </h3>
+              <TrendingUp size={16} className="text-[#94A3B8]" />
+            </div>
+            {topJarGoal ? (
+              <>
+                <div className="flex justify-between items-end mb-3 mt-auto">
+                  <div className="bg-brand/10 border border-brand/20 text-brand px-3 py-1 rounded-md text-[11px] font-black tabular-nums">{topJarGoal.progress}%</div>
+                  <div className="text-[11px] font-black uppercase tracking-widest text-[#94A3B8]"><span className="text-[#10B981]">{formatCurrency(topJarGoal.current)}</span> / {formatCurrency(topJarGoal.target)}</div>
                 </div>
                 <div className="h-2.5 bg-[#0E1629] rounded-full overflow-hidden mt-2 border border-[#2A3445]">
-                   <div className="h-full bg-brand w-[62%] rounded-full shadow-[0_0_10px_rgba(59,130,246,0.5)]"></div>
+                  <div className="h-full bg-brand rounded-full shadow-[0_0_10px_rgba(59,130,246,0.5)] transition-all duration-1000" style={{ width: `${Math.min(100, topJarGoal.progress)}%` }}></div>
                 </div>
-                <div className="flex items-end gap-1.5 h-16 mt-6">
-                   {[30,40,20,50,70,80,60,90,100,85].map((h,i) => <div key={i} className="flex-1 bg-brand/30 hover:bg-brand rounded-t transition-colors" style={{height: `${h}%`}}></div>)}
-                </div>
-            </div>
-         </div>
+              </>
+            ) : (
+              <div className="text-center py-6 text-[10px] text-[#94A3B8] font-black uppercase tracking-widest flex flex-col items-center gap-2 mt-auto">
+                <TrendingUp size={24} className="opacity-50" />
+                No hay inversiones activas (Frascos)
+              </div>
+            )}
+          </div>
+        </div>
 
-         {/* COL 2: FLUJO, GASTOS, META 2 */}
-         <div className="space-y-6 flex flex-col h-full">
-            
-            {/* Box 3: Flujo de Efectivo */}
-            <div className="bg-[#172033] rounded-2xl p-6 border border-[#2A3445] shadow-lg">
-                <h3 className="text-[11px] font-black text-white uppercase tracking-widest mb-6 text-center">FLUJO DE EFECTIVO (Últimos 6 meses)</h3>
-                <div className="flex justify-center gap-6 mb-6 text-[10px] font-black uppercase tracking-widest text-[#94A3B8]">
-                   <div className="flex items-center gap-2"><div className="w-2.5 h-2.5 bg-[#10B981] rounded-sm"></div> Ingresos</div>
-                   <div className="flex items-center gap-2"><div className="w-2.5 h-2.5 bg-[#EF4444] rounded-sm"></div> Gastos</div>
-                </div>
-                <div className="h-44">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart 
-                      data={last6MonthsFlow} 
-                      margin={{ top: 0, right: 0, left: -20, bottom: 0 }} 
-                      barGap={2} 
-                      barSize={12}
-                      onClick={(e) => {
-                         if (e && e.activePayload && e.activePayload.length > 0) {
-                            const payload = e.activePayload[0].payload;
-                            // Reconstruct month jump logic based on index relative to current
-                            const reversedIndex = last6MonthsFlow.findIndex(m => m.name === payload.name);
-                            if (reversedIndex !== -1) {
-                               const monthsBack = 5 - reversedIndex; 
-                               const d = new Date(new Date().getFullYear(), new Date().getMonth() - monthsBack, 1);
-                               setCurrentMonth(d.getMonth()); setCurrentYear(d.getFullYear());
-                            }
-                         }
-                      }}
+        {/* COL 2: FLUJO, GASTOS, META 2 */}
+        <div className="space-y-6 flex flex-col h-full">
+
+          {/* Box 3: Flujo de Efectivo */}
+          <div className="bg-[#172033] rounded-2xl p-6 border border-[#2A3445] shadow-lg">
+            <h3 className="text-[11px] font-black text-white uppercase tracking-widest mb-6 text-center">FLUJO DE EFECTIVO (Últimos 6 meses)</h3>
+            <div className="flex justify-center gap-6 mb-6 text-[10px] font-black uppercase tracking-widest text-[#94A3B8]">
+              <div className="flex items-center gap-2"><div className="w-2.5 h-2.5 bg-[#10B981] rounded-sm"></div> Ingresos</div>
+              <div className="flex items-center gap-2"><div className="w-2.5 h-2.5 bg-[#EF4444] rounded-sm"></div> Gastos</div>
+            </div>
+            <div className="h-44">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={last6MonthsFlow}
+                  margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
+                  barGap={2}
+                  barSize={12}
+                  onClick={(e) => {
+                    if (e && e.activePayload && e.activePayload.length > 0) {
+                      const payload = e.activePayload[0].payload;
+                      // Reconstruct month jump logic based on index relative to current
+                      const reversedIndex = last6MonthsFlow.findIndex(m => m.name === payload.name);
+                      if (reversedIndex !== -1) {
+                        const monthsBack = 5 - reversedIndex;
+                        const d = new Date(new Date().getFullYear(), new Date().getMonth() - monthsBack, 1);
+                        setCurrentMonth(d.getMonth()); setCurrentYear(d.getFullYear());
+                      }
+                    }
+                  }}
+                  className="cursor-pointer"
+                >
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#2A3445" />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94A3B8', fontSize: 10, fontWeight: 900 }} dy={10} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94A3B8', fontSize: 10, fontWeight: 900 }} tickFormatter={(v) => `$${v}`} />
+                  <Tooltip cursor={{ fill: '#2A3445', opacity: 0.4 }} contentStyle={{ backgroundColor: '#0E1629', borderColor: '#2A3445', borderRadius: '12px', fontSize: '11px', fontWeight: 'bold' }} />
+                  <Bar dataKey="Ingresos" fill="#10B981" radius={[2, 2, 0, 0]} />
+                  <Bar dataKey="Gastos" fill="#EF4444" radius={[2, 2, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Box 4: Gastos por Categoría */}
+          <div className="bg-[#172033] rounded-2xl p-6 border border-[#2A3445] shadow-lg">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-[11px] font-black text-white uppercase tracking-widest">GASTOS POR CATEGORÍA ({monthName})</h3>
+              <Settings size={16} className="text-[#EF4444] cursor-pointer hover:rotate-90 transition-all" />
+            </div>
+            <div className="flex flex-col sm:flex-row items-center gap-6">
+              <div className="w-36 h-36 flex-shrink-0 relative">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={expensesByCategory.length > 0 ? expensesByCategory : [{ name: 'Sin datos', amount: 1, color: '#2A3445' }]}
+                      innerRadius={45}
+                      outerRadius={65}
+                      paddingAngle={5}
+                      dataKey="amount"
+                      stroke="none"
                       className="cursor-pointer"
+                      onClick={(e) => {
+                        if (e && e.name && e.name !== 'Sin datos') {
+                          setActiveCategoryScope(e.name);
+                          setActiveDetail('OUT');
+                        }
+                      }}
                     >
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#2A3445" />
-                      <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94A3B8', fontSize: 10, fontWeight: 900}} dy={10} />
-                      <YAxis axisLine={false} tickLine={false} tick={{fill: '#94A3B8', fontSize: 10, fontWeight: 900}} tickFormatter={(v) => `$${v}`} />
-                      <Tooltip cursor={{fill: '#2A3445', opacity: 0.4}} contentStyle={{backgroundColor: '#0E1629', borderColor: '#2A3445', borderRadius: '12px', fontSize: '11px', fontWeight: 'bold'}} />
-                      <Bar dataKey="Ingresos" fill="#10B981" radius={[2, 2, 0, 0]} />
-                      <Bar dataKey="Gastos" fill="#EF4444" radius={[2, 2, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-            </div>
-
-            {/* Box 4: Gastos por Categoría */}
-            <div className="bg-[#172033] rounded-2xl p-6 border border-[#2A3445] shadow-lg">
-                <div className="flex justify-between items-center mb-6">
-                   <h3 className="text-[11px] font-black text-white uppercase tracking-widest">GASTOS POR CATEGORÍA ({monthName})</h3>
-                   <Settings size={16} className="text-[#EF4444] cursor-pointer hover:rotate-90 transition-all"/>
-                </div>
-                <div className="flex flex-col sm:flex-row items-center gap-6">
-                   <div className="w-36 h-36 flex-shrink-0 relative">
-                     <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                          <Pie
-                            data={expensesByCategory.length > 0 ? expensesByCategory : [{name: 'Sin datos', amount: 1, color: '#2A3445'}]}
-                            innerRadius={45}
-                            outerRadius={65}
-                            paddingAngle={5}
-                            dataKey="amount"
-                            stroke="none"
-                            className="cursor-pointer"
-                            onClick={(e) => {
-                              if (e && e.name && e.name !== 'Sin datos') {
-                                setActiveCategoryScope(e.name);
-                                setActiveDetail('OUT');
-                              }
-                            }}
-                          >
-                            {expensesByCategory.length > 0 ? expensesByCategory.map((entry, index) => <Cell key={index} fill={entry.color} />) : <Cell fill="#2A3445" />}
-                          </Pie>
-                        </PieChart>
-                     </ResponsiveContainer>
-                   </div>
-                   <div className="flex-1 w-full space-y-2.5 max-h-36 overflow-y-auto no-scrollbar pr-2">
-                       {expensesByCategory.slice(0, 6).map((cat, i) => {
-                          const pct = totalOut > 0 ? ((cat.amount / totalOut) * 100).toFixed(0) : '0';
-                          return (
-                            <div key={i} 
-                                 className="flex items-center gap-3 w-full group cursor-pointer hover:bg-white/5 p-1 -mx-1 rounded transition-colors"
-                                 onClick={() => { setActiveCategoryScope(cat.name); setActiveDetail('OUT'); }}
-                            >
-                               <div className="w-2.5 h-2.5 rounded-full flex-shrink-0 group-hover:scale-125 transition-transform" style={{backgroundColor: cat.color}}></div>
-                               <span className="text-[10px] font-black text-white truncate flex-1 uppercase tracking-widest" title={cat.name}>{cat.name}</span>
-                               <span className="text-[10px] font-black text-[#94A3B8] tabular-nums">{pct}%</span>
-                            </div>
-                          )
-                       })}
-                       {expensesByCategory.length === 0 && (
-                          <div className="text-[10px] text-[#94A3B8] font-black uppercase tracking-widest">Sin gastos registrados</div>
-                       )}
-                   </div>
-                </div>
-            </div>
-
-            {/* Box 5: Meta 2 */}
-            <div className="bg-[#172033] rounded-2xl p-6 border border-[#2A3445] shadow-lg flex-1">
-                <div className="flex justify-between items-center mb-6">
-                   <h3 className="text-[11px] font-black text-white uppercase tracking-widest">{savingsGoals[1].name}</h3>
-                   <BarChart3 size={16} className="text-[#94A3B8]"/>
-                </div>
-                <div className="flex justify-between items-end mb-3">
-                   <div className="bg-[#10B981]/10 border border-[#10B981]/20 text-[#10B981] px-3 py-1 rounded-md text-[11px] font-black tabular-nums">{savingsGoals[1].progress}%</div>
-                   <div className="text-[11px] font-black uppercase tracking-widest text-[#94A3B8]"><span className="text-[#10B981]">{formatCurrency(savingsGoals[1].current)}</span> / {formatCurrency(savingsGoals[1].target)}</div>
-                </div>
-                <div className="h-2.5 bg-[#0E1629] rounded-full overflow-hidden mt-2 border border-[#2A3445]">
-                   <div className="h-full bg-[#10B981] w-[62%] rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>
-                </div>
-                <div className="h-16 w-full mt-6">
-                  {/* Mock line chart */}
-                  <svg viewBox="0 0 100 30" preserveAspectRatio="none" className="w-full h-full stroke-[#10B981] fill-none" strokeWidth="3">
-                     <path d="M0,25 Q10,20 20,25 T40,15 T60,20 T80,10 T100,5" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </div>
-            </div>
-         </div>
-
-         {/* COL 3: DESGLOSE ACTIVOS/PASIVOS, INVERSIONES, TRANSACCIONES */}
-         <div className="space-y-6 flex flex-col h-full">
-            
-            {/* Box 6: Activos */}
-            <div className="bg-[#172033] rounded-2xl p-6 border border-[#2A3445] shadow-lg">
-               <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-[11px] font-black text-white uppercase tracking-widest">DESGLOSE DE ACTIVOS</h3>
-                  <div className="p-1.5 bg-[#10B981]/10 rounded-lg text-[#10B981]"><Clock size={14}/></div>
-               </div>
-               <div className="flex justify-between items-end border-b border-[#2A3445] pb-4 mb-4">
-                  <span className="text-[11px] font-black text-[#94A3B8] uppercase tracking-widest">Total Activos:</span>
-                  <span className="text-lg font-black text-[#10B981] tabular-nums">{formatCurrency(totalActivos)}</span>
-               </div>
-               <div className="space-y-3">
-                  {activosList.map((item, i) => (
-                    <div key={i} 
-                         onClick={() => item.name === 'Checking' ? navigate('/finance/accounts') : navigate('/finance/jars')}
-                         className="flex justify-between items-center bg-[#0E1629] p-2.5 rounded-xl border border-[#2A3445] hover:border-[#10B981]/50 cursor-pointer transition-colors group">
-                       <div className="flex items-center gap-3">
-                         <div className={`${item.color} group-hover:scale-110 transition-transform`}>{item.icon}</div>
-                         <span className="text-[10px] font-black text-white uppercase tracking-widest group-hover:text-[#10B981] transition-colors">{item.name}</span>
-                       </div>
-                       <span className="text-[11px] font-black text-[#10B981] tabular-nums flex items-center gap-2">{formatCurrency(item.value)} <ChevronRight size={12} className="opacity-0 group-hover:opacity-100"/></span>
+                      {expensesByCategory.length > 0 ? expensesByCategory.map((entry, index) => <Cell key={index} fill={entry.color} />) : <Cell fill="#2A3445" />}
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="flex-1 w-full space-y-2.5 max-h-36 overflow-y-auto no-scrollbar pr-2">
+                {expensesByCategory.slice(0, 6).map((cat, i) => {
+                  const pct = totalOut > 0 ? ((cat.amount / totalOut) * 100).toFixed(0) : '0';
+                  return (
+                    <div key={i}
+                      className="flex items-center gap-3 w-full group cursor-pointer hover:bg-white/5 p-1 -mx-1 rounded transition-colors"
+                      onClick={() => { setActiveCategoryScope(cat.name); setActiveDetail('OUT'); }}
+                    >
+                      <div className="w-2.5 h-2.5 rounded-full flex-shrink-0 group-hover:scale-125 transition-transform" style={{ backgroundColor: cat.color }}></div>
+                      <span className="text-[10px] font-black text-white truncate flex-1 uppercase tracking-widest" title={cat.name}>{cat.name}</span>
+                      <span className="text-[10px] font-black text-[#94A3B8] tabular-nums">{pct}%</span>
                     </div>
-                  ))}
-               </div>
+                  )
+                })}
+                {expensesByCategory.length === 0 && (
+                  <div className="text-[10px] text-[#94A3B8] font-black uppercase tracking-widest">Sin gastos registrados</div>
+                )}
+              </div>
             </div>
+          </div>
 
-            {/* Box 7: Pasivos */}
-            <div className="bg-[#172033] rounded-2xl p-6 border border-[#2A3445] shadow-lg">
-               <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-[11px] font-black text-white uppercase tracking-widest">DESGLOSE DE PASIVOS</h3>
-                  <div className="p-1.5 bg-[#EF4444]/10 rounded-lg text-[#EF4444]"><CreditCard size={14}/></div>
-               </div>
-               <div className="flex justify-between items-end border-b border-[#2A3445] pb-4 mb-4">
-                  <span className="text-[11px] font-black text-[#94A3B8] uppercase tracking-widest">Total Deudas:</span>
-                  <span className="text-lg font-black text-[#EF4444] tabular-nums">{formatCurrency(totalPasivos)}</span>
-               </div>
-               <div className="space-y-3">
-                  {pasivosList.map((item, i) => (
-                    <div key={i} 
-                         onClick={() => item.name.includes('Tarjetas') ? navigate('/finance/accounts') : navigate('/finance/loans')}
-                         className="flex justify-between items-center bg-[#0E1629] p-2.5 rounded-xl border border-[#2A3445] hover:border-[#EF4444]/50 cursor-pointer transition-colors group">
-                       <div className="flex items-center gap-3">
-                         <div className="text-[#EF4444] group-hover:scale-110 transition-transform">{item.icon}</div>
-                         <span className="text-[10px] font-black text-white uppercase tracking-widest group-hover:text-[#EF4444] transition-colors">{item.name}</span>
-                       </div>
-                       <span className="text-[11px] font-black text-[#EF4444] tabular-nums flex items-center gap-2">{formatCurrency(item.value)} <ChevronRight size={12} className="opacity-0 group-hover:opacity-100"/></span>
-                    </div>
-                  ))}
-               </div>
+          {/* Box 5: Rendimiento de Cuentas (TNA) */}
+          <div className="bg-[#172033] rounded-2xl p-6 border border-[#2A3445] shadow-lg flex-1 flex flex-col">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-[11px] font-black text-white uppercase tracking-widest">RENDIMIENTO DE CUENTAS (TNA)</h3>
+              <TrendingUp size={16} className="text-[#94A3B8]" />
             </div>
-
-            {/* Box 8: Rendimiento */}
-            <div className="bg-[#172033] rounded-2xl p-6 border border-[#2A3445] shadow-lg">
-               <h3 className="text-[11px] font-black text-white uppercase tracking-widest mb-1">RENDIMIENTO DE INVERSIONES ({monthName.substring(0,3)})</h3>
-               <p className="text-2xl font-black text-[#10B981] mb-2">+4.2%</p>
-               <div className="h-16 w-full -mx-2 pointer-events-none">
-                  <svg viewBox="0 0 100 30" preserveAspectRatio="none" className="w-full h-full stroke-brand fill-brand/20" strokeWidth="2">
-                     <path d="M0,25 L10,20 L20,22 L30,15 L40,18 L50,10 L60,12 L70,5 L80,8 L100,0 L100,30 L0,30 Z" className="stroke-none" />
-                     <path d="M0,25 L10,20 L20,22 L30,15 L40,18 L50,10 L60,12 L70,5 L80,8 L100,0" fill="none" />
-                  </svg>
-               </div>
-            </div>
-
-            {/* Box 9: Transacciones */}
-            <div className="bg-[#172033] rounded-2xl p-6 border border-[#2A3445] shadow-lg flex-1">
-               <div className="flex justify-between items-center mb-6">
-                 <h3 className="text-[11px] font-black text-white uppercase tracking-widest">ÚLTIMAS TRANSACCIONES</h3>
-                 <div onClick={() => navigate('/finance/transactions')} className="p-1.5 bg-brand/10 rounded-lg text-brand cursor-pointer hover:bg-brand/20 transition-colors"><List size={14}/></div>
-               </div>
-               <div className="space-y-3">
-                  {transactions.sort((a,b)=>new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 5).map(t => {
-                    const cat = categories.find(c => c.id === t.categoryId)?.name || 'Sin Categoría';
-                    const dt = parseDate(t.date);
-                    const dStr = dt.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
-                    return (
-                      <div key={t.id} className="grid grid-cols-12 gap-2 items-center pb-2 border-b border-[#2A3445] last:border-0 hover:bg-white/5 p-1.5 -mx-1.5 rounded-lg transition-colors group cursor-default">
-                         <div className="col-span-2 text-[9px] font-black text-[#94A3B8] uppercase tracking-widest">{dStr}</div>
-                         <div className="col-span-4 text-[10px] font-black text-white truncate" title={t.description}>{t.description}</div>
-                         <div className="col-span-3 text-[9px] font-bold text-[#94A3B8] uppercase truncate">{cat}</div>
-                         <div className={`col-span-3 text-[10px] font-black text-right tabular-nums ${t.type === 'IN' ? 'text-[#10B981]' : 'text-[#EF4444]'}`}>
-                           {t.type === 'IN' ? '+' : '-'}{formatCurrency(t.amount)}
-                         </div>
+            <div className="space-y-3 flex-1 overflow-y-auto no-scrollbar pr-2">
+              {topYieldAccounts.map((acc, i) => {
+                // Determine color scale for TNA
+                const tna = acc.annualRate || 0;
+                const isTop = i === 0;
+                return (
+                  <div key={acc.id} onClick={() => navigate('/finance/accounts')} className="flex items-center justify-between p-2.5 bg-[#0E1629] rounded-xl border border-[#2A3445] hover:border-[#10B981]/30 cursor-pointer transition-colors group">
+                    <div className="flex items-center gap-3">
+                      <div className={`p-1.5 rounded-lg ${isTop ? 'bg-[#10B981]/10 text-[#10B981]' : 'bg-white/5 text-[#94A3B8]'}`}>
+                        <Wallet size={12} />
                       </div>
-                    )
-                  })}
-                  {transactions.length === 0 && (
-                     <p className="text-[10px] font-black text-[#94A3B8] uppercase tracking-widest text-center py-4">No hay transacciones</p>
-                  )}
-               </div>
+                      <span className="text-[10px] font-black text-white uppercase tracking-widest">{acc.name}</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-[11px] font-black tracking-wider text-[#10B981]">{tna.toFixed(1)}% TNA</span>
+                    </div>
+                  </div>
+                )
+              })}
+              {topYieldAccounts.length === 0 && (
+                <div className="text-center py-6 text-[10px] text-[#94A3B8] font-black uppercase tracking-widest h-full flex flex-col justify-center items-center gap-2">
+                  <Percent size={24} className="opacity-50" />
+                  Sin cuentas con TNA configurada
+                </div>
+              )}
             </div>
-         </div>
-         
+          </div>
+        </div>
+
+        {/* COL 3: DESGLOSE ACTIVOS/PASIVOS, INVERSIONES, TRANSACCIONES */}
+        <div className="space-y-6 flex flex-col h-full">
+
+          {/* Box 6: Activos */}
+          <div className="bg-[#172033] rounded-2xl p-6 border border-[#2A3445] shadow-lg">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-[11px] font-black text-white uppercase tracking-widest">DESGLOSE DE ACTIVOS</h3>
+              <div className="p-1.5 bg-[#10B981]/10 rounded-lg text-[#10B981]"><Clock size={14} /></div>
+            </div>
+            <div className="flex justify-between items-end border-b border-[#2A3445] pb-4 mb-4">
+              <span className="text-[11px] font-black text-[#94A3B8] uppercase tracking-widest">Total Activos:</span>
+              <span className="text-lg font-black text-[#10B981] tabular-nums">{formatCurrency(totalActivos)}</span>
+            </div>
+            <div className="space-y-3">
+              {activosList.map((item, i) => (
+                <div key={i}
+                  onClick={() => item.name === 'Checking' ? navigate('/finance/accounts') : navigate('/finance/jars')}
+                  className="flex justify-between items-center bg-[#0E1629] p-2.5 rounded-xl border border-[#2A3445] hover:border-[#10B981]/50 cursor-pointer transition-colors group">
+                  <div className="flex items-center gap-3">
+                    <div className={`${item.color} group-hover:scale-110 transition-transform`}>{item.icon}</div>
+                    <span className="text-[10px] font-black text-white uppercase tracking-widest group-hover:text-[#10B981] transition-colors">{item.name}</span>
+                  </div>
+                  <span className="text-[11px] font-black text-[#10B981] tabular-nums flex items-center gap-2">{formatCurrency(item.value)} <ChevronRight size={12} className="opacity-0 group-hover:opacity-100" /></span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Box 7: Pasivos */}
+          <div className="bg-[#172033] rounded-2xl p-6 border border-[#2A3445] shadow-lg">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-[11px] font-black text-white uppercase tracking-widest">DESGLOSE DE PASIVOS</h3>
+              <div className="p-1.5 bg-[#EF4444]/10 rounded-lg text-[#EF4444]"><CreditCard size={14} /></div>
+            </div>
+            <div className="flex justify-between items-end border-b border-[#2A3445] pb-4 mb-4">
+              <span className="text-[11px] font-black text-[#94A3B8] uppercase tracking-widest">Total Deudas:</span>
+              <span className="text-lg font-black text-[#EF4444] tabular-nums">{formatCurrency(totalPasivos)}</span>
+            </div>
+            <div className="space-y-3">
+              {pasivosList.map((item, i) => (
+                <div key={i}
+                  onClick={() => item.name.includes('Tarjetas') ? navigate('/finance/accounts') : navigate('/finance/loans')}
+                  className="flex justify-between items-center bg-[#0E1629] p-2.5 rounded-xl border border-[#2A3445] hover:border-[#EF4444]/50 cursor-pointer transition-colors group">
+                  <div className="flex items-center gap-3">
+                    <div className="text-[#EF4444] group-hover:scale-110 transition-transform">{item.icon}</div>
+                    <span className="text-[10px] font-black text-white uppercase tracking-widest group-hover:text-[#EF4444] transition-colors">{item.name}</span>
+                  </div>
+                  <span className="text-[11px] font-black text-[#EF4444] tabular-nums flex items-center gap-2">{formatCurrency(item.value)} <ChevronRight size={12} className="opacity-0 group-hover:opacity-100" /></span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Box 8: Inflación */}
+          <div className="bg-[#172033] rounded-2xl p-6 border border-[#2A3445] shadow-lg flex flex-col">
+            <div className="flex justify-between items-start mb-1">
+              <h3 className="text-[11px] font-black text-white uppercase tracking-widest">INFLACIÓN MENSUAL (Último Dato)</h3>
+              <span className="text-[9px] text-[#94A3B8] uppercase font-bold bg-white/5 px-2 py-1 rounded">ARG</span>
+            </div>
+            <p className="text-2xl font-black text-[#EF4444] mb-4">{recentInflation.current}%</p>
+
+            <div className="h-20 w-full -mx-2">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={recentInflation.trend} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
+                  <Line type="monotone" dataKey="Tasa" stroke="#EF4444" strokeWidth={2} dot={{ r: 3, fill: '#EF4444', strokeWidth: 0 }} />
+                  <Tooltip
+                    cursor={{ stroke: '#2A3445', strokeWidth: 1, strokeDasharray: '3 3' }}
+                    contentStyle={{ backgroundColor: '#0E1629', borderColor: '#2A3445', borderRadius: '8px', fontSize: '10px', fontWeight: 'bold' }}
+                    formatter={(value: any) => [`${value}%`, 'Inflación']}
+                    labelStyle={{ color: '#94A3B8' }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Box 9: Transacciones */}
+          <div className="bg-[#172033] rounded-2xl p-6 border border-[#2A3445] shadow-lg flex-1">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-[11px] font-black text-white uppercase tracking-widest">ÚLTIMAS TRANSACCIONES</h3>
+              <div onClick={() => navigate('/finance/transactions')} className="p-1.5 bg-brand/10 rounded-lg text-brand cursor-pointer hover:bg-brand/20 transition-colors"><List size={14} /></div>
+            </div>
+            <div className="space-y-3">
+              {transactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 5).map(t => {
+                const cat = categories.find(c => c.id === t.categoryId)?.name || 'Sin Categoría';
+                const dt = parseDate(t.date);
+                const dStr = dt.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
+                return (
+                  <div key={t.id} className="grid grid-cols-12 gap-2 items-center pb-2 border-b border-[#2A3445] last:border-0 hover:bg-white/5 p-1.5 -mx-1.5 rounded-lg transition-colors group cursor-default">
+                    <div className="col-span-2 text-[9px] font-black text-[#94A3B8] uppercase tracking-widest">{dStr}</div>
+                    <div className="col-span-4 text-[10px] font-black text-white truncate" title={t.description}>{t.description}</div>
+                    <div className="col-span-3 text-[9px] font-bold text-[#94A3B8] uppercase truncate">{cat}</div>
+                    <div className={`col-span-3 text-[10px] font-black text-right tabular-nums ${t.type === 'IN' ? 'text-[#10B981]' : 'text-[#EF4444]'}`}>
+                      {t.type === 'IN' ? '+' : '-'}{formatCurrency(t.amount)}
+                    </div>
+                  </div>
+                )
+              })}
+              {transactions.length === 0 && (
+                <p className="text-[10px] font-black text-[#94A3B8] uppercase tracking-widest text-center py-4">No hay transacciones</p>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
