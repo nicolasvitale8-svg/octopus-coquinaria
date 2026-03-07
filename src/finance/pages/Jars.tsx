@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Jar, Account, Category, Transaction, TransactionType, BudgetItem } from '../financeTypes';
 import { calculateJar, formatCurrency } from '../utils/calculations';
-import { Trash2, Pencil, X, Target, Sparkles } from 'lucide-react';
+import { Trash2, Pencil, X, Target, Sparkles, PiggyBank } from 'lucide-react';
 import { useFinanza } from '../context/FinanzaContext';
 import { JarSuggestions } from '../components/JarSuggestions';
 
@@ -241,6 +241,9 @@ export const Jars: React.FC = () => {
    const calculations = jars.map(calculateJar);
    const totalInvested = calculations.reduce((s, c) => s + c.jar.principal, 0);
    const totalValueNow = calculations.reduce((s, c) => s + c.currentValue, 0);
+   const historicalEarnings = calculations
+      .filter(c => c.daysRemaining <= 0)
+      .reduce((s, c) => s + (c.finalValue - c.jar.principal), 0);
 
    return (
       <div className="space-y-10 animate-fade-in">
@@ -255,14 +258,21 @@ export const Jars: React.FC = () => {
             </button>
          </div>
 
-         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-fin-card p-10 rounded-2xl border border-fin-border">
+         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="bg-fin-card p-10 rounded-2xl border border-fin-border group hover:border-fin-muted/30 transition-colors">
                <span className="text-[10px] font-black uppercase tracking-widest text-fin-muted block mb-4">Capital en Custodia</span>
                <p className="text-4xl font-black text-fin-text tracking-tighter">{formatCurrency(totalInvested)}</p>
             </div>
-            <div className="bg-fin-card p-10 rounded-2xl border border-brand/20">
+            <div className="bg-fin-card p-10 rounded-2xl border border-brand/20 group hover:border-brand/40 transition-colors">
                <span className="text-[10px] font-black uppercase tracking-widest text-brand block mb-4">Valor Liquidable Hoy</span>
                <p className="text-4xl font-black text-brand tracking-tighter">{formatCurrency(totalValueNow)}</p>
+            </div>
+            <div className="bg-emerald-500/5 p-10 rounded-2xl border border-emerald-500/20 group hover:border-emerald-500/40 transition-colors relative overflow-hidden">
+               <PiggyBank size={120} className="absolute -right-4 -top-4 opacity-5 group-hover:opacity-10 transition-opacity text-emerald-500" />
+               <span className="text-[10px] font-black uppercase tracking-widest text-emerald-500 flex items-center gap-2 mb-4">
+                  <PiggyBank size={14} /> Ganancia Histórica
+               </span>
+               <p className="text-4xl font-black text-emerald-400 tracking-tighter">+{formatCurrency(historicalEarnings)}</p>
             </div>
          </div>
 
