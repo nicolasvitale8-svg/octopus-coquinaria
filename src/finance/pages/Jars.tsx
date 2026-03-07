@@ -39,6 +39,8 @@ export const Jars: React.FC = () => {
    const [isFormOpen, setIsFormOpen] = useState(false);
    const [editingJar, setEditingJar] = useState<Partial<Jar>>({ annualRate: 40 });
    const [isEditing, setIsEditing] = useState(false);
+   const [isSaving, setIsSaving] = useState(false);
+   const [deletingId, setDeletingId] = useState<string | null>(null);
    const reconciledRef = useRef(false);
 
    useEffect(() => { loadData(); }, [activeEntity]);
@@ -164,6 +166,7 @@ export const Jars: React.FC = () => {
       if (!editingJar.principal || editingJar.principal <= 0) return alert("El capital inicial debe ser mayor a 0.");
       if (!editingJar.startDate || !editingJar.endDate) return alert("Las fechas de inicio y fin son obligatorias.");
 
+      setIsSaving(true);
       try {
          const bId = activeEntity.id || undefined;
          const isNewJar = !isEditing;
@@ -187,12 +190,16 @@ export const Jars: React.FC = () => {
          closeForm();
       } catch (error) {
          console.error("Error saving jar:", error);
+         alert("Hubo un error al guardar el frasco.");
+      } finally {
+         setIsSaving(false);
       }
    };
 
    const handleDeleteJar = async (jar: Jar) => {
       if (!confirm('¿Eliminar frasco? Se generará un movimiento de ingreso para devolver el dinero a la cuenta.')) return;
 
+      setDeletingId(jar.id);
       try {
          const bId = activeEntity.id || undefined;
          const calc = calculateJar(jar);
@@ -214,6 +221,9 @@ export const Jars: React.FC = () => {
          await loadData();
       } catch (error) {
          console.error("Error deleting jar:", error);
+         alert("Hubo un error al eliminar el frasco.");
+      } finally {
+         setDeletingId(null);
       }
    };
 
@@ -284,11 +294,11 @@ export const Jars: React.FC = () => {
                      <input type="number" step="0.01" className="w-full bg-fin-bg border border-fin-border rounded-xl p-3 text-sm text-fin-text" value={editingJar.annualRate || ''} onChange={e => setEditingJar({ ...editingJar, annualRate: Number(e.target.value) })} required />
                   </div>
                   <div className="md:col-span-2 lg:col-span-3 pt-4 flex gap-4">
-                     <button type="submit" className="bg-brand text-fin-bg font-black py-4 px-10 rounded-xl flex-1 text-xs uppercase tracking-widest hover:bg-brand-hover transition-all">
-                        {isEditing ? 'GUARDAR CAMBIOS' : 'ACTIVAR FRASCO'}
+                     <button type="submit" disabled={isSaving} className="bg-brand text-fin-bg font-black py-4 px-10 rounded-xl flex-1 text-xs uppercase tracking-widest hover:bg-brand-hover transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                        {isSaving ? 'GUARDANDO...' : (isEditing ? 'GUARDAR CAMBIOS' : 'ACTIVAR FRASCO')}
                      </button>
                      {isEditing && (
-                        <button type="button" onClick={closeForm} className="border border-fin-border text-fin-muted font-black py-4 px-10 rounded-xl text-xs uppercase tracking-widest hover:text-fin-text hover:border-fin-text transition-all">
+                        <button type="button" onClick={closeForm} disabled={isSaving} className="border border-fin-border text-fin-muted font-black py-4 px-10 rounded-xl text-xs uppercase tracking-widest hover:text-fin-text hover:border-fin-text transition-all disabled:opacity-50">
                            CANCELAR
                         </button>
                      )}
@@ -394,11 +404,11 @@ export const Jars: React.FC = () => {
 
                         {/* Botones de editar y eliminar */}
                         <div className="absolute bottom-8 right-8 flex gap-3 opacity-20 group-hover:opacity-100 transition-opacity">
-                           <button onClick={() => openEditForm(jar)} className="text-fin-muted hover:text-brand transition-colors" title="Editar frasco">
+                           <button onClick={() => openEditForm(jar)} disabled={deletingId === jar.id} className="text-fin-muted hover:text-brand transition-colors disabled:opacity-50" title="Editar frasco">
                               <Pencil size={16} />
                            </button>
-                           <button onClick={() => handleDeleteJar(jar)} className="text-fin-muted hover:text-red-500 transition-colors" title="Eliminar frasco">
-                              <Trash2 size={16} />
+                           <button onClick={() => handleDeleteJar(jar)} disabled={deletingId === jar.id} className="text-fin-muted hover:text-red-500 transition-colors disabled:opacity-50" title="Eliminar frasco">
+                              {deletingId === jar.id ? <Sparkles size={16} className="animate-spin text-red-500" /> : <Trash2 size={16} />}
                            </button>
                         </div>
                      </div>
