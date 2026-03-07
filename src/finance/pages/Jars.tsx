@@ -224,9 +224,15 @@ export const Jars: React.FC = () => {
          await service.deleteJar(jar.id);
          reconciledRef.current = false;
          await loadData();
-      } catch (error) {
+      } catch (error: any) {
          console.error("Error deleting jar:", error);
-         const errMsg = error instanceof Error ? error.message : String(error);
+         let errMsg = "Desconocido";
+         if (error instanceof Error) errMsg = error.message;
+         else if (typeof error === 'object' && error !== null) {
+            errMsg = error.message || error.details || error.hint || JSON.stringify(error);
+         } else {
+            errMsg = String(error);
+         }
          alert("Hubo un error al eliminar el frasco: " + errMsg);
       } finally {
          setDeletingId(null);
