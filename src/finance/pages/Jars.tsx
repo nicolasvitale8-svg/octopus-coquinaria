@@ -158,7 +158,11 @@ export const Jars: React.FC = () => {
 
    const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
-      if (!editingJar.name || !editingJar.principal || !editingJar.startDate || !editingJar.endDate) return;
+
+      if (!editingJar.name) return alert("Por favor, ingresá un nombre para el frasco.");
+      if (!editingJar.accountId) return alert("Falta seleccionar la Cuenta Origen. Por favor, elegila en el formulario.");
+      if (!editingJar.principal || editingJar.principal <= 0) return alert("El capital inicial debe ser mayor a 0.");
+      if (!editingJar.startDate || !editingJar.endDate) return alert("Las fechas de inicio y fin son obligatorias.");
 
       try {
          const bId = activeEntity.id || undefined;
