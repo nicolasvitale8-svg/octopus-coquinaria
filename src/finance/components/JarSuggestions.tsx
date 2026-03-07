@@ -121,8 +121,9 @@ export const JarSuggestions: React.FC<JarSuggestionsProps> = ({
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {suggestions.map((sug, idx) => {
+                    // Se considera aplicada si existe un frasco en esas fechas,
+                    // sin importar si el usuario le cambió el nombre al guardarlo.
                     const isApplied = jars.some(j =>
-                        j.name === `Reserva Gastos (${sug.term}d)` &&
                         j.startDate === sug.startDate &&
                         j.endDate === sug.endDate
                     );
