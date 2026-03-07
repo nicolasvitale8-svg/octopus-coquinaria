@@ -11,15 +11,14 @@ const formatDateLocal = (dateStr: string): string => {
    return new Date(y, m - 1, d).toLocaleDateString();
 };
 
-/** Obtiene o crea la categoría SAVINGS */
 const getOrCreateSavingsCategory = async (
    categories: Category[],
    service: any,
    bId?: string
 ): Promise<Category> => {
-   let cat = categories.find(c => c.type === TransactionType.SAVINGS);
+   let cat = categories.find(c => c.name === 'Inversiones / Ahorro');
    if (!cat) {
-      cat = await service.addCategory({ name: 'Inversiones / Ahorro', type: TransactionType.SAVINGS }, bId);
+      cat = await service.addCategory({ name: 'Inversiones / Ahorro', type: 'MIX' as TransactionType }, bId);
    }
    return cat!;
 };
