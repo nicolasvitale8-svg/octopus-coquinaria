@@ -1,7 +1,8 @@
 import React, { useMemo } from 'react';
 import { BudgetItem, Account, Jar, TransactionType } from '../financeTypes';
 import { formatCurrency } from '../utils/calculations';
-import { Sparkles, Calendar, Plus, TrendingUp } from 'lucide-react';
+import { Sparkles, Calendar, Plus, TrendingUp, ChevronDown } from 'lucide-react';
+import { useState } from 'react';
 
 interface JarSuggestionsProps {
     budgetItems: BudgetItem[];
@@ -28,9 +29,17 @@ export const JarSuggestions: React.FC<JarSuggestionsProps> = ({
     currentYear,
     onCreateJar
 }) => {
-    // Parámetros por defecto
     const PAYDAY = 5;
     const DEFAULT_TNA = 40; // TNA promedio
+
+    const [expandedSuggestions, setExpandedSuggestions] = useState<Record<number, boolean>>({});
+
+    const toggleExpand = (idx: number) => {
+        setExpandedSuggestions(prev => ({
+            ...prev,
+            [idx]: !prev[idx]
+        }));
+    };
 
     const suggestions = useMemo(() => {
         // Filtrar gastos presupuestados del mes actual
@@ -135,6 +144,38 @@ export const JarSuggestions: React.FC<JarSuggestionsProps> = ({
                             <div className="flex justify-between items-center text-[10px] bg-emerald-500/10 p-2.5 rounded-xl border border-emerald-500/20">
                                 <span className="text-emerald-500/80 font-bold">Rendimiento Estimado (TNA {sug.tna}%)</span>
                                 <span className="text-emerald-400 font-black tabular-nums">+{formatCurrency(sug.estimatedInterest)}</span>
+                            </div>
+                        </div>
+
+                        {/* DESPLEGABLE DE GASTOS */}
+                        <div className="mb-4">
+                            <button
+                                onClick={() => toggleExpand(idx)}
+                                className="w-full flex items-center justify-between text-[9px] font-black text-amber-500/80 uppercase tracking-widest bg-amber-500/5 hover:bg-amber-500/10 px-3 py-2 rounded-lg border border-amber-500/20 transition-colors"
+                            >
+                                <span>Ver detalle de gastos ({sug.items.length})</span>
+                                <ChevronDown size={12} className={`transition-transform duration-300 ${expandedSuggestions[idx] ? 'rotate-180' : ''}`} />
+                            </button>
+
+                            {/* LISTA EXPANDIBLE */}
+                            <div className={`overflow-hidden transition-all duration-300 ${expandedSuggestions[idx] ? 'max-h-60 mt-2 opacity-100' : 'max-h-0 opacity-0'}`}>
+                                <div className="space-y-1.5 p-1 custom-scrollbar overflow-y-auto max-h-56">
+                                    {sug.items.sort((a, b) => (a.plannedDate || 0) - (b.plannedDate || 0)).map(item => (
+                                        <div key={item.id} className="flex justify-between items-center bg-[#050f1a] p-2 rounded-lg border border-white/5">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-[9px] font-black text-white/40 tabular-nums bg-white/5 px-1.5 py-0.5 rounded">
+                                                    DÍA {item.plannedDate}
+                                                </span>
+                                                <span className="text-[10px] font-bold text-white truncate max-w-[120px]" title={item.label}>
+                                                    {item.label}
+                                                </span>
+                                            </div>
+                                            <span className="text-[10px] font-black text-fin-muted tabular-nums">
+                                                {formatCurrency(item.plannedAmount)}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         </div>
 
