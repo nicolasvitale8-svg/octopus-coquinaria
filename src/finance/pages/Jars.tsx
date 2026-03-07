@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { Jar, Account } from '../financeTypes';
+import React, { useState, useEffect, useRef } from 'react';
+import { Jar, Account, Category, Transaction, TransactionType, BudgetItem } from '../financeTypes';
 import { calculateJar, formatCurrency } from '../utils/calculations';
-import { Trash2, Pencil, X, Target } from 'lucide-react';
+import { Trash2, Pencil, X, Target, Sparkles } from 'lucide-react';
 import { useFinanza } from '../context/FinanzaContext';
+import { JarSuggestions } from '../components/JarSuggestions';
 
 /** Parsea 'YYYY-MM-DD' sin desfase de timezone (evita interpretación UTC) */
 const formatDateLocal = (dateStr: string): string => {
@@ -10,14 +11,35 @@ const formatDateLocal = (dateStr: string): string => {
    return new Date(y, m - 1, d).toLocaleDateString();
 };
 
+/** Obtiene o crea la categoría SAVINGS */
+const getOrCreateSavingsCategory = async (
+   categories: Category[],
+   service: any,
+   bId?: string
+): Promise<Category> => {
+   let cat = categories.find(c => c.type === TransactionType.SAVINGS);
+   if (!cat) {
+      cat = await service.addCategory({ name: 'Inversiones / Ahorro', type: TransactionType.SAVINGS }, bId);
+   }
+   return cat!;
+};
+
 export const Jars: React.FC = () => {
    const { activeEntity, service, isDemoMode } = useFinanza();
    const [loading, setLoading] = useState(true);
    const [jars, setJars] = useState<Jar[]>([]);
    const [accounts, setAccounts] = useState<Account[]>([]);
+   const [categories, setCategories] = useState<Category[]>([]);
+   const [transactions, setTransactions] = useState<Transaction[]>([]);
+   const [budgetItems, setBudgetItems] = useState<BudgetItem[]>([]);
+
+   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
+   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+
    const [isFormOpen, setIsFormOpen] = useState(false);
    const [editingJar, setEditingJar] = useState<Partial<Jar>>({ annualRate: 40 });
    const [isEditing, setIsEditing] = useState(false);
+   const reconciledRef = useRef(false);
 
    useEffect(() => { loadData(); }, [activeEntity]);
 
@@ -25,18 +47,89 @@ export const Jars: React.FC = () => {
       setLoading(true);
       try {
          const bId = activeEntity.id || undefined;
-         const [j, acc] = await Promise.all([
+         const [j, acc, cats, txns, budgets] = await Promise.all([
             service.getJars(bId),
-            service.getAccounts(bId)
+            service.getAccounts(bId),
+            service.getCategories(bId),
+            service.getTransactions(bId),
+            service.getBudgetItems(bId)
          ]);
          setJars(j);
          setAccounts(acc);
+         setCategories(cats);
+         setTransactions(txns);
+         setBudgetItems(budgets);
       } catch (error) {
          console.error("Error loading jars:", error);
       } finally {
          setLoading(false);
       }
    };
+
+   // Reconciliación automática: frascos existentes sin movimiento + frascos vencidos
+   useEffect(() => {
+      if (loading || jars.length === 0 || reconciledRef.current) return;
+      reconciledRef.current = true;
+
+      const reconcile = async () => {
+         const bId = activeEntity.id || undefined;
+         let needsReload = false;
+
+         for (const jar of jars) {
+            const calc = calculateJar(jar);
+
+            // 1. Verificar si el frasco tiene movimiento de EGRESO asociado
+            const hasOutTxn = transactions.some(t =>
+               t.description?.includes(`Frasco: ${jar.name}`) &&
+               t.type === TransactionType.OUT &&
+               t.accountId === jar.accountId
+            );
+
+            if (!hasOutTxn) {
+               // Crear el movimiento de egreso retroactivo
+               const savingsCat = await getOrCreateSavingsCategory(categories, service, bId);
+               await service.addTransaction({
+                  date: jar.startDate,
+                  categoryId: savingsCat.id,
+                  description: `Frasco: ${jar.name}`,
+                  amount: jar.principal,
+                  type: TransactionType.OUT,
+                  accountId: jar.accountId,
+               }, bId);
+               needsReload = true;
+            }
+
+            // 2. Verificar si el frasco venció y no tiene movimiento de INGRESO de cierre
+            if (calc.daysRemaining <= 0) {
+               const hasCloseTxn = transactions.some(t =>
+                  t.description?.includes(`Cierre Frasco: ${jar.name}`) &&
+                  t.type === TransactionType.IN &&
+                  t.accountId === jar.accountId
+               );
+
+               if (!hasCloseTxn) {
+                  const savingsCat = await getOrCreateSavingsCategory(categories, service, bId);
+                  await service.addTransaction({
+                     date: jar.endDate,
+                     categoryId: savingsCat.id,
+                     description: `Cierre Frasco: ${jar.name}`,
+                     note: `Capital: ${formatCurrency(jar.principal)} + Interés: ${formatCurrency(calc.finalValue - jar.principal)}`,
+                     amount: calc.finalValue,
+                     type: TransactionType.IN,
+                     accountId: jar.accountId,
+                  }, bId);
+                  needsReload = true;
+               }
+            }
+         }
+
+         if (needsReload) {
+            await loadData();
+         }
+      };
+
+      reconcile();
+   }, [loading, jars, transactions]);
 
    const openNewForm = () => {
       setEditingJar({ annualRate: 40 });
@@ -48,6 +141,13 @@ export const Jars: React.FC = () => {
       setEditingJar({ ...jar });
       setIsEditing(true);
       setIsFormOpen(true);
+   };
+
+   const handleSuggestionCreate = (suggestedJar: Partial<Jar>) => {
+      setEditingJar(suggestedJar);
+      setIsEditing(false);
+      setIsFormOpen(true);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
    };
 
    const closeForm = () => {
@@ -62,11 +162,54 @@ export const Jars: React.FC = () => {
 
       try {
          const bId = activeEntity.id || undefined;
+         const isNewJar = !isEditing;
          await service.saveJar(editingJar, bId);
+
+         // Al crear un frasco NUEVO, generar un movimiento de egreso automático
+         if (isNewJar && editingJar.accountId && editingJar.principal) {
+            const savingsCat = await getOrCreateSavingsCategory(categories, service, bId);
+            await service.addTransaction({
+               date: editingJar.startDate,
+               categoryId: savingsCat.id,
+               description: `Frasco: ${editingJar.name}`,
+               amount: editingJar.principal,
+               type: TransactionType.OUT,
+               accountId: editingJar.accountId,
+            }, bId);
+         }
+
+         reconciledRef.current = false; // permitir re-reconciliación
          await loadData();
          closeForm();
       } catch (error) {
          console.error("Error saving jar:", error);
+      }
+   };
+
+   const handleDeleteJar = async (jar: Jar) => {
+      if (!confirm('¿Eliminar frasco? Se generará un movimiento de ingreso para devolver el dinero a la cuenta.')) return;
+
+      try {
+         const bId = activeEntity.id || undefined;
+         const calc = calculateJar(jar);
+
+         // Generar movimiento de ingreso (reversión) por el valor actual
+         const savingsCat = await getOrCreateSavingsCategory(categories, service, bId);
+         await service.addTransaction({
+            date: new Date().toISOString().split('T')[0],
+            categoryId: savingsCat.id,
+            description: `Cancelación Frasco: ${jar.name}`,
+            note: `Capital: ${formatCurrency(jar.principal)} + Interés acumulado: ${formatCurrency(calc.interestAccrued)}`,
+            amount: calc.currentValue,
+            type: TransactionType.IN,
+            accountId: jar.accountId,
+         }, bId);
+
+         await service.deleteJar(jar.id);
+         reconciledRef.current = false;
+         await loadData();
+      } catch (error) {
+         console.error("Error deleting jar:", error);
       }
    };
 
@@ -150,19 +293,36 @@ export const Jars: React.FC = () => {
             </div>
          )}
 
+         <JarSuggestions
+            budgetItems={budgetItems}
+            accounts={accounts}
+            currentMonth={currentMonth}
+            currentYear={currentYear}
+            onCreateJar={handleSuggestionCreate}
+         />
+
          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {calculations.map(({ jar, currentValue, finalValue, daysRemaining, daysTotal, daysElapsed, interestAccrued }) => {
                const timeProgress = (daysElapsed / daysTotal) * 100;
                const totalInterest = finalValue - jar.principal;
                const valueProgress = totalInterest > 0 ? (interestAccrued / totalInterest) * 100 : 0;
+               const isMatured = daysRemaining <= 0;
 
                return (
-                  <div key={jar.id} className="bg-fin-card rounded-2xl border border-fin-border overflow-hidden relative group hover:border-brand/30 transition-all">
+                  <div key={jar.id} className={`bg-fin-card rounded-2xl border overflow-hidden relative group transition-all shadow-xl ${isMatured ? 'border-emerald-500/40 hover:border-emerald-500/60' : 'border-fin-border hover:border-brand/30'}`}>
                      {/* Barra de progreso temporal (parte superior) */}
                      <div className="h-1 bg-fin-bg w-full absolute top-0">
-                        <div className="h-full bg-brand transition-all duration-1000" style={{ width: `${Math.min(timeProgress, 100)}%` }}></div>
+                        <div className={`h-full transition-all duration-1000 ${isMatured ? 'bg-emerald-500' : 'bg-brand'}`} style={{ width: `${Math.min(timeProgress, 100)}%` }}></div>
                      </div>
-                     <div className="p-8">
+
+                     {/* Badge de estado vencido */}
+                     {isMatured && (
+                        <div className="absolute top-4 left-8 px-3 py-1 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-full text-[8px] font-black uppercase tracking-widest">
+                           ✓ Vencido — Liquidado
+                        </div>
+                     )}
+
+                     <div className={`p-8 ${isMatured ? 'pt-12' : ''}`}>
                         <div className="flex justify-between items-start mb-6">
                            <div>
                               <h3 className="text-lg font-black text-fin-text uppercase tracking-tight">{jar.name}</h3>
@@ -172,8 +332,8 @@ export const Jars: React.FC = () => {
                               </p>
                            </div>
                            <div className="text-right">
-                              <p className="text-2xl font-black text-brand tabular-nums tracking-tighter">{formatCurrency(currentValue)}</p>
-                              <p className="text-[9px] text-brand/60 font-black uppercase tracking-widest">Valor actual</p>
+                              <p className={`text-2xl font-black tabular-nums tracking-tighter ${isMatured ? 'text-emerald-400' : 'text-brand'}`}>{formatCurrency(isMatured ? finalValue : currentValue)}</p>
+                              <p className={`text-[9px] font-black uppercase tracking-widest ${isMatured ? 'text-emerald-500/60' : 'text-brand/60'}`}>{isMatured ? 'Valor final' : 'Valor actual'}</p>
                            </div>
                         </div>
 
@@ -200,14 +360,16 @@ export const Jars: React.FC = () => {
                         <div className="mb-6">
                            <div className="flex justify-between items-center mb-2">
                               <span className="text-[9px] font-black uppercase tracking-widest text-fin-muted">Evolución del rendimiento</span>
-                              <span className="text-[10px] font-black text-brand tabular-nums">{Math.min(valueProgress, 100).toFixed(1)}%</span>
+                              <span className={`text-[10px] font-black tabular-nums ${isMatured ? 'text-emerald-400' : 'text-brand'}`}>{Math.min(valueProgress, 100).toFixed(1)}%</span>
                            </div>
                            <div className="h-2 bg-fin-bg rounded-full overflow-hidden">
                               <div
                                  className="h-full rounded-full transition-all duration-1000"
                                  style={{
                                     width: `${Math.min(valueProgress, 100)}%`,
-                                    background: 'linear-gradient(90deg, var(--color-brand) 0%, #22c55e 100%)'
+                                    background: isMatured
+                                       ? 'linear-gradient(90deg, #22c55e 0%, #10b981 100%)'
+                                       : 'linear-gradient(90deg, var(--color-brand) 0%, #22c55e 100%)'
                                  }}
                               />
                            </div>
@@ -220,7 +382,9 @@ export const Jars: React.FC = () => {
                         {/* Fechas y días restantes */}
                         <div className="flex justify-between items-center text-[10px] font-black text-fin-muted uppercase tracking-widest bg-fin-bg/50 p-3 rounded-lg">
                            <span>{formatDateLocal(jar.startDate)}</span>
-                           <span className="text-brand">{daysRemaining} DÍAS RESTANTES</span>
+                           <span className={isMatured ? 'text-emerald-500' : 'text-brand'}>
+                              {isMatured ? 'COMPLETADO' : `${daysRemaining} DÍAS RESTANTES`}
+                           </span>
                            <span>{formatDateLocal(jar.endDate)}</span>
                         </div>
 
@@ -229,7 +393,7 @@ export const Jars: React.FC = () => {
                            <button onClick={() => openEditForm(jar)} className="text-fin-muted hover:text-brand transition-colors" title="Editar frasco">
                               <Pencil size={16} />
                            </button>
-                           <button onClick={async () => { if (confirm('Eliminar frasco?')) { await service.deleteJar(jar.id); await loadData(); } }} className="text-fin-muted hover:text-red-500 transition-colors" title="Eliminar frasco">
+                           <button onClick={() => handleDeleteJar(jar)} className="text-fin-muted hover:text-red-500 transition-colors" title="Eliminar frasco">
                               <Trash2 size={16} />
                            </button>
                         </div>

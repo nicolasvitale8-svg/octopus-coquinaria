@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Account, AccountType, MonthlyBalance, TextCategoryRule, Category, SubCategory, TransactionType, Transaction } from '../financeTypes';
 import { formatCurrency } from '../utils/calculations';
 import { Wallet, Plus, Edit2, X, Trash2, Check, AlertCircle, Info, Zap, Settings2, Sparkles, TrendingUp, TrendingDown } from 'lucide-react';
@@ -27,7 +28,14 @@ const formatArgNumber = (value: number): string => {
 export const Accounts: React.FC = () => {
   const { activeEntity, service, isDemoMode, toggleDemoMode } = useFinanza();
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'BALANCES' | 'ACCOUNTS' | 'CATEGORIES' | 'RULES'>('BALANCES');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const validTabs = ['BALANCES', 'ACCOUNTS', 'CATEGORIES', 'RULES'] as const;
+  type TabType = typeof validTabs[number];
+  const tabParam = searchParams.get('tab')?.toUpperCase() as TabType | undefined;
+  const activeTab: TabType = tabParam && validTabs.includes(tabParam) ? tabParam : 'BALANCES';
+  const setActiveTab = (tab: TabType) => {
+    setSearchParams({ tab }, { replace: true });
+  };
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [accountTypes, setAccountTypes] = useState<AccountType[]>([]);
   const [monthlyBalances, setMonthlyBalances] = useState<MonthlyBalance[]>([]);
@@ -211,34 +219,36 @@ export const Accounts: React.FC = () => {
   }
 
   return (
-    <div className="space-y-10 animate-fade-in pb-20">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
-        <div>
-          <h1 className="text-4xl font-extrabold text-white tracking-tight leading-none">Administración</h1>
-          <div className="flex items-center gap-3 mt-3">
-            <p className="text-fin-muted text-sm font-medium">Configura el motor de la aplicación y tus activos.</p>
-            {isDemoMode && (
-              <span className="px-3 py-1 bg-amber-500/10 text-amber-500 border border-amber-500/20 rounded-full text-[10px] font-black uppercase tracking-widest animate-pulse">
-                Modo Demo Activo
-              </span>
-            )}
+    <div className="space-y-8 animate-fade-in pb-20">
+      <div className="flex flex-col gap-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h1 className="text-4xl font-extrabold text-white tracking-tight leading-none">Administración</h1>
+            <div className="flex items-center gap-3 mt-2">
+              <p className="text-fin-muted text-sm font-medium">Configura el motor de la aplicación y tus activos.</p>
+              {isDemoMode && (
+                <span className="px-3 py-1 bg-amber-500/10 text-amber-500 border border-amber-500/20 rounded-full text-[10px] font-black uppercase tracking-widest animate-pulse">
+                  Modo Demo Activo
+                </span>
+              )}
+            </div>
           </div>
           <button
             onClick={toggleDemoMode}
-            className={`mt-4 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wide transition-all border ${isDemoMode ? 'bg-amber-500 text-black border-amber-500 hover:bg-amber-400' : 'bg-white/5 text-fin-muted border-white/10 hover:bg-white/10 hover:text-white'}`}
+            className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wide transition-all border shrink-0 ${isDemoMode ? 'bg-amber-500 text-black border-amber-500 hover:bg-amber-400' : 'bg-white/5 text-fin-muted border-white/10 hover:bg-white/10 hover:text-white'}`}
           >
             {isDemoMode ? 'Salir del Modo Demo' : 'Probar Modo Demo'}
           </button>
         </div>
 
-        <div className="flex bg-fin-card p-1 rounded-2xl border border-fin-border shadow-lg">
+        <div className="flex bg-fin-card p-1.5 rounded-2xl border border-fin-border shadow-lg w-full">
           {[
             { id: 'BALANCES', label: 'Saldos' },
             { id: 'ACCOUNTS', label: 'Cuentas' },
             { id: 'CATEGORIES', label: 'Rubros' },
-            { id: 'RULES', label: 'Reglas Automáticas' }
+            { id: 'RULES', label: 'Reglas Auto' }
           ].map((tab) => (
-            <button key={tab.id} onClick={() => setActiveTab(tab.id as any)} className={`px-6 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${activeTab === tab.id ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-fin-muted hover:text-fin-text'}`}>{tab.label}</button>
+            <button key={tab.id} onClick={() => setActiveTab(tab.id as TabType)} className={`flex-1 px-4 py-3 text-[11px] font-black uppercase tracking-widest rounded-xl transition-all ${activeTab === tab.id ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-fin-muted hover:text-fin-text hover:bg-white/5'}`}>{tab.label}</button>
           ))}
         </div>
       </div>
