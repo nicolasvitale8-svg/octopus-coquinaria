@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, Upload, Link as LinkIcon, FileText, CheckCircle2, AlertCircle } from 'lucide-react';
 import { Project, Deliverable } from '../../types';
 import { deliverableService } from '../../services/deliverableService';
+import { supabase } from '../../services/supabase';
 import Button from '../ui/Button';
 
 interface AddDeliverableModalProps {
@@ -14,6 +15,7 @@ interface AddDeliverableModalProps {
 const AddDeliverableModal: React.FC<AddDeliverableModalProps> = ({ project, isOpen, onClose, onSuccess }) => {
     const [title, setTitle] = useState('');
     const [fileUrl, setFileUrl] = useState('');
+    const [fileObj, setFileObj] = useState<File | null>(null);
     const [version, setVersion] = useState('1.0');
     const [internalNotes, setInternalNotes] = useState('');
     const [isSaving, setIsSaving] = useState(false);
@@ -27,22 +29,48 @@ const AddDeliverableModal: React.FC<AddDeliverableModalProps> = ({ project, isOp
 
         setIsSaving(true);
         try {
+            let finalUrl = fileUrl;
+
+            if (mode === 'upload' && fileObj) {
+                const fileExt = fileObj.name.split('.').pop();
+                const fileName = `${project.id}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+                const { data, error } = await supabase.storage
+                    .from('deliverables')
+                    .upload(fileName, fileObj);
+
+                if (error) {
+                    console.error("Storage upload error", error);
+                    alert("Error al subir archivo a Storage. Verifica que el bucket 'deliverables' exista y sea de escritura libre/pública.");
+                    setIsSaving(false);
+                    return;
+                }
+
+                const { data: publicData } = supabase.storage
+                    .from('deliverables')
+                    .getPublicUrl(data.path);
+
+                finalUrl = publicData.publicUrl;
+            }
+
             const newDeliverable: Partial<Deliverable> = {
                 project_id: project.id,
                 title,
-                file_url: fileUrl,
+                file_url: finalUrl,
                 version,
                 internal_notes: internalNotes,
-                status: 'IN_REVIEW' // Default to in review when uploaded by consultant
+                status: 'IN_REVIEW'
             };
 
             const result = await deliverableService.saveDeliverable(newDeliverable);
             if (result) {
                 onSuccess();
                 onClose();
+                onClose();
                 // Reset form
                 setTitle('');
                 setFileUrl('');
+                setFileObj(null);
                 setVersion('1.0');
                 setInternalNotes('');
             }
@@ -127,9 +155,32 @@ const AddDeliverableModal: React.FC<AddDeliverableModalProps> = ({ project, isOp
                             </div>
                         </div>
                     ) : (
-                        <div className="border-2 border-dashed border-slate-800 rounded-xl p-8 text-center bg-slate-950/30 hover:bg-slate-950/50 hover:border-slate-700 transition-all cursor-pointer">
-                            <Upload className="w-8 h-8 text-slate-600 mx-auto mb-3" />
-                            <p className="text-slate-500 text-xs italic">La subida directa de archivos requiere configuración de Supabase Storage. <br /> Por ahora te recomiendo usar <strong>Link</strong>.</p>
+                        <div>
+                            <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Subir Archivo (.pdf, .png, .docx)</label>
+                            <div className="relative border-2 border-dashed border-slate-800 rounded-xl p-8 flex flex-col items-center justify-center bg-slate-950/30 hover:bg-slate-950/50 hover:border-cyan-500/50 transition-all cursor-pointer overflow-hidden group">
+                                <input
+                                    type="file"
+                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                    onChange={(e) => {
+                                        if (e.target.files && e.target.files.length > 0) {
+                                            setFileObj(e.target.files[0]);
+                                        }
+                                    }}
+                                />
+                                {fileObj ? (
+                                    <>
+                                        <FileText className="w-8 h-8 text-cyan-400 mb-3" />
+                                        <p className="text-cyan-400 font-bold text-sm text-center truncate max-w-[250px]">{fileObj.name}</p>
+                                        <p className="text-cyan-500/50 text-xs mt-1">Click para cambiar archivo</p>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Upload className="w-8 h-8 text-slate-600 mb-3 group-hover:text-cyan-400 transition-colors" />
+                                        <p className="text-slate-400 text-sm font-medium">Click o arrastra un archivo aquí</p>
+                                        <p className="text-slate-500 text-xs mt-1">Máx 50MB</p>
+                                    </>
+                                )}
+                            </div>
                         </div>
                     )}
 

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import AdminLayout from '../components/AdminLayout';
 import { getAllProjects, createProject, deleteProject, updateProject } from '../services/projectService';
 import { Project } from '../types';
-import { Search, Briefcase, Plus, AlertCircle, Calendar, ArrowRight, X, Trash2, FileText, CheckSquare, DollarSign } from 'lucide-react';
+import { Search, Briefcase, Plus, AlertCircle, Calendar, ArrowRight, X, Trash2, FileText, CheckSquare, DollarSign, LayoutGrid, List } from 'lucide-react';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import LoadingOverlay from '../components/ui/LoadingOverlay';
@@ -36,6 +36,10 @@ const AdminProjects = () => {
     const [projects, setProjects] = useState<Project[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [filter, setFilter] = useState('');
+
+    // View State
+    const [viewMode, setViewMode] = useState<'table' | 'kanban'>('table');
+    const projectPhases = ['Lead', 'Onboarding', 'Diagnóstico', 'Implementación', 'Seguimiento', 'Cerrado'] as const;
 
     // Modal State
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -125,6 +129,28 @@ const AdminProjects = () => {
         );
     }, [projects, filter]);
 
+    const handleQuickUpdate = async (project: Project, field: 'phase' | 'status', value: string) => {
+        const updated = { ...project, [field]: value };
+        setProcessingAction(`Actualizando ${field === 'phase' ? 'fase' : 'estado'}...`);
+        const result = await updateProject(updated);
+        if (result) {
+            setProjects(prev => prev.map(p => p.id === project.id ? result : p));
+        } else {
+            alert('❌ Error al actualizar. Intenta de nuevo.');
+        }
+        setProcessingAction(null);
+    };
+
+    const getHealthScore = (p: Project) => {
+        let score = 100;
+        if (p.status === 'rojo') score -= 40;
+        if (p.status === 'amarillo') score -= 20;
+        const urgentTasks = p.tasks?.filter(t => t.priority === 'urgent' && t.status !== 'DONE').length || 0;
+        score -= urgentTasks * 5;
+        if (score < 0) score = 0;
+        return score;
+    };
+
     return (
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row justify-between items-end gap-4">
@@ -132,9 +158,27 @@ const AdminProjects = () => {
                     <h1 className="text-3xl font-bold text-white mb-2">Hub de Proyectos</h1>
                     <p className="text-slate-400">Gestión centralizada de clientes y consultoría.</p>
                 </div>
-                <Button onClick={() => setIsModalOpen(true)}>
-                    <Plus className="w-4 h-4 mr-2" /> Nuevo Proyecto
-                </Button>
+                <div className="flex gap-3">
+                    <div className="bg-slate-900 border border-slate-700 p-1 rounded-lg flex items-center">
+                        <button
+                            onClick={() => setViewMode('table')}
+                            className={`p-2 rounded-md transition-colors ${viewMode === 'table' ? 'bg-slate-700 text-white shadow' : 'text-slate-500 hover:text-slate-300'}`}
+                            title="Vista Tabla"
+                        >
+                            <List className="w-4 h-4" />
+                        </button>
+                        <button
+                            onClick={() => setViewMode('kanban')}
+                            className={`p-2 rounded-md transition-colors ${viewMode === 'kanban' ? 'bg-slate-700 text-white shadow' : 'text-slate-500 hover:text-slate-300'}`}
+                            title="Vista Tablero"
+                        >
+                            <LayoutGrid className="w-4 h-4" />
+                        </button>
+                    </div>
+                    <Button onClick={() => setIsModalOpen(true)}>
+                        <Plus className="w-4 h-4 mr-2" /> Nuevo Proyecto
+                    </Button>
+                </div>
             </div>
 
             {/* Stats Overview */}
@@ -236,7 +280,13 @@ const AdminProjects = () => {
                                         {project.lead_consultant || 'Sin asignar'}
                                     </td>
                                     <td className="px-6 py-4">
-                                        <PhaseBadge phase={project.phase} />
+                                        <select
+                                            value={project.phase}
+                                            onChange={(e) => handleQuickUpdate(project, 'phase', e.target.value)}
+                                            className="bg-slate-800 text-xs font-bold text-slate-300 border border-slate-700 rounded px-2 py-1 focus:outline-none focus:border-cyan-500"
+                                        >
+                                            {projectPhases.map(ph => <option key={ph} value={ph}>{ph}</option>)}
+                                        </select>
                                     </td>
                                     <td className="px-6 py-4">
                                         {project.next_action ? (
@@ -250,9 +300,23 @@ const AdminProjects = () => {
                                         ) : <span className="text-slate-600">-</span>}
                                     </td>
                                     <td className="px-6 py-4">
-                                        <StatusBadge status={project.status} />
+                                        <select
+                                            value={project.status}
+                                            onChange={(e) => handleQuickUpdate(project, 'status', e.target.value)}
+                                            className={`text-xs font-bold uppercase rounded-full px-2 py-1 border appearance-none text-center cursor-pointer ${project.status === 'verde' ? 'bg-green-500/20 text-green-400 border-green-500/50' :
+                                                    project.status === 'amarillo' ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50' :
+                                                        'bg-red-500/20 text-red-400 border-red-500/50'
+                                                }`}
+                                        >
+                                            <option className="bg-slate-900 text-white" value="verde">VERDE</option>
+                                            <option className="bg-slate-900 text-white" value="amarillo">AMARILLO</option>
+                                            <option className="bg-slate-900 text-white" value="rojo">ROJO</option>
+                                        </select>
                                     </td>
-                                    <td className="px-6 py-4 text-right">
+                                    <td className="px-6 py-4 text-right flex items-center justify-end gap-2">
+                                        <div className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${getHealthScore(project) >= 80 ? 'text-emerald-400 bg-emerald-400/10' : getHealthScore(project) >= 60 ? 'text-yellow-400 bg-yellow-400/10' : 'text-red-400 bg-red-400/10'}`} title="Health Score">
+                                            {getHealthScore(project)}%
+                                        </div>
                                         <button
                                             onClick={() => handleDeleteProject(project.id, project.business_name)}
                                             className="p-2 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
@@ -270,6 +334,67 @@ const AdminProjects = () => {
                     </table>
                 </div>
             </div>
+
+            {/* KANBAN RENDER PORTAL (Absolute Override or inline replacement if toggled) */}
+            {viewMode === 'kanban' && (
+                <div className="absolute inset-x-0 bottom-0 top-[200px] sm:top-[180px] bg-black/95 z-20 pb-6 overflow-hidden flex flex-col pt-4">
+                    <div className="px-6 w-full flex-1 overflow-x-auto overflow-y-hidden flex gap-6 pb-4 items-start scrollbar-hide">
+                        {projectPhases.map(phase => {
+                            const phaseProjects = filteredProjects.filter(p => p.phase === phase);
+                            return (
+                                <div key={phase} className="min-w-[320px] w-[320px] max-h-full flex flex-col bg-slate-900/60 border border-slate-800 rounded-2xl overflow-hidden shrink-0">
+                                    <div className="p-4 border-b border-slate-800/80 flex items-center justify-between bg-slate-900/80 backdrop-blur-md sticky top-0">
+                                        <h3 className="font-bold text-slate-200 text-sm uppercase tracking-wider">{phase}</h3>
+                                        <span className="text-xs font-black text-slate-500 bg-slate-800 px-2 py-0.5 rounded-full">{phaseProjects.length}</span>
+                                    </div>
+                                    <div className="p-4 overflow-y-auto flex-1 space-y-4">
+                                        {phaseProjects.map(project => (
+                                            <div key={project.id} className="bg-slate-800/80 hover:bg-slate-800 border border-slate-700/50 hover:border-cyan-500/40 rounded-xl p-4 transition-all shadow-lg group">
+                                                <div className="flex justify-between items-start mb-3">
+                                                    <Link to={`/admin/projects/${project.id}`} className="font-bold text-white group-hover:text-cyan-400 transition-colors line-clamp-2 pr-2">
+                                                        {project.business_name}
+                                                    </Link>
+                                                    <div className={`w-3 h-3 rounded-full shrink-0 mt-1 ${project.status === 'verde' ? 'bg-green-400 shadow-[0_0_8px_#4ade80]' : project.status === 'amarillo' ? 'bg-yellow-400 shadow-[0_0_8px_#facc15]' : 'bg-red-400 shadow-[0_0_8px_#f87171] animate-pulse'}`} title={project.status} />
+                                                </div>
+                                                <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest mb-3 line-clamp-1">{project.main_service || 'Sin Servicio'}</p>
+
+                                                <div className="flex items-center gap-2 mt-auto mb-3">
+                                                    <div className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${getHealthScore(project) >= 80 ? 'text-emerald-400 bg-emerald-400/10' : getHealthScore(project) >= 60 ? 'text-yellow-400 bg-yellow-400/10' : 'text-red-400 bg-red-400/10'}`}>
+                                                        HS: {getHealthScore(project)}%
+                                                    </div>
+                                                    <div className="text-[9px] font-bold text-slate-400 bg-slate-900 px-1.5 py-0.5 rounded-full truncate max-w-[120px]">
+                                                        {project.lead_consultant || 'No asignado'}
+                                                    </div>
+                                                </div>
+
+                                                <div className="pt-3 border-t border-slate-700/50 flex justify-between items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <select
+                                                        value={project.status}
+                                                        onChange={(e) => handleQuickUpdate(project, 'status', e.target.value)}
+                                                        className="bg-transparent text-[10px] uppercase font-bold text-slate-300 focus:outline-none cursor-pointer"
+                                                    >
+                                                        <option className="bg-slate-900" value="verde">🟢 Verde</option>
+                                                        <option className="bg-slate-900" value="amarillo">🟡 Amarillo</option>
+                                                        <option className="bg-slate-900" value="rojo">🔴 Rojo</option>
+                                                    </select>
+
+                                                    <select
+                                                        value={project.phase}
+                                                        onChange={(e) => handleQuickUpdate(project, 'phase', e.target.value)}
+                                                        className="bg-slate-900 border border-slate-700 text-[10px] uppercase font-bold text-cyan-400 px-2 py-1 rounded focus:outline-none cursor-pointer"
+                                                    >
+                                                        {projectPhases.map(ph => <option className="bg-slate-900 text-white" key={ph} value={ph}>{ph}</option>)}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
 
             {/* CREATE MODAL */}
             {isModalOpen && (

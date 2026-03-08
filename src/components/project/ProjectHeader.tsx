@@ -1,7 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Edit2 } from 'lucide-react';
+import { ArrowLeft, Edit2, Link as LinkIcon, MessageCircle, Copy, Check } from 'lucide-react';
 import { Project } from '../../types';
+import { useState } from 'react';
 
 interface ProjectHeaderProps {
     project: Project;
@@ -16,13 +17,60 @@ const ProjectHeader: React.FC<ProjectHeaderProps> = ({ project, userRole, onEdit
         return <div className={`w-3 h-3 rounded-full ${colors[status] || 'bg-slate-500'} shadow-[0_0_10px_currentColor]`} />;
     };
 
+    const [copied, setCopied] = useState(false);
+
+    const handleCopyLink = () => {
+        const link = `${window.location.origin}/hub/projects/${project.id}`;
+        navigator.clipboard.writeText(link);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
+    const handleWhatsApp = () => {
+        const phone = project.team?.client_contacts?.[0]?.phone || '';
+        const name = project.team?.client_contacts?.[0]?.name || project.team?.client_rep || 'Equipo';
+
+        let url = 'https://wa.me/';
+        if (phone) {
+            const cleanPhone = phone.replace(/\D/g, '');
+            url += cleanPhone;
+        }
+
+        const message = encodeURIComponent(`Hola ${name}, te escribo de Octopus por el proyecto de consultoría de ${project.business_name}.`);
+        url += `?text=${message}`;
+        window.open(url, '_blank');
+    };
+
     return (
         <div className="flex flex-col gap-4">
-            {userRole !== 'client' && (
-                <Link to="/admin/projects" className="text-slate-500 hover:text-white flex items-center gap-2 text-sm w-fit">
-                    <ArrowLeft className="w-4 h-4" /> Volver a lista
-                </Link>
-            )}
+            <div className="flex justify-between items-center w-full">
+                {userRole !== 'client' ? (
+                    <Link to="/admin/projects" className="text-slate-500 hover:text-white flex items-center gap-2 text-sm w-fit">
+                        <ArrowLeft className="w-4 h-4" /> Volver a lista
+                    </Link>
+                ) : <div />}
+
+                {/* Communication Quick Actions */}
+                {userRole !== 'client' && (
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={handleCopyLink}
+                            className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg text-xs font-bold transition-all border border-slate-700 hover:border-cyan-500/50"
+                            title="Copiar enlace del Portal de Cliente"
+                        >
+                            {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <LinkIcon className="w-4 h-4" />}
+                            <span className="hidden sm:inline">{copied ? '¡Copiado!' : 'Portal Cliente'}</span>
+                        </button>
+                        <button
+                            onClick={handleWhatsApp}
+                            className="flex items-center gap-2 bg-[#25D366]/10 hover:bg-[#25D366]/20 text-[#25D366] px-3 py-1.5 rounded-lg text-xs font-bold transition-all border border-[#25D366]/20 hover:border-[#25D366]/50"
+                        >
+                            <MessageCircle className="w-4 h-4" />
+                            <span className="hidden sm:inline">WhatsApp</span>
+                        </button>
+                    </div>
+                )}
+            </div>
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-2xl relative overflow-hidden">
                 <div className="absolute top-0 right-0 p-32 bg-cyan-500/5 rounded-full blur-3xl -z-10"></div>
 
