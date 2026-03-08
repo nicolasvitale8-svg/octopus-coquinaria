@@ -10,7 +10,8 @@ import {
     Download,
     Eye,
     MessageSquare,
-    Trash2
+    Trash2,
+    Upload
 } from 'lucide-react';
 import { Project, Deliverable } from '../../types';
 import { deliverableService } from '../../services/deliverableService';
@@ -81,7 +82,23 @@ const ProjectDeliverables: React.FC<ProjectDeliverablesProps> = ({ project }) =>
     };
 
     return (
-        <div className="space-y-6">
+        <div
+            className="relative space-y-6"
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+        >
+            {/* DRAG OVERLAY FOR MULTIPLE FILES */}
+            {isDragging && (
+                <div className="absolute inset-0 z-50 bg-cyan-900/40 backdrop-blur-sm border-2 border-cyan-500 border-dashed rounded-2xl flex flex-col items-center justify-center pointer-events-none transition-all">
+                    <div className="bg-slate-900/90 p-6 rounded-2xl flex flex-col items-center shadow-2xl">
+                        <Upload className="w-12 h-12 text-cyan-400 mb-4 animate-bounce" />
+                        <h3 className="text-xl font-bold text-white mb-1">Suelta el archivo aquí</h3>
+                        <p className="text-cyan-400/80 text-sm">Se agregará como un nuevo entregable</p>
+                    </div>
+                </div>
+            )}
+
             {/* Toolbar */}
             <div className="flex justify-between items-center">
                 <div>
@@ -168,19 +185,11 @@ const ProjectDeliverables: React.FC<ProjectDeliverablesProps> = ({ project }) =>
                         </div>
                     ))
                 ) : (
-                    <div
-                        onDragOver={handleDragOver}
-                        onDragLeave={handleDragLeave}
-                        onDrop={handleDrop}
-                        className={`col-span-full py-20 text-center border-dashed rounded-2xl transition-all border ${isDragging ? 'bg-cyan-500/10 border-cyan-500 scale-[1.02]' : 'bg-slate-900/50 border-slate-800'
-                            }`}
-                    >
-                        <FileText className={`w-10 h-10 mx-auto mb-4 transition-colors ${isDragging ? 'text-cyan-400' : 'text-slate-800'}`} />
-                        <h5 className={`font-medium transition-colors ${isDragging ? 'text-cyan-400 font-bold' : 'text-slate-400'}`}>
-                            {isDragging ? '¡Suelta el archivo aquí para subirlo!' : 'Aún no hay entregables'}
-                        </h5>
+                    <div className="col-span-full py-20 text-center bg-slate-900/50 border border-slate-800 border-dashed rounded-2xl">
+                        <FileText className="w-10 h-10 text-slate-800 mx-auto mb-4" />
+                        <h5 className="text-slate-400 font-medium">Aún no hay entregables</h5>
                         <p className="text-slate-600 text-sm mt-1">Sube el primer archivo o reporte para este proyecto.</p>
-                        <Button variant="ghost" size="sm" className={`mt-6 ${isDragging ? 'opacity-50' : ''}`} onClick={() => setIsAddModalOpen(true)}>
+                        <Button variant="ghost" size="sm" className="mt-6" onClick={() => setIsAddModalOpen(true)}>
                             <Plus className="w-4 h-4 mr-2" /> Agregar Entregable
                         </Button>
                     </div>
