@@ -46,8 +46,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [user, setUser] = useState<User | null>(null);
     const [profile, setProfile] = useState<AppUser | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const fetchingUserId = React.useRef<string | null>(null);
 
     const fetchProfile = async (userId: string, email?: string, metadata?: Record<string, unknown>, retryCount = 0) => {
+        if (fetchingUserId.current === userId && retryCount === 0) return;
+        fetchingUserId.current = userId;
+
         try {
             if (!supabase) return;
 
@@ -113,6 +117,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } catch (err) {
             logger.error('Error crítico fetching profile', { context: 'Auth', data: err });
             setProfile(null);
+        } finally {
+            if (retryCount === 0) {
+                setTimeout(() => { fetchingUserId.current = null; }, 1000);
+            }
         }
     };
 

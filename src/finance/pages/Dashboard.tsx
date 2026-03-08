@@ -39,7 +39,7 @@ const DetailModal: React.FC<{
   year: number;
   periodStates: PeriodAccountState[];
   jars: Jar[];
-}> = ({ type, activeCategoryScope, onClose, transactions, categories, month, year, periodStates, jars }) => {
+}> = React.memo(({ type, activeCategoryScope, onClose, transactions, categories, month, year, periodStates, jars }) => {
   const data = React.useMemo(() => {
     if (type === 'IN' || type === 'OUT') {
       const filtered = transactions.filter(t => {
@@ -162,7 +162,7 @@ const DetailModal: React.FC<{
       </div>
     </div>
   );
-};
+});
 
 export const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -536,6 +536,35 @@ export const Dashboard: React.FC = () => {
     };
   }, [inflationData]);
 
+  const handlePrevMonth = React.useCallback(() => {
+    const d = new Date(currentYear, currentMonth - 1);
+    setCurrentMonth(d.getMonth()); setCurrentYear(d.getFullYear());
+  }, [currentYear, currentMonth]);
+
+  const handleNextMonth = React.useCallback(() => {
+    const d = new Date(currentYear, currentMonth + 1);
+    setCurrentMonth(d.getMonth()); setCurrentYear(d.getFullYear());
+  }, [currentYear, currentMonth]);
+
+  const handleBarChartClick = React.useCallback((e: any) => {
+    if (e && e.activePayload && e.activePayload.length > 0) {
+      const payload = e.activePayload[0].payload;
+      const reversedIndex = last6MonthsFlow.findIndex(m => m.name === payload.name);
+      if (reversedIndex !== -1) {
+        const monthsBack = 5 - reversedIndex;
+        const d = new Date(new Date().getFullYear(), new Date().getMonth() - monthsBack, 1);
+        setCurrentMonth(d.getMonth()); setCurrentYear(d.getFullYear());
+      }
+    }
+  }, [last6MonthsFlow]);
+
+  const handlePieChartClick = React.useCallback((e: any) => {
+    if (e && e.name && e.name !== 'Sin datos') {
+      setActiveCategoryScope(e.name);
+      setActiveDetail('OUT');
+    }
+  }, []);
+
   if (loading && transactions.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] space-y-4 animate-pulse">
@@ -619,17 +648,11 @@ export const Dashboard: React.FC = () => {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-t border-[#2A3445] pt-6">
           {/* Date Selector */}
           <div className="text-[14px] font-black text-white uppercase tracking-widest flex items-center gap-4 bg-[#0E1629] px-4 py-2 rounded-xl border border-[#2A3445]">
-            <button onClick={() => {
-              const d = new Date(currentYear, currentMonth - 1);
-              setCurrentMonth(d.getMonth()); setCurrentYear(d.getFullYear());
-            }} className="text-[#94A3B8] hover:text-brand transition-colors"><ChevronRight className="rotate-180" size={18} /></button>
+            <button onClick={handlePrevMonth} className="text-[#94A3B8] hover:text-brand transition-colors"><ChevronRight className="rotate-180" size={18} /></button>
             <div className="min-w-[130px] text-center flex items-center justify-center gap-2">
               {monthName} <span className="text-[#94A3B8]">{currentYear}</span>
             </div>
-            <button onClick={() => {
-              const d = new Date(currentYear, currentMonth + 1);
-              setCurrentMonth(d.getMonth()); setCurrentYear(d.getFullYear());
-            }} className="text-[#94A3B8] hover:text-brand transition-colors"><ChevronRight size={18} /></button>
+            <button onClick={handleNextMonth} className="text-[#94A3B8] hover:text-brand transition-colors"><ChevronRight size={18} /></button>
           </div>
 
           {/* TABS */}
@@ -743,18 +766,7 @@ export const Dashboard: React.FC = () => {
                   margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
                   barGap={2}
                   barSize={12}
-                  onClick={(e) => {
-                    if (e && e.activePayload && e.activePayload.length > 0) {
-                      const payload = e.activePayload[0].payload;
-                      // Reconstruct month jump logic based on index relative to current
-                      const reversedIndex = last6MonthsFlow.findIndex(m => m.name === payload.name);
-                      if (reversedIndex !== -1) {
-                        const monthsBack = 5 - reversedIndex;
-                        const d = new Date(new Date().getFullYear(), new Date().getMonth() - monthsBack, 1);
-                        setCurrentMonth(d.getMonth()); setCurrentYear(d.getFullYear());
-                      }
-                    }
-                  }}
+                  onClick={handleBarChartClick}
                   className="cursor-pointer"
                 >
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#2A3445" />
@@ -786,12 +798,7 @@ export const Dashboard: React.FC = () => {
                       dataKey="amount"
                       stroke="none"
                       className="cursor-pointer"
-                      onClick={(e) => {
-                        if (e && e.name && e.name !== 'Sin datos') {
-                          setActiveCategoryScope(e.name);
-                          setActiveDetail('OUT');
-                        }
-                      }}
+                      onClick={handlePieChartClick}
                     >
                       {expensesByCategory.length > 0 ? expensesByCategory.map((entry, index) => <Cell key={index} fill={entry.color} />) : <Cell fill="#2A3445" />}
                     </Pie>

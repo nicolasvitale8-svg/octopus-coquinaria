@@ -37,10 +37,24 @@ const AdminCalendar = () => {
     // --- Date Logic ---
     const monthStart = startOfMonth(currentDate);
     const monthEnd = endOfMonth(monthStart);
-    const startDate = startOfWeek(monthStart, { weekStartsOn: 1 }); // Comienza Lunes
-    const endDate = endOfWeek(monthEnd, { weekStartsOn: 1 });
+    const startDate = React.useMemo(() => startOfWeek(monthStart, { weekStartsOn: 1 }), [monthStart]); // Comienza Lunes
+    const endDate = React.useMemo(() => endOfWeek(monthEnd, { weekStartsOn: 1 }), [monthEnd]);
 
-    const calendarDays = eachDayOfInterval({ start: startDate, end: endDate });
+    const calendarDays = React.useMemo(() => eachDayOfInterval({ start: startDate, end: endDate }), [startDate, endDate]);
+
+    // O(1) Lookup Map for events to avoid filtering O(N) inside the O(35) loop
+    const eventsByDate = React.useMemo(() => {
+        const map = new Map<number, CalendarEvent[]>();
+        events.forEach(e => {
+            if (!e.start_date) return;
+            const datePart = e.start_date.split('T')[0];
+            const localDateStr = `${datePart}T00:00:00`;
+            const time = new Date(localDateStr).getTime();
+            if (!map.has(time)) map.set(time, []);
+            map.get(time)!.push(e);
+        });
+        return map;
+    }, [events]);
 
     // --- Data Fetching ---
     const fetchEvents = async () => {
@@ -176,14 +190,7 @@ const AdminCalendar = () => {
                 <div className="grid grid-cols-7 auto-rows-fr">
                     {calendarDays.map((day, dayIdx) => {
                         const isCurrentMonth = isSameMonth(day, monthStart);
-                        const dayEvents = events.filter(e => {
-                            // Robust Fix: Always take the YYYY-MM-DD part and force Local Midnight
-                            // This ignores any time/zone info coming from DB (e.g. 2025-01-01T00:00:00Z -> 2025-01-01T00:00:00)
-                            if (!e.start_date) return false;
-                            const datePart = e.start_date.split('T')[0];
-                            const localDateStr = `${datePart}T00:00:00`;
-                            return isSameDay(new Date(localDateStr), day);
-                        });
+                        const dayEvents = eventsByDate.get(day.getTime()) || [];
                         const isTodayDate = isToday(day);
 
                         return (

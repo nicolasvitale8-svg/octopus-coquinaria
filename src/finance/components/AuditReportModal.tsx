@@ -93,7 +93,7 @@ const getImpactBadge = (impact: string) => {
     }
 };
 
-export const AuditReportModal: React.FC<AuditReportModalProps> = ({ report, onClose }) => {
+export const AuditReportModal: React.FC<AuditReportModalProps> = React.memo(({ report, onClose }) => {
     const reportRef = useRef<HTMLDivElement>(null);
     const [exporting, setExporting] = useState(false);
     const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['summary', 'deviations', 'health', 'risks', 'actions']));
@@ -575,6 +575,6 @@ export const AuditReportModal: React.FC<AuditReportModalProps> = ({ report, onCl
             </div>
         </div>
     );
-};
+});
 
 export default AuditReportModal;

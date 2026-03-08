@@ -5,6 +5,14 @@ import { APP_NAME, INSTAGRAM_URL, DISPLAY_PHONE, CONTACT_EMAIL, YOUTUBE_URL, WHA
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../services/supabase';
 
+const navLinks = [
+  { name: 'Metodología', path: '/methodology' },
+  { name: 'Casos y Servicios', path: '/services' },
+  { name: 'Calendario', path: '/calendar' },
+  { name: 'Academia', path: '/academy' },
+  { name: 'Sobre mí', path: '/about' },
+];
+
 interface LayoutProps {
   children: React.ReactNode;
   user?: any;
@@ -34,20 +42,25 @@ const Layout: React.FC<LayoutProps> = ({ children, user: propUser }) => {
     }
   }, [propUser, contextUser]);
 
-  const navLinks = [
-    { name: 'Metodología', path: '/methodology' },
-    { name: 'Casos y Servicios', path: '/services' },
-    { name: 'Calendario', path: '/calendar' },
-    { name: 'Academia', path: '/academy' },
-    { name: 'Sobre mí', path: '/about' },
-  ];
+
 
   const handleLogout = async () => {
     await signOut();
     navigate('/');
   };
 
-  const isActive = (path: string) => location.pathname === path ? 'text-[#1FB6D5] font-bold' : 'text-slate-400 hover:text-white';
+  const isActive = React.useCallback((path: string) => location.pathname === path ? 'text-[#1FB6D5] font-bold' : 'text-slate-400 hover:text-white', [location.pathname]);
+
+  const logoToUse = React.useMemo(() => {
+    if (logoError) return GLOBAL_LOGO_URL;
+    if (contextUser || internalUser) {
+      const role = profile?.role;
+      if (role === 'admin' || role === 'consultant') return LOGO_ADMIN_URL;
+      if (role === 'client') return LOGO_PREMIUM_URL;
+      return LOGO_USER_URL;
+    }
+    return LOGO_GUEST_URL;
+  }, [contextUser, internalUser, profile?.role, logoError]);
 
   return (
     <div className="min-h-screen bg-[#021019] text-slate-200 flex flex-col font-sans">
@@ -75,30 +88,16 @@ const Layout: React.FC<LayoutProps> = ({ children, user: propUser }) => {
           <div className="flex items-center justify-between h-20">
             <div className="flex items-center">
               <Link to="/" className="flex-shrink-0 flex items-center gap-3">
-                {/* Logo Logic: Role Based */}
-                {(() => {
-                  let logoToUse = LOGO_GUEST_URL;
-                  if (contextUser || internalUser) {
-                    const role = profile?.role;
-                    if (role === 'admin' || role === 'consultant') logoToUse = LOGO_ADMIN_URL;
-                    else if (role === 'client') logoToUse = LOGO_PREMIUM_URL; // Updated 'premium' to 'client'
-                    else logoToUse = LOGO_USER_URL;
-                  }
-                  if (logoError) logoToUse = GLOBAL_LOGO_URL; // Fallback to global if specific fails (or just keep logic simple)
-
-                  return (
-                    <img
-                      src={logoToUse}
-                      alt="Octopus Logo"
-                      className="h-12 w-auto object-contain"
-                      onError={(e) => {
-                        // Fallback loop prevention
-                        const target = e.target as HTMLImageElement;
-                        if (target.src !== GLOBAL_LOGO_URL) target.src = GLOBAL_LOGO_URL;
-                      }}
-                    />
-                  );
-                })()}
+                <img
+                  src={logoToUse}
+                  alt="Octopus Logo"
+                  className="h-12 w-auto object-contain"
+                  onError={(e) => {
+                    // Fallback loop prevention
+                    const target = e.target as HTMLImageElement;
+                    if (target.src !== GLOBAL_LOGO_URL) target.src = GLOBAL_LOGO_URL;
+                  }}
+                />
 
                 <div className="flex flex-col">
                   <span className="font-bold text-xl tracking-tight text-white font-space leading-none uppercase">Octopus</span>

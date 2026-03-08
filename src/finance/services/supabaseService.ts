@@ -16,8 +16,8 @@ import { IFinanceService } from './IFinanceService';
 
 export const SupabaseService: IFinanceService = {
     async getUserId(): Promise<string | null> {
-        const { data: { user } } = await supabase.auth.getUser();
-        return user?.id || null;
+        const { data } = await supabase.auth.getSession();
+        return data.session?.user?.id || null;
     },
 
     // --- ACCOUNT TYPES ---
@@ -31,7 +31,7 @@ export const SupabaseService: IFinanceService = {
         const { data, error } = await query;
 
         if (error) throw error;
-        return (data || []).map((d: any) => ({
+        return (data || []).map((d: Record<string, any>) => ({
             id: d.id,
             name: d.name,
             description: d.description,
@@ -52,7 +52,7 @@ export const SupabaseService: IFinanceService = {
         }
         const { data, error } = await query;
         if (error) throw error;
-        return (data || []).map((d: any) => ({
+        return (data || []).map((d: Record<string, any>) => ({
             id: d.id,
             name: d.name,
             accountTypeId: d.account_type_id,
@@ -65,7 +65,7 @@ export const SupabaseService: IFinanceService = {
 
     addAccount: async (acc: Partial<Account>, businessId?: string) => {
         const userId = await SupabaseService.getUserId();
-        const dbObj: any = {
+        const dbObj: Record<string, any> = {
             name: acc.name,
             account_type_id: acc.accountTypeId,
             currency: acc.currency,
@@ -85,7 +85,7 @@ export const SupabaseService: IFinanceService = {
     },
 
     updateAccount: async (acc: Account) => {
-        const dbObj: any = {
+        const dbObj: Record<string, any> = {
             name: acc.name,
             account_type_id: acc.accountTypeId,
             currency: acc.currency,
@@ -118,7 +118,7 @@ export const SupabaseService: IFinanceService = {
 
         const { data, error } = await query;
         if (error) throw error;
-        return (data || []).map((d: any) => ({
+        return (data || []).map((d: Record<string, any>) => ({
             id: d.id,
             accountId: d.account_id,
             year: d.year,
@@ -156,7 +156,7 @@ export const SupabaseService: IFinanceService = {
         }
         const { data, error } = await query;
         if (error) throw error;
-        return (data || []).map((d: any) => ({
+        return (data || []).map((d: Record<string, any>) => ({
             id: d.id,
             name: d.name,
             type: d.type,
@@ -208,7 +208,7 @@ export const SupabaseService: IFinanceService = {
             .select('*')
             .eq('category_id', categoryId);
         if (error) throw error;
-        return (data || []).map((d: any) => ({
+        return (data || []).map((d: Record<string, any>) => ({
             id: d.id,
             categoryId: d.category_id,
             name: d.name,
@@ -225,7 +225,7 @@ export const SupabaseService: IFinanceService = {
         }
         const { data, error } = await query;
         if (error) throw error;
-        return (data || []).map((d: any) => ({
+        return (data || []).map((d: Record<string, any>) => ({
             id: d.id,
             categoryId: d.category_id,
             name: d.name,
@@ -267,7 +267,7 @@ export const SupabaseService: IFinanceService = {
 
         const { data, error } = await query.order('date', { ascending: false });
         if (error) throw error;
-        return (data || []).map((d: any) => ({
+        return (data || []).map((d: Record<string, any>) => ({
             id: d.id,
             date: d.date,
             categoryId: d.category_id,
@@ -372,7 +372,7 @@ export const SupabaseService: IFinanceService = {
 
         const { data, error } = await query;
         if (error) throw error;
-        return (data || []).map((d: any) => ({
+        return (data || []).map((d: Record<string, any>) => ({
             id: d.id,
             year: d.year,
             month: d.month,
@@ -421,7 +421,7 @@ export const SupabaseService: IFinanceService = {
 
         const { data, error } = await query;
         if (error) throw error;
-        return (data || []).map((d: any) => ({
+        return (data || []).map((d: Record<string, any>) => ({
             id: d.id,
             accountId: d.account_id,
             name: d.name,
@@ -462,7 +462,7 @@ export const SupabaseService: IFinanceService = {
 
         const { data, error } = await query;
         if (error) throw error;
-        return (data || []).map((d: any) => ({
+        return (data || []).map((d: Record<string, any>) => ({
             id: d.id,
             pattern: d.pattern,
             matchType: d.match_type,

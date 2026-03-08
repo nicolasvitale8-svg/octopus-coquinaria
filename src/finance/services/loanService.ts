@@ -41,8 +41,8 @@ export type CreateLoanDTO = Omit<Loan, 'id' | 'created_at' | 'project_id' | 'use
 // ========== HELPERS ==========
 
 async function getUserId(): Promise<string | null> {
-    const { data: { user } } = await supabase.auth.getUser();
-    return user?.id || null;
+    const { data } = await supabase.auth.getSession();
+    return data.session?.user?.id || null;
 }
 
 /**

@@ -286,7 +286,7 @@ export const updateProject = async (project: Project): Promise<Project | null> =
             });
 
             // SANITIZE: Remove virtual/joined fields that don't exist in the 'projects' table
-            const { tasks, deliverables, project_members, business_memberships, ...cleanProject } = safeProject as any;
+            const { tasks, deliverables, project_members, business_memberships, ...cleanProject } = safeProject as unknown as Record<string, unknown>;
 
             logger.debug('Sanitized project for upsert', { context: 'ProjectService', data: Object.keys(cleanProject) });
 

@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { IFinanceService } from '../services/IFinanceService';
 import { SupabaseService } from '../services/supabaseService';
 import { DemoFinanceService } from '../services/demoFinanceService';
+import { useAuth } from '../../contexts/AuthContext';
 
 export interface FinanceEntity {
     id: string | null; // null for personal
@@ -41,23 +42,18 @@ export const FinanzaProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     const service = isDemoMode ? demoService : SupabaseService;
 
+    // Hooks
+    const { user, profile, isAdmin } = useAuth();
+
     // Initial load of entities
     useEffect(() => {
         const loadEntities = async () => {
+            if (!user) return; // Wait for AuthContext
             setIsLoading(true);
+
             try {
                 const { supabase } = await import('../../services/supabase');
-                const { data: { user } } = await supabase.auth.getUser();
 
-                if (!user) return;
-
-                const { data: profile } = await supabase
-                    .from('usuarios')
-                    .select('role')
-                    .eq('id', user.id)
-                    .single();
-
-                const isAdmin = profile?.role === 'admin' || user.email?.toLowerCase() === 'nicolasvitale8@gmail.com';
                 const personalEntity: FinanceEntity = { id: null, name: 'Mis Finanzas', type: 'personal' };
                 const entities: FinanceEntity[] = [personalEntity];
 
@@ -117,8 +113,9 @@ export const FinanzaProvider: React.FC<{ children: React.ReactNode }> = ({ child
             }
         };
 
-        loadEntities();
-    }, []);
+        // Escuchar los cambios del usuario desde AuthContext para recargar si hay un re-login
+        if (user) loadEntities();
+    }, [user, isAdmin]);
 
     const setActiveEntity = (entity: FinanceEntity) => {
         setActiveEntityState(entity);

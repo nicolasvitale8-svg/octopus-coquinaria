@@ -9,6 +9,29 @@ import LoadingOverlay from '../components/ui/LoadingOverlay';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
+const StatusBadge = React.memo(({ status }: { status: string }) => {
+    const colors: Record<string, string> = {
+        'verde': 'bg-green-500/20 text-green-400 border-green-500/50',
+        'amarillo': 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50',
+        'rojo': 'bg-red-500/20 text-red-400 border-red-500/50'
+    };
+    return (
+        <span className={`px-2 py-1 rounded-full text-xs font-bold border ${colors[status] || colors.verde} uppercase`}>
+            {status}
+        </span>
+    );
+});
+StatusBadge.displayName = 'StatusBadge';
+
+const PhaseBadge = React.memo(({ phase }: { phase: string }) => {
+    return (
+        <span className="px-2 py-1 bg-slate-800 rounded text-xs text-slate-300 border border-slate-700">
+            {phase}
+        </span>
+    );
+});
+PhaseBadge.displayName = 'PhaseBadge';
+
 const AdminProjects = () => {
     const [projects, setProjects] = useState<Project[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -83,7 +106,7 @@ const AdminProjects = () => {
         setProcessingAction(null);
     };
 
-    const handleDeleteProject = async (id: string, businessName?: string) => {
+    const handleDeleteProject = React.useCallback(async (id: string, businessName?: string) => {
         if (!confirm(`¿Estás seguro de que deseas eliminar el proyecto "${businessName || 'seleccionado'}"?`)) return;
 
         // Optimistic UI: Remove from list immediately
@@ -93,34 +116,14 @@ const AdminProjects = () => {
         await deleteProject(id);
 
         // No need to reload or wait, it's gone.
-    };
+    }, []);
 
-
-    const StatusBadge = ({ status }: { status: string }) => {
-        const colors: any = {
-            'verde': 'bg-green-500/20 text-green-400 border-green-500/50',
-            'amarillo': 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50',
-            'rojo': 'bg-red-500/20 text-red-400 border-red-500/50'
-        };
-        return (
-            <span className={`px-2 py-1 rounded-full text-xs font-bold border ${colors[status] || colors.verde} uppercase`}>
-                {status}
-            </span>
+    const filteredProjects = React.useMemo(() => {
+        return projects.filter(p =>
+            p.business_name.toLowerCase().includes(filter.toLowerCase()) ||
+            p.lead_consultant?.toLowerCase().includes(filter.toLowerCase())
         );
-    };
-
-    const PhaseBadge = ({ phase }: { phase: string }) => {
-        return (
-            <span className="px-2 py-1 bg-slate-800 rounded text-xs text-slate-300 border border-slate-700">
-                {phase}
-            </span>
-        );
-    };
-
-    const filteredProjects = projects.filter(p =>
-        p.business_name.toLowerCase().includes(filter.toLowerCase()) ||
-        p.lead_consultant?.toLowerCase().includes(filter.toLowerCase())
-    );
+    }, [projects, filter]);
 
     return (
         <div className="space-y-6">

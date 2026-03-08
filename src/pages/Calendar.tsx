@@ -11,6 +11,59 @@ import { logger } from '../services/logger';
 import { ALL_BUSINESS_TYPES, BUSINESS_TYPE_LABELS, BusinessType, CalendarEvent } from '../services/calendarService';
 import { exportCalendarToGoogleCSV } from '../services/googleCalendarExport';
 
+export const getEventIcon = (type: string) => {
+  switch (type) {
+    case 'feriado': return <CalendarIcon className="w-5 h-5 text-[#1FB6D5]" />;
+    case 'clima': return <Sun className="w-5 h-5 text-yellow-500" />;
+    case 'tendencia_consumo':
+    case 'comercial': return <TrendingUp className="w-5 h-5 text-green-400" />;
+    default: return <Info className="w-5 h-5 text-slate-400" />;
+  }
+};
+
+export const getPriorityBadge = (priority: number) => {
+  if (priority === 3) return <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-red-900/30 text-red-400 border border-red-900/50">Alta Prioridad</span>;
+  if (priority === 2) return <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-yellow-900/30 text-yellow-400 border border-yellow-900/50">Media</span>;
+  return null;
+};
+
+const EventItem = React.memo(({ evt, isFutureOrToday, onEventClick }: { evt: any, isFutureOrToday: boolean, onEventClick: (evt: any) => void }) => {
+  return (
+    <div
+      id={`event-${evt.id}`}
+      data-future={isFutureOrToday}
+      onClick={() => onEventClick(evt)}
+      className="bg-slate-900 rounded-xl border border-slate-800 p-4 hover:border-[#1FB6D5]/50 transition-all group relative overflow-hidden cursor-pointer hover:bg-slate-800/50 flex items-center gap-4"
+    >
+      <div className={`absolute left-0 top-0 bottom-0 w-1 ${evt.prioridad === 3 ? 'bg-red-500' : (evt.prioridad === 2 ? 'bg-[#1FB6D5]' : 'bg-slate-700')}`}></div>
+      <div className="bg-slate-950 border border-slate-700 rounded-lg p-2 min-w-[70px] text-center flex flex-col justify-center items-center">
+        <span className="text-[10px] uppercase text-slate-500 font-bold tracking-wider">
+          {new Date(evt.fecha_inicio.split('T')[0] + 'T00:00:00').toLocaleDateString('es-AR', { weekday: 'short' }).replace('.', '')}
+        </span>
+        <span className={`text-2xl font-bold font-sans ${isFutureOrToday ? 'text-white' : 'text-slate-500'}`}>
+          {new Date(evt.fecha_inicio.split('T')[0] + 'T00:00:00').getDate()}
+        </span>
+      </div>
+      <div className="flex-1 min-w-0">
+        <h3 className={`text-lg font-bold truncate ${isFutureOrToday ? 'text-white' : 'text-slate-400'}`}>
+          {evt.titulo}
+        </h3>
+        <div className="flex items-center gap-2 mt-1">
+          {getPriorityBadge(evt.prioridad)}
+          <span className="flex items-center text-xs font-bold uppercase text-slate-500 tracking-wider">
+            {getEventIcon(evt.tipo)}
+            <span className="ml-1 text-[10px]">{evt.tipo.replace('_', ' ')}</span>
+          </span>
+        </div>
+      </div>
+      <div className="text-slate-600 group-hover:text-[#1FB6D5] transition-colors">
+        <ChevronDown className="w-5 h-5 -rotate-90" />
+      </div>
+    </div>
+  );
+});
+EventItem.displayName = 'EventItem';
+
 const CalendarPage = () => {
   const { profile } = useAuth();
   const isAdmin = profile?.role === 'admin' || profile?.role === 'consultant';
@@ -117,29 +170,33 @@ const CalendarPage = () => {
 
 
   // Filtrar eventos por tipo de negocio si está activo
-  const filteredEvents = filterByBusinessType
-    ? events.filter(event => {
-      const eventBusinessTypes = event.business_types || ALL_BUSINESS_TYPES;
-      return eventBusinessTypes.includes(myBusinessType);
-    })
-    : events;
+  const filteredEvents = React.useMemo(() => {
+    return filterByBusinessType
+      ? events.filter(event => {
+        const eventBusinessTypes = event.business_types || ALL_BUSINESS_TYPES;
+        return eventBusinessTypes.includes(myBusinessType);
+      })
+      : events;
+  }, [events, filterByBusinessType, myBusinessType]);
 
   // Group events by Month
-  const eventsByMonth = filteredEvents.reduce((groups, event) => {
-    // Robust Fix: Force Local Date (YYYY-MM-DD T 00:00:00)
-    const datePart = event.fecha_inicio.split('T')[0];
-    const date = new Date(`${datePart}T00:00:00`);
+  const eventsByMonth = React.useMemo(() => {
+    return filteredEvents.reduce((groups, event) => {
+      // Robust Fix: Force Local Date (YYYY-MM-DD T 00:00:00)
+      const datePart = event.fecha_inicio.split('T')[0];
+      const date = new Date(`${datePart}T00:00:00`);
 
-    // Capitalize manually as toLocaleString might be lowercase in some browsers
-    const rawMonth = date.toLocaleString('es-AR', { month: 'long', year: 'numeric' });
-    const monthKey = rawMonth.charAt(0).toUpperCase() + rawMonth.slice(1);
+      // Capitalize manually as toLocaleString might be lowercase in some browsers
+      const rawMonth = date.toLocaleString('es-AR', { month: 'long', year: 'numeric' });
+      const monthKey = rawMonth.charAt(0).toUpperCase() + rawMonth.slice(1);
 
-    if (!groups[monthKey]) {
-      groups[monthKey] = [];
-    }
-    groups[monthKey].push(event);
-    return groups;
-  }, {} as Record<string, any[]>);
+      if (!groups[monthKey]) {
+        groups[monthKey] = [];
+      }
+      groups[monthKey].push(event);
+      return groups;
+    }, {} as Record<string, any[]>);
+  }, [filteredEvents]);
 
   // Auto-scroll to nearest future event
   useEffect(() => {
@@ -161,25 +218,7 @@ const CalendarPage = () => {
     }));
   };
 
-  const getEventIcon = (type: string) => {
-    switch (type) {
-      case 'feriado':
-        return <CalendarIcon className="w-5 h-5 text-[#1FB6D5]" />;
-      case 'clima':
-        return <Sun className="w-5 h-5 text-yellow-500" />;
-      case 'tendencia_consumo':
-      case 'comercial':
-        return <TrendingUp className="w-5 h-5 text-green-400" />;
-      default:
-        return <Info className="w-5 h-5 text-slate-400" />;
-    }
-  };
-
-  const getPriorityBadge = (priority: number) => {
-    if (priority === 3) return <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-red-900/30 text-red-400 border border-red-900/50">Alta Prioridad</span>;
-    if (priority === 2) return <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-yellow-900/30 text-yellow-400 border border-yellow-900/50">Media</span>;
-    return null; // Don't show badge for low priority to keep clean
-  };
+  const handleEventClickCb = React.useCallback(handleEventClick, []);
 
   return (
     <Layout>
@@ -301,46 +340,12 @@ const CalendarPage = () => {
                           const isFutureOrToday = eventDate >= today;
 
                           return (
-                            <div
+                            <EventItem
                               key={evt.id}
-                              id={`event-${evt.id}`}
-                              data-future={isFutureOrToday}
-                              onClick={() => handleEventClick(evt)}
-                              className="bg-slate-900 rounded-xl border border-slate-800 p-4 hover:border-[#1FB6D5]/50 transition-all group relative overflow-hidden cursor-pointer hover:bg-slate-800/50 flex items-center gap-4"
-                            >
-                              {/* Left accent border based on PRIORITY */}
-                              <div className={`absolute left-0 top-0 bottom-0 w-1 ${evt.prioridad === 3 ? 'bg-red-500' : (evt.prioridad === 2 ? 'bg-[#1FB6D5]' : 'bg-slate-700')}`}></div>
-
-                              {/* Date Box */}
-                              <div className="bg-slate-950 border border-slate-700 rounded-lg p-2 min-w-[70px] text-center flex flex-col justify-center items-center">
-                                <span className="text-[10px] uppercase text-slate-500 font-bold tracking-wider">
-                                  {new Date(evt.fecha_inicio.split('T')[0] + 'T00:00:00').toLocaleDateString('es-AR', { weekday: 'short' }).replace('.', '')}
-                                </span>
-                                <span className={`text-2xl font-bold font-sans ${isFutureOrToday ? 'text-white' : 'text-slate-500'}`}>
-                                  {new Date(evt.fecha_inicio.split('T')[0] + 'T00:00:00').getDate()}
-                                </span>
-                              </div>
-
-                              {/* Title & Type */}
-                              <div className="flex-1 min-w-0">
-                                <h3 className={`text-lg font-bold truncate ${isFutureOrToday ? 'text-white' : 'text-slate-400'}`}>
-                                  {evt.titulo}
-                                </h3>
-                                <div className="flex items-center gap-2 mt-1">
-                                  {getPriorityBadge(evt.prioridad)}
-                                  <span className="flex items-center text-xs font-bold uppercase text-slate-500 tracking-wider">
-                                    {getEventIcon(evt.tipo)}
-                                    <span className="ml-1 text-[10px]">{evt.tipo.replace('_', ' ')}</span>
-                                  </span>
-                                </div>
-                              </div>
-
-                              {/* Expand Icon */}
-                              <div className="text-slate-600 group-hover:text-[#1FB6D5] transition-colors">
-                                <ChevronDown className="w-5 h-5 -rotate-90" />
-                              </div>
-
-                            </div>
+                              evt={evt}
+                              isFutureOrToday={isFutureOrToday}
+                              onEventClick={handleEventClickCb}
+                            />
                           );
                         })}
                       </div>

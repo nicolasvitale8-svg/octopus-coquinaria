@@ -31,7 +31,7 @@ const AdminLayout = () => {
         navigate('/login');
     };
 
-    const navItems = [
+    const navItems = React.useMemo(() => [
         {
             path: isAdmin ? '/admin/dashboard' : '/admin/consultant-dashboard',
             icon: <LayoutDashboard size={20} />,
@@ -50,9 +50,9 @@ const AdminLayout = () => {
         { path: '/admin/procurement', icon: <ShieldCheck size={20} className="text-brand" />, label: 'Compras / Gatekeeper' },
         { path: '/finance', icon: <BarChart2 size={20} />, label: 'Módulo Finanzas' },
         { path: '/admin/config', icon: <Settings size={20} />, label: 'Configuración', hidden: !isAdmin },
-    ].filter(item => !item.hidden);
+    ].filter(item => !item.hidden), [isAdmin]);
 
-    const isActive = (path: string) => location.pathname === path;
+    const isActive = React.useCallback((path: string) => location.pathname === path, [location.pathname]);
 
     return (
         <div className="flex h-screen bg-slate-900 text-slate-100 font-sans">

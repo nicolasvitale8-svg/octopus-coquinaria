@@ -94,16 +94,18 @@ const AdminLeads = () => {
     fetchLeads();
   }, []);
 
-  const filteredLeads = leads.filter(lead => {
-    const searchLower = filter.toLowerCase();
-    const business = (lead.leadData?.business || lead.business_name || '').toLowerCase();
-    const name = (lead.leadData?.name || lead.contact_name || '').toLowerCase();
+  const filteredLeads = React.useMemo(() => {
+    return leads.filter(lead => {
+      const searchLower = filter.toLowerCase();
+      const business = (lead.leadData?.business || lead.business_name || '').toLowerCase();
+      const name = (lead.leadData?.name || lead.contact_name || '').toLowerCase();
 
-    const matchesSearch = !filter || business.includes(searchLower) || name.includes(searchLower);
-    const matchesStatus = !statusFilter || lead.status === statusFilter;
+      const matchesSearch = !filter || business.includes(searchLower) || name.includes(searchLower);
+      const matchesStatus = !statusFilter || lead.status === statusFilter;
 
-    return matchesSearch && matchesStatus;
-  });
+      return matchesSearch && matchesStatus;
+    });
+  }, [leads, filter, statusFilter]);
 
   const generateWhatsappLink = (lead: Lead) => {
     if (!lead) return '#';

@@ -9,8 +9,10 @@ export const DISPLAY_PHONE = "+54 9 351 773-6981";
 export const CONTACT_EMAIL = "octopuscoquinaria@gmail.com";
 
 // --- SUPABASE CONFIG ---
-export const SUPABASE_URL = "https://hmyzuuujyurvyuusvyzp.supabase.co";
-export const SUPABASE_ANON_KEY = "sb_publishable_VqNqrcKqNFsE53xeSKtjnw_dmP0RIYt";
+// V3 Security Update: Las claves se inyectan estrictamente por variables de entorno en .env / Vercel.
+// Mantenemos las exportaciones vacías o dependientes de Vite para evitar romper imports legados.
+export const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || "";
+export const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || "";
 
 // APP CONFIG
 export const ACADEMY_ENABLED = true;

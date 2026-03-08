@@ -2,15 +2,14 @@
 import { createClient } from '@supabase/supabase-js';
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../constants';
 
+// --- V3 SECURITY FIX: Strict Environment Variables Handling ---
+// Supabase constants now purely resolve to process.env.VITE_SUPABASE...
+// We handle fallbacks specifically for local dev vs production build here safely.
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || SUPABASE_URL;
-
-// --- EMERGENCY FIX: Prioritize constants if they have the new sb_publishable format ---
-const supabaseAnonKey = SUPABASE_ANON_KEY.startsWith('sb_')
-  ? SUPABASE_ANON_KEY
-  : (import.meta.env.VITE_SUPABASE_ANON_KEY || SUPABASE_ANON_KEY);
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Supabase credentials missing! Check your environment variables.');
+  console.error('🚨 [SECURITY] Supabase credentials missing! Please configure .env or Vercel Environment Variables.');
 }
 
 export const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '');
