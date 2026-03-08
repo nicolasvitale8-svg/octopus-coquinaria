@@ -1,16 +1,25 @@
 export interface InflationDataPoint {
-    date: string;       // Formato YYYY-MM
-    percentage: number; // Variación porcentual (ej: 2.7)
+    date: string;       // Ej: "Ene 25"
+    real: number | null;      // Variación % real del IPC (ej: 2.7)
+    estimated: number | null; // Variación % estimada del REM (ej: 2.3)
 }
 
-const API_URL = "https://apis.datos.gob.ar/series/api/series/?ids=101.1_I2NG_2016_M_22:percent_change&limit=12&sort=desc&format=json";
-const CACHE_KEY = "octopus_macro_inflation_cache";
-const CACHE_TIME_KEY = "octopus_macro_inflation_timestamp";
+// Serie real del IPC Nacional (INDEC) — variación mensual
+const IPC_REAL_ID = "101.1_I2NG_2016_M_22:percent_change";
+// Serie estimada del REM (BCRA) — mediana IPC Nacional variación mensual
+const REM_ESTIMATED_ID = "430.1_REM_IPC_NAL_T_M_0_0_25_28";
+
+const API_URL = `https://apis.datos.gob.ar/series/api/series/?ids=${IPC_REAL_ID},${REM_ESTIMATED_ID}&limit=12&sort=desc&format=json`;
+
+const CACHE_KEY = "octopus_macro_inflation_v2";
+const CACHE_TIME_KEY = "octopus_macro_inflation_v2_ts";
 
 export const macroService = {
     /**
-     * Obtiene los últimos 12 meses de inflación mensual reportada por el INDEC
-     * (Nivel General). Cacheado en Session/Local Storage por 24 horas.
+     * Obtiene los últimos 12 meses de inflación mensual:
+     * - Real: IPC INDEC (Nivel General)
+     * - Estimada: REM BCRA (Mediana)
+     * Cacheado en localStorage por 12 horas.
      */
     getMonthlyInflation: async (): Promise<InflationDataPoint[]> => {
         try {
@@ -18,8 +27,8 @@ export const macroService = {
             const cachedTime = localStorage.getItem(CACHE_TIME_KEY);
 
             if (cached && cachedTime) {
-                const diffHours = (new Date().getTime() - new Date(cachedTime).getTime()) / (1000 * 60 * 60);
-                if (diffHours < 24) {
+                const diffHours = (Date.now() - new Date(cachedTime).getTime()) / (1000 * 60 * 60);
+                if (diffHours < 12) {
                     return JSON.parse(cached);
                 }
             }
@@ -29,40 +38,34 @@ export const macroService = {
 
             const raw = await response.json();
 
-            if (!raw || !raw.data || !Array.isArray(raw.data)) {
-                return [];
-            }
+            if (!raw?.data || !Array.isArray(raw.data)) return [];
 
-            // raw.data viene como: [ ["2025-12-01", 0.027...], ["2025-11-01", 0.024...], ... ]
-            // Lo transformamos multiplicando por 100 para porcentaje amigable.
+            // raw.data viene como: [ ["2025-12-01", 0.027, 0.023], ... ]
+            // Columna 1 = IPC real, Columna 2 = REM estimada
             const formatted: InflationDataPoint[] = raw.data.map((row: any[]) => {
-                const [fullDateStr, rawVal] = row;
+                const [fullDateStr, rawReal, rawEstimated] = row;
                 const [y, m] = fullDateStr.split('-');
 
-                // Month name abbreviation
                 const dateObj = new Date(Number(y), Number(m) - 1, 1);
                 const monthName = dateObj.toLocaleDateString('es-ES', { month: 'short' });
 
                 return {
                     date: `${monthName.charAt(0).toUpperCase() + monthName.slice(1)} ${y.slice(2)}`,
-                    percentage: Number((rawVal * 100).toFixed(1))
+                    real: rawReal != null ? Number((rawReal * 100).toFixed(1)) : null,
+                    estimated: rawEstimated != null ? Number((rawEstimated * 100).toFixed(1)) : null,
                 };
             });
 
-            // Guardar en caché y ordenarlo cronológicamente para el gráfico de barras (viene DESC, queremos ASC para Recharts)
+            // Viene DESC, lo invertimos para ASC (cronológico para el gráfico)
             const graphData = formatted.reverse();
             localStorage.setItem(CACHE_KEY, JSON.stringify(graphData));
             localStorage.setItem(CACHE_TIME_KEY, new Date().toISOString());
 
             return graphData;
-
         } catch (error) {
-            console.warn("No se pudo obtener la inflación macroeconómica", error);
-
-            // Si falla pero hay caché viejo, devolverlo para que la app no quede vacía
+            console.warn("[macroService] Error al obtener inflación", error);
             const cached = localStorage.getItem(CACHE_KEY);
             if (cached) return JSON.parse(cached);
-
             return [];
         }
     }
