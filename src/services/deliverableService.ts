@@ -57,13 +57,13 @@ export const deliverableService = {
             .from('deliverables')
             .update({
                 status,
-                internal_notes: internalNotes,
-                updated_at: new Date().toISOString()
+                internal_notes: internalNotes
             })
             .eq('id', id);
 
         if (error) {
             console.error("Error updating deliverable status:", error);
+            alert(`Error al aprobar/rechazar: ${error.message}`);
             return false;
         }
 
