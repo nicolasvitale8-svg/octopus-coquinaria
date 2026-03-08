@@ -47,10 +47,10 @@ const AdminProjects = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        if (profile) {
+        if (profile || isAdmin) {
             fetchProjects();
         }
-    }, [profile]);
+    }, [profile, isAdmin]);
 
     const fetchProjects = async () => {
         // 1. FAST: Load from LocalStorage immediately to avoid blocking UI
