@@ -52,14 +52,17 @@ export const FinanzaProvider: React.FC<{ children: React.ReactNode }> = ({ child
             setIsLoading(true);
 
             try {
-                const { supabase } = await import('../../services/supabase');
+                // Import dinámico seguro o usar el que ya está cacheado
+                let sb;
+                const sbModule = await import('../../services/supabase');
+                sb = sbModule.supabase;
 
                 const personalEntity: FinanceEntity = { id: null, name: 'Mis Finanzas', type: 'personal' };
                 const entities: FinanceEntity[] = [personalEntity];
 
                 if (isAdmin) {
                     // Admins see ALL projects WITH finanzaflow enabled
-                    const { data: allProjects, error: adminQueryError } = await supabase
+                    const { data: allProjects, error: adminQueryError } = await sb
                         .from('projects')
                         .select('id, business_name, finanzaflow_enabled')
                         .eq('finanzaflow_enabled', true);
@@ -79,7 +82,7 @@ export const FinanzaProvider: React.FC<{ children: React.ReactNode }> = ({ child
                     }
                 } else {
                     // Regular users see ONLY where they are members AND have the module enabled
-                    const { data: members, error } = await supabase
+                    const { data: members, error } = await sb
                         .from('project_members')
                         .select('project_id, projects(business_name, finanzaflow_enabled)')
                         .eq('user_id', user.id);
@@ -113,9 +116,13 @@ export const FinanzaProvider: React.FC<{ children: React.ReactNode }> = ({ child
             }
         };
 
-        // Escuchar los cambios del usuario desde AuthContext para recargar si hay un re-login
-        if (user) loadEntities();
-    }, [user, isAdmin]);
+        if (user) {
+            loadEntities();
+        } else {
+            setAvailableEntities([]);
+            setIsLoading(false);
+        }
+    }, [user, isAdmin]); // user y isAdmin son estables del useAuth, esto corta el loop.
 
     const setActiveEntity = (entity: FinanceEntity) => {
         setActiveEntityState(entity);
