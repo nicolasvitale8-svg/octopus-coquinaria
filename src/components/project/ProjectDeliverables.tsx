@@ -27,6 +27,8 @@ const ProjectDeliverables: React.FC<ProjectDeliverablesProps> = ({ project }) =>
     const [deliverables, setDeliverables] = useState<Deliverable[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [isDragging, setIsDragging] = useState(false);
+    const [droppedFile, setDroppedFile] = useState<File | null>(null);
 
     useEffect(() => {
         fetchDeliverables();
@@ -57,6 +59,25 @@ const ProjectDeliverables: React.FC<ProjectDeliverablesProps> = ({ project }) =>
     const handleStatusUpdate = async (id: string, status: Deliverable['status']) => {
         const success = await deliverableService.updateStatus(id, status);
         if (success) fetchDeliverables();
+    };
+
+    const handleDragOver = (e: React.DragEvent) => {
+        e.preventDefault();
+        setIsDragging(true);
+    };
+
+    const handleDragLeave = (e: React.DragEvent) => {
+        e.preventDefault();
+        setIsDragging(false);
+    };
+
+    const handleDrop = (e: React.DragEvent) => {
+        e.preventDefault();
+        setIsDragging(false);
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            setDroppedFile(e.dataTransfer.files[0]);
+            setIsAddModalOpen(true);
+        }
     };
 
     return (
@@ -147,11 +168,19 @@ const ProjectDeliverables: React.FC<ProjectDeliverablesProps> = ({ project }) =>
                         </div>
                     ))
                 ) : (
-                    <div className="col-span-full py-20 text-center bg-slate-900/50 border border-slate-800 border-dashed rounded-2xl">
-                        <FileText className="w-10 h-10 text-slate-800 mx-auto mb-4" />
-                        <h5 className="text-slate-400 font-medium">Aún no hay entregables</h5>
+                    <div
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                        onDrop={handleDrop}
+                        className={`col-span-full py-20 text-center border-dashed rounded-2xl transition-all border ${isDragging ? 'bg-cyan-500/10 border-cyan-500 scale-[1.02]' : 'bg-slate-900/50 border-slate-800'
+                            }`}
+                    >
+                        <FileText className={`w-10 h-10 mx-auto mb-4 transition-colors ${isDragging ? 'text-cyan-400' : 'text-slate-800'}`} />
+                        <h5 className={`font-medium transition-colors ${isDragging ? 'text-cyan-400 font-bold' : 'text-slate-400'}`}>
+                            {isDragging ? '¡Suelta el archivo aquí para subirlo!' : 'Aún no hay entregables'}
+                        </h5>
                         <p className="text-slate-600 text-sm mt-1">Sube el primer archivo o reporte para este proyecto.</p>
-                        <Button variant="ghost" size="sm" className="mt-6" onClick={() => setIsAddModalOpen(true)}>
+                        <Button variant="ghost" size="sm" className={`mt-6 ${isDragging ? 'opacity-50' : ''}`} onClick={() => setIsAddModalOpen(true)}>
                             <Plus className="w-4 h-4 mr-2" /> Agregar Entregable
                         </Button>
                     </div>
@@ -161,7 +190,11 @@ const ProjectDeliverables: React.FC<ProjectDeliverablesProps> = ({ project }) =>
             <AddDeliverableModal
                 project={project}
                 isOpen={isAddModalOpen}
-                onClose={() => setIsAddModalOpen(false)}
+                initialFile={droppedFile}
+                onClose={() => {
+                    setIsAddModalOpen(false);
+                    setDroppedFile(null);
+                }}
                 onSuccess={fetchDeliverables}
             />
         </div>

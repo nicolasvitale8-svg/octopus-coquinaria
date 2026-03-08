@@ -10,9 +10,10 @@ interface AddDeliverableModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSuccess: () => void;
+    initialFile?: File | null;
 }
 
-const AddDeliverableModal: React.FC<AddDeliverableModalProps> = ({ project, isOpen, onClose, onSuccess }) => {
+const AddDeliverableModal: React.FC<AddDeliverableModalProps> = ({ project, isOpen, onClose, onSuccess, initialFile }) => {
     const [title, setTitle] = useState('');
     const [fileUrl, setFileUrl] = useState('');
     const [fileObj, setFileObj] = useState<File | null>(null);
@@ -20,6 +21,21 @@ const AddDeliverableModal: React.FC<AddDeliverableModalProps> = ({ project, isOp
     const [internalNotes, setInternalNotes] = useState('');
     const [isSaving, setIsSaving] = useState(false);
     const [mode, setMode] = useState<'link' | 'upload'>('link');
+
+    React.useEffect(() => {
+        if (isOpen) {
+            if (initialFile) {
+                setFileObj(initialFile);
+                setMode('upload');
+                // Auto title based on filename (without extension)
+                setTitle(initialFile.name.substring(0, initialFile.name.lastIndexOf('.')) || initialFile.name);
+            } else {
+                setFileObj(null);
+                setMode('link');
+                setTitle('');
+            }
+        }
+    }, [isOpen, initialFile]);
 
     if (!isOpen) return null;
 
@@ -65,7 +81,6 @@ const AddDeliverableModal: React.FC<AddDeliverableModalProps> = ({ project, isOp
             const result = await deliverableService.saveDeliverable(newDeliverable);
             if (result) {
                 onSuccess();
-                onClose();
                 onClose();
                 // Reset form
                 setTitle('');
