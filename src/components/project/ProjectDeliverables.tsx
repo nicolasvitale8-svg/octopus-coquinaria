@@ -131,9 +131,6 @@ const ProjectDeliverables: React.FC<ProjectDeliverablesProps> = ({ project }) =>
                                     <span className={`px-2 py-0.5 rounded text-[10px] font-bold border uppercase ${getStatusStyles(item.status)}`}>
                                         {item.status}
                                     </span>
-                                    <button className="p-1 text-slate-500 hover:text-white transition-colors">
-                                        <MoreVertical className="w-4 h-4" />
-                                    </button>
                                 </div>
                             </div>
 
