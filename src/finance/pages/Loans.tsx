@@ -320,6 +320,47 @@ export const Loans: React.FC = () => {
         }
     };
 
+    const handleSettleLoan = async (loanId: string) => {
+        const loan = loans.find(l => l.id === loanId);
+        if (!loan) return;
+
+        const unpaidPayments = (payments[loanId] || []).filter(p => p.status === 'PENDIENTE');
+        const projectedBalance = unpaidPayments.reduce((sum, p) => sum + p.amount, 0);
+
+        const promptMsg = `Liquidación Anticipada de "${loan.counterparty}"\n\n` +
+            `Saldo proyectado pendiente: ${formatCurrency(projectedBalance)}\n` +
+            `¿Cuánto pagaste realmente para cancelar el préstamo completo?`;
+
+        const finalAmountStr = window.prompt(promptMsg, projectedBalance.toString());
+        if (finalAmountStr === null) return;
+
+        const finalAmount = parseFloat(finalAmountStr);
+        if (isNaN(finalAmount) || finalAmount < 0) {
+            alert('Monto inválido');
+            return;
+        }
+
+        const confirmCheck = window.confirm(
+            `Se registrará un pago final de ${formatCurrency(finalAmount)}.\n\n` +
+            `Esto marcará el préstamo como COMPLETADO y eliminará todas las cuotas pendientes futuras.\n` +
+            `¿Confirmar liquidación?`
+        );
+
+        if (!confirmCheck) return;
+
+        setSaving(true);
+        try {
+            await loanService.settleLoan(loanId, finalAmount, new Date().toISOString().split('T')[0]);
+            await loadData();
+            alert('✅ Préstamo liquidado y completado con éxito.');
+        } catch (err: any) {
+            console.error('Error settling loan:', err);
+            alert('Error al liquidar el préstamo: ' + (err?.message || 'Error desconocido'));
+        } finally {
+            setSaving(false);
+        }
+    };
+
     const handleEdit = (loan: Loan) => {
         setEditingLoan(loan);
         setForm({
@@ -535,6 +576,7 @@ export const Loans: React.FC = () => {
                             onDelete={() => handleDelete(loan.id)}
                             onPayment={handleRecordPayment}
                             onUndoPayment={handleUndoPayment}
+                            onSettle={() => handleSettleLoan(loan.id)}
                             accountName={getAccountName(loan.account_id)}
                             paidCount={getPaidCount(loan.id)}
                             progress={getProgress(loan)}
@@ -589,10 +631,11 @@ const LoanCard: React.FC<{
     onDelete: () => void;
     onPayment: (id: string) => void;
     onUndoPayment: (id: string) => void;
+    onSettle: () => void;
     accountName: string;
     paidCount: number;
     progress: number;
-}> = ({ loan, payments, expanded, onToggle, onEdit, onDelete, onPayment, onUndoPayment, accountName, paidCount, progress }) => {
+}> = ({ loan, payments, expanded, onToggle, onEdit, onDelete, onPayment, onUndoPayment, onSettle, accountName, paidCount, progress }) => {
     const isOverdue = payments.some(p => p.status === 'PENDIENTE' && p.due_date < new Date().toISOString().split('T')[0]);
 
     return (
@@ -679,9 +722,20 @@ const LoanCard: React.FC<{
             {/* Expanded: Payment Schedule */}
             {expanded && (
                 <div className="border-t border-white/5 p-5">
-                    <h4 className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-4">
-                        Cronograma de Cuotas
-                    </h4>
+                    <div className="flex items-center justify-between gap-4 mb-4">
+                        <h4 className="text-[10px] font-black text-white/40 uppercase tracking-widest">
+                            Cronograma de Cuotas
+                        </h4>
+                        {loan.status === 'ACTIVO' && payments.some(p => p.status === 'PENDIENTE') && (
+                            <button
+                                onClick={(e) => { e.stopPropagation(); onSettle(); }}
+                                className="flex items-center gap-1.5 px-3 py-1.5 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/20 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all"
+                            >
+                                <CheckCircle size={12} />
+                                Liquidación Anticipada
+                            </button>
+                        )}
+                    </div>
                     <div className="space-y-2">
                         {payments.map(payment => {
                             const isOverduePayment = payment.status === 'PENDIENTE' && payment.due_date < new Date().toISOString().split('T')[0];
@@ -744,8 +798,9 @@ const LoanCard: React.FC<{
                         })}
                     </div>
                 </div>
-            )}
-        </div>
+            )
+            }
+        </div >
     );
 };
 

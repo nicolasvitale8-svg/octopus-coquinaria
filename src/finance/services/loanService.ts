@@ -267,4 +267,56 @@ export const loanService = {
 
         if (error) throw error;
     },
+
+    /**
+     * Liquida un préstamo de forma anticipada.
+     * Toma el monto real pagado, lo asigna a la primera cuota pendiente,
+     * elimina las cuotas pendientes restantes y marca el préstamo como COMPLETADO.
+     */
+    async settleLoan(loanId: string, finalPayment: number, paidDate: string): Promise<void> {
+        // 1. Obtener cuotas pendientes
+        const { data: pendingPayments, error: fetchError } = await supabase
+            .from('finance_loan_payments')
+            .select('*')
+            .eq('loan_id', loanId)
+            .eq('status', 'PENDIENTE')
+            .order('installment_number', { ascending: true });
+
+        if (fetchError) throw fetchError;
+        if (!pendingPayments || pendingPayments.length === 0) {
+            throw new Error('No hay cuotas pendientes para liquidar.');
+        }
+
+        const firstPending = pendingPayments[0];
+        const remainingToDelete = pendingPayments.slice(1).map(p => p.id);
+
+        // 2. Actualizar la primera cuota pendiente con el monto final de liquidación
+        const { error: updatePayError } = await supabase
+            .from('finance_loan_payments')
+            .update({
+                amount: finalPayment,
+                status: 'PAGADA',
+                paid_date: paidDate
+            })
+            .eq('id', firstPending.id);
+
+        if (updatePayError) throw updatePayError;
+
+        // 3. Eliminar las cuotas pendientes restantes
+        if (remainingToDelete.length > 0) {
+            const { error: deleteError } = await supabase
+                .from('finance_loan_payments')
+                .delete()
+                .in('id', remainingToDelete);
+            if (deleteError) throw deleteError;
+        }
+
+        // 4. Marcar el préstamo como COMPLETADO
+        const { error: statusError } = await supabase
+            .from('finance_loans')
+            .update({ status: 'COMPLETADO' })
+            .eq('id', loanId);
+
+        if (statusError) throw statusError;
+    },
 };
