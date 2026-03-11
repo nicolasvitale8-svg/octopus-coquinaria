@@ -242,12 +242,47 @@ export const loanService = {
     },
 
     async recordPayment(paymentId: string, paidDate: string): Promise<void> {
+        // 1. Obtener datos de la cuota y el préstamo
+        const { data: payment, error: pError } = await supabase
+            .from('finance_loan_payments')
+            .select('*, loan:finance_loans(*)')
+            .eq('id', paymentId)
+            .single();
+
+        if (pError) throw pError;
+        const loan = payment.loan;
+
+        // 2. Marcar cuota como pagada
         const { error } = await supabase
             .from('finance_loan_payments')
             .update({ status: 'PAGADA', paid_date: paidDate })
             .eq('id', paymentId);
 
         if (error) throw error;
+
+        // 3. Si hay cuenta asociada, crear transacción
+        if (loan.account_id) {
+            const isRevenue = loan.direction === 'GIVEN';
+            const transaction = {
+                date: paidDate,
+                category_id: loan.category_id,
+                sub_category_id: loan.subcategory_id,
+                description: `[CUOTA ${payment.installment_number}] ${loan.counterparty}`,
+                amount: payment.amount,
+                type: isRevenue ? 'IN' : 'OUT',
+                account_id: loan.account_id,
+                user_id: loan.user_id,
+                project_id: loan.project_id
+            };
+
+            const { error: tError } = await supabase
+                .from('fin_transactions')
+                .insert([transaction]);
+
+            if (tError) {
+                console.warn('Error al crear transacción automática:', tError);
+            }
+        }
     },
 
     async undoPayment(paymentId: string): Promise<void> {
@@ -318,5 +353,36 @@ export const loanService = {
             .eq('id', loanId);
 
         if (statusError) throw statusError;
+
+        // 5. Si hay cuenta asociada, crear transacción por el monto final
+        const { data: loan } = await supabase
+            .from('finance_loans')
+            .select('*')
+            .eq('id', loanId)
+            .single();
+
+        if (loan?.account_id) {
+            const isRevenue = loan.direction === 'GIVEN';
+            const label = isRevenue ? 'COBRO ANTICIPADO' : 'LIQUIDACIÓN ANTICIPADA';
+            const transaction = {
+                date: paidDate,
+                category_id: loan.category_id,
+                sub_category_id: loan.subcategory_id,
+                description: `[${label}] ${loan.counterparty}`,
+                amount: finalPayment,
+                type: isRevenue ? 'IN' : 'OUT',
+                account_id: loan.account_id,
+                user_id: loan.user_id,
+                project_id: loan.project_id
+            };
+
+            const { error: tError } = await supabase
+                .from('fin_transactions')
+                .insert([transaction]);
+
+            if (tError) {
+                console.warn('Error al crear transacción automática (liquidación):', tError);
+            }
+        }
     },
 };

@@ -327,9 +327,13 @@ export const Loans: React.FC = () => {
         const unpaidPayments = (payments[loanId] || []).filter(p => p.status === 'PENDIENTE');
         const projectedBalance = unpaidPayments.reduce((sum, p) => sum + p.amount, 0);
 
-        const promptMsg = `Liquidación Anticipada de "${loan.counterparty}"\n\n` +
+        const isRevenue = loan.direction === 'GIVEN';
+        const actionLabel = isRevenue ? 'Cobro Anticipado' : 'Liquidación Anticipada';
+        const questionLabel = isRevenue ? '¿Cuánto cobraste realmente para cancelar el préstamo completo?' : '¿Cuánto pagaste realmente para cancelar el préstamo completo?';
+
+        const promptMsg = `${actionLabel} de "${loan.counterparty}"\n\n` +
             `Saldo proyectado pendiente: ${formatCurrency(projectedBalance)}\n` +
-            `¿Cuánto pagaste realmente para cancelar el préstamo completo?`;
+            `${questionLabel}`;
 
         const finalAmountStr = window.prompt(promptMsg, projectedBalance.toString());
         if (finalAmountStr === null) return;
@@ -341,9 +345,9 @@ export const Loans: React.FC = () => {
         }
 
         const confirmCheck = window.confirm(
-            `Se registrará un pago final de ${formatCurrency(finalAmount)}.\n\n` +
+            `Se registrará un ${isRevenue ? 'cobro' : 'pago'} final de ${formatCurrency(finalAmount)}.\n\n` +
             `Esto marcará el préstamo como COMPLETADO y eliminará todas las cuotas pendientes futuras.\n` +
-            `¿Confirmar liquidación?`
+            `¿Confirmar operación?`
         );
 
         if (!confirmCheck) return;
@@ -732,7 +736,7 @@ const LoanCard: React.FC<{
                                 className="flex items-center gap-1.5 px-3 py-1.5 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/20 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all"
                             >
                                 <CheckCircle size={12} />
-                                Liquidación Anticipada
+                                {loan.direction === 'GIVEN' ? 'Cobro Anticipado' : 'Liquidación Anticipada'}
                             </button>
                         )}
                     </div>
