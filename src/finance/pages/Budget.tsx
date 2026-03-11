@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { SupabaseService } from '../services/supabaseService';
-import { BudgetItem, Category, SubCategory, Transaction, TransactionType } from '../financeTypes';
+import { Account, BudgetItem, Category, SubCategory, Transaction, TransactionType } from '../financeTypes';
 import { formatCurrency, formatPercentage, getAdjustedWorkingDay } from '../utils/calculations';
-import { Plus, Trash2, Pencil, ChevronRight, PieChart, Sparkles, Calendar as CalendarIcon, Clock, X } from 'lucide-react';
+import { Plus, Trash2, Pencil, ChevronRight, PieChart, Sparkles, Calendar as CalendarIcon, Clock, X, CreditCard, Wallet, Landmark, ArrowRight, Check } from 'lucide-react';
 import { useFinanza } from '../context/FinanzaContext';
 
 export const Budget: React.FC = () => {
@@ -21,6 +21,14 @@ export const Budget: React.FC = () => {
 
   const [newItem, setNewItem] = useState<Partial<BudgetItem>>({ type: TransactionType.OUT, plannedAmount: 0 });
 
+  // Payment Execution State
+  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [executingItem, setExecutingItem] = useState<BudgetItem | null>(null);
+  const [paymentAmount, setPaymentAmount] = useState<number>(0);
+  const [selectedAccountId, setSelectedAccountId] = useState<string>('');
+  const [isExecuting, setIsExecuting] = useState(false);
+
   // Sorting State
   const [sortConfig, setSortConfig] = useState<{ key: 'date' | 'amount' | 'category' | 'label', direction: 'asc' | 'desc' }>({ key: 'date', direction: 'asc' });
 
@@ -32,15 +40,17 @@ export const Budget: React.FC = () => {
     setLoading(true);
     try {
       const bId = activeEntity.id || undefined;
-      const [items, t, cat, subCat] = await Promise.all([
+      const [items, t, cat, subCat, accs] = await Promise.all([
         SupabaseService.getBudgetItems(bId),
         SupabaseService.getTransactions(bId),
         SupabaseService.getCategories(bId),
-        SupabaseService.getAllSubCategories(bId)
+        SupabaseService.getAllSubCategories(bId),
+        SupabaseService.getAccounts(bId)
       ]);
       setBudgetItems(items);
       setTransactions(t);
       setSubCategories(subCat);
+      setAccounts(accs);
 
       // Auto-crear categoría Inversiones/Ahorro si no existe
       const savingsCatName = 'Inversiones / Ahorro';
@@ -131,6 +141,35 @@ export const Budget: React.FC = () => {
       console.error("Error saving budget item:", error);
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleExecutePayment = async () => {
+    if (!executingItem || !selectedAccountId || isExecuting) return;
+
+    setIsExecuting(true);
+    try {
+      const bId = activeEntity.id || undefined;
+      const transaction: Partial<Transaction> = {
+        date: new Date().toISOString().split('T')[0],
+        categoryId: executingItem.categoryId,
+        subCategoryId: executingItem.subCategoryId,
+        description: executingItem.label,
+        amount: Number(paymentAmount),
+        type: TransactionType.OUT,
+        accountId: selectedAccountId
+      };
+
+      await SupabaseService.addTransaction(transaction, bId);
+      await loadData();
+      setShowPaymentModal(false);
+      setExecutingItem(null);
+      setSelectedAccountId('');
+    } catch (error) {
+      console.error("Error executing payment:", error);
+      alert("Error al registrar el pago");
+    } finally {
+      setIsExecuting(false);
     }
   };
 
@@ -386,6 +425,21 @@ export const Budget: React.FC = () => {
                           // Scroll automático al formulario
                           setTimeout(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
                         }} className="p-2 bg-fin-bg rounded-lg text-fin-text hover:text-brand border border-fin-border transition-all"><Pencil size={14} /></button>
+                        
+                        {type === TransactionType.OUT && (
+                          <button 
+                            onClick={() => {
+                              setExecutingItem(item);
+                              setPaymentAmount(Math.max(0, item.plannedAmount - calculateActual(item)));
+                              setShowPaymentModal(true);
+                            }} 
+                            className="p-2 bg-emerald-500/10 rounded-lg text-emerald-500 hover:bg-emerald-500 hover:text-white border border-emerald-500/20 transition-all"
+                            title="Ejecutar Pago"
+                          >
+                            <CreditCard size={14} />
+                          </button>
+                        )}
+
                         <button onClick={async () => { if (confirm('¿Eliminar proyección definitivamente?')) { await SupabaseService.deleteBudgetItem(item.id); await loadData(); } }} className="p-2 bg-fin-bg rounded-lg text-fin-text hover:text-red-500 border border-fin-border transition-all"><Trash2 size={14} /></button>
                       </div>
                     </td>
@@ -633,6 +687,104 @@ export const Budget: React.FC = () => {
           ? renderBudgetTable(TransactionType.SAVINGS, 'Planificación de Ahorro / Inversiones')
           : renderBudgetTable(TransactionType.OUT, 'Planificación de Gastos')
       }
+
+      {/* Modal de Ejecución de Pago */}
+      {showPaymentModal && executingItem && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+          <div className="bg-fin-card w-full max-w-md rounded-[32px] border border-fin-border shadow-2xl overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full -mr-16 -mt-16 blur-3xl"></div>
+            
+            <div className="p-8">
+              <div className="flex justify-between items-center mb-8">
+                <h3 className="text-xl font-black text-white uppercase tracking-tight flex items-center gap-3">
+                  <CreditCard className="text-emerald-500" size={24} />
+                  Ejecutar Pago
+                </h3>
+                <button 
+                  onClick={() => setShowPaymentModal(false)}
+                  className="p-2 text-fin-muted hover:text-white transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                <div className="bg-fin-bg/50 p-4 rounded-2xl border border-fin-border/50">
+                  <p className="text-[10px] font-black text-fin-muted uppercase tracking-widest mb-1">Concepto</p>
+                  <p className="font-bold text-white">{executingItem.label}</p>
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className="text-[10px] text-fin-muted uppercase font-black px-2 py-0.5 bg-fin-bg rounded-md border border-fin-border/50">
+                      {categories.find(c => c.id === executingItem.categoryId)?.name}
+                    </span>
+                    <span className="text-[10px] text-emerald-500 font-black">
+                      Plan: {formatCurrency(executingItem.plannedAmount)}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-fin-muted ml-1">Monto a Pagar</label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-fin-muted font-bold">$</span>
+                    <input 
+                      type="number" 
+                      step="0.01" 
+                      value={paymentAmount} 
+                      onChange={e => setPaymentAmount(Number(e.target.value))} 
+                      className="w-full bg-[#050f1a] border border-white/10 rounded-2xl p-4 pl-8 text-lg text-white font-black outline-none focus:border-emerald-500 transition-all"
+                      autoFocus
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-fin-muted ml-1">¿Desde qué cuenta?</label>
+                  <div className="grid grid-cols-1 gap-2">
+                    {accounts.length === 0 ? (
+                      <p className="text-[10px] text-red-400 italic">No tienes cuentas configuradas</p>
+                    ) : (
+                      accounts.map(acc => (
+                        <button
+                          key={acc.id}
+                          onClick={() => setSelectedAccountId(acc.id)}
+                          className={`flex items-center justify-between p-4 rounded-2xl border transition-all ${
+                            selectedAccountId === acc.id 
+                            ? 'bg-emerald-500/10 border-emerald-500 text-white shadow-lg shadow-emerald-500/10' 
+                            : 'bg-[#050f1a] border-white/5 text-fin-muted hover:border-white/20'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            {acc.accountTypeId.includes('bank') ? <Landmark size={18} /> : <Wallet size={18} />}
+                            <span className="font-bold text-sm uppercase tracking-tight">{acc.name}</span>
+                          </div>
+                          {selectedAccountId === acc.id && <Check size={18} className="text-emerald-500" />}
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-10">
+                <button 
+                  onClick={handleExecutePayment}
+                  disabled={!selectedAccountId || isExecuting || paymentAmount <= 0}
+                  className="w-full bg-emerald-500 text-fin-bg rounded-2xl py-5 font-black text-xs uppercase tracking-[0.2em] hover:bg-emerald-400 transition-all shadow-xl shadow-emerald-500/20 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+                >
+                  {isExecuting ? (
+                    'PROCESANDO...'
+                  ) : (
+                    <>
+                      CONFIRMAR PAGO
+                      <ArrowRight size={16} />
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
