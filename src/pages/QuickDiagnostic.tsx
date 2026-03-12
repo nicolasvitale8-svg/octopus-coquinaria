@@ -7,6 +7,7 @@ import { supabase } from '../services/supabase';
 import { ChevronLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { logger } from '../services/logger';
+import { runWithRetryAndTimeout } from '../services/network';
 
 // Components
 import DiagnosticHeader from '../components/diagnostic/DiagnosticHeader';
@@ -106,64 +107,89 @@ const QuickDiagnostic = () => {
 
       setResult(finalResult);
 
-      // Save to Supabase
-      if (supabase) {
-        try {
-          // 1. Check if user wants to create account
-          if (formData.password && formData.password.length >= 6) {
-            logger.debug('Intentando crear cuenta para el lead', { context: 'QuickDiagnostic' });
-            const { data: authData, error: authError } = await supabase.auth.signUp({
-              email: formData.contactEmail,
-              password: formData.password,
-              options: {
-                data: {
-                  full_name: formData.contactName,
-                  business_name: formData.businessName
-                }
-              }
-            });
+      try {
+        // Save to Supabase
+        if (supabase) {
+          try {
+            // 1. Check if user wants to create account
+            if (formData.password && formData.password.length >= 6) {
+              logger.debug('Intentando crear cuenta para el lead', { context: 'QuickDiagnostic' });
+              
+              const authData = await runWithRetryAndTimeout(
+                async () => {
+                  const { data, error } = await supabase.auth.signUp({
+                    email: formData.contactEmail,
+                    password: formData.password!,
+                    options: {
+                      data: {
+                        full_name: formData.contactName,
+                        business_name: formData.businessName
+                      }
+                    }
+                  });
+                  if (error) throw error;
+                  return data;
+                },
+                { timeoutMs: 15000, retries: 1, label: 'Registro de Lead' }
+              );
 
-            if (authError) {
-              logger.error('Error en registro Auth', { context: 'QuickDiagnostic', data: authError.message });
-            } else if (authData.user) {
-              logger.success('Usuario auth creado', { context: 'QuickDiagnostic', data: authData.user.id });
-              // Crear perfil en tabla usuarios (trigger habitual, pero lo aseguramos)
-              await supabase.from('usuarios').upsert({
-                id: authData.user.id,
-                email: formData.contactEmail,
-                full_name: formData.contactName,
-                business_name: formData.businessName,
-                role: 'user', // Rol por defecto para leads que se registran
-                permissions: ['view_dashboard', 'view_finance_basic']
-              });
+              if (authData?.user) {
+                logger.success('Usuario auth creado', { context: 'QuickDiagnostic', data: authData.user.id });
+                // Crear perfil en tabla usuarios (trigger habitual, pero lo aseguramos)
+                await runWithRetryAndTimeout(
+                  async () => {
+                    const { error } = await supabase.from('usuarios').upsert({
+                      id: authData.user.id,
+                      email: formData.contactEmail,
+                      full_name: formData.contactName,
+                      business_name: formData.businessName,
+                      role: 'user', // Rol por defecto para leads que se registran
+                      permissions: ['view_dashboard', 'view_finance_basic']
+                    });
+                    if (error) throw error;
+                    return true;
+                  },
+                  { timeoutMs: 10000, retries: 1, label: 'Perfil de Lead' }
+                );
+              }
             }
+          } catch (e) {
+            logger.error('Error en registro Auth/Perfil', { context: 'QuickDiagnostic', data: e });
           }
 
-          // 2. Save Express Diagnostic
-          const diagPayload = {
-            contact_name: formData.contactName,
-            contact_email: formData.contactEmail,
-            contact_phone: formData.contactPhone,
-            business_name: formData.businessName,
-            city: formData.city,
-            business_type: formData.businessType,
-            monthly_revenue: formData.monthlyRevenue,
-            score_global: finalResult.scoreGlobal,
-            score_financial: finalResult.scoreFinancial,
-            score_7p: finalResult.score7P,
-            profile_name: finalResult.profileName,
-            status: finalResult.status,
-            cogs_percentage: finalResult.cogsPercentage,
-            labor_percentage: finalResult.laborPercentage,
-            margin_percentage: finalResult.marginPercentage,
-            full_data: finalResult,
-            source: 'web_quick_diagnostic'
-          };
+          try {
+            // 2. Save Express Diagnostic
+            const diagPayload = {
+              contact_name: formData.contactName,
+              contact_email: formData.contactEmail,
+              contact_phone: formData.contactPhone,
+              business_name: formData.businessName,
+              city: formData.city,
+              business_type: formData.businessType,
+              monthly_revenue: formData.monthlyRevenue,
+              score_global: finalResult.scoreGlobal,
+              score_financial: finalResult.scoreFinancial,
+              score_7p: finalResult.score7P,
+              profile_name: finalResult.profileName,
+              status: finalResult.status,
+              cogs_percentage: finalResult.cogsPercentage,
+              labor_percentage: finalResult.laborPercentage,
+              margin_percentage: finalResult.marginPercentage,
+              full_data: finalResult,
+              source: 'web_quick_diagnostic'
+            };
 
-          const { error: diagError } = await supabase.from('diagnosticos_express').insert(diagPayload);
+            await runWithRetryAndTimeout(
+              async () => {
+                const { error } = await supabase.from('diagnosticos_express').insert(diagPayload);
+                if (error) throw error;
+                return true;
+              },
+              { timeoutMs: 15000, retries: 1, label: 'Guardar Diagnostico Expreso' }
+            );
 
-          if (diagError) {
-            logger.warn('Fallo insert directo, reintentando con fallback', { context: 'QuickDiagnostic' });
+          } catch (e) {
+            logger.warn('Fallo insert directo, reintentando con fallback', { context: 'QuickDiagnostic', data: e });
             // Fallback: Si fallan las columnas nuevas, guardar solo lo básico + el JSON completo
             const fallbackPayload = {
               contact_name: formData.contactName,
@@ -172,17 +198,28 @@ const QuickDiagnostic = () => {
               full_data: finalResult,
               source: 'web_quick_diagnostic_fallback'
             };
-            await supabase.from('diagnosticos_express').insert(fallbackPayload);
+            
+            try {
+              await runWithRetryAndTimeout(
+                async () => {
+                  const { error } = await supabase.from('diagnosticos_express').insert(fallbackPayload);
+                  if (error) throw error;
+                  return true;
+                },
+                { timeoutMs: 8000, retries: 0, label: 'Fallback de Diagnostico' }
+              );
+            } catch (fallbackError) {
+              logger.error('Fallo en fallback de guardado', { context: 'QuickDiagnostic', data: fallbackError });
+            }
           }
-
-        } catch (e) {
-          logger.error('Error crítico en guardado de Supabase', { context: 'QuickDiagnostic', data: e });
         }
+      } catch (e) {
+        logger.error('Error crítico en ejecución de Supabase Guardado', { context: 'QuickDiagnostic', data: e });
+      } finally {
+        // Keep local storage as backup/cache
+        await saveDiagnosticResult(finalResult);
+        setIsSaving(false);
       }
-
-      // Keep local storage as backup/cache
-      await saveDiagnosticResult(finalResult);
-      setIsSaving(false);
     }
     setStep(prev => prev + 1);
   };
