@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
     Plus, Search, ChevronDown, ChevronUp, DollarSign, CreditCard, Receipt, Users,
-    Trash2, Edit2, CheckCircle, XCircle, Calendar, Percent, Hash, AlertTriangle, Undo2
+    Trash2, Edit2, CheckCircle, XCircle, Calendar, Percent, Hash, AlertTriangle, Undo2, Sparkles
 } from 'lucide-react';
 import { useFinanza } from '../context/FinanzaContext';
 import { formatCurrency } from '../utils/calculations';
@@ -94,11 +94,13 @@ export const Loans: React.FC = () => {
     const loadData = async () => {
         setLoading(true);
         try {
-            // Load accounts, categories, subcategories (these always work)
+            // Saneamiento automático al cargar
+            await loanService.autoSettleLoans(projectId);
+
             const [accs, cats, subs] = await Promise.all([
                 service.getAccounts(projectId ?? undefined),
                 service.getCategories(projectId ?? undefined),
-                service.getAllSubCategories(projectId ?? undefined),
+                service.getSubCategories(CATEGORY_NAME)
             ]);
             setAccounts(accs);
             setCategories(cats);
@@ -366,6 +368,25 @@ export const Loans: React.FC = () => {
         }
     };
 
+    const handleAutoSettle = async () => {
+        if (!confirm('SANEAMIENTO DE DEUDAS\n\nEsto buscará préstamos activos cuyos pagos ya cubran el capital total (saldo matemático $0) y los marcará como COMPLETADOS.\n\n¿Deseas ejecutar la limpieza?')) return;
+        setLoading(true);
+        try {
+            const count = await loanService.autoSettleLoans(activeEntity.id);
+            if (count > 0) {
+                alert(`✅ Se han saneado ${count} deudas correctamente.`);
+            } else {
+                alert('No se encontraron deudas inactivas para sanear.');
+            }
+            await loadData();
+        } catch (error) {
+            console.error("Error auto-settling:", error);
+            alert("Error al sanear deudas.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const handleEdit = (loan: Loan) => {
         setEditingLoan(loan);
         setForm({
@@ -403,12 +424,16 @@ export const Loans: React.FC = () => {
 
         const activeLoans = loans.filter(l => l.status === 'ACTIVO');
 
-        const totalDebt = activeLoans
+        const totalDebtBreakdown = activeLoans
             .filter(l => l.direction === 'TAKEN' || l.direction === 'CREDIT_CARD')
-            .reduce((sum, l) => {
+            .reduce((acc, l) => {
                 const paid = (payments[l.id] || []).filter(p => p.status === 'PAGADA').reduce((s, p) => s + p.amount, 0);
-                return sum + (l.total_amount - paid);
-            }, 0);
+                const balance = l.total_amount - paid;
+                acc[l.direction] = (acc[l.direction] || 0) + balance;
+                return acc;
+            }, {} as Record<string, number>);
+
+        const totalDebt = (totalDebtBreakdown['TAKEN'] || 0) + (totalDebtBreakdown['CREDIT_CARD'] || 0);
 
         const totalReceivable = activeLoans
             .filter(l => l.direction === 'GIVEN')
@@ -444,7 +469,7 @@ export const Loans: React.FC = () => {
             });
         });
 
-        return { totalDebt, totalReceivable, pendingThisMonth, overdue };
+        return { totalDebt, totalReceivable, pendingThisMonth, overdue, totalDebtBreakdown };
     }, [loans, payments]);
 
     const getAccountName = (accountId?: string) => {
@@ -521,6 +546,7 @@ export const Loans: React.FC = () => {
                     icon={<DollarSign size={20} />}
                     label="Total Adeudado"
                     value={formatCurrency(summary.totalDebt)}
+                    subValue={summary.totalDebt > 0 ? `P: ${formatCurrency(summary.totalDebtBreakdown['TAKEN'] || 0)} | T: ${formatCurrency(summary.totalDebtBreakdown['CREDIT_CARD'] || 0)}` : undefined}
                     color="text-red-400"
                     bg="bg-red-500/10 border-red-500/20"
                 />
@@ -632,13 +658,15 @@ const SummaryCard: React.FC<{
     icon: React.ReactNode;
     label: string;
     value: string;
+    subValue?: string;
     color: string;
     bg: string;
-}> = ({ icon, label, value, color, bg }) => (
+}> = ({ icon, label, value, subValue, color, bg }) => (
     <div className={`p-5 rounded-2xl border ${bg} transition-all hover:scale-[1.02]`}>
         <div className={`${color} mb-3`}>{icon}</div>
         <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">{label}</p>
         <p className={`text-xl font-black mt-1 ${color}`}>{value}</p>
+        {subValue && <p className="text-[9px] font-bold text-white/20 mt-1 uppercase tracking-tighter">{subValue}</p>}
     </div>
 );
 

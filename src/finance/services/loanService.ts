@@ -283,6 +283,17 @@ export const loanService = {
                 console.warn('Error al crear transacción automática:', tError);
             }
         }
+
+        // 4. Verificar si es la última cuota para autocompletar el préstamo
+        const { data: remaining } = await supabase
+            .from('finance_loan_payments')
+            .select('id')
+            .eq('loan_id', loan.id)
+            .eq('status', 'PENDIENTE');
+
+        if (!remaining || remaining.length === 0) {
+            await this.updateStatus(loan.id, 'COMPLETADO');
+        }
     },
 
     async undoPayment(paymentId: string): Promise<void> {
@@ -309,7 +320,7 @@ export const loanService = {
      * elimina las cuotas pendientes restantes y marca el préstamo como COMPLETADO.
      */
     async settleLoan(loanId: string, finalPayment: number, paidDate: string): Promise<void> {
-        // 1. Obtener cuotas pendientes
+        // ... (existing code)
         const { data: pendingPayments, error: fetchError } = await supabase
             .from('finance_loan_payments')
             .select('*')
@@ -325,7 +336,6 @@ export const loanService = {
         const firstPending = pendingPayments[0];
         const remainingToDelete = pendingPayments.slice(1).map(p => p.id);
 
-        // 2. Actualizar la primera cuota pendiente con el monto final de liquidación
         const { error: updatePayError } = await supabase
             .from('finance_loan_payments')
             .update({
@@ -337,7 +347,6 @@ export const loanService = {
 
         if (updatePayError) throw updatePayError;
 
-        // 3. Eliminar las cuotas pendientes restantes
         if (remainingToDelete.length > 0) {
             const { error: deleteError } = await supabase
                 .from('finance_loan_payments')
@@ -346,7 +355,6 @@ export const loanService = {
             if (deleteError) throw deleteError;
         }
 
-        // 4. Marcar el préstamo como COMPLETADO
         const { error: statusError } = await supabase
             .from('finance_loans')
             .update({ status: 'COMPLETADO' })
@@ -354,7 +362,6 @@ export const loanService = {
 
         if (statusError) throw statusError;
 
-        // 5. Si hay cuenta asociada, crear transacción por el monto final
         const { data: loan } = await supabase
             .from('finance_loans')
             .select('*')
@@ -384,5 +391,36 @@ export const loanService = {
                 console.warn('Error al crear transacción automática (liquidación):', tError);
             }
         }
+    },
+
+    /**
+     * Busca préstamos activos de una entidad que matemáticamente ya tienen saldo cero
+     * y los marca como COMPLETADO.
+     */
+    async autoSettleLoans(businessId?: string | null): Promise<number> {
+        const loans = await this.getAll(businessId);
+        const activeLoans = loans.filter(l => l.status === 'ACTIVO');
+        if (activeLoans.length === 0) return 0;
+
+        const loanIds = activeLoans.map(l => l.id);
+        const allPayments = await this.getAllPayments(loanIds);
+
+        let settledCount = 0;
+        for (const loan of activeLoans) {
+            const loanPayments = allPayments.filter(p => p.loan_id === loan.id);
+            const paidAmount = loanPayments
+                .filter(p => p.status === 'PAGADA')
+                .reduce((sum, p) => sum + p.amount, 0);
+
+            const balance = loan.total_amount - paidAmount;
+
+            // Si el saldo es 0 o negativo, y no hay cuotas pendientes, completar.
+            // O si simplemente el saldo es <= 0.
+            if (balance <= 0.01) {
+                await this.updateStatus(loan.id, 'COMPLETADO');
+                settledCount++;
+            }
+        }
+        return settledCount;
     },
 };
