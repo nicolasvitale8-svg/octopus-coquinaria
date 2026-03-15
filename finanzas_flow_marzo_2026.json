@@ -1,0 +1,156 @@
+{
+  "cuentas": [
+    {
+      "id": "acc_galicia_01",
+      "name": "Banco Galicia",
+      "accountTypeId": "bank",
+      "currency": "ARS",
+      "isActive": true
+    },
+    {
+      "id": "acc_mp_01",
+      "name": "Mercado Pago",
+      "accountTypeId": "wallet",
+      "currency": "ARS",
+      "isActive": true,
+      "annualRate": 85
+    },
+    {
+      "id": "acc_cash_01",
+      "name": "Efectivo",
+      "accountTypeId": "cash",
+      "currency": "ARS",
+      "isActive": true
+    }
+  ],
+  "categorias": [
+    { "id": "cat_sales", "name": "Ventas", "type": "IN" },
+    { "id": "cat_services", "name": "Servicios", "type": "OUT" },
+    { "id": "cat_rent", "name": "Alquiler", "type": "OUT" },
+    { "id": "cat_market", "name": "Supermercado", "type": "OUT" },
+    { "id": "cat_savings", "name": "Ahorros", "type": "SAVINGS" }
+  ],
+  "movimientos_marzo_2026": [
+    {
+      "id": "tx_01",
+      "date": "2026-03-01",
+      "categoryId": "cat_rent",
+      "description": "Pago Alquiler Marzo",
+      "amount": 450000,
+      "type": "OUT",
+      "accountId": "acc_galicia_01"
+    },
+    {
+      "id": "tx_02",
+      "date": "2026-03-05",
+      "categoryId": "cat_sales",
+      "description": "Venta Cliente Octopus",
+      "amount": 120000,
+      "type": "IN",
+      "accountId": "acc_mp_01"
+    },
+    {
+      "id": "tx_03",
+      "date": "2026-03-08",
+      "categoryId": "cat_market",
+      "description": "Compra Coto",
+      "amount": 35000,
+      "type": "OUT",
+      "accountId": "acc_mp_01"
+    },
+    {
+      "id": "tx_04",
+      "date": "2026-03-10",
+      "categoryId": "cat_services",
+      "description": "Pago Internet",
+      "amount": 25000,
+      "type": "OUT",
+      "accountId": "acc_galicia_01"
+    },
+    {
+      "id": "tx_05",
+      "date": "2026-03-12",
+      "categoryId": "cat_sales",
+      "description": "Honorarios Asesoría",
+      "amount": 80000,
+      "type": "IN",
+      "accountId": "acc_galicia_01"
+    }
+  ],
+  "presupuesto_marzo_2026": [
+    {
+      "id": "bud_01",
+      "month": 2,
+      "year": 2026,
+      "categoryId": "cat_market",
+      "label": "Supermercado",
+      "type": "OUT",
+      "plannedAmount": 150000
+    },
+    {
+      "id": "bud_02",
+      "month": 2,
+      "year": 2026,
+      "categoryId": "cat_rent",
+      "label": "Alquiler",
+      "type": "OUT",
+      "plannedAmount": 450000
+    },
+    {
+      "id": "bud_03",
+      "month": 2,
+      "year": 2026,
+      "categoryId": "cat_sales",
+      "label": "Ventas Esperadas",
+      "type": "IN",
+      "plannedAmount": 500000
+    }
+  ],
+  "frascos": [
+    {
+      "id": "jar_01",
+      "accountId": "acc_mp_01",
+      "name": "Fondo Emergencia",
+      "startDate": "2026-01-01",
+      "endDate": "2026-12-31",
+      "principal": 500000,
+      "annualRate": 85,
+      "autoReinvest": true
+    },
+    {
+      "id": "jar_02",
+      "accountId": "acc_galicia_01",
+      "name": "Viaje Verano",
+      "startDate": "2026-03-01",
+      "endDate": "2027-01-15",
+      "principal": 200000,
+      "annualRate": 40
+    }
+  ],
+  "prestamos": [
+    {
+      "id": "loan_01",
+      "direction": "TAKEN",
+      "counterparty": "Banco Galicia",
+      "total_amount": 1000000,
+      "total_installments": 12,
+      "installment_amount": 120000,
+      "interest_rate": 60,
+      "start_date": "2026-02-10",
+      "status": "ACTIVO",
+      "description": "Préstamo Personal"
+    },
+    {
+      "id": "loan_02",
+      "direction": "GIVEN",
+      "counterparty": "Juan Pérez",
+      "total_amount": 50000,
+      "total_installments": 2,
+      "installment_amount": 25000,
+      "interest_rate": 0,
+      "start_date": "2026-03-05",
+      "status": "ACTIVO",
+      "description": "Préstamo Amigo"
+    }
+  ]
+}

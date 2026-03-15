@@ -232,44 +232,46 @@ export const Jars: React.FC = () => {
       }
    };
 
-   const handleDeleteJar = async (jar: Jar) => {
-      if (!confirm('¿Eliminar frasco? Se generará un movimiento de ingreso para devolver el dinero a la cuenta.')) return;
+   const handleRegenerateJar = (jar: Jar) => {
+      // Calcular duración original
+      const [sy, sm, sd] = jar.startDate.split('-').map(Number);
+      const [ey, em, ed] = jar.endDate.split('-').map(Number);
+      const start = new Date(sy, sm - 1, sd);
+      const end = new Date(ey, em - 1, ed);
+      const durationMs = end.getTime() - start.getTime();
+      const durationDays = Math.round(durationMs / (1000 * 60 * 60 * 24));
+
+      // Nuevas fechas
+      const today = new Date();
+      const startDate = today.toISOString().split('T')[0];
+      const endDateObj = new Date(today.getTime() + durationMs);
+      const endDate = endDateObj.toISOString().split('T')[0];
+
+      setEditingJar({
+         name: jar.name,
+         accountId: jar.accountId,
+         principal: jar.principal,
+         annualRate: jar.annualRate,
+         autoReinvest: jar.autoReinvest,
+         startDate,
+         endDate
+      });
+      setIsEditing(false); // Es un frasco nuevo basado en uno viejo
+      setIsFormOpen(true);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+   };
+
+   const handleFinishJar = async (jar: Jar) => {
+      if (!confirm('¿Terminar frasco? Se archivará este registro. El dinero ya debería estar en tu cuenta tras la liquidación.')) return;
 
       setDeletingId(jar.id);
       try {
-         const bId = activeEntity.id || undefined;
-         const calc = calculateJar(jar);
-
-         // Ojo con los decimales infinitos en JS y las validaciones de Supabase NUMERIC.
-         const cleanValue = Math.round(calc.currentValue * 100) / 100;
-         const d = new Date();
-         const localDateString = new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
-
-         const savingsCat = await getOrCreateSavingsCategory(categories, service, bId);
-
-         await service.addTransaction({
-            date: localDateString,
-            categoryId: savingsCat.id,
-            description: `Cancelación Frasco: ${jar.name}`,
-            note: `Capital original + intereses`,
-            amount: cleanValue,
-            type: TransactionType.IN,
-            accountId: jar.accountId,
-         }, bId);
-
          await service.deleteJar(jar.id);
          reconciledRef.current = false;
          await loadData();
-      } catch (error: any) {
-         console.error("Error deleting jar:", error);
-         let errMsg = "Desconocido";
-         if (error instanceof Error) errMsg = error.message;
-         else if (typeof error === 'object' && error !== null) {
-            errMsg = error.message || error.details || error.hint || JSON.stringify(error);
-         } else {
-            errMsg = String(error);
-         }
-         alert("Hubo un error al eliminar el frasco: " + errMsg);
+      } catch (error) {
+         console.error("Error finishing jar:", error);
+         alert("Hubo un error al terminar el frasco.");
       } finally {
          setDeletingId(null);
       }
@@ -463,14 +465,11 @@ export const Jars: React.FC = () => {
                                  }}
                               />
                            </div>
-                           <div className="flex justify-between items-center mt-1">
-                              <span className="text-[9px] text-fin-muted tabular-nums">+{formatCurrency(interestAccrued)}</span>
-                              <span className="text-[9px] text-fin-muted tabular-nums">de +{formatCurrency(totalInterest)}</span>
                            </div>
                         </div>
 
                         {/* Fechas y días restantes */}
-                        <div className="flex justify-between items-center text-[10px] font-black text-fin-muted uppercase tracking-widest bg-fin-bg/50 p-3 rounded-lg">
+                        <div className="flex justify-between items-center text-[10px] font-black text-fin-muted uppercase tracking-widest bg-fin-bg/50 p-3 rounded-lg mb-6">
                            <span>{formatDateLocal(jar.startDate)}</span>
                            <span className={isMatured ? 'text-emerald-500' : 'text-brand'}>
                               {isMatured ? 'COMPLETADO' : `${daysRemaining} DÍAS RESTANTES`}
@@ -478,12 +477,30 @@ export const Jars: React.FC = () => {
                            <span>{formatDateLocal(jar.endDate)}</span>
                         </div>
 
-                        {/* Botones de editar y eliminar */}
+                        {/* Botones de acción para frascos vencidos */}
+                        {isMatured && (
+                           <div className="flex gap-4">
+                              <button
+                                 onClick={() => handleRegenerateJar(jar)}
+                                 className="flex-1 bg-brand/10 hover:bg-brand/20 text-brand border border-brand/20 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2"
+                              >
+                                 <Repeat size={14} /> Volver a generar frasco
+                              </button>
+                              <button
+                                 onClick={() => handleFinishJar(jar)}
+                                 className="flex-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 border border-emerald-500/20 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2"
+                              >
+                                 <Sparkles size={14} /> Terminar frasco
+                              </button>
+                           </div>
+                        )}
+
+                        {/* Botones de editar y eliminar rápidos (hover) */}
                         <div className="absolute bottom-8 right-8 flex gap-3 opacity-20 group-hover:opacity-100 transition-opacity">
                            <button onClick={() => openEditForm(jar)} disabled={deletingId === jar.id} className="text-fin-muted hover:text-brand transition-colors disabled:opacity-50" title="Editar frasco">
                               <Pencil size={16} />
                            </button>
-                           <button onClick={() => handleDeleteJar(jar)} disabled={deletingId === jar.id} className="text-fin-muted hover:text-red-500 transition-colors disabled:opacity-50" title="Eliminar frasco">
+                           <button onClick={() => handleFinishJar(jar)} disabled={deletingId === jar.id} className="text-fin-muted hover:text-red-500 transition-colors disabled:opacity-50" title="Eliminar/Terminar frasco">
                               {deletingId === jar.id ? <Sparkles size={16} className="animate-spin text-red-500" /> : <Trash2 size={16} />}
                            </button>
                         </div>

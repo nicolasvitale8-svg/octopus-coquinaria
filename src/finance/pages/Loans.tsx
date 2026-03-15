@@ -66,6 +66,7 @@ export const Loans: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [showCompleted, setShowCompleted] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [paidInstallments, setPaidInstallments] = useState(0);
     const [paymentDay, setPaymentDay] = useState<number | undefined>(undefined);
@@ -387,13 +388,14 @@ export const Loans: React.FC = () => {
     const filteredLoans = useMemo(() => {
         return loans
             .filter(l => l.direction === activeTab)
+            .filter(l => showCompleted || l.status === 'ACTIVO')
             .filter(l => {
                 if (!searchTerm) return true;
                 const s = searchTerm.toLowerCase();
                 return l.counterparty.toLowerCase().includes(s) ||
                     (l.description || '').toLowerCase().includes(s);
             });
-    }, [loans, activeTab, searchTerm]);
+    }, [loans, activeTab, searchTerm, showCompleted]);
 
     const summary = useMemo(() => {
         const today = new Date().toISOString().split('T')[0];
@@ -497,6 +499,20 @@ export const Loans: React.FC = () => {
                         <span>Nuevo</span>
                     </button>
                 </div>
+            </div>
+
+            {/* Quick Filters */}
+            <div className="flex justify-end">
+                <button
+                    onClick={() => setShowCompleted(!showCompleted)}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${showCompleted
+                        ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                        : 'bg-white/5 border-white/10 text-white/40 hover:text-white hover:bg-white/10'
+                        }`}
+                >
+                    <CheckCircle size={14} />
+                    {showCompleted ? 'Ocultar Completados' : 'Mostrar Completados'}
+                </button>
             </div>
 
             {/* Summary Cards */}
