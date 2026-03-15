@@ -135,11 +135,12 @@ const QuickDiagnostic = () => {
 
               if (authData?.user) {
                 logger.success('Usuario auth creado', { context: 'QuickDiagnostic', data: authData.user.id });
+                const userId = authData.user.id;
                 // Crear perfil en tabla usuarios (trigger habitual, pero lo aseguramos)
                 await runWithRetryAndTimeout(
                   async () => {
                     const { error } = await supabase.from('usuarios').upsert({
-                      id: authData.user.id,
+                      id: userId,
                       email: formData.contactEmail,
                       full_name: formData.contactName,
                       business_name: formData.businessName,

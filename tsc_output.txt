@@ -1,0 +1,6 @@
+src/finance/pages/Jars.tsx(508,19): error TS1005: ')' expected.
+src/finance/pages/Jars.tsx(510,13): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/finance/pages/Jars.tsx(510,15): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/finance/pages/Jars.tsx(512,7): error TS1005: ')' expected.
+src/finance/pages/Jars.tsx(513,4): error TS1109: Expression expected.
+src/finance/pages/Jars.tsx(514,1): error TS1128: Declaration or statement expected.

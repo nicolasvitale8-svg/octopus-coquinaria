@@ -1,0 +1,1 @@
+src/pages/QuickDiagnostic.tsx(142,27): error TS18047: 'authData.user' is possibly 'null'.
