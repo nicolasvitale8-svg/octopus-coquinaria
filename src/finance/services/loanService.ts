@@ -423,4 +423,72 @@ export const loanService = {
         }
         return settledCount;
     },
+
+    /**
+     * Busca transacciones que coincidan con cuotas pendientes y las marca como pagadas.
+     */
+    async reconcilePaymentsWithTransactions(businessId?: string | null): Promise<number> {
+        const userId = await getUserId();
+        // 1. Obtener préstamos activos
+        const loans = await this.getAll(businessId);
+        const activeLoans = loans.filter(l => l.status === 'ACTIVO' && (l.direction === 'TAKEN' || l.direction === 'CREDIT_CARD'));
+        if (activeLoans.length === 0) return 0;
+
+        // 2. Obtener todas las cuotas pendientes de estos préstamos
+        const loanIds = activeLoans.map(l => l.id);
+        const allPendingPayments = await this.getAllPayments(loanIds);
+        const pendingPayments = allPendingPayments.filter(p => p.status === 'PENDIENTE');
+        if (pendingPayments.length === 0) return 0;
+
+        // 3. Obtener transacciones recientes (aprox últimos 60 días)
+        const sixtyDaysAgo = new Date();
+        sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
+        const sixtyDaysAgoStr = sixtyDaysAgo.toISOString().split('T')[0];
+
+        const { data: txs, error: txError } = await supabase
+            .from('fin_transactions')
+            .select('*')
+            .eq('user_id', userId)
+            .gte('date', sixtyDaysAgoStr)
+            .order('date', { ascending: false });
+
+        if (txError || !txs) return 0;
+
+        let reconciledCount = 0;
+
+        // 4. Macheo
+        for (const payment of pendingPayments) {
+            const loan = activeLoans.find(l => l.id === payment.loan_id);
+            if (!loan) continue;
+
+            const targetAmount = Math.abs(payment.amount);
+            const counterpartyUpper = loan.counterparty.toUpperCase();
+
+            // Buscar una transacción que coincida en monto y descripción
+            const match = txs.find(t => {
+                const txAmount = Math.abs(t.amount);
+                const descUpper = t.description.toUpperCase();
+                
+                // Mismo monto (margen de error de 1 peso por redondeos)
+                const amountMatches = Math.abs(txAmount - targetAmount) < 1.1;
+                
+                // La descripción contiene el nombre de la contraparte (ej: "NARANJA X" en "TARJETA NARANJA X (4/8)")
+                const nameMatches = descUpper.includes(counterpartyUpper) || counterpartyUpper.includes(descUpper);
+
+                return amountMatches && nameMatches;
+            });
+
+            if (match) {
+                // Marcar como pagada
+                const { error: updError } = await supabase
+                    .from('finance_loan_payments')
+                    .update({ status: 'PAGADA', paid_date: match.date })
+                    .eq('id', payment.id);
+
+                if (!updError) reconciledCount++;
+            }
+        }
+
+        return reconciledCount;
+    },
 };

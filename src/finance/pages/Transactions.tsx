@@ -52,6 +52,54 @@ export const Transactions: React.FC = () => {
       setAccounts(acc);
       setCategories(cat);
       setSubCategories(subCat);
+
+      // --- TEMPORARY FIX: Add missing transactions for March and fix typoes 
+      if (!localStorage.getItem('fix_tx_march_2026_done') && cat.length > 0 && acc.length > 0) {
+          const prestamosCat = cat.find(c => c.name === 'Préstamos');
+          const nxAcc = acc.find(a => a.name.toUpperCase().includes('NARANJA'));
+          
+          if (prestamosCat && nxAcc) {
+              // 1. Fix typo in existing 38k transaction
+              const typoTx = t.find(tx => tx.description === 'NARANJA X (1/3)' && tx.amount === 38123.87);
+              if (typoTx) {
+                  await service.updateTransaction({ ...typoTx, amount: 38213.87 } as any);
+              }
+
+              // 2. Add missing 29k transaction
+              const exists29k = t.find(tx => tx.description === 'NARANAJA X (3/6)' && tx.amount === 29333.15);
+              if (!exists29k) {
+                  await service.addTransaction({
+                      date: '2026-03-10',
+                      categoryId: prestamosCat.id,
+                      description: 'NARANAJA X (3/6)',
+                      amount: 29333.15,
+                      type: 'OUT' as TransactionType,
+                      accountId: nxAcc.id
+                  }, bId);
+              }
+
+              // 3. Add missing 134k transaction
+              const exists134k = t.find(tx => tx.description === 'NARANJA X (1/3)' && tx.amount === 134460.87);
+              if (!exists134k) {
+                  await service.addTransaction({
+                      date: '2026-03-10',
+                      categoryId: prestamosCat.id,
+                      description: 'NARANJA X (1/3)',
+                      amount: 134460.87,
+                      type: 'OUT' as TransactionType,
+                      accountId: nxAcc.id
+                  }, bId);
+              }
+
+              localStorage.setItem('fix_tx_march_2026_done', 'true');
+              // Reload the data explicitly after fix
+              const tUpdated = await service.getTransactions(bId);
+              setTransactions(tUpdated);
+              alert("¡Las transacciones faltantes de Naranja X han sido agregadas y corregidas exitosamente al 100%!");
+          }
+      }
+      // --- END TEMPORARY FIX ---
+
     } catch (error) {
       console.error("Error loading transactions:", error);
     } finally {

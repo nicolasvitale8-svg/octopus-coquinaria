@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { SupabaseService } from '../services/supabaseService';
 import { Account, BudgetItem, Category, SubCategory, Transaction, TransactionType } from '../financeTypes';
 import { formatCurrency, formatPercentage, getAdjustedWorkingDay } from '../utils/calculations';
@@ -222,68 +222,65 @@ export const Budget: React.FC = () => {
     }
   };
 
-  const calculateActual = (item: BudgetItem) => {
-    return transactions.reduce((sum, t) => {
+  const actualAmounts = useMemo(() => {
+    const actuals: Record<string, number> = {};
+    budgetItems.forEach(i => { if (i.id) actuals[i.id] = 0; });
+    
+    transactions.forEach(t => {
       const tDate = new Date(t.date);
-      // Filtrar por mes, año, categoría y tipo
-      if (tDate.getMonth() !== item.month || tDate.getFullYear() !== item.year || t.categoryId !== item.categoryId || t.type !== item.type) return sum;
+      const candidates = budgetItems.filter(i => 
+        tDate.getMonth() === i.month && 
+        tDate.getFullYear() === i.year && 
+        t.categoryId === i.categoryId && 
+        t.type === i.type &&
+        (!i.subCategoryId || !t.subCategoryId || i.subCategoryId === t.subCategoryId)
+      );
 
-      // CASO 1: Ambos tienen subCategoryId - deben coincidir exactamente
-      if (item.subCategoryId && t.subCategoryId) {
-        if (t.subCategoryId !== item.subCategoryId) return sum;
-        return sum + t.amount;
+      if (candidates.length === 0) return;
+      if (candidates.length === 1 && candidates[0].id) {
+        actuals[candidates[0].id] += t.amount;
+        return;
       }
 
-      // CASO 2: El presupuesto tiene subCategoryId pero la transacción NO
-      // Intentar match por palabras clave del label
-      if (item.subCategoryId && !t.subCategoryId) {
-        // Buscar si la descripción contiene el label del presupuesto
-        const labelWords = item.label.toLowerCase().split(/\s+/).filter(w => w.length > 2);
-        const descLower = t.description.toLowerCase();
-        const matchesLabel = labelWords.some(word => descLower.includes(word));
-        if (!matchesLabel) return sum;
-        return sum + t.amount;
+      const descLower = t.description.toLowerCase();
+      
+      // 1. Label match exacto
+      const exactMatches = candidates.filter(i => i.label.toLowerCase() === descLower);
+      let winners = exactMatches.length > 0 ? exactMatches : candidates;
+
+      // 2. Exact amount match (margen < 1.1)
+      if (winners.length > 1) {
+        const amountMatches = winners.filter(i => Math.abs(t.amount - i.plannedAmount) < 1.1);
+        if (amountMatches.length > 0) winners = amountMatches;
       }
 
-      // CASO 3: El presupuesto NO tiene subCategoryId pero la transacción SÍ
-      if (!item.subCategoryId && t.subCategoryId) {
-        // Verificar si hay otro presupuesto más específico para esta subcategoría
-        const hasSpecificBudget = budgetItems.some(bi =>
-          bi.id !== item.id &&
-          bi.categoryId === item.categoryId &&
-          bi.subCategoryId === t.subCategoryId &&
-          bi.month === item.month &&
-          bi.year === item.year &&
-          bi.type === item.type
-        );
-        if (hasSpecificBudget) return sum; // Se cuenta en otro presupuesto más específico
+      // 3. Keyword match (si no hubo exactMatch)
+      if (winners.length > 1 && exactMatches.length === 0) {
+        let maxScore = -1;
+        let bestWinners: BudgetItem[] = [];
+        winners.forEach(i => {
+           const words = i.label.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+           const score = words.filter(w => descLower.includes(w)).length;
+           if (score > maxScore) { maxScore = score; bestWinners = [i]; }
+           else if (score === maxScore) { bestWinners.push(i); }
+        });
+        if (maxScore > 0) winners = bestWinners;
       }
 
-      // CASO 4: Ninguno tiene subCategoryId
-      // Verificar si hay otro presupuesto del mismo rubro que matchee mejor por label
-      if (!item.subCategoryId && !t.subCategoryId) {
-        const otherBudgets = budgetItems.filter(bi =>
-          bi.id !== item.id &&
-          bi.categoryId === item.categoryId &&
-          bi.month === item.month &&
-          bi.year === item.year &&
-          bi.type === item.type
-        );
-
-        // Si hay otros presupuestos del mismo rubro, ver si alguno matchea mejor por label
-        const descLower = t.description.toLowerCase();
-        for (const other of otherBudgets) {
-          const otherLabelWords = other.label.toLowerCase().split(/\s+/).filter(w => w.length > 2);
-          const otherMatches = otherLabelWords.some(word => descLower.includes(word));
-          if (otherMatches) {
-            // Esta transacción pertenece a otro presupuesto
-            return sum;
-          }
-        }
+      // 4. Asignamos a la opción que tenga más "espacio" o a la primera
+      const notFullWinners = winners.filter(w => w.id && actuals[w.id] < w.plannedAmount);
+      const selected = notFullWinners.length > 0 ? notFullWinners[0] : winners[0];
+      
+      if (selected && selected.id) {
+        actuals[selected.id] += t.amount;
       }
+    });
 
-      return sum + t.amount;
-    }, 0);
+    return actuals;
+  }, [budgetItems, transactions]);
+
+  const calculateActual = (item: BudgetItem) => {
+    return item.id ? (actualAmounts[item.id] || 0) : 0;
   };
 
   const renderBudgetTable = (type: TransactionType, title: string) => {

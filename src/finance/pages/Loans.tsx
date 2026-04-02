@@ -94,7 +94,8 @@ export const Loans: React.FC = () => {
     const loadData = async () => {
         setLoading(true);
         try {
-            // Saneamiento automático al cargar
+            // Reconciliación y Saneamiento automático al cargar
+            await loanService.reconcilePaymentsWithTransactions(projectId);
             await loanService.autoSettleLoans(projectId);
 
             const [accs, cats, subs] = await Promise.all([
