@@ -107,6 +107,88 @@ export const Loans: React.FC = () => {
             setCategories(cats);
             setSubCategories(subs);
 
+            // --- AUTO LOAD SCRIPT ---
+            if (!localStorage.getItem('fix_loans_naranja_final') && cats.length > 0 && accs.length > 0) {
+                const nxAcc = accs.find(a => a.name.toUpperCase().includes('NARANJA'));
+                const prestamosCat = cats.find(c => c.name === 'Préstamos');
+                let subCat = subs.find(s => s.name === 'Cuota Tarjeta' && s.categoryId === prestamosCat?.id);
+                if (!subCat && prestamosCat) {
+                    subCat = await service.addSubCategory({ categoryId: prestamosCat.id, name: 'Cuota Tarjeta', isActive: true }, projectId ?? undefined);
+                }
+
+                if (prestamosCat && nxAcc && subCat) {
+                    // 1. Delete old wrongly manually added budget items for Naranja cuotas
+                    const allItems = await SupabaseService.getBudgetItems(projectId ?? undefined);
+                    const toDeleteIds = allItems.filter(i => 
+                        i.categoryId === prestamosCat.id && 
+                        i.label.includes('/') && 
+                        (i.label.toUpperCase().includes('NARANJA') || i.label.toUpperCase().includes('PINTURA'))
+                    ).map(i => i.id!);
+                    for (const id of toDeleteIds) {
+                        try { await SupabaseService.deleteBudgetItem(id); } catch(e){}
+                    }
+
+                    // 2. Delete the old incorrect loan
+                    const existingLoans = await loanService.getAll(projectId);
+                    for (const el of existingLoans) {
+                        if (el.total_amount === 114641.6 || el.counterparty.toUpperCase().includes('NARANJA')) {
+                            try { await loanService.delete(el.id); } catch(e){}
+                        }
+                    }
+
+                    // 3. Create the 4 real ones
+                    const loansToAdd = [
+                        { counterparty: 'Tersuave- pint alberto', total: 114653.55, installments: 3, amountParams: 38217.85, paid: 1, startDate: '2026-03-10' },
+                        { counterparty: 'Tersuave- pint alberto', total: 403382.49, installments: 3, amountParams: 134460.83, paid: 1, startDate: '2026-03-10' },
+                        { counterparty: 'Group mobile', total: 175998.90, installments: 6, amountParams: 29333.15, paid: 3, startDate: '2026-01-10' },
+                        { counterparty: 'Cetrogar', total: 1374018.96, installments: 12, amountParams: 114501.58, paid: 4, startDate: '2025-12-10' }
+                    ];
+
+                    for (const l of loansToAdd) {
+                        const loanData: CreateLoanDTO = {
+                            direction: 'CREDIT_CARD',
+                            counterparty: l.counterparty,
+                            total_amount: l.total,
+                            total_installments: l.installments,
+                            installment_amount: l.amountParams,
+                            interest_rate: 0,
+                            start_date: l.startDate,
+                            status: 'ACTIVO',
+                            description: 'Auto-importado desde resumen Naranja X',
+                            account_id: nxAcc.id,
+                            category_id: prestamosCat.id,
+                            subcategory_id: subCat.id,
+                        };
+                        const saved = await loanService.create(projectId, loanData, l.paid, 10);
+                        
+                        // Auto-create budget items for the remaining periods
+                        const loanPayments = await loanService.getPayments(saved.id);
+                        const pendingPayments = loanPayments.filter((p: any) => p.status === 'PENDIENTE');
+                        for (const payment of pendingPayments) {
+                            const dueDate = new Date(payment.due_date + 'T12:00:00');
+                            const month = dueDate.getMonth(); 
+                            const year = dueDate.getFullYear();
+                            const budgetItem: Partial<BudgetItem> = {
+                                year, month,
+                                categoryId: loanData.category_id,
+                                subCategoryId: loanData.subcategory_id,
+                                label: `${saved.counterparty} (${payment.installment_number}/${saved.total_installments})`,
+                                type: TransactionType.OUT,
+                                plannedAmount: payment.amount,
+                                plannedDate: 10,
+                                totalInstallments: saved.total_installments,
+                                currentInstallment: payment.installment_number,
+                            };
+                            await SupabaseService.saveBudgetItem(budgetItem, projectId ?? undefined);
+                        }
+                    }
+                    localStorage.setItem('fix_loans_naranja_final', 'true');
+                    alert('¡Limpieza completada! Se borraron los préstamos mal cargados y se cargaron automáticamente las 4 deudas exactas de Naranja X.');
+                    window.location.reload();
+                }
+            }
+            // --- END AUTO LOAD ---
+
             // Load loans separately (may fail if table/column doesn't exist yet)
             try {
                 const loansData = await loanService.getAll(projectId);
