@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { SupabaseService } from '../services/supabaseService';
 import { Account, BudgetItem, Category, SubCategory, Transaction, TransactionType } from '../financeTypes';
 import { formatCurrency, formatPercentage, getAdjustedWorkingDay } from '../utils/calculations';
-import { Plus, Trash2, Pencil, ChevronRight, PieChart, Sparkles, Calendar as CalendarIcon, Clock, X, CreditCard, Wallet, Landmark, ArrowRight, Check } from 'lucide-react';
+import { Plus, Trash2, Pencil, ChevronRight, PieChart, Sparkles, Calendar as CalendarIcon, Clock, X, CreditCard, Wallet, Landmark, ArrowRight, Check, Copy } from 'lucide-react';
 import { useFinanza } from '../context/FinanzaContext';
 
 export const Budget: React.FC = () => {
@@ -222,6 +222,51 @@ export const Budget: React.FC = () => {
     }
   };
 
+  const handleDuplicateNextMonth = async (item: BudgetItem) => {
+    if (isSaving) return;
+    
+    let nextMonth = currentMonth + 1;
+    let nextYear = currentYear;
+    if (nextMonth > 11) {
+      nextMonth = 0;
+      nextYear += 1;
+    }
+
+    setIsSaving(true);
+    try {
+      const bId = activeEntity.id || undefined;
+      const existingItems = await SupabaseService.getBudgetItems(bId);
+      const isAlreadyCopied = existingItems.some(i => 
+        i.month === nextMonth && 
+        i.year === nextYear && 
+        i.categoryId === item.categoryId &&
+        i.label.toLowerCase() === item.label.toLowerCase()
+      );
+
+      if (isAlreadyCopied) {
+        if (!confirm(`El ítem "${item.label}" ya parece existir en el próximo mes. ¿Copiar igual?`)) {
+          setIsSaving(false);
+          return;
+        }
+      }
+
+      const { id, ...newItemData } = item;
+      const newItem = { 
+        ...newItemData,
+        month: nextMonth, 
+        year: nextYear 
+      };
+      
+      await SupabaseService.saveBudgetItem(newItem, bId);
+      alert(`Ítem "${item.label}" copiado al mes siguiente exitosamente.`);
+    } catch (error) {
+      console.error(error);
+      alert("Error al copiar el ítem");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const actualAmounts = useMemo(() => {
     const actuals: Record<string, number> = {};
     budgetItems.forEach(i => { if (i.id) actuals[i.id] = 0; });
@@ -411,6 +456,9 @@ export const Budget: React.FC = () => {
                     </td>
                     <td className="px-8 py-5 text-right">
                       <div className="flex justify-end gap-3 opacity-20 hover:opacity-100 transition-opacity">
+                        {(!item.totalInstallments || item.totalInstallments <= 1) && (
+                          <button onClick={() => handleDuplicateNextMonth(item)} className="p-2 bg-fin-bg rounded-lg text-fin-text hover:text-cyan-400 border border-fin-border transition-all" title="Copiar al mes siguiente"><Copy size={14} /></button>
+                        )}
                         <button onClick={() => {
                           setEditingId(item.id);
                           setNewItem({
