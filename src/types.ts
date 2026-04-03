@@ -254,6 +254,9 @@ export interface AcademyResource {
   impactOutcome?: string;
   impactFormat?: string;
   impactProgram?: string;
+
+  // Rutas de Maestría
+  learningPath?: string;
 }
 
 export interface LearningPath {

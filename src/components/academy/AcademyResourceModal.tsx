@@ -23,6 +23,7 @@ const AcademyResourceModal: React.FC<AcademyResourceModalProps> = ({ isOpen, onC
         durationMinutes: 5,
         access: 'PUBLIC',
         isPinned: false,
+        learningPath: '',
         url: '',
         url2: '',
         url3: '',
@@ -50,6 +51,7 @@ const AcademyResourceModal: React.FC<AcademyResourceModalProps> = ({ isOpen, onC
                 durationMinutes: initialData.durationMinutes,
                 access: initialData.access,
                 isPinned: initialData.isPinned,
+                learningPath: initialData.learningPath || '',
                 url: initialData.downloadUrl || '',
                 url2: initialData.url2 || '',
                 url3: initialData.url3 || '',
@@ -74,6 +76,7 @@ const AcademyResourceModal: React.FC<AcademyResourceModalProps> = ({ isOpen, onC
                 durationMinutes: 5,
                 access: 'PUBLIC',
                 isPinned: false,
+                learningPath: '',
                 url: '',
                 url2: '',
                 url3: '',
@@ -324,6 +327,18 @@ const AcademyResourceModal: React.FC<AcademyResourceModalProps> = ({ isOpen, onC
                         <label htmlFor="pinned" className="text-sm text-white cursor-pointer select-none">
                             Fijar arriba (Bloque "Por dónde empezar")
                         </label>
+                    </div>
+
+                    <div className="pt-2">
+                        <label className="block text-xs font-bold text-[#1FB6D5] uppercase mb-1 tracking-widest">🎓 Ruta de Maestría</label>
+                        <input
+                            type="text"
+                            className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white text-xs focus:border-[#1FB6D5] focus:outline-none"
+                            placeholder="Ej: Cortes de Verdura PRO, Sprint Rentabilidad, Sprint Orden Operativo"
+                            value={formData.learningPath}
+                            onChange={e => setFormData({ ...formData, learningPath: e.target.value })}
+                        />
+                        <p className="text-[9px] text-slate-600 mt-1">Los recursos con la misma ruta se agrupan automáticamente en "Rutas de Maestría"</p>
                     </div>
 
                     <div>

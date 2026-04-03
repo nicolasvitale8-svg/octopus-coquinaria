@@ -255,32 +255,79 @@ const Academy = () => {
                 </div>
               </section>
 
-              {/* BLOQUE 3: RUTAS DE APRENDIZAJE */}
-              <section>
-                <div className="flex items-center justify-between mb-8">
-                  <div className="flex items-center gap-3">
-                    <GraduationCap className="text-[#1FB6D5] w-6 h-6" />
-                    <h2 className="text-2xl font-bold text-white font-space tracking-tight">Rutas de Maestría</h2>
-                  </div>
-                  {plan === 'FREE' && (
-                    <span className="text-[10px] font-bold text-slate-500 bg-slate-900 px-3 py-1 rounded-full border border-slate-800 uppercase tracking-widest">PRO Only</span>
-                  )}
-                </div>
+              {/* BLOQUE 3: RUTAS DE MAESTRÍA (auto-generadas) */}
+              {(() => {
+                // Agrupar recursos por learningPath
+                const pathMap = new Map<string, AcademyResource[]>();
+                resources.forEach(r => {
+                  if (r.learningPath && r.learningPath.trim()) {
+                    const key = r.learningPath.trim();
+                    if (!pathMap.has(key)) pathMap.set(key, []);
+                    pathMap.get(key)!.push(r);
+                  }
+                });
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  {paths.map(path => (
-                    <PathCard
-                      key={path.id}
-                      path={path}
-                      hasAccess={canAccess(path.access)}
-                      onClick={() => { }}
-                    />
-                  ))}
-                  {paths.length === 0 && (
-                    <p className="col-span-full text-slate-600 italic">No hay rutas de aprendizaje publicadas.</p>
-                  )}
-                </div>
-              </section>
+                if (pathMap.size === 0) return null;
+
+                return (
+                  <section>
+                    <div className="flex items-center justify-between mb-8">
+                      <div className="flex items-center gap-3">
+                        <GraduationCap className="text-[#1FB6D5] w-6 h-6" />
+                        <h2 className="text-2xl font-bold text-white font-space tracking-tight">Rutas de Maestría</h2>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                      {Array.from(pathMap.entries()).map(([pathName, pathResources]) => {
+                        const totalMinutes = pathResources.reduce((s, r) => s + r.durationMinutes, 0);
+                        const hasPro = pathResources.some(r => r.access === 'PRO');
+                        const mainCategory = pathResources[0]?.category || 'OPERACIONES';
+                        const hasAccess = !hasPro || plan === 'PRO' || isAdmin || isConsultant;
+
+                        return (
+                          <div
+                            key={pathName}
+                            onClick={() => {
+                              // Scroll to first resource of this path (future: open path detail)
+                              const firstRes = pathResources[0];
+                              if (firstRes) setSelectedResource(firstRes);
+                            }}
+                            className={`group bg-gradient-to-br from-slate-900 to-[#021019] border border-slate-800 rounded-3xl p-8 hover:border-[#1FB6D5]/40 transition-all cursor-pointer relative overflow-hidden ${!hasAccess ? 'opacity-80' : ''}`}
+                          >
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-[#1FB6D5]/5 rounded-full blur-3xl group-hover:bg-[#1FB6D5]/10 transition-colors"></div>
+                            <div className="relative z-10">
+                              <div className="flex justify-between items-center mb-6">
+                                <span className="bg-[#00344F] text-[#1FB6D5] text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest border border-[#1FB6D5]/20">
+                                  RUTA: {mainCategory}
+                                </span>
+                                <div className="flex items-center gap-3">
+                                  <span className="text-xs text-slate-500 font-bold">{pathResources.length} módulos</span>
+                                  <span className="text-xs text-slate-500 font-bold">{totalMinutes} min</span>
+                                  {hasPro && <Lock className="w-4 h-4 text-amber-500" />}
+                                </div>
+                              </div>
+                              <h3 className="text-2xl font-bold text-white mb-2 font-space group-hover:text-[#1FB6D5] transition-colors">{pathName}</h3>
+                              <p className="text-slate-400 mb-6 text-sm">
+                                {pathResources.map(r => r.title).join(' → ')}
+                              </p>
+                              <div className="flex flex-wrap gap-2 mb-6">
+                                {pathResources.map((r, i) => (
+                                  <span key={r.id} className="text-[9px] font-bold uppercase tracking-wider text-slate-500 bg-slate-800/50 px-2 py-1 rounded-lg">
+                                    {i + 1}. {r.title.length > 30 ? r.title.slice(0, 30) + '…' : r.title}
+                                  </span>
+                                ))}
+                              </div>
+                              <div className="flex items-center text-[#1FB6D5] font-bold text-sm">
+                                {hasAccess ? 'Empezar ruta' : 'Desbloquear con PRO'} <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-2 transition-transform" />
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </section>
+                );
+              })()}
 
               {/* BLOQUE EXTRA: BIBLIOTECA DE HERRAMIENTAS */}
               <section className="animate-fade-in">

@@ -30,6 +30,7 @@ interface DBResourceRow {
     impact_outcome?: string;
     impact_format?: string;
     impact_program?: string;
+    learning_path?: string;
 }
 
 // Input type for creating/updating resources
@@ -55,6 +56,7 @@ export interface ResourceInput {
     impactOutcome?: string;
     impactFormat?: string;
     impactProgram?: string;
+    learningPath?: string;
 }
 
 /**
@@ -94,7 +96,8 @@ export const getResources = async (): Promise<AcademyResource[]> => {
             pilares: r.pilares || [],
             impactOutcome: r.impact_outcome,
             impactFormat: r.impact_format,
-            impactProgram: r.impact_program
+            impactProgram: r.impact_program,
+            learningPath: r.learning_path
         }));
     } catch (e) {
         logger.error('Error fetching resources', { context: 'AcademyService', data: e });
@@ -208,6 +211,7 @@ export const createResource = async (r: ResourceInput) => {
         impact_outcome: r.impactOutcome,
         impact_format: r.impactFormat,
         impact_program: r.impactProgram,
+        learning_path: r.learningPath,
         // Legacy check for backward compatibility
         tipo: r.format ? r.format.toLowerCase() : 'video',
         es_premium: r.access === 'PRO'
