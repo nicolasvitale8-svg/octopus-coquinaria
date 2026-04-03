@@ -19,10 +19,10 @@ const TickerGastronomico = () => {
       const { data, error } = await supabase
         .from('eventos_calendario')
         .select('*')
-        //.lte('fecha_inicio', todayStr) -- This might be too restrictive if data is sparse
-        //.gte('fecha_fin', todayStr) // Relaxed logic: Show all events, or order by date descended
+        .gte('fecha_fin', todayStr)
+        .order('fecha_inicio', { ascending: true })
         .order('prioridad', { ascending: false })
-        .limit(10);
+        .limit(15);
 
       if (data && data.length > 0) {
         setActiveEvents(data);
