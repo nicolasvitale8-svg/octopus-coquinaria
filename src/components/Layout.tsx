@@ -236,13 +236,13 @@ const Layout: React.FC<LayoutProps> = ({ children, user: propUser }) => {
                 )}
                 {APP_NAME}
               </span>
-              <p className="mt-4 text-slate-500 text-sm">
+              <p className="mt-4 text-slate-400 text-sm">
                 Tentáculos en todo el negocio, cabeza fría en los números.
               </p>
             </div>
             <div>
               <h3 className="text-white font-semibold mb-4 font-space">Plataforma</h3>
-              <ul className="space-y-2 text-sm text-slate-500">
+              <ul className="space-y-2 text-sm text-slate-400">
                 <li><Link to="/quick-diagnostic" className="hover:text-[#1FB6D5] transition-colors">Diagnóstico Rápido</Link></li>
                 <li><Link to="/login" className="hover:text-[#1FB6D5] transition-colors">Iniciar Sesión</Link></li>
                 <li><Link to="/admin/leads" className="hover:text-[#1FB6D5] transition-colors">Acceso Consultor</Link></li>
@@ -250,7 +250,7 @@ const Layout: React.FC<LayoutProps> = ({ children, user: propUser }) => {
             </div>
             <div>
               <h3 className="text-white font-semibold mb-4 font-space">Recursos</h3>
-              <ul className="space-y-2 text-sm text-slate-500">
+              <ul className="space-y-2 text-sm text-slate-400">
                 <li><Link to="/methodology" className="hover:text-[#1FB6D5] transition-colors">Método 7P</Link></li>
                 <li><Link to="/academy" className="hover:text-[#1FB6D5] transition-colors">Academia y Videos</Link></li>
                 <li><Link to="/services" className="hover:text-[#1FB6D5] transition-colors">Casos de Éxito</Link></li>

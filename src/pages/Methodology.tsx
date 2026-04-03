@@ -49,6 +49,19 @@ const Methodology = () => {
     loadResources();
   }, []);
 
+  // Scroll reveal
+  useEffect(() => {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('revealed');
+        }
+      });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.reveal-on-scroll').forEach(el => observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
+
   const selectedMethodology = useMemo(() => {
     if (!selectedId) setActiveSection(null);
     return METHODOLOGY_7P.find(m => m.id === selectedId);
@@ -78,7 +91,7 @@ const Methodology = () => {
           </div>
 
           {/* Header - Level 1 */}
-          <div className="text-center mb-16 animate-fade-in">
+          <div className="text-center mb-16 reveal-on-scroll">
             <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-4">
               Metodología <span className="text-cyan-400">Octopus 7P</span>
             </h1>
@@ -88,16 +101,18 @@ const Methodology = () => {
           </div>
 
           {/* Grid - Level 1 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16 reveal-on-scroll">
             {METHODOLOGY_7P.map((item) => (
               <div
                 key={item.id}
-                className="bg-slate-900 rounded-2xl border border-slate-800 p-8 flex flex-col items-start hover:border-cyan-500/50 hover:shadow-lg hover:shadow-cyan-900/10 transition-all cursor-pointer group h-full"
+                className="reveal-child bg-slate-900 rounded-2xl border border-slate-800 p-8 flex flex-col items-start hover:border-cyan-500/50 hover:shadow-lg hover:shadow-cyan-900/10 transition-all cursor-pointer group h-full relative overflow-hidden"
                 onClick={() => setSelectedId(item.id)}
               >
+                {/* Colored top accent */}
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-500 to-blue-600 opacity-0 group-hover:opacity-100 transition-opacity" />
                 <div className="flex items-center gap-4 mb-4 w-full">
-                  <div className="w-14 h-14 bg-slate-800 group-hover:bg-cyan-900 rounded-xl flex items-center justify-center text-2xl font-bold text-cyan-400 transition-colors shadow-inner">
-                    {item.key}
+                  <div className="w-14 h-14 bg-slate-800 group-hover:bg-cyan-900 rounded-xl flex items-center justify-center text-2xl transition-colors shadow-inner">
+                    {(item as any).icon || item.key}
                   </div>
                   <h3 className="text-2xl font-bold text-white group-hover:text-cyan-400 transition-colors">{item.letter}</h3>
                 </div>

@@ -41,6 +41,19 @@ const Home = () => {
     loadResources();
   }, []);
 
+  // Scroll reveal
+  useEffect(() => {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('revealed');
+        }
+      });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.reveal-on-scroll').forEach(el => observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
+
   const getResourceIcon = (format: string) => {
     switch (format) {
       case 'VIDEO': return <Play size={16} />;
@@ -167,17 +180,17 @@ const Home = () => {
       {/* Methodology Summary - Dark */}
       <div className="bg-[#000d14]/80 backdrop-blur-sm py-24 border-t border-slate-900 relative z-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
+          <div className="text-center mb-16 reveal-on-scroll">
             <h2 className="text-3xl font-bold mb-4 font-space text-white">Los 7 Pilares <span className="text-[#1FB6D5]">OCTOPUS</span></h2>
             <p className="text-slate-400 max-w-2xl mx-auto">Nuestro marco de trabajo para ordenar cualquier negocio gastronómico, desde un foodtruck hasta un hotel.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 reveal-on-scroll">
             {METHODOLOGY_7P.map((item, idx) => (
               <div key={item.id} className="bg-[#021019]/80 p-6 rounded-lg border border-slate-800 hover:border-[#1FB6D5] transition-all group shadow-lg">
                 <div className="flex items-center gap-3 mb-4">
                   <span className="w-10 h-10 rounded-full bg-[#00344F] group-hover:bg-[#1FB6D5] group-hover:text-[#021019] flex items-center justify-center text-xl font-bold text-[#1FB6D5] transition-colors border border-white/10">
-                    {item.key}
+                    {(item as any).icon || item.key}
                   </span>
                   <h3 className="text-lg font-bold text-white font-space">{item.letter}</h3>
                 </div>
@@ -322,7 +335,7 @@ const Home = () => {
       {/* RECURSOS GRATUITOS - SECCIÓN FUNCIONAL */}
       {!loadingResources && featuredResources.length > 0 && (
         <div className="bg-[#021019] py-24 border-t border-slate-900 relative">
-          <div className="max-w-7xl mx-auto px-6">
+          <div className="max-w-7xl mx-auto px-6 reveal-on-scroll">
             <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
               <div className="max-w-2xl">
                 <div className="flex items-center gap-3 mb-6">
