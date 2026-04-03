@@ -214,7 +214,7 @@ const Home = () => {
       <NewsBoard />
 
       {/* Benefits / Results - Chaos vs Octopus Toggle */}
-      <div className={`py-24 border-t transition-all duration-1000 relative overflow-hidden z-20 ${isOctopusMode
+      <div className={`py-16 border-t transition-all duration-1000 relative overflow-hidden z-20 ${isOctopusMode
         ? 'bg-[#001a2c] border-slate-900'
         : 'bg-[#0a0505] border-red-900/30'
         }`}>
@@ -305,7 +305,7 @@ const Home = () => {
             </div>
           </div>
 
-          <div className="mt-20 text-center relative max-w-4xl mx-auto">
+          <div className="mt-12 text-center relative max-w-4xl mx-auto">
             <div className={`absolute inset-0 bg-[#1FB6D5]/5 blur-3xl rounded-full transition-opacity duration-1000 ${isOctopusMode ? 'opacity-100' : 'opacity-0'}`}></div>
             <div className={`relative z-10 p-10 md:p-14 rounded-[3rem] border transition-all duration-1000 ${isOctopusMode
               ? 'bg-[#021019] border-[#1FB6D5]/30 shadow-[0_0_50px_rgba(31,182,213,0.15)]'
@@ -334,7 +334,7 @@ const Home = () => {
 
       {/* RECURSOS GRATUITOS - SECCIÓN FUNCIONAL */}
       {!loadingResources && featuredResources.length > 0 && (
-        <div className="bg-[#021019] py-24 border-t border-slate-900 relative">
+        <div className="bg-[#021019] py-16 border-t border-slate-900 relative">
           <div className="max-w-7xl mx-auto px-6 reveal-on-scroll">
             <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
               <div className="max-w-2xl">
