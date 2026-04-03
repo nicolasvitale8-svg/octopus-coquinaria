@@ -331,20 +331,24 @@ export const Budget: React.FC = () => {
   const renderBudgetTable = (type: TransactionType, title: string) => {
     const items = budgetItems.filter(i => i.month === currentMonth && i.year === currentYear && i.type === type);
 
-    // Logic for sorting
+    // Logic for sorting: default is by day ASC → then by category name ASC
     const sortedItems = [...items].sort((a, b) => {
       let comparison = 0;
+      const catA = categories.find(c => c.id === a.categoryId)?.name || '';
+      const catB = categories.find(c => c.id === b.categoryId)?.name || '';
+
       switch (sortConfig.key) {
         case 'date':
           comparison = (a.plannedDate || 32) - (b.plannedDate || 32);
+          if (comparison === 0) comparison = catA.localeCompare(catB);
+          if (comparison === 0) comparison = a.label.localeCompare(b.label);
           break;
         case 'amount':
           comparison = a.plannedAmount - b.plannedAmount;
           break;
         case 'category':
-          const catA = categories.find(c => c.id === a.categoryId)?.name || '';
-          const catB = categories.find(c => c.id === b.categoryId)?.name || '';
           comparison = catA.localeCompare(catB);
+          if (comparison === 0) comparison = (a.plannedDate || 32) - (b.plannedDate || 32);
           break;
         case 'label':
           comparison = a.label.localeCompare(b.label);
