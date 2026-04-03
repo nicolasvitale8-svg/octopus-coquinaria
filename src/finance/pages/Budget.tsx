@@ -32,6 +32,24 @@ export const Budget: React.FC = () => {
   // Sorting State
   const [sortConfig, setSortConfig] = useState<{ key: 'date' | 'amount' | 'category' | 'label', direction: 'asc' | 'desc' }>({ key: 'date', direction: 'asc' });
 
+  // Filter State
+  const [filterCategory, setFilterCategory] = useState<string>('');
+  const [filterSubCategory, setFilterSubCategory] = useState<string>('');
+  const [filterDateFrom, setFilterDateFrom] = useState<number | ''>('');
+  const [filterDateTo, setFilterDateTo] = useState<number | ''>('');
+  const [filterSearch, setFilterSearch] = useState<string>('');
+  const [showFilters, setShowFilters] = useState(false);
+
+  const activeFilterCount = [filterCategory, filterSubCategory, filterDateFrom, filterDateTo, filterSearch].filter(Boolean).length;
+
+  const clearAllFilters = () => {
+    setFilterCategory('');
+    setFilterSubCategory('');
+    setFilterDateFrom('');
+    setFilterDateTo('');
+    setFilterSearch('');
+  };
+
   const formRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => { loadData(); }, [activeEntity]);
@@ -329,7 +347,21 @@ export const Budget: React.FC = () => {
   };
 
   const renderBudgetTable = (type: TransactionType, title: string) => {
-    const items = budgetItems.filter(i => i.month === currentMonth && i.year === currentYear && i.type === type);
+    let items = budgetItems.filter(i => i.month === currentMonth && i.year === currentYear && i.type === type);
+
+    // Apply filters
+    if (filterCategory) items = items.filter(i => i.categoryId === filterCategory);
+    if (filterSubCategory) items = items.filter(i => i.subCategoryId === filterSubCategory);
+    if (filterDateFrom !== '') items = items.filter(i => (i.plannedDate || 0) >= filterDateFrom);
+    if (filterDateTo !== '') items = items.filter(i => (i.plannedDate || 32) <= filterDateTo);
+    if (filterSearch) {
+      const q = filterSearch.toLowerCase();
+      items = items.filter(i => {
+        const cat = categories.find(c => c.id === i.categoryId)?.name || '';
+        const sub = subCategories.find(s => s.id === i.subCategoryId)?.name || '';
+        return i.label.toLowerCase().includes(q) || cat.toLowerCase().includes(q) || sub.toLowerCase().includes(q);
+      });
+    }
 
     // Logic for sorting: default is by day ASC → then by category name ASC
     const sortedItems = [...items].sort((a, b) => {
@@ -380,10 +412,90 @@ export const Budget: React.FC = () => {
             <div className={`w-1 h-4 rounded-full ${type === 'IN' ? 'bg-emerald-500' : 'bg-red-500'}`}></div>
             <h3 className="text-xs font-black uppercase tracking-widest text-fin-text">{title}</h3>
           </div>
-          <div className="text-[10px] font-black text-fin-muted tracking-widest uppercase">
-            {formatCurrency(totalActual)} / {formatCurrency(totalPlanned)}
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className={`flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-lg border transition-all ${
+                showFilters || activeFilterCount > 0
+                  ? 'bg-brand/10 border-brand/30 text-brand'
+                  : 'border-fin-border text-fin-muted hover:text-fin-text hover:border-fin-text/30'
+              }`}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+              Filtros{activeFilterCount > 0 && <span className="bg-brand text-[#021019] w-4 h-4 rounded-full text-[8px] flex items-center justify-center font-black">{activeFilterCount}</span>}
+            </button>
+            <div className="text-[10px] font-black text-fin-muted tracking-widest uppercase">
+              {formatCurrency(totalActual)} / {formatCurrency(totalPlanned)}
+            </div>
           </div>
         </div>
+
+        {/* Filter Bar */}
+        {showFilters && (
+          <div className="px-8 py-4 bg-fin-bg/60 border-b border-fin-border flex flex-wrap gap-3 items-end">
+            <div className="flex flex-col gap-1">
+              <label className="text-[8px] font-black uppercase tracking-widest text-fin-muted">Categoría</label>
+              <select
+                value={filterCategory}
+                onChange={e => { setFilterCategory(e.target.value); setFilterSubCategory(''); }}
+                className="bg-fin-card border border-fin-border rounded-lg px-3 py-1.5 text-xs text-fin-text focus:border-brand focus:outline-none min-w-[140px]"
+              >
+                <option value="">Todas</option>
+                {categories
+                  .filter(c => items.length > 0 || budgetItems.some(i => i.month === currentMonth && i.year === currentYear && i.type === type && i.categoryId === c.id))
+                  .map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+            </div>
+            {filterCategory && (
+              <div className="flex flex-col gap-1">
+                <label className="text-[8px] font-black uppercase tracking-widest text-fin-muted">Subcategoría</label>
+                <select
+                  value={filterSubCategory}
+                  onChange={e => setFilterSubCategory(e.target.value)}
+                  className="bg-fin-card border border-fin-border rounded-lg px-3 py-1.5 text-xs text-fin-text focus:border-brand focus:outline-none min-w-[140px]"
+                >
+                  <option value="">Todas</option>
+                  {subCategories.filter(s => s.categoryId === filterCategory).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                </select>
+              </div>
+            )}
+            <div className="flex flex-col gap-1">
+              <label className="text-[8px] font-black uppercase tracking-widest text-fin-muted">Día desde</label>
+              <input
+                type="number" min="1" max="31" placeholder="1"
+                value={filterDateFrom}
+                onChange={e => setFilterDateFrom(e.target.value ? parseInt(e.target.value) : '')}
+                className="bg-fin-card border border-fin-border rounded-lg px-3 py-1.5 text-xs text-fin-text focus:border-brand focus:outline-none w-20"
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-[8px] font-black uppercase tracking-widest text-fin-muted">Día hasta</label>
+              <input
+                type="number" min="1" max="31" placeholder="31"
+                value={filterDateTo}
+                onChange={e => setFilterDateTo(e.target.value ? parseInt(e.target.value) : '')}
+                className="bg-fin-card border border-fin-border rounded-lg px-3 py-1.5 text-xs text-fin-text focus:border-brand focus:outline-none w-20"
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-[8px] font-black uppercase tracking-widest text-fin-muted">Buscar</label>
+              <input
+                type="text" placeholder="Nombre o rubro..."
+                value={filterSearch}
+                onChange={e => setFilterSearch(e.target.value)}
+                className="bg-fin-card border border-fin-border rounded-lg px-3 py-1.5 text-xs text-fin-text focus:border-brand focus:outline-none min-w-[160px]"
+              />
+            </div>
+            {activeFilterCount > 0 && (
+              <button
+                onClick={clearAllFilters}
+                className="text-[10px] font-bold text-red-400 hover:text-red-300 flex items-center gap-1 pb-1.5 transition-colors"
+              >
+                <X className="w-3 h-3" /> Limpiar
+              </button>
+            )}
+          </div>
+        )}
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead className="text-[9px] text-fin-muted uppercase tracking-widest border-b border-fin-border">
