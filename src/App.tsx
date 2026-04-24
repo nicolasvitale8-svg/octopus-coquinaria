@@ -7,7 +7,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import { AuthProvider } from './contexts/AuthContext';
 
 // ============================================
-// LAZY LOADED — Páginas Públicas
+// LAZY LOADED - Paginas Publicas
 // ============================================
 const Home = lazy(() => import('./pages/Home'));
 const QuickDiagnostic = lazy(() => import('./pages/QuickDiagnostic'));
@@ -22,11 +22,11 @@ const Services = lazy(() => import('./pages/Services'));
 const CalendarPage = lazy(() => import('./pages/Calendar'));
 const HubCalendar = lazy(() => import('./pages/HubCalendar'));
 const ClientProjectRedirect = lazy(() => import('./pages/ClientProjectRedirect'));
+const PendingApproval = lazy(() => import('./pages/PendingApproval'));
 
 // ============================================
 // LAZY LOADED MODULES (Code Splitting)
 // ============================================
-
 // Admin Module - Lazy loaded
 const AdminLayout = lazy(() => import('./components/AdminLayout'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
@@ -86,11 +86,20 @@ const App = () => {
               <Route path="/" element={<Home />} />
               <Route path="/quick-diagnostic" element={<QuickDiagnostic />} />
               <Route path="/deep-diagnostic" element={<DeepDiagnostic />} />
-              <Route element={<ProtectedRoute />}>
+
+              {/* Pantalla visible solo para usuarios autenticados SIN rol aprobado */}
+              <Route path="/pending-approval" element={
+                <ProtectedRoute>
+                  <PendingApproval />
+                </ProtectedRoute>
+              } />
+
+              {/* Dashboard requiere rol aprobado */}
+              <Route element={<ProtectedRoute requireApproved={true} />}>
                 <Route path="/dashboard" element={<Dashboard />} />
               </Route>
 
-              {/* Rutas ADMINISTRADOR (Módulo Consultor/Admin) */}
+              {/* Rutas ADMINISTRADOR (Modulo Consultor/Admin) */}
               <Route element={<ProtectedRoute requirePrivileged={true} />}>
                 <Route path="/admin" element={<AdminLayout />}>
                   <Route index element={<Navigate to="/admin/dashboard" replace />} />
@@ -106,7 +115,6 @@ const App = () => {
                   <Route path="board" element={<AdminBoard />} />
                   <Route path="config" element={<AdminConfig />} />
                   <Route path="profile" element={<UserProfile />} />
-
                   {/* Procurement Routes (Admin) */}
                   <Route path="procurement" element={<OrdersList />} />
                   <Route path="procurement/new" element={<OrderForm />} />
@@ -117,27 +125,25 @@ const App = () => {
                 </Route>
               </Route>
 
-              {/* New Hub Routes for Clients/Managers */}
+              {/* New Hub Routes for Clients/Managers - ahora con requireApproved */}
               <Route path="/hub/profile" element={
-                <ProtectedRoute>
+                <ProtectedRoute requireApproved={true}>
                   <UserProfile />
                 </ProtectedRoute>
               } />
               <Route path="/hub/calendar" element={
-                <ProtectedRoute>
+                <ProtectedRoute requireApproved={true}>
                   <HubCalendar />
                 </ProtectedRoute>
               } />
-
               <Route path="/hub/my-project" element={
-                <ProtectedRoute>
+                <ProtectedRoute requireApproved={true}>
                   <ClientProjectRedirect />
                 </ProtectedRoute>
               } />
-
               {/* Reuse AdminProjectHub for Clients (Read Only logic handled inside) */}
               <Route path="/hub/projects/:id" element={
-                <ProtectedRoute>
+                <ProtectedRoute requireApproved={true}>
                   <AdminProjectHub />
                 </ProtectedRoute>
               } />
@@ -147,13 +153,17 @@ const App = () => {
               <Route path="/academy/:id" element={<ResourceDetail />} />
               <Route path="/login" element={<Login />} />
               <Route path="/reset-password" element={<ResetPassword />} />
-
               <Route path="/about" element={<About />} />
               <Route path="/services" element={<Services />} />
               <Route path="/calendar" element={<CalendarPage />} />
 
-              {/* Finance Module Routes — FinanzaProvider SOLO envuelve las rutas de finance */}
-              <Route element={<ProtectedRoute><FinanzaProvider><FinanceLayout /></FinanzaProvider></ProtectedRoute>}>
+              {/* Finance Module Routes - FinanzaProvider SOLO envuelve las rutas de finance.
+                  requireApproved=true blinda toda la info financiera de usuarios en espera */}
+              <Route element={
+                <ProtectedRoute requireApproved={true}>
+                  <FinanzaProvider><FinanceLayout /></FinanzaProvider>
+                </ProtectedRoute>
+              }>
                 <Route path="/finance" element={<FinanceDashboard />} />
                 <Route path="/finance/annual" element={<FinanceAnnualSummary />} />
                 <Route path="/finance/transactions" element={<FinanceTransactions />} />
