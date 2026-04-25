@@ -4,6 +4,7 @@ import { Menu, X, LogOut, User as UserIcon, Database } from 'lucide-react';
 import { APP_NAME, INSTAGRAM_URL, DISPLAY_PHONE, CONTACT_EMAIL, YOUTUBE_URL, WHATSAPP_NUMBER, GLOBAL_LOGO_URL, GLOBAL_BACKGROUND_IMAGE_URL, LOGO_ADMIN_URL, LOGO_USER_URL, LOGO_PREMIUM_URL, LOGO_GUEST_URL } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../services/supabase';
+import WelcomeBanner from './WelcomeBanner';
 
 const navLinks = [
   { name: 'Metodología', path: '/methodology' },
@@ -220,6 +221,7 @@ const Layout: React.FC<LayoutProps> = ({ children, user: propUser }) => {
       </nav>
 
       <main className="flex-grow relative z-10">
+        <WelcomeBanner />
         {children}
       </main>
 
