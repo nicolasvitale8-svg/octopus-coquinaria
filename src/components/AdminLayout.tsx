@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
     LayoutDashboard,
@@ -17,6 +17,7 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 import { LOGO_ADMIN_URL } from '../constants';
 import { syncLocalProjects } from '../services/projectService';
+import { supabase } from '../services/supabase';
 import { RefreshCw } from 'lucide-react';
 
 const AdminLayout = () => {
@@ -25,6 +26,24 @@ const AdminLayout = () => {
     const [isSyncing, setIsSyncing] = useState(false);
     const location = useLocation();
     const navigate = useNavigate();
+
+    const [pendingCount, setPendingCount] = useState<number>(0);
+    useEffect(() => {
+        if (!supabase || !isAdmin) return;
+        let cancelled = false;
+        const load = async () => {
+            const { count, error } = await supabase
+                .from('usuarios')
+                .select('id', { count: 'exact', head: true })
+                .eq('role', 'user');
+            if (!cancelled && !error && typeof count === 'number') {
+                setPendingCount(count);
+            }
+        };
+        load();
+        const id = setInterval(load, 60000);
+        return () => { cancelled = true; clearInterval(id); };
+    }, [isAdmin]);
 
     const handleLogout = async () => {
         await signOut();
@@ -39,7 +58,7 @@ const AdminLayout = () => {
         },
         { path: '/admin/leads', icon: <Users size={20} />, label: 'CRM Leads', hidden: !isAdmin },
         { path: '/admin/projects', icon: <Briefcase size={20} />, label: 'Hub Proyectos' },
-        { path: '/admin/users', icon: <Users size={20} />, label: 'Usuarios y Roles', hidden: !isAdmin },
+        { path: '/admin/users', icon: <Users size={20} />, label: 'Usuarios y Roles', hidden: !isAdmin, badge: pendingCount },
         {
             path: isAdmin ? '/admin/calendar' : '/hub/calendar',
             icon: <Calendar size={20} />,
@@ -96,6 +115,11 @@ const AdminLayout = () => {
                         >
                             <span className="mr-3">{item.icon}</span>
                             <span>{item.label}</span>
+                            {('badge' in item) && (item as { badge?: number }).badge && (item as { badge?: number }).badge! > 0 ? (
+                                <span className="ml-auto text-xs font-bold bg-amber-500 text-slate-900 rounded-full px-2 py-0.5 min-w-[1.5rem] text-center">
+                                    {(item as { badge?: number }).badge}
+                                </span>
+                            ) : null}
                         </Link>
                     ))}
 
