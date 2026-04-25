@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Clock, LogOut } from 'lucide-react';
 import Layout from '../components/Layout';
@@ -8,7 +8,14 @@ import { supabase } from '../services/supabase';
 
 const PendingApproval = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, profile, isLoading } = useAuth();
+
+  // Si la cuenta ya fue aprobada (rol distinto de 'user'), redirigir al home.
+  useEffect(() => {
+    if (!isLoading && profile && profile.role !== 'user') {
+      navigate('/', { replace: true });
+    }
+  }, [isLoading, profile, navigate]);
 
   const handleLogout = async () => {
     if (supabase) {
