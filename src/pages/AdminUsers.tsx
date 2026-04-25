@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../services/supabase';
-import { Users, Search, AlertCircle, Trash2, Edit2, Plus } from 'lucide-react';
+import { Users, Search, AlertCircle, Trash2, Edit2, Plus, Clock } from 'lucide-react';
 import Button from '../components/ui/Button';
 import { AdminUserModal } from '../components/admin/AdminUserModal';
 import { UserRole } from '../types';
@@ -26,6 +26,20 @@ interface UserData {
         }
     }[];
 }
+
+// "5 min", "2 horas", "3 días" desde un timestamp ISO
+const formatTimeAgo = (iso: string): string => {
+    const ms = Date.now() - new Date(iso).getTime();
+    const min = Math.floor(ms / 60000);
+    if (min < 1) return 'menos de 1 min';
+    if (min < 60) return `${min} min`;
+    const hr = Math.floor(min / 60);
+    if (hr < 24) return `${hr} ${hr === 1 ? 'hora' : 'horas'}`;
+    const days = Math.floor(hr / 24);
+    return `${days} ${days === 1 ? 'día' : 'días'}`;
+};
+
+const isPending = (role: unknown): boolean => String(role) === 'user';
 
 const AdminUsers = () => {
     const [users, setUsers] = useState<UserData[]>([]);
@@ -118,6 +132,25 @@ const AdminUsers = () => {
         u.full_name?.toLowerCase().includes(search.toLowerCase())
     );
 
+    // Pendientes (role='user') primero, los más viejos antes; resto por created_at desc
+    const sortedUsers = [...filteredUsers].sort((a, b) => {
+        const aP = isPending(a.role);
+        const bP = isPending(b.role);
+        if (aP && !bP) return -1;
+        if (!aP && bP) return 1;
+        if (aP && bP) {
+            return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+        }
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    });
+
+    const pendingUsers = filteredUsers.filter(u => isPending(u.role));
+    const oldestPending = pendingUsers.length > 0
+        ? pendingUsers.reduce((acc, u) =>
+            new Date(u.created_at).getTime() < new Date(acc.created_at).getTime() ? u : acc,
+            pendingUsers[0])
+        : null;
+
     return (
         <div className="space-y-6 pb-20">
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
@@ -146,6 +179,23 @@ const AdminUsers = () => {
                 </div>
             </div>
 
+            {/* Banner de pendientes de aprobación */}
+            {pendingUsers.length > 0 && oldestPending && (
+                <div className="bg-amber-500/10 border border-amber-500/40 rounded-lg p-4 flex items-center gap-3">
+                    <Clock className="w-5 h-5 text-amber-400 flex-shrink-0" />
+                    <div className="text-sm">
+                        <span className="text-amber-300 font-semibold">
+                            {pendingUsers.length === 1
+                                ? '1 cuenta esperando aprobación'
+                                : `${pendingUsers.length} cuentas esperando aprobación`}
+                        </span>
+                        <span className="text-amber-200/80 ml-2">
+                            · la más antigua hace {formatTimeAgo(oldestPending.created_at)}
+                        </span>
+                    </div>
+                </div>
+            )}
+
             <div className="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden shadow-xl">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm text-slate-400">
@@ -170,10 +220,10 @@ const AdminUsers = () => {
                                         </div>
                                     </td>
                                 </tr>
-                            ) : filteredUsers.length === 0 ? (
+                            ) : sortedUsers.length === 0 ? (
                                 <tr><td colSpan={4} className="p-8 text-center text-slate-500">No se encontraron colaboradores.</td></tr>
-                            ) : filteredUsers.map((user) => (
-                                <tr key={user.id} className="hover:bg-slate-800/50 transition-colors">
+                            ) : sortedUsers.map((user) => (
+                                <tr key={user.id} className={`hover:bg-slate-800/50 transition-colors ${isPending(user.role) ? 'bg-amber-500/5' : ''}`}>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
                                             <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-xs font-bold text-[#1FB6D5]">
@@ -192,9 +242,15 @@ const AdminUsers = () => {
                                                     user.role === 'consultant' ? 'bg-blue-900/30 text-blue-400 border-blue-500/30' :
                                                         user.role === 'manager' ? 'bg-orange-900/30 text-orange-400 border-orange-500/30' :
                                                             user.role === 'client' ? 'bg-amber-900/30 text-amber-500 border-amber-500/30' :
-                                                                'bg-slate-800 text-slate-400 border-slate-700'}`}>
-                                                {user.role}
+                                                                isPending(user.role) ? 'bg-amber-500/15 text-amber-300 border-amber-500/40' :
+                                                                    'bg-slate-800 text-slate-400 border-slate-700'}`}>
+                                                {isPending(user.role) ? 'PENDIENTE' : user.role}
                                             </span>
+                                            {isPending(user.role) && (
+                                                <span className="text-[10px] text-amber-400/80 flex items-center gap-1">
+                                                    <Clock className="w-3 h-3" /> Esperando hace {formatTimeAgo(user.created_at)}
+                                                </span>
+                                            )}
                                             {user.permissions && user.permissions.length > 0 && (
                                                 <span className="text-[10px] text-slate-500">
                                                     +{user.permissions.length} Permisos esp.
