@@ -1,35 +1,76 @@
 import React, { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
-import { PlusCircle, FileText, TrendingUp, TrendingDown, Target, Zap, Clock, ChevronRight, Activity, ArrowUpRight, Calendar as CalendarIcon, BookOpen, Building } from 'lucide-react';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts';
+import {
+  PlusCircle,
+  FileText,
+  TrendingUp,
+  TrendingDown,
+  Target,
+  Zap,
+  Clock,
+  Activity,
+  Calendar as CalendarIcon,
+  BookOpen,
+  Building,
+  Briefcase,
+  Inbox,
+} from 'lucide-react';
 import Button from '../components/ui/Button';
+import MetricCard from '../components/ui/MetricCard';
+import ModuleCard from '../components/ui/ModuleCard';
+import OctopusLoader from '../components/ui/OctopusLoader';
+import EmptyState from '../components/ui/EmptyState';
+import StatusBadge from '../components/ui/StatusBadge';
 import { Link, useNavigate } from 'react-router-dom';
 import { formatCurrency, formatPercent } from '../services/calculations';
-import { getDiagnosticHistory, getLastDiagnostic, getMyLeads } from '../services/storage';
+import {
+  getDiagnosticHistory,
+  getLastDiagnostic,
+  getMyLeads,
+} from '../services/storage';
 import { useAuth } from '../contexts/AuthContext';
 import { SemiCircleGauge, MiniProgressRing } from '../components/dashboard/DashboardGauges';
 import TickerGastronomico from '../components/TickerGastronomico';
 import NewsBoard from '../components/NewsBoard';
+
+/**
+ * Dashboard — refactor con tokens del rebrand.
+ *
+ * Cambios respecto a versión anterior:
+ *   - Bento de KPIs reescrito con MetricCard (label mono + value font-mono +
+ *     gauges como children + doc-codes).
+ *   - Shortcuts (Proyecto / Calendario / Academia) con ModuleCard.
+ *   - Loading → OctopusLoader. Empty history → EmptyState.
+ *   - Status de cada fila del historial → StatusBadge.
+ *   - Reemplazados todos los hex hardcodeados (#021019, #1FB6D5, #00344F,
+ *     #F2B350, #1FA77A) por var(--token).
+ *   - Tipografía hero: Sora display.
+ *   - Gauges siguen usando #1FB6D5/#1FA77A/#F2B350 internos del componente
+ *     (no se tocan para no romper export); se les pasa color por prop.
+ */
 
 const Dashboard = () => {
   const { user, profile, isAdmin, isConsultant, isLoading: isAuthLoading } = useAuth();
   const [history, setHistory] = useState<any[]>([]);
   const [lastDiagnostic, setLastDiagnostic] = useState<any>(null);
   const [isDataLoading, setIsDataLoading] = useState(true);
-
   const navigate = useNavigate();
 
   useEffect(() => {
     if (isAuthLoading) return;
 
-    // ADMIN REDIRECT REMOVED: Admins should be able to see the User Dashboard.
-    // Use the "Admin DB" or "Admin Dashboard" button in the Navbar/Layout to switch contexts.
-
-
     const loadData = async () => {
       setIsDataLoading(true);
 
-      // Try LocalStorage first
       const storedHistory = getDiagnosticHistory();
       const storedLast = getLastDiagnostic();
 
@@ -38,7 +79,6 @@ const Dashboard = () => {
         if (storedLast) setLastDiagnostic(storedLast);
       }
 
-      // Fetch from Supabase
       if (profile?.email) {
         const remoteLeads = await getMyLeads(profile.email);
         if (remoteLeads && remoteLeads.length > 0) {
@@ -46,275 +86,420 @@ const Dashboard = () => {
           setLastDiagnostic(remoteLeads[0]);
         }
       }
+
       setIsDataLoading(false);
     };
 
     const mapAndSetHistory = (data: any[]) => {
-      const mappedHistory = data.map(d => ({
-        month: d.date ? new Date(d.date).toLocaleDateString('es-AR', { month: 'short' }) : 'Mes',
+      const mappedHistory = data.map((d) => ({
+        month: d.date
+          ? new Date(d.date).toLocaleDateString('es-AR', { month: 'short' })
+          : 'Mes',
         sales: d.monthly_revenue || d.monthlyRevenue || d.totalSales || d.amount || 0,
         cogs: d.cogsPercentage || d.cogs_percentage || 0,
         labor: d.laborPercentage || d.labor_percentage || 0,
         result: d.marginPercentage || d.margin_percentage || d.result || 0,
-        isReal: true
+        isReal: true,
       }));
-      setHistory(mappedHistory.reverse()); // Chronological order
+      setHistory(mappedHistory.reverse());
     };
 
     loadData();
   }, [profile, isAuthLoading, navigate]);
 
+  // ─── Derived values for KPI cards ───────────────────────────────
+  const ventas =
+    lastDiagnostic?.monthly_revenue ||
+    lastDiagnostic?.monthlyRevenue ||
+    lastDiagnostic?.totalSales ||
+    lastDiagnostic?.amount ||
+    0;
+  const margen = lastDiagnostic?.marginPercentage || 0;
+  const cmv =
+    lastDiagnostic?.cogsPercentage || lastDiagnostic?.cogs_percentage || 0;
+
+  const margenTone = margen > 15 ? 'success' : margen > 8 ? 'warning' : 'danger';
+  const cmvTone = cmv > 35 ? 'danger' : cmv > 30 ? 'warning' : 'success';
+
+  // Map de status del historial
+  const rowStatus = (resultPct: number) =>
+    resultPct > 15 ? 'success' : resultPct > 8 ? 'warning' : 'danger';
+
   return (
     <Layout user={user}>
-
       <TickerGastronomico />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 animate-fade-in">
-
-        {/* HERO SECTION / WELCOME */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-white/5 pb-8">
+        {/* ============================================================
+            HERO / WELCOME
+            OCT-DASH-HERO-001
+           ============================================================ */}
+        <div
+          className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b pb-8"
+          style={{ borderColor: 'var(--border-subtle)' }}
+        >
           <div className="space-y-1">
-            <div className="flex items-center gap-2 text-[#1FB6D5] mb-2">
-              <Zap className="w-5 h-5 fill-current" />
-              <span className="text-[10px] font-bold uppercase tracking-[0.3em] font-mono">Control de Gestión V4 (v4.1.7)</span>
+            <div className="mb-2 flex items-center gap-2 text-[var(--color-primary)]">
+              <Zap className="h-5 w-5" strokeWidth={2} />
+              <span className="font-mono text-[10px] font-bold uppercase tracking-[0.28em]">
+                Control de Gestión · OCT-DASH-V4
+              </span>
             </div>
-            <h1 className="text-4xl md:text-5xl font-black text-white font-space tracking-tight">
-              Hola, <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400">{profile?.name || "Gastronómico"}</span>
+            <h1 className="font-display text-4xl md:text-5xl font-semibold tracking-tight text-[var(--text-primary)]">
+              Hola,{' '}
+              <span className="text-gradient-gold">
+                {profile?.name || 'Gastronómico'}
+              </span>
             </h1>
-            <p className="text-slate-400 max-w-xl text-lg">
+            <p className="max-w-xl text-base md:text-lg text-[var(--text-secondary)]">
               Monitor de salud operativa y financiera de tu negocio en tiempo real.
             </p>
           </div>
-          <div className="flex gap-4">
+
+          <div className="flex flex-col sm:flex-row gap-3">
             {isAdmin || isConsultant ? (
               <Link to="/quick-diagnostic">
-                <Button variant="outline" className="border-slate-800 bg-slate-900/40 text-slate-300 hover:bg-slate-800 font-bold px-6 py-6 h-auto transition-all">
+                <Button variant="secondary" size="lg">
                   Nuevo Rápido
                 </Button>
               </Link>
             ) : (
               <Link to="/hub/my-project">
-                <Button variant="outline" className="border-slate-800 bg-slate-900/40 text-slate-300 hover:bg-slate-800 font-bold px-6 py-6 h-auto transition-all">
-                  <Building className="w-4 h-4 mr-2" /> Mi Proyecto
+                <Button variant="secondary" size="lg" icon={Building}>
+                  Mi Proyecto
                 </Button>
               </Link>
             )}
             <Link to="/deep-diagnostic">
-              <Button className="bg-[#1FB6D5] text-[#021019] hover:bg-white font-black px-8 py-6 h-auto shadow-[0_0_20px_rgba(31,182,213,0.3)] transition-all">
-                <PlusCircle className="w-5 h-5 mr-3" /> Cargar Mes
+              <Button variant="primary" size="lg" icon={PlusCircle}>
+                Cargar Mes
               </Button>
             </Link>
           </div>
         </div>
 
-        {/* MAIN BENTO GRID */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 h-auto">
+        {/* ============================================================
+            BENTO GRID — KPIs + Chart + Modules
+            OCT-DASH-BENTO-001
+           ============================================================ */}
+        {isDataLoading ? (
+          <OctopusLoader variant="card-skeleton" cards={6} />
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+            {/* KPI 1 — Ventas */}
+            <div className="md:col-span-4">
+              <MetricCard
+                label="Volumen de Ventas (Fuerza de Venta)"
+                icon={Activity}
+                tone="primary"
+                size="lg"
+                docCode="OCT-DASH-KPI-001"
+                value={ventas ? formatCurrency(ventas) : '$ —'}
+              >
+                <MiniProgressRing
+                  value={lastDiagnostic?.scoreGlobal || 0}
+                  label="Salud Global"
+                  color="#D4B681"
+                />
+              </MetricCard>
+            </div>
 
-          {/* TOP KPI BOX: SALES VOLUME */}
-          <div className="md:col-span-4 bg-slate-900/60 border border-white/10 p-8 rounded-[2rem] backdrop-blur-md relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
-              <TrendingUp className="w-16 h-16 text-cyan-400" />
+            {/* KPI 2 — Margen Bruto */}
+            <div className="md:col-span-4">
+              <MetricCard
+                label="Margen Bruto"
+                icon={Target}
+                tone={margenTone}
+                size="lg"
+                docCode="OCT-DASH-KPI-002"
+                value={`${margen.toFixed(1)}%`}
+              >
+                <SemiCircleGauge
+                  value={margen}
+                  label="Resultado"
+                  color={
+                    margenTone === 'success'
+                      ? '#22C55E'
+                      : margenTone === 'warning'
+                      ? '#EAB308'
+                      : '#EF4444'
+                  }
+                />
+              </MetricCard>
             </div>
-            <p className="text-slate-500 text-xs font-bold uppercase tracking-widest flex items-center gap-2">
-              <Activity className="w-3 h-3 text-[#1FB6D5]" /> Volumen de Ventas (Fuerza de Venta)
-            </p>
-            <div className="mt-4 flex items-baseline gap-2">
-              <h2 className="text-5xl md:text-6xl font-black text-white font-mono tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-500">
-                {lastDiagnostic ? formatCurrency(lastDiagnostic.monthly_revenue || lastDiagnostic.monthlyRevenue || lastDiagnostic.totalSales || lastDiagnostic.amount || 0) : '$ --'}
-              </h2>
-            </div>
-            <div className="mt-8 flex gap-3">
-              <MiniProgressRing value={lastDiagnostic?.scoreGlobal || 0} label="Salud Global" color="#1FB6D5" />
-            </div>
-          </div>
 
-          {/* KPI GAUGE: MARGEN OPERATIVO */}
-          <div className="md:col-span-4 bg-[#021019] border border-white/10 p-8 rounded-[2rem] shadow-xl relative group">
-            <div className="absolute inset-0 bg-cyan-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
-            <div className="flex justify-between items-center mb-4">
-              <p className="text-slate-500 text-xs font-bold uppercase tracking-widest">Margen Bruto</p>
-              <Target className="w-4 h-4 text-[#1FB6D5]" />
+            {/* KPI 3 — CMV */}
+            <div className="md:col-span-4">
+              <MetricCard
+                label="Costo de Ventas (Insumos)"
+                icon={TrendingDown}
+                tone={cmvTone}
+                size="lg"
+                docCode="OCT-DASH-KPI-003"
+                value={`${cmv.toFixed(1)}%`}
+              >
+                <SemiCircleGauge
+                  value={cmv}
+                  label="Costo %"
+                  color={
+                    cmvTone === 'success'
+                      ? '#22C55E'
+                      : cmvTone === 'warning'
+                      ? '#EAB308'
+                      : '#EF4444'
+                  }
+                />
+                <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--text-muted)]">
+                  * impacto de insumos sobre total vendido
+                </p>
+              </MetricCard>
             </div>
-            <SemiCircleGauge
-              value={lastDiagnostic?.marginPercentage || 0}
-              label="Resultado"
-              color={lastDiagnostic?.marginPercentage > 15 ? '#1FA77A' : '#F2B350'}
-            />
-          </div>
 
-          {/* KPI GAUGE: CMV COST */}
-          <div className="md:col-span-4 bg-slate-900/60 border border-white/10 p-8 rounded-[2rem] backdrop-blur-md relative">
-            <div className="flex justify-between items-center mb-4">
-              <p className="text-slate-500 text-xs font-bold uppercase tracking-widest">Costo de Ventas (Insumos)</p>
-              <TrendingDown className="w-4 h-4 text-emerald-400" />
-            </div>
-            <SemiCircleGauge
-              value={lastDiagnostic?.cogsPercentage || lastDiagnostic?.cogs_percentage || 0}
-              label="Costo %"
-              color={(lastDiagnostic?.cogsPercentage || lastDiagnostic?.cogs_percentage) > 35 ? '#D64747' : '#1FA77A'}
-            />
-            <p className="text-[10px] text-slate-600 font-bold mt-4 italic">* El CMV representa el impacto de tus insumos sobre el total vendido.</p>
-          </div>
-
-          {/* MIDDLE ROW: MAIN CHART */}
-          <div className="md:col-span-8 bg-slate-900/40 border border-white/5 p-8 rounded-[2.5rem] backdrop-blur-md">
-            <div className="flex items-center justify-between mb-8">
-              <div>
-                <h3 className="text-xl font-bold text-white font-space tracking-tight">Evolución de Costos</h3>
-                <p className="text-sm text-slate-500 mt-1">Comparativa de los últimos 6 meses registrados.</p>
-              </div>
-              <div className="flex gap-6">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-[#00344F] rounded-full"></div>
-                  <span className="text-xs text-slate-400">% Insumos (CMV)</span>
+            {/* MAIN CHART — Evolución Costos */}
+            <div
+              className="md:col-span-8 rounded-xl border p-6 md:p-8"
+              style={{
+                background: 'var(--bg-surface)',
+                borderColor: 'var(--border-subtle)',
+              }}
+            >
+              <div className="mb-6 flex items-center justify-between gap-4 flex-wrap">
+                <div>
+                  <h3 className="font-display text-lg md:text-xl font-semibold tracking-tight text-[var(--text-primary)]">
+                    Evolución de Costos
+                  </h3>
+                  <p className="mt-0.5 text-xs text-[var(--text-muted)]">
+                    Comparativa de los últimos 6 meses registrados.
+                  </p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-[#F2B350] rounded-full"></div>
-                  <span className="text-xs text-slate-400">% Mano de Obra</span>
+                <div className="flex gap-5">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className="h-2.5 w-2.5 rounded-full"
+                      style={{ background: 'var(--color-primary-dark)' }}
+                    />
+                    <span className="font-mono text-[10px] uppercase tracking-wider text-[var(--text-secondary)]">
+                      % Insumos (CMV)
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className="h-2.5 w-2.5 rounded-full"
+                      style={{ background: 'var(--color-primary)' }}
+                    />
+                    <span className="font-mono text-[10px] uppercase tracking-wider text-[var(--text-secondary)]">
+                      % Mano de Obra
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div className="h-[250px] w-full mt-4">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={history}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ffffff0a" />
-                  <XAxis
-                    dataKey="month"
-                    stroke="#475569"
-                    fontSize={10}
-                    tickLine={false}
-                    axisLine={false}
-                    dy={10}
-                  />
-                  <YAxis
-                    stroke="#475569"
-                    fontSize={10}
-                    tickLine={false}
-                    axisLine={false}
-                    dx={-10}
-                  />
-                  <Tooltip
-                    cursor={{ fill: '#ffffff05' }}
-                    contentStyle={{ backgroundColor: '#021019', border: '1px solid #ffffff10', borderRadius: '16px', color: '#fff' }}
-                  />
-                  <Bar dataKey="cogs" fill="#00344F" radius={[6, 6, 0, 0]} barSize={24} />
-                  <Bar dataKey="labor" fill="#F2B350" radius={[6, 6, 0, 0]} barSize={24} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
 
-          {/* PROJECT SHORTCUT BOX */}
-          <div className="md:col-span-4 grid grid-rows-2 gap-4">
-            {/* PROJECT CARD */}
-            <div className="row-span-1 bg-gradient-to-br from-[#00344F] to-[#021019] border border-[#1FB6D5]/30 p-6 rounded-[2rem] flex flex-col justify-between group cursor-pointer relative overflow-hidden">
-              <div className="absolute -right-4 -bottom-4 p-4 opacity-5 group-hover:scale-125 transition-transform duration-700">
-                <Briefcase className="w-32 h-32 text-white rotate-12" />
-              </div>
-              <div>
-                <h4 className="text-[10px] font-black text-[#1FB6D5] uppercase tracking-[0.2em] mb-2">Seguimiento</h4>
-                <h3 className="text-xl font-bold text-white font-space leading-tight">Proyecto 7P</h3>
-              </div>
-              <Link to={profile?.businessIds?.[0] ? `/hub/projects/${profile.businessIds[0]}` : '#'} className="mt-4">
-                <button className="w-full bg-white text-[#021019] hover:bg-[#1FB6D5] hover:text-white font-black py-3 rounded-xl transition-all flex items-center justify-center gap-2 shadow-xl text-xs">
-                  IR AL PROYECTO <ChevronRight className="w-3 h-3" />
-                </button>
-              </Link>
-            </div>
-
-            {/* QUICK RESOURCES ROW */}
-            <div className="row-span-1 grid grid-cols-2 gap-4">
-              {/* CALENDAR SHORTCUT */}
-              <Link to="/calendar" className="bg-slate-900/60 border border-white/10 rounded-[2rem] p-5 flex flex-col justify-center items-center gap-2 hover:bg-slate-800 transition-all group">
-                <div className="w-10 h-10 rounded-full bg-[#1FB6D5]/10 flex items-center justify-center group-hover:bg-[#1FB6D5] transition-colors">
-                  <CalendarIcon className="w-5 h-5 text-[#1FB6D5] group-hover:text-white" />
+              {history.length === 0 ? (
+                <EmptyState
+                  icon={Inbox}
+                  variant="bare"
+                  title="Aún no hay diagnósticos cargados"
+                  body="Cargá tu primer mes para empezar a ver evolución de costos y márgenes."
+                  cta={{ label: 'Cargar primer mes', href: '/deep-diagnostic' }}
+                />
+              ) : (
+                <div className="h-[250px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={history}>
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        vertical={false}
+                        stroke="rgba(243, 239, 228, 0.06)"
+                      />
+                      <XAxis
+                        dataKey="month"
+                        stroke="#6F7A89"
+                        fontSize={10}
+                        tickLine={false}
+                        axisLine={false}
+                        dy={10}
+                      />
+                      <YAxis
+                        stroke="#6F7A89"
+                        fontSize={10}
+                        tickLine={false}
+                        axisLine={false}
+                        dx={-10}
+                      />
+                      <Tooltip
+                        cursor={{ fill: 'rgba(243, 239, 228, 0.04)' }}
+                        contentStyle={{
+                          backgroundColor: '#101826',
+                          border: '1px solid rgba(212, 182, 129, 0.18)',
+                          borderRadius: '12px',
+                          color: '#F3EFE4',
+                          fontFamily: "'IBM Plex Mono', monospace",
+                          fontSize: '12px',
+                        }}
+                        labelStyle={{ color: '#AAB4C3', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em' }}
+                      />
+                      <Bar dataKey="cogs" fill="#9F7A43" radius={[4, 4, 0, 0]} barSize={20} />
+                      <Bar dataKey="labor" fill="#D4B681" radius={[4, 4, 0, 0]} barSize={20} />
+                    </BarChart>
+                  </ResponsiveContainer>
                 </div>
-                <span className="text-xs font-bold text-slate-300">Calendario</span>
-              </Link>
-
-              {/* ACADEMY SHORTCUT */}
-              <Link to="/academy" className="bg-slate-900/60 border border-white/10 rounded-[2rem] p-5 flex flex-col justify-center items-center gap-2 hover:bg-slate-800 transition-all group">
-                <div className="w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center group-hover:bg-purple-500 transition-colors">
-                  <BookOpen className="w-5 h-5 text-purple-400 group-hover:text-white" />
-                </div>
-                <span className="text-xs font-bold text-slate-300">Academia</span>
-              </Link>
+              )}
             </div>
-          </div>
 
-          {/* HISTORY TABLE BOX */}
-          <div className="md:col-span-12 bg-slate-900/30 border border-white/5 rounded-[3rem] overflow-hidden">
-            <div className="px-10 py-8 flex justify-between items-center border-b border-white/5">
-              <div>
-                <h3 className="text-xl font-bold text-white font-space">Historial de Reportes</h3>
-                <p className="text-xs text-slate-500 mt-1">Trazabilidad histórica de tus diagnósticos rápidos y profundos.</p>
+            {/* RIGHT COLUMN: Modules */}
+            <div className="md:col-span-4 grid grid-rows-2 gap-4">
+              <ModuleCard
+                title="Proyecto 7P"
+                description="Seguimiento mensual de tu plan operativo según método Octopus."
+                icon={Briefcase}
+                kicker="Seguimiento"
+                tone="primary"
+                variant="feature"
+                cta="Ir al proyecto"
+                docCode="OCT-DASH-MOD-001"
+                href={
+                  profile?.businessIds?.[0]
+                    ? `/hub/projects/${profile.businessIds[0]}`
+                    : '/hub/my-project'
+                }
+              />
+              <div className="grid grid-cols-2 gap-4">
+                <ModuleCard
+                  title="Calendario"
+                  icon={CalendarIcon}
+                  tone="cyan"
+                  variant="compact"
+                  href="/calendar"
+                />
+                <ModuleCard
+                  title="Academia"
+                  icon={BookOpen}
+                  tone="primary"
+                  variant="compact"
+                  href="/academy"
+                />
               </div>
-              <Button variant="ghost" className="text-xs text-slate-500 hover:text-[#1FB6D5] font-bold">Descargar Todo (CSV)</Button>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm border-separate border-spacing-0">
-                <thead className="bg-slate-950/40 text-[10px] uppercase font-black tracking-widest text-slate-500">
-                  <tr>
-                    <th className="px-10 py-5">Periodo</th>
-                    <th className="px-10 py-5">Estado</th>
-                    <th className="px-10 py-5 text-right">Fuerza de Venta</th>
-                    <th className="px-10 py-5 text-center">Rendimiento (Utilidad)</th>
-                    <th className="px-10 py-5 text-center">Acción</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-white/5">
-                  {history.map((item, index) => (
-                    <tr key={index} className="hover:bg-cyan-500/[0.02] transition-colors group">
-                      <td className="px-10 py-6 font-bold text-white font-space">{item.month}</td>
-                      <td className="px-10 py-6">
-                        <div className="flex items-center gap-2">
-                          <div className={`w-2 h-2 rounded-full ${item.result > 15 ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-amber-500'}`}></div>
-                          <span className="text-slate-400 text-xs font-medium">{item.isReal ? 'Registrado' : 'Proyectado'}</span>
-                        </div>
-                      </td>
-                      <td className="px-10 py-6 text-right font-mono text-white text-sm font-bold">
-                        $ {formatCurrency(item.sales).replace('$', '')}
-                      </td>
-                      <td className="px-10 py-6 text-center">
-                        <span className={`px-4 py-1 rounded-full text-[10px] font-black tracking-tighter ${item.result > 15 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-500'}`}>
-                          {formatPercent(item.result)}
-                        </span>
-                      </td>
-                      <td className="px-10 py-6 text-center">
-                        <button className="p-2 text-slate-500 hover:text-[#1FB6D5] hover:bg-[#1FB6D5]/10 rounded-xl transition-all">
-                          <FileText className="w-4 h-4" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+
+            {/* HISTORY TABLE */}
+            <div
+              className="md:col-span-12 overflow-hidden rounded-xl border"
+              style={{
+                background: 'var(--bg-surface)',
+                borderColor: 'var(--border-subtle)',
+              }}
+            >
+              <div
+                className="flex items-center justify-between gap-4 border-b px-6 py-5 md:px-8"
+                style={{ borderColor: 'var(--border-subtle)' }}
+              >
+                <div>
+                  <h3 className="font-display text-lg font-semibold tracking-tight text-[var(--text-primary)]">
+                    Historial de Reportes
+                  </h3>
+                  <p className="mt-0.5 text-xs text-[var(--text-muted)]">
+                    Trazabilidad de tus diagnósticos rápidos y profundos.
+                  </p>
+                </div>
+                <Button variant="ghost" size="sm" icon={FileText}>
+                  Descargar CSV
+                </Button>
+              </div>
+
+              {history.length === 0 ? (
+                <EmptyState
+                  icon={Inbox}
+                  variant="bare"
+                  title="Sin reportes todavía"
+                  body="Apenas cargues un diagnóstico, vas a verlo acá listado y descargable."
+                  cta={{ label: 'Cargar diagnóstico', href: '/deep-diagnostic' }}
+                />
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-sm border-separate border-spacing-0">
+                    <thead
+                      className="text-[10px] uppercase font-bold tracking-[0.18em] text-[var(--text-muted)]"
+                      style={{ background: 'var(--bg-surface-soft)' }}
+                    >
+                      <tr>
+                        <th className="px-6 py-4 md:px-8">Periodo</th>
+                        <th className="px-6 py-4 md:px-8">Estado</th>
+                        <th className="px-6 py-4 md:px-8 text-right">Fuerza de Venta</th>
+                        <th className="px-6 py-4 md:px-8 text-center">Rendimiento (Utilidad)</th>
+                        <th className="px-6 py-4 md:px-8 text-center">Acción</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {history.map((item, index) => {
+                        const tone = rowStatus(item.result);
+                        return (
+                          <tr
+                            key={index}
+                            className="group border-t transition-colors hover:bg-[var(--bg-surface-soft)]/50"
+                            style={{ borderColor: 'var(--border-subtle)' }}
+                          >
+                            <td className="px-6 py-4 md:px-8 font-display font-semibold text-[var(--text-primary)] capitalize">
+                              {item.month}
+                            </td>
+                            <td className="px-6 py-4 md:px-8">
+                              <StatusBadge tone={tone} variant="soft" size="sm" dot>
+                                {item.isReal ? 'Registrado' : 'Proyectado'}
+                              </StatusBadge>
+                            </td>
+                            <td className="px-6 py-4 md:px-8 text-right font-mono text-sm font-semibold text-[var(--text-primary)]">
+                              {formatCurrency(item.sales)}
+                            </td>
+                            <td className="px-6 py-4 md:px-8 text-center">
+                              <StatusBadge tone={tone} variant="solid" size="sm">
+                                {formatPercent(item.result)}
+                              </StatusBadge>
+                            </td>
+                            <td className="px-6 py-4 md:px-8 text-center">
+                              <button
+                                type="button"
+                                className="rounded-md p-2 text-[var(--text-muted)] transition-all hover:bg-[var(--bg-surface-soft)] hover:text-[var(--color-primary)]"
+                                aria-label="Ver detalle"
+                              >
+                                <FileText className="h-4 w-4" />
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           </div>
-        </div>
+        )}
 
         {/* FOOTER INFO */}
-        <div className="flex flex-col md:flex-row items-center justify-between pt-8 gap-4 border-t border-white/5 opacity-40">
+        <div
+          className="flex flex-col md:flex-row items-center justify-between gap-4 border-t pt-6 opacity-60"
+          style={{ borderColor: 'var(--border-subtle)' }}
+        >
           <div className="flex items-center gap-2 text-xs">
-            <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></div>
-            <span className="text-slate-500 font-bold uppercase tracking-widest">Sincronización Cloud Activa</span>
+            <span
+              className="h-1.5 w-1.5 animate-pulse rounded-full"
+              style={{ background: 'var(--color-success)' }}
+            />
+            <span className="font-mono uppercase tracking-[0.22em] text-[var(--text-muted)]">
+              Sincronización Cloud activa
+            </span>
           </div>
-          <div className="flex items-center gap-6 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-            <span className="flex items-center gap-2"><Clock className="w-3 h-3" /> Reporte Generado hoy {new Date().toLocaleDateString()}</span>
+          <div className="flex items-center gap-6 font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--text-muted)]">
+            <span className="flex items-center gap-2">
+              <Clock className="h-3 w-3" />
+              Reporte generado · {new Date().toLocaleDateString('es-AR')}
+            </span>
           </div>
         </div>
-
       </div>
 
       <NewsBoard />
-
     </Layout>
   );
 };
-
-// Internal Import helper
-const Briefcase = ({ className }: { className?: string }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect width="20" height="14" x="2" y="7" rx="2" ry="2" /><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" /></svg>
-);
 
 export default Dashboard;

@@ -1,26 +1,23 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Plus+Jakarta+Sans:wght@600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+/* Tipografía oficial cargada en index.html (Sora / Inter / IBM Plex Mono).
+   Si por alguna razón el HTML no la carga, descomentar la siguiente línea. */
+/* @import url('https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap'); */
+
+@import './styles/tokens.css';
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --color-deep-blue: #020c14;
-  --color-card-bg: #0b1420;
-  --color-cyan-detail: #22c5e5;
-  /* Pulsing slightly brighter cyan */
-  --color-text-primary: #f8fafc;
-  --color-text-secondary: #94a3b8;
-  --color-brand: #1fb6d5;
-}
-
+/* ============================================================
+   Base (mapeada a tokens del rebrand)
+   ============================================================ */
 html,
 body {
   height: 100%;
   margin: 0;
   padding: 0;
-  background-color: var(--color-deep-blue);
-  color: var(--color-text-primary);
+  background-color: var(--bg-base);
+  color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -29,11 +26,11 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: #021019;
+  background-color: var(--bg-base);
 }
 
 body {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-sans);
 }
 
 h1,
@@ -42,149 +39,78 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: 'Plus Jakarta Sans', 'Space Grotesk', sans-serif;
+  font-family: var(--font-display);
+  letter-spacing: var(--tracking-tight);
 }
 
 .font-mono {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
 }
 
-/* Custom Scrollbar */
+/* ============================================================
+   Scrollbar
+   ============================================================ */
 ::-webkit-scrollbar {
   width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #021019;
+  background: var(--bg-base);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #334155;
-  border-radius: 4px;
+  background: var(--bg-elevated);
+  border-radius: var(--radius-sm);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #1FB6D5;
+  background: var(--color-primary-dark);
 }
 
-/* --- KEYFRAME ANIMATIONS (Required for Tailwind Config references) --- */
-
+/* ============================================================
+   Animaciones (heredadas, válidas todavía)
+   ============================================================ */
 @keyframes faulty-flicker {
-  0% {
-    opacity: 1;
-  }
-
-  3% {
-    opacity: 0.4;
-  }
-
-  6% {
-    opacity: 1;
-  }
-
-  7% {
-    opacity: 0.4;
-  }
-
-  8% {
-    opacity: 1;
-  }
-
-  9% {
-    opacity: 1;
-  }
-
-  10% {
-    opacity: 0.1;
-  }
-
-  11% {
-    opacity: 1;
-  }
-
-  40% {
-    opacity: 1;
-  }
-
-  41% {
-    opacity: 0.6;
-  }
-
-  42% {
-    opacity: 1;
-  }
-
-  43% {
-    opacity: 0.2;
-  }
-
-  46% {
-    opacity: 1;
-  }
-
-  70% {
-    opacity: 1;
-  }
-
-  72% {
-    opacity: 0.4;
-  }
-
-  74% {
-    opacity: 1;
-  }
-
-  100% {
-    opacity: 1;
-  }
+  0%   { opacity: 1; }
+  3%   { opacity: 0.4; }
+  6%   { opacity: 1; }
+  7%   { opacity: 0.4; }
+  8%   { opacity: 1; }
+  9%   { opacity: 1; }
+  10%  { opacity: 0.1; }
+  11%  { opacity: 1; }
+  40%  { opacity: 1; }
+  41%  { opacity: 0.6; }
+  42%  { opacity: 1; }
+  43%  { opacity: 0.2; }
+  46%  { opacity: 1; }
+  70%  { opacity: 1; }
+  72%  { opacity: 0.4; }
+  74%  { opacity: 1; }
+  100% { opacity: 1; }
 }
 
 @keyframes shine-effect {
-  0% {
-    background-position: -200% center;
-  }
-
-  20% {
-    background-position: 200% center;
-  }
-
-  100% {
-    background-position: 200% center;
-  }
+  0%   { background-position: -200% center; }
+  20%  { background-position:  200% center; }
+  100% { background-position:  200% center; }
 }
 
 @keyframes marquee {
-  0% {
-    transform: translateX(0);
-  }
-
-  100% {
-    transform: translateX(-50%);
-  }
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 .animate-marquee {
@@ -194,27 +120,22 @@ h6 {
   will-change: transform;
 }
 
-.animate-marquee.paused {
-  animation-play-state: paused;
-}
-
+.animate-marquee.paused,
 .animate-marquee:hover {
   animation-play-state: paused;
 }
 
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-
+.no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
 
-/* Modal Open state: Hide header and footer to maximize focus */
+/* ============================================================
+   Modal open: oculta nav y footer
+   ============================================================ */
 body.modal-open {
   overflow: hidden;
-  /* Stop background scrolling */
 }
 
 body.modal-open nav {
@@ -228,20 +149,17 @@ body.modal-open footer {
   transition: opacity 0.3s ease-in-out;
 }
 
-/* Ensure nice transition even when closing */
-nav {
-  transition: transform 0.3s ease-in-out;
-}
+nav    { transition: transform 0.3s ease-in-out; }
+footer { transition: opacity 0.3s ease-in-out; }
 
-footer {
-  transition: opacity 0.3s ease-in-out;
-}
-
-/* === SCROLL REVEAL ANIMATIONS === */
+/* ============================================================
+   Scroll reveal animations
+   ============================================================ */
 .reveal-on-scroll {
   opacity: 0;
   transform: translateY(30px);
-  transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1), transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .reveal-on-scroll.revealed {
@@ -249,13 +167,12 @@ footer {
   transform: translateY(0);
 }
 
-/* Staggered children */
 .reveal-on-scroll.revealed .reveal-child:nth-child(1) { transition-delay: 0.05s; }
-.reveal-on-scroll.revealed .reveal-child:nth-child(2) { transition-delay: 0.1s; }
+.reveal-on-scroll.revealed .reveal-child:nth-child(2) { transition-delay: 0.10s; }
 .reveal-on-scroll.revealed .reveal-child:nth-child(3) { transition-delay: 0.15s; }
-.reveal-on-scroll.revealed .reveal-child:nth-child(4) { transition-delay: 0.2s; }
+.reveal-on-scroll.revealed .reveal-child:nth-child(4) { transition-delay: 0.20s; }
 .reveal-on-scroll.revealed .reveal-child:nth-child(5) { transition-delay: 0.25s; }
-.reveal-on-scroll.revealed .reveal-child:nth-child(6) { transition-delay: 0.3s; }
+.reveal-on-scroll.revealed .reveal-child:nth-child(6) { transition-delay: 0.30s; }
 .reveal-on-scroll.revealed .reveal-child:nth-child(7) { transition-delay: 0.35s; }
 
 .reveal-child {
@@ -269,15 +186,40 @@ footer {
   transform: translateY(0);
 }
 
-/* === SKELETON SCREENS === */
+/* ============================================================
+   Skeleton screens
+   ============================================================ */
 @keyframes skeleton-pulse {
   0%, 100% { opacity: 0.4; }
-  50% { opacity: 0.1; }
+  50%      { opacity: 0.1; }
 }
 
 .skeleton {
-  background: linear-gradient(90deg, #0b1420 25%, #162032 50%, #0b1420 75%);
+  background: linear-gradient(
+    90deg,
+    var(--bg-surface) 25%,
+    var(--bg-surface-soft) 50%,
+    var(--bg-surface) 75%
+  );
   background-size: 200% 100%;
   animation: skeleton-pulse 1.5s ease-in-out infinite;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
+}
+
+/* ============================================================
+   Helper utilitarios de marca
+   ============================================================ */
+.text-gradient-gold {
+  background: linear-gradient(135deg, var(--color-primary-soft) 0%, var(--color-primary) 50%, var(--color-primary-dark) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.bg-grid-subtle {
+  background-image:
+    linear-gradient(var(--border-divider) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border-divider) 1px, transparent 1px);
+  background-size: 48px 48px;
 }

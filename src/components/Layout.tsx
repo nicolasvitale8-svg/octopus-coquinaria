@@ -1,10 +1,36 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, LogOut, User as UserIcon, Database } from 'lucide-react';
-import { APP_NAME, INSTAGRAM_URL, DISPLAY_PHONE, CONTACT_EMAIL, YOUTUBE_URL, WHATSAPP_NUMBER, GLOBAL_LOGO_URL, GLOBAL_BACKGROUND_IMAGE_URL, LOGO_ADMIN_URL, LOGO_USER_URL, LOGO_PREMIUM_URL, LOGO_GUEST_URL } from '../constants';
+import {
+  APP_NAME,
+  INSTAGRAM_URL,
+  DISPLAY_PHONE,
+  CONTACT_EMAIL,
+  YOUTUBE_URL,
+  WHATSAPP_NUMBER,
+  GLOBAL_BACKGROUND_IMAGE_URL,
+} from '../constants';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../services/supabase';
 import WelcomeBanner from './WelcomeBanner';
+import OctopusMark from './ui/OctopusMark';
+import Button from './ui/Button';
+import StatusBadge from './ui/StatusBadge';
+
+/**
+ * Layout — top-nav público + footer del rebrand.
+ *
+ * Cambios respecto a versión anterior:
+ *   - Wordmark: OctopusMark mono gold + "OCTOPUS COQUINARIA" en font-display.
+ *     (Se descartan los LOGO_*_URL por rol en el header — quedan disponibles
+ *     si otros componentes los usan, pero el nav universal es uno solo.)
+ *   - Tokens en bg/text/border. Sin hex hardcoded.
+ *   - Active link: gold con underline en lugar de cyan.
+ *   - Atajo "Admin" para admin/consultant: badge "live" usa StatusBadge tone="success".
+ *   - CTA "Diagnóstico rápido" usa Button primary (gold).
+ *   - Footer rediseñado con tokens + doc-code OCT-LAYOUT-FOOT-001.
+ *   - Tipografía: Sora (display) + Inter (body) + IBM Plex Mono (técnica).
+ */
 
 const navLinks = [
   { name: 'Metodología', path: '/methodology' },
@@ -23,159 +49,166 @@ const Layout: React.FC<LayoutProps> = ({ children, user: propUser }) => {
   const { user: contextUser, profile, signOut, isAdmin, isConsultant } = useAuth();
   const [internalUser, setInternalUser] = useState<any>(propUser || contextUser);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [logoError, setLogoError] = useState(false);
   const [bgError, setBgError] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const [dbConnected, setDbConnected] = useState(false);
 
-
   useEffect(() => {
-    // Check if supabase client is initialized
-    setDbConnected(true);
-
-    // Auto-fetch user if not provided (fixes "logged out" header on some pages)
+    setDbConnected(!!supabase);
     if (!propUser) {
-      // Sync with context (EVEN IF NULL - fixes logout issue)
       setInternalUser(contextUser);
     } else {
       setInternalUser(propUser);
     }
   }, [propUser, contextUser]);
 
-
-
   const handleLogout = async () => {
     await signOut();
     navigate('/');
   };
 
-  const isActive = React.useCallback((path: string) => location.pathname === path ? 'text-[#1FB6D5] font-bold' : 'text-slate-400 hover:text-white', [location.pathname]);
+  const isActive = (path: string) => location.pathname === path;
 
-  const logoToUse = React.useMemo(() => {
-    if (logoError) return GLOBAL_LOGO_URL;
-    if (contextUser || internalUser) {
-      const role = profile?.role;
-      if (role === 'admin' || role === 'consultant') return LOGO_ADMIN_URL;
-      if (role === 'client') return LOGO_PREMIUM_URL;
-      return LOGO_USER_URL;
-    }
-    return LOGO_GUEST_URL;
-  }, [contextUser, internalUser, profile?.role, logoError]);
+  const linkClass = (path: string) =>
+    `relative px-1 py-2 text-sm font-medium transition-colors ${
+      isActive(path)
+        ? 'text-[var(--color-primary)]'
+        : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+    }`;
 
   return (
-    <div className="min-h-screen bg-[#021019] text-slate-200 flex flex-col font-sans">
-
-      {/* GLOBAL BACKGROUND IMAGE SUPPORT WITH FALLBACK */}
+    <div className="min-h-screen flex flex-col font-sans" style={{ background: 'var(--bg-base)', color: 'var(--text-primary)' }}>
+      {/* GLOBAL BACKGROUND */}
       {GLOBAL_BACKGROUND_IMAGE_URL && !bgError ? (
         <div className="fixed inset-0 z-0 pointer-events-none">
           <img
             src={GLOBAL_BACKGROUND_IMAGE_URL}
-            alt="Background"
-            className="w-full h-full object-cover"
+            alt=""
+            className="w-full h-full object-cover opacity-30"
             onError={() => setBgError(true)}
           />
-          {/* Heavy overlay to ensure text readability over any image */}
-          <div className="absolute inset-0 bg-[#021019]/85 backdrop-blur-[2px]"></div>
+          <div className="absolute inset-0" style={{ background: 'rgba(7, 13, 20, 0.88)', backdropFilter: 'blur(2px)' }} />
         </div>
       ) : (
-        /* Default Background */
-        <div className="fixed inset-0 z-0 pointer-events-none opacity-20 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#00344F] via-[#021019] to-[#021019]"></div>
+        <div
+          className="fixed inset-0 z-0 pointer-events-none opacity-50"
+          aria-hidden="true"
+          style={{
+            background:
+              'radial-gradient(ellipse at top, rgba(212, 182, 129, 0.08) 0%, transparent 50%), radial-gradient(ellipse at bottom, rgba(31, 182, 213, 0.04) 0%, transparent 50%)',
+          }}
+        />
       )}
 
-      {/* Navbar - Deep Blue */}
-      <nav className="sticky top-0 z-50 bg-[#021019]/95 backdrop-blur-sm border-b border-slate-800 shadow-lg">
+      {/* ============================================================
+          TOP NAV
+          OCT-LAYOUT-NAV-001
+         ============================================================ */}
+      <nav
+        className="sticky top-0 z-50 backdrop-blur-md border-b"
+        style={{
+          background: 'rgba(7, 13, 20, 0.92)',
+          borderColor: 'var(--border-subtle)',
+        }}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-20">
-            <div className="flex items-center">
-              <Link to="/" className="flex-shrink-0 flex items-center gap-3">
-                <img
-                  src={logoToUse}
-                  alt="Octopus Logo"
-                  className="h-12 w-auto object-contain"
-                  onError={(e) => {
-                    // Fallback loop prevention
-                    const target = e.target as HTMLImageElement;
-                    if (target.src !== GLOBAL_LOGO_URL) target.src = GLOBAL_LOGO_URL;
-                  }}
-                />
-
-                <div className="flex flex-col">
-                  <span className="font-bold text-xl tracking-tight text-white font-space leading-none uppercase">Octopus</span>
-                  <span className="text-[10px] tracking-[0.2em] text-[#1FB6D5] uppercase font-bold">Coquinaria</span>
+          <div className="flex items-center justify-between h-16 md:h-18">
+            <div className="flex items-center gap-8">
+              {/* Wordmark */}
+              <Link to="/" className="flex items-center gap-3 flex-shrink-0">
+                <OctopusMark variant="mono" size={32} className="text-[var(--color-primary)]" />
+                <div className="flex flex-col leading-tight">
+                  <span className="font-display text-base font-semibold tracking-tight text-[var(--text-primary)]">
+                    OCTOPUS
+                  </span>
+                  <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--color-primary)]">
+                    Coquinaria
+                  </span>
                 </div>
               </Link>
-              <div className="hidden md:block">
-                <div className="ml-10 flex items-baseline space-x-8">
-                  {navLinks.map((link) => (
-                    <Link
-                      key={link.name}
-                      to={link.path}
-                      className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive(link.path)}`}
-                    >
-                      {link.name}
-                    </Link>
-                  ))}
-                </div>
+
+              {/* Desktop nav */}
+              <div className="hidden md:flex items-center gap-6">
+                {navLinks.map((link) => (
+                  <Link key={link.name} to={link.path} className={linkClass(link.path)}>
+                    {link.name}
+                    {isActive(link.path) && (
+                      <span
+                        aria-hidden="true"
+                        className="absolute -bottom-1 left-0 right-0 h-px"
+                        style={{ background: 'var(--color-primary)' }}
+                      />
+                    )}
+                  </Link>
+                ))}
               </div>
             </div>
 
-            {/* Desktop Right Menu */}
-            <div className="hidden md:flex items-center gap-4">
-              {/* Admin Shortcut - Only for Admin/Consultant */}
+            {/* Right side */}
+            <div className="hidden md:flex items-center gap-3">
               {(isAdmin || isConsultant) && (
-                <Link to="/admin/leads" className="flex items-center gap-2 text-[#021019] bg-[#1FB6D5] hover:bg-white hover:text-[#021019] text-xs font-black uppercase tracking-wide px-4 py-2 rounded-lg shadow-[0_0_15px_rgba(31,182,213,0.4)] transition-all border border-[#1FB6D5]">
-                  <Database className="w-3 h-3" />
-                  Admin <span className="hidden lg:inline">Panel</span>
-                  {dbConnected && (
-                    <span className="relative flex h-2 w-2 ml-1">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500 border border-white"></span>
-                    </span>
-                  )}
+                <Link to="/admin/leads">
+                  <Button variant="outline" size="sm" icon={Database}>
+                    Admin
+                    {dbConnected && (
+                      <span
+                        aria-hidden="true"
+                        className="ml-2 inline-flex h-1.5 w-1.5 rounded-full animate-pulse"
+                        style={{ background: 'var(--color-success)' }}
+                      />
+                    )}
+                  </Button>
                 </Link>
               )}
 
-              <div className="flex items-center md:ml-4 gap-2 lg:gap-4">
-                {internalUser ? (
-                  <>
-                    <Link to="/dashboard" className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 px-3 py-2 rounded-md transition-all text-white text-sm font-medium shadow-md">
-                      Tablero <span className="hidden xl:inline">({internalUser.email?.split('@')[0]})</span>
-                    </Link>
-                    <Link
-                      to="/hub/profile"
-                      className="p-2 text-slate-400 hover:text-[#1FB6D5] hover:bg-slate-800 rounded-full transition-all"
-                      title="Mi Perfil"
-                    >
-                      <UserIcon className="w-5 h-5" />
-                    </Link>
-                    <button
-                      onClick={handleLogout}
-                      className="text-slate-400 hover:text-white transition-colors"
-                      title="Salir"
-                    >
-                      <LogOut className="w-5 h-5" />
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <Link to="/login" className="text-slate-400 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">
+              {internalUser ? (
+                <>
+                  <Link to="/dashboard">
+                    <Button variant="secondary" size="sm">
+                      Tablero
+                    </Button>
+                  </Link>
+                  <Link
+                    to="/hub/profile"
+                    title="Mi Perfil"
+                    className="p-2 rounded-full transition-colors text-[var(--text-secondary)] hover:text-[var(--color-primary)] hover:bg-[var(--bg-surface)]"
+                  >
+                    <UserIcon className="h-4 w-4" />
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    title="Salir"
+                    className="p-2 rounded-full transition-colors text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                  >
+                    <LogOut className="h-4 w-4" />
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link to="/login">
+                    <Button variant="ghost" size="sm">
                       Acceder
-                    </Link>
-                    <Link to="/quick-diagnostic" className="bg-[#1FB6D5] hover:bg-[#159bb8] text-[#021019] px-5 py-2 rounded-md text-sm font-bold shadow-[0_0_15px_rgba(31,182,213,0.4)] transition-all">
-                      Diagnóstico Rápido
-                    </Link>
-                  </>
-                )}
-              </div>
+                    </Button>
+                  </Link>
+                  <Link to="/quick-diagnostic">
+                    <Button variant="primary" size="sm">
+                      Diagnóstico rápido
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
 
-            <div className="-mr-2 flex md:hidden">
+            {/* Mobile burger */}
+            <div className="md:hidden">
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="bg-slate-800 inline-flex items-center justify-center p-2 rounded-md text-slate-400 hover:text-white hover:bg-slate-700 focus:outline-none"
+                className="inline-flex items-center justify-center p-2 rounded-md transition-colors border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                style={{ background: 'var(--bg-surface)' }}
+                aria-label="Abrir menú"
               >
-                {isMenuOpen ? <X className="block h-6 w-6" /> : <Menu className="block h-6 w-6" />}
+                {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </button>
             </div>
           </div>
@@ -183,36 +216,68 @@ const Layout: React.FC<LayoutProps> = ({ children, user: propUser }) => {
 
         {/* Mobile menu */}
         {isMenuOpen && (
-          <div className="md:hidden bg-[#021019] border-b border-slate-800">
-            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+          <div
+            className="md:hidden border-t"
+            style={{
+              background: 'var(--bg-base)',
+              borderColor: 'var(--border-subtle)',
+            }}
+          >
+            <div className="px-3 pt-3 pb-4 space-y-1">
               {navLinks.map((link) => (
                 <Link
                   key={link.name}
                   to={link.path}
                   onClick={() => setIsMenuOpen(false)}
-                  className={`block px-3 py-2 rounded-md text-base font-medium ${isActive(link.path)}`}
+                  className={`block px-3 py-2.5 rounded-md text-base font-medium ${
+                    isActive(link.path)
+                      ? 'bg-[var(--bg-surface-soft)] text-[var(--color-primary)]'
+                      : 'text-[var(--text-secondary)] hover:bg-[var(--bg-surface)] hover:text-[var(--text-primary)]'
+                  }`}
                 >
                   {link.name}
                 </Link>
               ))}
-              <div className="border-t border-slate-800 pt-3 mt-3">
-                <Link to="/admin/leads" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 text-base font-medium text-slate-400 hover:text-white flex items-center gap-2">
-                  <Database className="w-4 h-4" /> Admin DB
-                  {dbConnected && <span className="w-2 h-2 rounded-full bg-green-500"></span>}
-                </Link>
+
+              <div
+                className="pt-3 mt-3 border-t space-y-2"
+                style={{ borderColor: 'var(--border-subtle)' }}
+              >
+                {(isAdmin || isConsultant) && (
+                  <Link
+                    to="/admin/leads"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="flex items-center gap-2 px-3 py-2.5 rounded-md text-base font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                  >
+                    <Database className="h-4 w-4" />
+                    Admin
+                    {dbConnected && (
+                      <StatusBadge tone="success" variant="soft" size="sm" dot>
+                        Live
+                      </StatusBadge>
+                    )}
+                  </Link>
+                )}
+
                 {internalUser ? (
-                  <Link to="/dashboard" onClick={() => setIsMenuOpen(false)} className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-[#1FB6D5] bg-slate-800 mt-2">
-                    Ir a mi Dashboard
+                  <Link to="/dashboard" onClick={() => setIsMenuOpen(false)}>
+                    <Button variant="primary" fullWidth>
+                      Ir a mi Dashboard
+                    </Button>
                   </Link>
                 ) : (
-                  <>
-                    <Link to="/login" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 text-base font-medium text-slate-300 hover:text-white">
-                      Login
+                  <div className="space-y-2">
+                    <Link to="/login" onClick={() => setIsMenuOpen(false)}>
+                      <Button variant="secondary" fullWidth>
+                        Acceder
+                      </Button>
                     </Link>
-                    <Link to="/quick-diagnostic" onClick={() => setIsMenuOpen(false)} className="block mt-2 w-full text-center px-4 py-3 bg-[#1FB6D5] text-[#021019] rounded-md font-bold">
-                      Diagnóstico Rápido
+                    <Link to="/quick-diagnostic" onClick={() => setIsMenuOpen(false)}>
+                      <Button variant="primary" fullWidth>
+                        Diagnóstico rápido
+                      </Button>
                     </Link>
-                  </>
+                  </div>
                 )}
               </div>
             </div>
@@ -220,62 +285,133 @@ const Layout: React.FC<LayoutProps> = ({ children, user: propUser }) => {
         )}
       </nav>
 
+      {/* MAIN */}
       <main className="flex-grow relative z-10">
         <WelcomeBanner />
         {children}
       </main>
 
-      {/* Footer - Deep Blue */}
-      <footer className="bg-[#010a10] border-t border-slate-900 py-12 mt-auto relative z-10">
+      {/* ============================================================
+          FOOTER
+          OCT-LAYOUT-FOOT-001
+         ============================================================ */}
+      <footer
+        className="relative z-10 mt-auto border-t py-12"
+        style={{
+          background: 'var(--bg-surface)',
+          borderColor: 'var(--border-subtle)',
+        }}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div className="col-span-1 md:col-span-1">
-              <span className="font-bold text-xl text-white flex items-center gap-2 font-space">
-                {GLOBAL_LOGO_URL && !logoError ? (
-                  <img src={GLOBAL_LOGO_URL} alt="Octopus Logo" className="h-8 w-auto object-contain" onError={() => setLogoError(true)} />
-                ) : (
-                  <div className="w-6 h-6 bg-[#00344F] rounded-full border border-[#1FB6D5]/30"></div>
-                )}
-                {APP_NAME}
-              </span>
-              <p className="mt-4 text-slate-400 text-sm">
-                Tentáculos en todo el negocio, cabeza fría en los números.
+            <div>
+              <div className="flex items-center gap-3 mb-4">
+                <OctopusMark variant="duotone" size={32} />
+                <span className="font-display text-base font-semibold tracking-tight text-[var(--text-primary)]">
+                  {APP_NAME}
+                </span>
+              </div>
+              <p className="text-sm leading-relaxed text-[var(--text-secondary)] max-w-xs">
+                Sistemas operativos para gastronomía. Tentáculos en todo el negocio,
+                cabeza fría en los números.
               </p>
             </div>
+
             <div>
-              <h3 className="text-white font-semibold mb-4 font-space">Plataforma</h3>
-              <ul className="space-y-2 text-sm text-slate-400">
-                <li><Link to="/quick-diagnostic" className="hover:text-[#1FB6D5] transition-colors">Diagnóstico Rápido</Link></li>
-                <li><Link to="/login" className="hover:text-[#1FB6D5] transition-colors">Iniciar Sesión</Link></li>
-                <li><Link to="/admin/leads" className="hover:text-[#1FB6D5] transition-colors">Acceso Consultor</Link></li>
+              <h3 className="font-display text-sm font-semibold mb-4 text-[var(--text-primary)] uppercase tracking-wider">
+                Plataforma
+              </h3>
+              <ul className="space-y-2 text-sm">
+                <li>
+                  <Link to="/quick-diagnostic" className="text-[var(--text-secondary)] hover:text-[var(--color-primary)] transition-colors">
+                    Diagnóstico rápido
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/login" className="text-[var(--text-secondary)] hover:text-[var(--color-primary)] transition-colors">
+                    Iniciar sesión
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/admin/leads" className="text-[var(--text-secondary)] hover:text-[var(--color-primary)] transition-colors">
+                    Acceso consultor
+                  </Link>
+                </li>
               </ul>
             </div>
+
             <div>
-              <h3 className="text-white font-semibold mb-4 font-space">Recursos</h3>
-              <ul className="space-y-2 text-sm text-slate-400">
-                <li><Link to="/methodology" className="hover:text-[#1FB6D5] transition-colors">Método 7P</Link></li>
-                <li><Link to="/academy" className="hover:text-[#1FB6D5] transition-colors">Academia y Videos</Link></li>
-                <li><Link to="/services" className="hover:text-[#1FB6D5] transition-colors">Casos de Éxito</Link></li>
+              <h3 className="font-display text-sm font-semibold mb-4 text-[var(--text-primary)] uppercase tracking-wider">
+                Recursos
+              </h3>
+              <ul className="space-y-2 text-sm">
+                <li>
+                  <Link to="/methodology" className="text-[var(--text-secondary)] hover:text-[var(--color-primary)] transition-colors">
+                    Método 7P
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/academy" className="text-[var(--text-secondary)] hover:text-[var(--color-primary)] transition-colors">
+                    Academia y videos
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/services" className="text-[var(--text-secondary)] hover:text-[var(--color-primary)] transition-colors">
+                    Casos de éxito
+                  </Link>
+                </li>
               </ul>
             </div>
+
             <div>
-              <h3 className="text-white font-semibold mb-4 font-space">Contacto</h3>
-              <a href={`https://wa.me/${WHATSAPP_NUMBER}`} target="_blank" rel="noreferrer" className="block text-sm text-slate-500 hover:text-[#1FB6D5] mb-2 transition-colors">
-                Whatsapp: {DISPLAY_PHONE}
-              </a>
-              <a href={`mailto:${CONTACT_EMAIL}`} className="block text-sm text-slate-500 hover:text-[#1FB6D5] mb-2 transition-colors">
-                Email: {CONTACT_EMAIL}
-              </a>
-              <a href={INSTAGRAM_URL} target="_blank" rel="noreferrer" className="block text-sm text-slate-500 hover:text-[#1FB6D5] mb-2 transition-colors">
-                Instagram: @octopuscuquinaria
-              </a>
-              <a href={YOUTUBE_URL} target="_blank" rel="noreferrer" className="block text-sm text-slate-500 hover:text-[#1FB6D5] transition-colors">
-                Youtube: @octopuscoquinaria
-              </a>
+              <h3 className="font-display text-sm font-semibold mb-4 text-[var(--text-primary)] uppercase tracking-wider">
+                Contacto
+              </h3>
+              <div className="space-y-2 text-sm">
+                <a
+                  href={`https://wa.me/${WHATSAPP_NUMBER}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="block text-[var(--text-secondary)] hover:text-[var(--color-primary)] transition-colors"
+                >
+                  WhatsApp: {DISPLAY_PHONE}
+                </a>
+                <a
+                  href={`mailto:${CONTACT_EMAIL}`}
+                  className="block text-[var(--text-secondary)] hover:text-[var(--color-primary)] transition-colors"
+                >
+                  Email: {CONTACT_EMAIL}
+                </a>
+                <a
+                  href={INSTAGRAM_URL}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="block text-[var(--text-secondary)] hover:text-[var(--color-primary)] transition-colors"
+                >
+                  Instagram: @octopuscoquinaria
+                </a>
+                <a
+                  href={YOUTUBE_URL}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="block text-[var(--text-secondary)] hover:text-[var(--color-primary)] transition-colors"
+                >
+                  YouTube: @octopuscoquinaria
+                </a>
+              </div>
             </div>
           </div>
-          <div className="mt-8 pt-8 border-t border-slate-900 text-center text-xs text-slate-600">
-            &copy; {new Date().getFullYear()} Octopus Coquinaria. Todos los derechos reservados.
+
+          <div
+            className="mt-10 pt-6 border-t flex flex-col md:flex-row items-center justify-between gap-3"
+            style={{ borderColor: 'var(--border-subtle)' }}
+          >
+            <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--text-muted)]">
+              © {new Date().getFullYear()} Octopus Coquinaria · Todos los derechos reservados
+            </span>
+            <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--text-muted)]">
+              OCT-LAYOUT-FOOT-001
+            </span>
           </div>
         </div>
       </footer>
