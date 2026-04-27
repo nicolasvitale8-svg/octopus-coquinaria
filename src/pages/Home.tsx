@@ -200,8 +200,12 @@ const Home = () => {
 
               {/* Eyebrow / wordmark */}
               <div className="mb-4 flex items-center gap-3">
-                <OctopusMark variant="mono" size={28} className="text-[var(--color-primary)]" />
-                <span className="font-mono text-[11px] uppercase tracking-[0.22em] text-[var(--text-secondary)]">
+                <span
+                  aria-hidden="true"
+                  className="inline-block h-px w-8"
+                  style={{ background: 'var(--color-primary)' }}
+                />
+                <span className="font-mono text-[11px] uppercase tracking-[0.28em] text-[var(--text-secondary)]">
                   Octopus Coquinaria · Sistemas operativos para gastronomía
                 </span>
               </div>
