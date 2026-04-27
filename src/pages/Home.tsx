@@ -11,7 +11,6 @@ import {
   WHATSAPP_NUMBER,
   INSTAGRAM_URL,
   YOUTUBE_URL,
-  BRAND_ILLUSTRATION_URL,
 } from '../constants';
 import {
   ArrowRight,
@@ -149,13 +148,21 @@ const Home = () => {
           {/* Glow gold detrás */}
           <div className="absolute top-1/2 left-[60%] -translate-x-1/2 -translate-y-1/2 w-[60%] h-[60%] rounded-full blur-[80px] -z-10 animate-pulse"
                style={{ background: 'rgba(212, 182, 129, 0.18)' }} />
-          {BRAND_ILLUSTRATION_URL && !imgError ? (
-            <img
-              src={BRAND_ILLUSTRATION_URL}
-              alt="Octopus Coquinaria — ilustración editorial"
-              className="w-full h-full object-contain object-right drop-shadow-2xl"
-              onError={() => setImgError(true)}
-            />
+          {!imgError ? (
+            <picture>
+              <source
+                type="image/webp"
+                srcSet="/brand/octopus-system.webp 1x, /brand/octopus-system@2x.webp 2x"
+              />
+              <img
+                src="/brand/octopus-system.png"
+                alt="Octopus Coquinaria — sistema operativo gastronómico"
+                className="w-full h-full object-contain object-right drop-shadow-2xl"
+                onError={() => setImgError(true)}
+                loading="eager"
+                fetchPriority="high"
+              />
+            </picture>
           ) : (
             <div className="w-full h-full flex items-center justify-end pr-10">
               <OctopusMark variant="duotone" className="h-[70%] w-auto" animated />
@@ -259,13 +266,20 @@ const Home = () => {
             {/* MOBILE-only illustration */}
             <div className="order-1 lg:hidden flex justify-center items-center relative mb-2">
               <div className="w-[70%] max-w-[360px]">
-                {BRAND_ILLUSTRATION_URL && !imgError ? (
-                  <img
-                    src={BRAND_ILLUSTRATION_URL}
-                    alt="Octopus Coquinaria"
-                    className="w-full h-auto drop-shadow-2xl"
-                    onError={() => setImgError(true)}
-                  />
+                {!imgError ? (
+                  <picture>
+                    <source
+                      type="image/webp"
+                      srcSet="/brand/octopus-system.webp 1x, /brand/octopus-system@2x.webp 2x"
+                    />
+                    <img
+                      src="/brand/octopus-system.png"
+                      alt="Octopus Coquinaria — sistema operativo gastronómico"
+                      className="w-full h-auto drop-shadow-2xl"
+                      onError={() => setImgError(true)}
+                      loading="lazy"
+                    />
+                  </picture>
                 ) : (
                   <OctopusMark variant="duotone" className="w-full h-auto" />
                 )}
