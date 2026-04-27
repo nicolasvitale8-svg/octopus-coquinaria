@@ -13,7 +13,6 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../services/supabase';
 import WelcomeBanner from './WelcomeBanner';
-import OctopusMark from './ui/OctopusMark';
 import Button from './ui/Button';
 import StatusBadge from './ui/StatusBadge';
 
@@ -21,9 +20,9 @@ import StatusBadge from './ui/StatusBadge';
  * Layout — top-nav público + footer del rebrand.
  *
  * Cambios respecto a versión anterior:
- *   - Wordmark: OctopusMark mono gold + "OCTOPUS COQUINARIA" en font-display.
- *     (Se descartan los LOGO_*_URL por rol en el header — quedan disponibles
- *     si otros componentes los usan, pero el nav universal es uno solo.)
+ *   - Wordmark: solo "OCTOPUS / Coquinaria" en font-display + mono (sin isotipo).
+ *     (Se descartan los LOGO_*_URL por rol en el header y el OctopusMark a esta
+ *     escala — el nav universal es solo tipografía.)
  *   - Tokens en bg/text/border. Sin hex hardcoded.
  *   - Active link: gold con underline en lugar de cyan.
  *   - Atajo "Admin" para admin/consultant: badge "live" usa StatusBadge tone="success".
@@ -116,16 +115,13 @@ const Layout: React.FC<LayoutProps> = ({ children, user: propUser }) => {
           <div className="flex items-center justify-between h-16 md:h-18">
             <div className="flex items-center gap-8">
               {/* Wordmark */}
-              <Link to="/" className="flex items-center gap-3 flex-shrink-0">
-                <OctopusMark variant="mono" size={32} className="text-[var(--color-primary)]" />
-                <div className="flex flex-col leading-tight">
-                  <span className="font-display text-base font-semibold tracking-tight text-[var(--text-primary)]">
-                    OCTOPUS
-                  </span>
-                  <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--color-primary)]">
-                    Coquinaria
-                  </span>
-                </div>
+              <Link to="/" className="flex flex-col leading-tight flex-shrink-0">
+                <span className="font-display text-lg font-bold tracking-tight text-[var(--text-primary)]">
+                  OCTOPUS
+                </span>
+                <span className="font-mono text-[10px] uppercase tracking-[0.28em] text-[var(--color-primary)]">
+                  Coquinaria
+                </span>
               </Link>
 
               {/* Desktop nav */}
@@ -305,10 +301,12 @@ const Layout: React.FC<LayoutProps> = ({ children, user: propUser }) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
-              <div className="flex items-center gap-3 mb-4">
-                <OctopusMark variant="duotone" size={32} />
-                <span className="font-display text-base font-semibold tracking-tight text-[var(--text-primary)]">
-                  {APP_NAME}
+              <div className="flex flex-col leading-tight mb-4">
+                <span className="font-display text-xl font-bold tracking-tight text-[var(--text-primary)]">
+                  OCTOPUS
+                </span>
+                <span className="font-mono text-[10px] uppercase tracking-[0.28em] text-[var(--color-primary)]">
+                  {APP_NAME.replace(/^Octopus\s*/i, '')}
                 </span>
               </div>
               <p className="text-sm leading-relaxed text-[var(--text-secondary)] max-w-xs">

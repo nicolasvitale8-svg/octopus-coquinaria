@@ -18,22 +18,21 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../services/supabase';
-import OctopusMark from './ui/OctopusMark';
 import StatusBadge from './ui/StatusBadge';
 
 /**
  * AdminLayout — sidebar admin del rebrand.
  *
  * Cambios respecto a versión anterior:
- *   - Wordmark: OctopusMark mono gold + nombre del usuario en font-display.
- *     (Se descarta LOGO_ADMIN_URL.)
+ *   - Wordmark: nombre del usuario + Octopus·Admin en mono gold (sin isotipo).
+ *     (Se descarta LOGO_ADMIN_URL y OctopusMark a esta escala.)
  *   - Tokens en bg/text/border. Sin slate-* / cyan-[hex] / amber-* hardcoded.
  *   - Active item: bg-surface-soft + text gold + barra lateral gold.
  *   - Badge de pendientes → StatusBadge tone="warning" variant="solid".
  *   - "Forzar sincronización" usa StatusBadge cyan (técnica) + spinner.
  *   - "Ver sitio público" en cyan-tech (link externo conceptual).
  *   - "Cerrar sesión" en danger token.
- *   - Mobile header con OctopusMark.
+ *   - Mobile header con wordmark "OCTOPUS · Admin" (sin isotipo).
  *   - Doc-code OCT-LAYOUT-ADM-001 al pie de la sidebar.
  */
 
@@ -146,26 +145,23 @@ const AdminLayout = () => {
           borderColor: 'var(--border-subtle)',
         }}
       >
-        {/* Logo / Profile */}
+        {/* Wordmark / Profile */}
         <Link
           to="/admin/profile"
-          className="flex items-center gap-3 h-16 px-5 border-b group transition-colors"
+          className="flex flex-col h-16 px-5 border-b group transition-colors justify-center leading-tight"
           style={{ borderColor: 'var(--border-subtle)' }}
         >
-          <OctopusMark variant="mono" size={28} className="text-[var(--color-primary)] group-hover:text-[var(--color-primary-soft)] transition-colors" />
-          <div className="flex flex-col leading-tight min-w-0">
-            <span
-              className="font-display text-sm font-semibold tracking-tight truncate text-[var(--text-primary)] group-hover:text-[var(--color-primary)] transition-colors"
-              title={profile?.name || profile?.email}
-            >
-              {profile?.name
-                ? profile.name
-                : profile?.email?.split('@')[0] || 'Admin'}
-            </span>
-            <span className="font-mono text-[9px] uppercase tracking-[0.22em] text-[var(--color-primary)]">
-              {isAdmin ? 'Admin' : profile?.role || 'Invitado'}
-            </span>
-          </div>
+          <span
+            className="font-display text-sm font-semibold tracking-tight truncate text-[var(--text-primary)] group-hover:text-[var(--color-primary)] transition-colors"
+            title={profile?.name || profile?.email}
+          >
+            {profile?.name
+              ? profile.name
+              : profile?.email?.split('@')[0] || 'Admin'}
+          </span>
+          <span className="font-mono text-[9px] uppercase tracking-[0.28em] text-[var(--color-primary)]">
+            {isAdmin ? 'Octopus · Admin' : `Octopus · ${profile?.role || 'Invitado'}`}
+          </span>
         </Link>
 
         {/* Nav */}
@@ -273,10 +269,12 @@ const AdminLayout = () => {
           >
             <Menu className="h-5 w-5" />
           </button>
-          <div className="flex items-center gap-2">
-            <OctopusMark variant="mono" size={20} className="text-[var(--color-primary)]" />
-            <span className="font-display text-sm font-semibold tracking-tight text-[var(--text-primary)]">
-              Octopus · Admin
+          <div className="flex flex-col leading-tight">
+            <span className="font-display text-sm font-bold tracking-tight text-[var(--text-primary)]">
+              OCTOPUS
+            </span>
+            <span className="font-mono text-[9px] uppercase tracking-[0.28em] text-[var(--color-primary)]">
+              Admin
             </span>
           </div>
           <div className="w-5" />
