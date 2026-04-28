@@ -11,9 +11,9 @@ import { useAuth } from '../contexts/AuthContext';
 
 const StatusBadge = React.memo(({ status }: { status: string }) => {
     const colors: Record<string, string> = {
-        'verde': 'bg-green-500/20 text-green-400 border-green-500/50',
-        'amarillo': 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50',
-        'rojo': 'bg-red-500/20 text-red-400 border-red-500/50'
+        'verde': 'bg-[rgba(0,197,125,0.20)] text-[var(--color-success)] border-[rgba(0,197,125,0.50)]',
+        'amarillo': 'bg-[var(--color-warning)]/20 text-[var(--color-warning)] border-[rgba(255,177,42,0.50)]',
+        'rojo': 'bg-[var(--color-danger)]/20 text-[var(--color-danger)] border-[var(--color-danger)]/50'
     };
     return (
         <span className={`px-2 py-1 rounded-full text-xs font-bold border ${colors[status] || colors.verde} uppercase`}>
@@ -25,7 +25,7 @@ StatusBadge.displayName = 'StatusBadge';
 
 const PhaseBadge = React.memo(({ phase }: { phase: string }) => {
     return (
-        <span className="px-2 py-1 bg-slate-800 rounded text-xs text-slate-300 border border-slate-700">
+        <span className="px-2 py-1 bg-[var(--bg-surface)] rounded text-xs text-[var(--text-secondary)] border border-[var(--border-subtle)]">
             {phase}
         </span>
     );
@@ -155,21 +155,21 @@ const AdminProjects = () => {
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row justify-between items-end gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-white mb-2">Hub de Proyectos</h1>
-                    <p className="text-slate-400">Gestión centralizada de clientes y consultoría.</p>
+                    <h1 className="text-3xl font-bold text-[var(--text-primary)] mb-2">Hub de Proyectos</h1>
+                    <p className="text-[var(--text-muted)]">Gestión centralizada de clientes y consultoría.</p>
                 </div>
                 <div className="flex gap-3">
-                    <div className="bg-slate-900 border border-slate-700 p-1 rounded-lg flex items-center">
+                    <div className="bg-[var(--bg-base)] border border-[var(--border-subtle)] p-1 rounded-lg flex items-center">
                         <button
                             onClick={() => setViewMode('table')}
-                            className={`p-2 rounded-md transition-colors ${viewMode === 'table' ? 'bg-slate-700 text-white shadow' : 'text-slate-500 hover:text-slate-300'}`}
+                            className={`p-2 rounded-md transition-colors ${viewMode === 'table' ? 'bg-[var(--bg-surface-soft)] text-[var(--text-primary)] shadow' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'}`}
                             title="Vista Tabla"
                         >
                             <List className="w-4 h-4" />
                         </button>
                         <button
                             onClick={() => setViewMode('kanban')}
-                            className={`p-2 rounded-md transition-colors ${viewMode === 'kanban' ? 'bg-slate-700 text-white shadow' : 'text-slate-500 hover:text-slate-300'}`}
+                            className={`p-2 rounded-md transition-colors ${viewMode === 'kanban' ? 'bg-[var(--bg-surface-soft)] text-[var(--text-primary)] shadow' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'}`}
                             title="Vista Tablero"
                         >
                             <LayoutGrid className="w-4 h-4" />
@@ -183,25 +183,25 @@ const AdminProjects = () => {
 
             {/* Stats Overview */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="bg-slate-900 p-4 rounded-xl border border-slate-800 flex items-center gap-4">
-                    <div className="bg-cyan-900/30 p-3 rounded-lg text-cyan-400">
+                <div className="bg-[var(--bg-base)] p-4 rounded-md border border-[var(--border-subtle)] flex items-center gap-4">
+                    <div className="bg-[var(--bg-elevated)]/30 p-3 rounded-lg text-[var(--color-primary)]">
                         <Briefcase className="w-6 h-6" />
                     </div>
                     <div>
-                        <p className="text-slate-500 text-xs font-bold uppercase">Activos</p>
-                        <p className="text-2xl font-bold text-white">{projects.filter(p => p.phase !== 'Cerrado' && p.phase !== 'Lead').length}</p>
+                        <p className="text-[var(--text-muted)] text-xs font-bold uppercase">Activos</p>
+                        <p className="text-2xl font-bold text-[var(--text-primary)]">{projects.filter(p => p.phase !== 'Cerrado' && p.phase !== 'Lead').length}</p>
                     </div>
                 </div>
             </div>
 
             {/* List */}
-            <div className="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden shadow-xl">
-                <div className="p-4 border-b border-slate-800 bg-slate-900/50 flex items-center">
-                    <Search className="w-5 h-5 text-slate-500 mr-3" />
+            <div className="bg-[var(--bg-base)] rounded-md border border-[var(--border-subtle)] overflow-hidden shadow-xl">
+                <div className="p-4 border-b border-[var(--border-subtle)] bg-[var(--bg-base)]/50 flex items-center">
+                    <Search className="w-5 h-5 text-[var(--text-muted)] mr-3" />
                     <input
                         type="text"
                         placeholder="Buscar por cliente o consultor..."
-                        className="bg-transparent border-none focus:ring-0 text-white w-full placeholder-slate-600"
+                        className="bg-transparent border-none focus:ring-0 text-[var(--text-primary)] w-full placeholder-[var(--text-muted)]"
                         value={filter}
                         onChange={(e) => setFilter(e.target.value)}
                     />
@@ -209,7 +209,7 @@ const AdminProjects = () => {
 
                 <div className="overflow-x-auto">
                     <table className="min-w-full text-left text-sm whitespace-nowrap">
-                        <thead className="bg-slate-950/50 text-slate-400 uppercase tracking-wider font-bold text-xs">
+                        <thead className="bg-[var(--bg-base)]/50 text-[var(--text-muted)] uppercase tracking-wider font-bold text-xs">
                             <tr>
                                 <th className="px-6 py-4">Cliente / Negocio</th>
                                 <th className="px-6 py-4 text-center">Ir</th>
@@ -221,18 +221,18 @@ const AdminProjects = () => {
                                 <th className="px-6 py-4 text-right">Acción</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-800">
+                        <tbody className="divide-y divide-[var(--border-subtle)]">
                             {isLoading ? (
-                                <tr><td colSpan={7} className="px-6 py-12 text-center text-slate-500">Cargando proyectos...</td></tr>
+                                <tr><td colSpan={7} className="px-6 py-12 text-center text-[var(--text-muted)]">Cargando proyectos...</td></tr>
                             ) : filteredProjects.map(project => (
-                                <tr key={project.id} className="hover:bg-slate-800/50 transition-colors">
-                                    <td className="px-6 py-4 font-bold text-white">
+                                <tr key={project.id} className="hover:bg-[var(--bg-surface)]/50 transition-colors">
+                                    <td className="px-6 py-4 font-bold text-[var(--text-primary)]">
                                         {project.business_name}
                                     </td>
                                     <td className="px-6 py-4 text-center">
                                         <div className="flex items-center justify-center gap-2">
                                             <Link to={`/admin/projects/${project.id}`}>
-                                                <Button size="sm" variant="outline" className="border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10 hover:border-cyan-400 py-1 px-3 text-xs h-auto">
+                                                <Button size="sm" variant="outline" className="border-[var(--color-primary)]/30 text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 hover:border-[var(--color-primary)] py-1 px-3 text-xs h-auto">
                                                     Hub <ArrowRight className="w-3 h-3 ml-1" />
                                                 </Button>
                                             </Link>
@@ -251,7 +251,7 @@ const AdminProjects = () => {
                                                         }
                                                         setProcessingAction(null);
                                                     }}
-                                                    className={`flex items-center gap-1 text-[9px] font-black px-1.5 py-0.5 rounded border transition-all ${project.finanzaflow_enabled ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50 hover:bg-emerald-500/30' : 'bg-slate-800 text-slate-500 border-slate-700 hover:text-slate-300'}`}
+                                                    className={`flex items-center gap-1 text-[9px] font-black px-1.5 py-0.5 rounded border transition-all ${project.finanzaflow_enabled ? 'bg-[var(--color-success)]/20 text-[var(--color-success)] border-[var(--color-success)]/50 hover:bg-[var(--color-success)]/30' : 'bg-[var(--bg-surface)] text-[var(--text-muted)] border-[var(--border-subtle)] hover:text-[var(--text-secondary)]'}`}
                                                     title={project.finanzaflow_enabled ? 'Desactivar Finanzas' : 'Activar Finanzas'}
                                                 >
                                                     <DollarSign className="w-2.5 h-2.5" />
@@ -265,7 +265,7 @@ const AdminProjects = () => {
                                                     </div>
                                                 )}
                                                 {project.tasks?.some(t => t.priority === 'urgent' && t.status !== 'DONE') && (
-                                                    <div className="flex items-center gap-1 text-[9px] font-bold text-red-500 bg-red-500/10 px-1.5 py-0.5 rounded border border-red-500/20 animate-pulse" title="Tareas urgentes">
+                                                    <div className="flex items-center gap-1 text-[9px] font-bold text-[var(--color-danger)] bg-[var(--color-danger)]/10 px-1.5 py-0.5 rounded border border-[var(--color-danger)]/20 animate-pulse" title="Tareas urgentes">
                                                         <CheckSquare className="w-2.5 h-2.5" />
                                                         URGENTE
                                                     </div>
@@ -273,17 +273,17 @@ const AdminProjects = () => {
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 text-slate-300 whitespace-normal max-w-[180px] leading-tight">
+                                    <td className="px-6 py-4 text-[var(--text-secondary)] whitespace-normal max-w-[180px] leading-tight">
                                         {project.main_service || '-'}
                                     </td>
-                                    <td className="px-6 py-4 text-slate-400 italic">
+                                    <td className="px-6 py-4 text-[var(--text-muted)] italic">
                                         {project.lead_consultant || 'Sin asignar'}
                                     </td>
                                     <td className="px-6 py-4">
                                         <select
                                             value={project.phase}
                                             onChange={(e) => handleQuickUpdate(project, 'phase', e.target.value)}
-                                            className="bg-slate-800 text-xs font-bold text-slate-300 border border-slate-700 rounded px-2 py-1 focus:outline-none focus:border-cyan-500"
+                                            className="bg-[var(--bg-surface)] text-xs font-bold text-[var(--text-secondary)] border border-[var(--border-subtle)] rounded px-2 py-1 focus:outline-none focus:border-[var(--color-primary)]"
                                         >
                                             {projectPhases.map(ph => <option key={ph} value={ph}>{ph}</option>)}
                                         </select>
@@ -291,35 +291,35 @@ const AdminProjects = () => {
                                     <td className="px-6 py-4">
                                         {project.next_action ? (
                                             <div className="flex flex-col">
-                                                <span className="text-white text-xs truncate max-w-[150px]" title={project.next_action}>{project.next_action}</span>
-                                                <span className="text-slate-500 text-[10px] flex items-center mt-1">
+                                                <span className="text-[var(--text-primary)] text-xs truncate max-w-[150px]" title={project.next_action}>{project.next_action}</span>
+                                                <span className="text-[var(--text-muted)] text-[10px] flex items-center mt-1">
                                                     <Calendar className="w-3 h-3 mr-1" />
                                                     {project.next_action_date || '-'}
                                                 </span>
                                             </div>
-                                        ) : <span className="text-slate-600">-</span>}
+                                        ) : <span className="text-[var(--text-muted)]">-</span>}
                                     </td>
                                     <td className="px-6 py-4">
                                         <select
                                             value={project.status}
                                             onChange={(e) => handleQuickUpdate(project, 'status', e.target.value)}
-                                            className={`text-xs font-bold uppercase rounded-full px-2 py-1 border appearance-none text-center cursor-pointer ${project.status === 'verde' ? 'bg-green-500/20 text-green-400 border-green-500/50' :
-                                                    project.status === 'amarillo' ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50' :
-                                                        'bg-red-500/20 text-red-400 border-red-500/50'
+                                            className={`text-xs font-bold uppercase rounded-full px-2 py-1 border appearance-none text-center cursor-pointer ${project.status === 'verde' ? 'bg-[rgba(0,197,125,0.20)] text-[var(--color-success)] border-[rgba(0,197,125,0.50)]' :
+                                                    project.status === 'amarillo' ? 'bg-[var(--color-warning)]/20 text-[var(--color-warning)] border-[rgba(255,177,42,0.50)]' :
+                                                        'bg-[var(--color-danger)]/20 text-[var(--color-danger)] border-[var(--color-danger)]/50'
                                                 }`}
                                         >
-                                            <option className="bg-slate-900 text-white" value="verde">VERDE</option>
-                                            <option className="bg-slate-900 text-white" value="amarillo">AMARILLO</option>
-                                            <option className="bg-slate-900 text-white" value="rojo">ROJO</option>
+                                            <option className="bg-[var(--bg-base)] text-[var(--text-primary)]" value="verde">VERDE</option>
+                                            <option className="bg-[var(--bg-base)] text-[var(--text-primary)]" value="amarillo">AMARILLO</option>
+                                            <option className="bg-[var(--bg-base)] text-[var(--text-primary)]" value="rojo">ROJO</option>
                                         </select>
                                     </td>
                                     <td className="px-6 py-4 text-right flex items-center justify-end gap-2">
-                                        <div className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${getHealthScore(project) >= 80 ? 'text-emerald-400 bg-emerald-400/10' : getHealthScore(project) >= 60 ? 'text-yellow-400 bg-yellow-400/10' : 'text-red-400 bg-red-400/10'}`} title="Health Score">
+                                        <div className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${getHealthScore(project) >= 80 ? 'text-[var(--color-success)] bg-[rgba(0,197,125,0.10)]' : getHealthScore(project) >= 60 ? 'text-[var(--color-warning)] bg-[rgba(255,177,42,0.10)]' : 'text-[var(--color-danger)] bg-[rgba(255,77,77,0.10)]'}`} title="Health Score">
                                             {getHealthScore(project)}%
                                         </div>
                                         <button
                                             onClick={() => handleDeleteProject(project.id, project.business_name)}
-                                            className="p-2 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                                            className="p-2 text-[var(--text-muted)] hover:text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10 rounded-lg transition-colors"
                                             title="Eliminar Proyecto"
                                         >
                                             <Trash2 className="w-4 h-4" />
@@ -328,7 +328,7 @@ const AdminProjects = () => {
                                 </tr>
                             ))}
                             {!isLoading && filteredProjects.length === 0 && (
-                                <tr><td colSpan={7} className="px-6 py-12 text-center text-slate-500">No hay proyectos encontrados (Intenta crear uno).</td></tr>
+                                <tr><td colSpan={7} className="px-6 py-12 text-center text-[var(--text-muted)]">No hay proyectos encontrados (Intenta crear uno).</td></tr>
                             )}
                         </tbody>
                     </table>
@@ -342,48 +342,48 @@ const AdminProjects = () => {
                         {projectPhases.map(phase => {
                             const phaseProjects = filteredProjects.filter(p => p.phase === phase);
                             return (
-                                <div key={phase} className="min-w-[320px] w-[320px] max-h-full flex flex-col bg-slate-900/60 border border-slate-800 rounded-2xl overflow-hidden shrink-0">
-                                    <div className="p-4 border-b border-slate-800/80 flex items-center justify-between bg-slate-900/80 backdrop-blur-md sticky top-0">
-                                        <h3 className="font-bold text-slate-200 text-sm uppercase tracking-wider">{phase}</h3>
-                                        <span className="text-xs font-black text-slate-500 bg-slate-800 px-2 py-0.5 rounded-full">{phaseProjects.length}</span>
+                                <div key={phase} className="min-w-[320px] w-[320px] max-h-full flex flex-col bg-[var(--bg-base)]/60 border border-[var(--border-subtle)] rounded-md overflow-hidden shrink-0">
+                                    <div className="p-4 border-b border-[var(--border-subtle)]/80 flex items-center justify-between bg-[var(--bg-base)]/80 backdrop-blur-md sticky top-0">
+                                        <h3 className="font-bold text-[var(--text-secondary)] text-sm uppercase tracking-wider">{phase}</h3>
+                                        <span className="text-xs font-black text-[var(--text-muted)] bg-[var(--bg-surface)] px-2 py-0.5 rounded-full">{phaseProjects.length}</span>
                                     </div>
                                     <div className="p-4 overflow-y-auto flex-1 space-y-4">
                                         {phaseProjects.map(project => (
-                                            <div key={project.id} className="bg-slate-800/80 hover:bg-slate-800 border border-slate-700/50 hover:border-cyan-500/40 rounded-xl p-4 transition-all shadow-lg group">
+                                            <div key={project.id} className="bg-[var(--bg-surface)]/80 hover:bg-[var(--bg-surface)] border border-[var(--border-subtle)]/50 hover:border-[var(--color-primary)]/40 rounded-md p-4 transition-all shadow-lg group">
                                                 <div className="flex justify-between items-start mb-3">
-                                                    <Link to={`/admin/projects/${project.id}`} className="font-bold text-white group-hover:text-cyan-400 transition-colors line-clamp-2 pr-2">
+                                                    <Link to={`/admin/projects/${project.id}`} className="font-bold text-[var(--text-primary)] group-hover:text-[var(--color-primary)] transition-colors line-clamp-2 pr-2">
                                                         {project.business_name}
                                                     </Link>
-                                                    <div className={`w-3 h-3 rounded-full shrink-0 mt-1 ${project.status === 'verde' ? 'bg-green-400 shadow-[0_0_8px_#4ade80]' : project.status === 'amarillo' ? 'bg-yellow-400 shadow-[0_0_8px_#facc15]' : 'bg-red-400 shadow-[0_0_8px_#f87171] animate-pulse'}`} title={project.status} />
+                                                    <div className={`w-3 h-3 rounded-full shrink-0 mt-1 ${project.status === 'verde' ? 'bg-[var(--color-success)] shadow-[0_0_8px_#00C57D]' : project.status === 'amarillo' ? 'bg-[var(--color-warning)] shadow-[0_0_8px_#FFB12A]' : 'bg-[var(--color-danger)] shadow-[0_0_8px_#FF4D4D] animate-pulse'}`} title={project.status} />
                                                 </div>
-                                                <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest mb-3 line-clamp-1">{project.main_service || 'Sin Servicio'}</p>
+                                                <p className="text-[10px] text-[var(--text-muted)] uppercase font-black tracking-widest mb-3 line-clamp-1">{project.main_service || 'Sin Servicio'}</p>
 
                                                 <div className="flex items-center gap-2 mt-auto mb-3">
-                                                    <div className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${getHealthScore(project) >= 80 ? 'text-emerald-400 bg-emerald-400/10' : getHealthScore(project) >= 60 ? 'text-yellow-400 bg-yellow-400/10' : 'text-red-400 bg-red-400/10'}`}>
+                                                    <div className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${getHealthScore(project) >= 80 ? 'text-[var(--color-success)] bg-[rgba(0,197,125,0.10)]' : getHealthScore(project) >= 60 ? 'text-[var(--color-warning)] bg-[rgba(255,177,42,0.10)]' : 'text-[var(--color-danger)] bg-[rgba(255,77,77,0.10)]'}`}>
                                                         HS: {getHealthScore(project)}%
                                                     </div>
-                                                    <div className="text-[9px] font-bold text-slate-400 bg-slate-900 px-1.5 py-0.5 rounded-full truncate max-w-[120px]">
+                                                    <div className="text-[9px] font-bold text-[var(--text-muted)] bg-[var(--bg-base)] px-1.5 py-0.5 rounded-full truncate max-w-[120px]">
                                                         {project.lead_consultant || 'No asignado'}
                                                     </div>
                                                 </div>
 
-                                                <div className="pt-3 border-t border-slate-700/50 flex justify-between items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <div className="pt-3 border-t border-[var(--border-subtle)]/50 flex justify-between items-center opacity-0 group-hover:opacity-100 transition-opacity">
                                                     <select
                                                         value={project.status}
                                                         onChange={(e) => handleQuickUpdate(project, 'status', e.target.value)}
-                                                        className="bg-transparent text-[10px] uppercase font-bold text-slate-300 focus:outline-none cursor-pointer"
+                                                        className="bg-transparent text-[10px] uppercase font-bold text-[var(--text-secondary)] focus:outline-none cursor-pointer"
                                                     >
-                                                        <option className="bg-slate-900" value="verde">🟢 Verde</option>
-                                                        <option className="bg-slate-900" value="amarillo">🟡 Amarillo</option>
-                                                        <option className="bg-slate-900" value="rojo">🔴 Rojo</option>
+                                                        <option className="bg-[var(--bg-base)]" value="verde">🟢 Verde</option>
+                                                        <option className="bg-[var(--bg-base)]" value="amarillo">🟡 Amarillo</option>
+                                                        <option className="bg-[var(--bg-base)]" value="rojo">🔴 Rojo</option>
                                                     </select>
 
                                                     <select
                                                         value={project.phase}
                                                         onChange={(e) => handleQuickUpdate(project, 'phase', e.target.value)}
-                                                        className="bg-slate-900 border border-slate-700 text-[10px] uppercase font-bold text-cyan-400 px-2 py-1 rounded focus:outline-none cursor-pointer"
+                                                        className="bg-[var(--bg-base)] border border-[var(--border-subtle)] text-[10px] uppercase font-bold text-[var(--color-primary)] px-2 py-1 rounded focus:outline-none cursor-pointer"
                                                     >
-                                                        {projectPhases.map(ph => <option className="bg-slate-900 text-white" key={ph} value={ph}>{ph}</option>)}
+                                                        {projectPhases.map(ph => <option className="bg-[var(--bg-base)] text-[var(--text-primary)]" key={ph} value={ph}>{ph}</option>)}
                                                     </select>
                                                 </div>
                                             </div>
@@ -399,16 +399,16 @@ const AdminProjects = () => {
             {/* CREATE MODAL */}
             {isModalOpen && (
                 <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 animate-fade-in backdrop-blur-sm">
-                    <div className="bg-slate-900 rounded-xl border border-slate-700 w-full max-w-md shadow-2xl p-6 relative">
+                    <div className="bg-[var(--bg-base)] rounded-md border border-[var(--border-subtle)] w-full max-w-md shadow-2xl p-6 relative">
                         <button
                             onClick={() => setIsModalOpen(false)}
-                            className="absolute top-4 right-4 text-slate-500 hover:text-white"
+                            className="absolute top-4 right-4 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
                         >
                             <X className="w-5 h-5" />
                         </button>
 
-                        <h2 className="text-xl font-bold text-white mb-1">Nuevo Proyecto</h2>
-                        <p className="text-slate-400 text-sm mb-6">Comienza a gestionar un nuevo cliente.</p>
+                        <h2 className="text-xl font-bold text-[var(--text-primary)] mb-1">Nuevo Proyecto</h2>
+                        <p className="text-[var(--text-muted)] text-sm mb-6">Comienza a gestionar un nuevo cliente.</p>
 
                         <form onSubmit={handleCreateProject} className="space-y-4">
                             <Input

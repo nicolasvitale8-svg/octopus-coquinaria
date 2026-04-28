@@ -116,29 +116,29 @@ const AdminLeads = () => {
   };
 
   const getStatusColor = (score: number) => {
-    if (score >= 80) return 'text-green-400';
-    if (score >= 50) return 'text-yellow-400';
-    return 'text-red-400';
+    if (score >= 80) return 'text-[var(--color-success)]';
+    if (score >= 50) return 'text-[var(--color-warning)]';
+    return 'text-[var(--color-danger)]';
   };
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white font-space flex items-center gap-2">
-            <Users className="w-6 h-6 text-[#1FB6D5]" />
+          <h1 className="text-2xl font-bold text-[var(--text-primary)] font-space flex items-center gap-2">
+            <Users className="w-6 h-6 text-[var(--color-primary)]" />
             CRM Leads
           </h1>
-          <p className="text-slate-400 text-sm">Gestiona los diagnósticos y oportunidades.</p>
+          <p className="text-[var(--text-muted)] text-sm">Gestiona los diagnósticos y oportunidades.</p>
         </div>
 
         <div className="flex items-center gap-3 w-full md:w-auto">
           <div className="relative flex-1 md:w-64">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500 w-4 h-4" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[var(--text-muted)] w-4 h-4" />
             <input
               type="text"
               placeholder="Buscar lead..."
-              className="w-full pl-10 pr-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white focus:ring-2 focus:ring-[#1FB6D5] focus:outline-none"
+              className="w-full pl-10 pr-4 py-2 bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg text-sm text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--color-primary)] focus:outline-none"
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
             />
@@ -167,7 +167,7 @@ const AdminLeads = () => {
               }
             }}
             variant="outline"
-            className="border-slate-700 text-slate-400 hover:text-white"
+            className="border-[var(--border-subtle)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
             size="sm"
           >
             Sincronizar
@@ -176,25 +176,25 @@ const AdminLeads = () => {
       </div>
 
       {statusFilter && (
-        <div className="flex items-center gap-2 bg-red-950/30 border border-red-900/50 p-3 rounded-lg animate-fade-in">
-          <AlertTriangle className="w-4 h-4 text-red-500" />
-          <p className="text-sm text-red-200">
+        <div className="flex items-center gap-2 bg-[rgba(255,77,77,0.08)]/30 border border-[rgba(255,77,77,0.45)] p-3 rounded-lg animate-fade-in">
+          <AlertTriangle className="w-4 h-4 text-[var(--color-danger)]" />
+          <p className="text-sm text-[var(--color-danger)]">
             Mostrando solo leads con estado <span className="font-bold uppercase">{statusFilter}</span>
           </p>
           <button
             onClick={() => setStatusFilter(null)}
-            className="ml-auto text-xs font-bold text-red-400 hover:text-white transition-colors"
+            className="ml-auto text-xs font-bold text-[var(--color-danger)] hover:text-[var(--text-primary)] transition-colors"
           >
             QUITAR FILTRO
           </button>
         </div>
       )}
 
-      <div className="bg-slate-800/50 rounded-xl border border-slate-700 overflow-hidden">
+      <div className="bg-[var(--bg-surface)]/50 rounded-md border border-[var(--border-subtle)] overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-900/50 border-b border-slate-700 text-slate-400 text-xs uppercase tracking-wider">
+              <tr className="bg-[var(--bg-base)]/50 border-b border-[var(--border-subtle)] text-[var(--text-muted)] text-xs uppercase tracking-wider">
                 <th className="p-4 font-semibold">Fecha</th>
                 <th className="p-4 font-semibold">Negocio</th>
                 <th className="p-4 font-semibold">Contacto</th>
@@ -202,39 +202,39 @@ const AdminLeads = () => {
                 <th className="p-4 font-semibold text-center">Acciones</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-700/50">
+            <tbody className="divide-y divide-[var(--border-subtle)]">
               {isLoading ? (
                 <tr>
-                  <td colSpan={5} className="p-8 text-center text-slate-500">
+                  <td colSpan={5} className="p-8 text-center text-[var(--text-muted)]">
                     Cargando leads...
                   </td>
                 </tr>
               ) : error ? (
                 <tr>
-                  <td colSpan={5} className="p-8 text-center text-red-500">
+                  <td colSpan={5} className="p-8 text-center text-[var(--color-danger)]">
                     <p className="font-bold">Error cargando leads:</p>
                     <p className="font-mono text-sm">{error}</p>
                   </td>
                 </tr>
               ) : filteredLeads.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="p-8 text-center text-slate-500">
+                  <td colSpan={5} className="p-8 text-center text-[var(--text-muted)]">
                     No se encontraron leads.
                   </td>
                 </tr>
               ) : (
                 filteredLeads.map((lead) => (
-                  <tr key={lead.id} className="hover:bg-slate-800/30 transition-colors">
-                    <td className="p-4 text-sm text-slate-400 whitespace-nowrap">
+                  <tr key={lead.id} className="hover:bg-[var(--bg-surface)]/30 transition-colors">
+                    <td className="p-4 text-sm text-[var(--text-muted)] whitespace-nowrap">
                       {new Date(lead.date).toLocaleDateString()}
                     </td>
                     <td className="p-4">
-                      <div className="font-medium text-white">{lead.leadData?.business || 'Sin Nombre'}</div>
-                      <div className="text-xs text-slate-500">{lead.profileName}</div>
+                      <div className="font-medium text-[var(--text-primary)]">{lead.leadData?.business || 'Sin Nombre'}</div>
+                      <div className="text-xs text-[var(--text-muted)]">{lead.profileName}</div>
                     </td>
                     <td className="p-4">
-                      <div className="text-sm text-slate-300">{lead.leadData?.name}</div>
-                      <div className="text-xs text-slate-500">{lead.leadData?.phone}</div>
+                      <div className="text-sm text-[var(--text-secondary)]">{lead.leadData?.name}</div>
+                      <div className="text-xs text-[var(--text-muted)]">{lead.leadData?.phone}</div>
                     </td>
                     <td className="p-4 text-center">
                       <div className={`font-bold font-mono ${getStatusColor(lead.scoreGlobal || 0)}`}>
@@ -244,7 +244,7 @@ const AdminLeads = () => {
                     <td className="p-4 text-center flex justify-center gap-2">
                       <button
                         onClick={() => setSelectedLead(lead)}
-                        className="p-2 bg-slate-700 hover:bg-[#1FB6D5] text-slate-300 hover:text-[#021019] rounded-lg transition-all"
+                        className="p-2 bg-[var(--bg-surface-soft)] hover:bg-[var(--color-primary)] text-[var(--text-secondary)] hover:text-[#050607] rounded-lg transition-all"
                         title="Ver Detalle"
                       >
                         <FileText className="w-4 h-4" />
@@ -263,7 +263,7 @@ const AdminLeads = () => {
                             await deleteLead(lead);
                           }
                         }}
-                        className="p-2 bg-red-900/30 hover:bg-red-600 text-red-400 hover:text-white rounded-lg transition-all"
+                        className="p-2 bg-[rgba(255,77,77,0.12)]/30 hover:bg-[var(--color-danger)] text-[var(--color-danger)] hover:text-[var(--text-primary)] rounded-lg transition-all"
                         title="Eliminar Lead"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -280,23 +280,23 @@ const AdminLeads = () => {
       {/* Detail Modal */}
       {selectedLead && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="bg-[#0b1120] w-full max-w-4xl max-h-[90vh] rounded-2xl border border-slate-700 shadow-2xl overflow-hidden flex flex-col">
+          <div className="bg-[#0F1416] w-full max-w-4xl max-h-[90vh] rounded-md border border-[var(--border-subtle)] shadow-2xl overflow-hidden flex flex-col">
 
             {/* Modal Header */}
-            <div className="p-6 border-b border-slate-800 flex justify-between items-start bg-slate-900/50">
+            <div className="p-6 border-b border-[var(--border-subtle)] flex justify-between items-start bg-[var(--bg-base)]/50">
               <div>
-                <h2 className="text-2xl font-bold text-white font-space">{selectedLead.leadData?.business}</h2>
-                <div className="flex items-center gap-4 mt-2 text-sm text-slate-400">
+                <h2 className="text-2xl font-bold text-[var(--text-primary)] font-space">{selectedLead.leadData?.business}</h2>
+                <div className="flex items-center gap-4 mt-2 text-sm text-[var(--text-muted)]">
                   <span className="flex items-center gap-1"><User className="w-3 h-3" /> {selectedLead.leadData?.name}</span>
                   <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {new Date(selectedLead.date).toLocaleDateString()}</span>
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-bold bg-slate-800 ${getStatusColor(selectedLead.scoreGlobal || 0)} border border-slate-700`}>
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-bold bg-[var(--bg-surface)] ${getStatusColor(selectedLead.scoreGlobal || 0)} border border-[var(--border-subtle)]`}>
                     Score: {Math.round(selectedLead.scoreGlobal || 0)}/100
                   </span>
                 </div>
               </div>
               <button
                 onClick={() => setSelectedLead(null)}
-                className="text-slate-500 hover:text-white transition-colors"
+                className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -307,17 +307,17 @@ const AdminLeads = () => {
 
               {/* Financial KPIs */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700 text-center">
-                  <span className="text-slate-400 text-xs uppercase tracking-wider block mb-1">Costo Mercadería</span>
-                  <span className="text-xl font-bold text-white font-mono">{formatPercent(selectedLead.cogsPercentage || 0)}</span>
+                <div className="bg-[var(--bg-surface)]/50 p-4 rounded-md border border-[var(--border-subtle)] text-center">
+                  <span className="text-[var(--text-muted)] text-xs uppercase tracking-wider block mb-1">Costo Mercadería</span>
+                  <span className="text-xl font-bold text-[var(--text-primary)] font-mono">{formatPercent(selectedLead.cogsPercentage || 0)}</span>
                 </div>
-                <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700 text-center">
-                  <span className="text-slate-400 text-xs uppercase tracking-wider block mb-1">Costo Laboral</span>
-                  <span className="text-xl font-bold text-white font-mono">{formatPercent(selectedLead.laborPercentage || 0)}</span>
+                <div className="bg-[var(--bg-surface)]/50 p-4 rounded-md border border-[var(--border-subtle)] text-center">
+                  <span className="text-[var(--text-muted)] text-xs uppercase tracking-wider block mb-1">Costo Laboral</span>
+                  <span className="text-xl font-bold text-[var(--text-primary)] font-mono">{formatPercent(selectedLead.laborPercentage || 0)}</span>
                 </div>
-                <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700 text-center">
-                  <span className="text-slate-400 text-xs uppercase tracking-wider block mb-1">Margen Bruto</span>
-                  <span className={`text-xl font-bold font-mono ${(selectedLead.marginPercentage || 0) < 15 ? 'text-red-400' : 'text-green-400'}`}>
+                <div className="bg-[var(--bg-surface)]/50 p-4 rounded-md border border-[var(--border-subtle)] text-center">
+                  <span className="text-[var(--text-muted)] text-xs uppercase tracking-wider block mb-1">Margen Bruto</span>
+                  <span className={`text-xl font-bold font-mono ${(selectedLead.marginPercentage || 0) < 15 ? 'text-[var(--color-danger)]' : 'text-[var(--color-success)]'}`}>
                     {formatPercent(selectedLead.marginPercentage || 0)}
                   </span>
                 </div>
@@ -327,28 +327,28 @@ const AdminLeads = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* Left Col: Profile Description */}
                 <div>
-                  <h3 className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-4 flex items-center">
+                  <h3 className="text-[var(--text-muted)] text-xs font-bold uppercase tracking-wider mb-4 flex items-center">
                     <Activity className="w-4 h-4 mr-2" /> Perfil Detectado
                   </h3>
-                  <div className="p-4 bg-slate-800/30 rounded-xl border border-slate-700/50">
-                    <h4 className="text-[#1FB6D5] font-bold text-lg mb-2">{selectedLead.profileName}</h4>
-                    <p className="text-slate-300 text-sm leading-relaxed">
+                  <div className="p-4 bg-[var(--bg-surface)]/30 rounded-md border border-[var(--border-subtle)]/50">
+                    <h4 className="text-[var(--color-primary)] font-bold text-lg mb-2">{selectedLead.profileName}</h4>
+                    <p className="text-[var(--text-secondary)] text-sm leading-relaxed">
                       {selectedLead.profileDescription || 'No description available for this profile.'}
                     </p>
                   </div>
 
                   {/* Raw Concerns */}
                   {selectedLead.full_data?.primaryConcern && (
-                    <div className="mt-4 p-3 bg-red-900/10 border border-red-900/30 rounded-md">
-                      <span className="text-red-400 text-xs font-bold uppercase tracking-wider block mb-1">Motivo de contacto</span>
-                      <p className="text-sm text-slate-300">{selectedLead.full_data?.primaryConcern[0]}</p>
+                    <div className="mt-4 p-3 bg-[rgba(255,77,77,0.12)]/10 border border-[rgba(255,77,77,0.30)] rounded-md">
+                      <span className="text-[var(--color-danger)] text-xs font-bold uppercase tracking-wider block mb-1">Motivo de contacto</span>
+                      <p className="text-sm text-[var(--text-secondary)]">{selectedLead.full_data?.primaryConcern[0]}</p>
                     </div>
                   )}
                 </div>
 
                 {/* Right Col: 7P Methodology */}
                 <div>
-                  <h3 className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-4 flex items-center">
+                  <h3 className="text-[var(--text-muted)] text-xs font-bold uppercase tracking-wider mb-4 flex items-center">
                     <PieIcon className="w-4 h-4 mr-2" /> Puntuación 7P
                   </h3>
 
@@ -362,14 +362,14 @@ const AdminLeads = () => {
 
                       return (
                         <div key={key} className="flex items-center text-sm">
-                          <span className="w-24 text-slate-400">{key}</span>
-                          <div className="flex-1 h-2 bg-slate-800 rounded-full mx-3 overflow-hidden">
+                          <span className="w-24 text-[var(--text-muted)]">{key}</span>
+                          <div className="flex-1 h-2 bg-[var(--bg-surface)] rounded-full mx-3 overflow-hidden">
                             <div
-                              className={`h-full rounded-full ${score >= 4 ? 'bg-[#1FB6D5]' : (score >= 3 ? 'bg-yellow-500' : 'bg-red-500')}`}
+                              className={`h-full rounded-full ${score >= 4 ? 'bg-[var(--color-primary)]' : (score >= 3 ? 'bg-[var(--color-warning)]' : 'bg-[var(--color-danger)]')}`}
                               style={{ width: `${(score / 5) * 100}%` }}
                             ></div>
                           </div>
-                          <span className="font-bold text-white w-6 text-right">{score}/5</span>
+                          <span className="font-bold text-[var(--text-primary)] w-6 text-right">{score}/5</span>
                         </div>
                       );
                     })}
@@ -377,12 +377,12 @@ const AdminLeads = () => {
                 </div>
               </div>
 
-              <div className="mt-8 pt-6 border-t border-slate-800 flex justify-end gap-4">
-                <Button variant="outline" className="border-slate-700 text-slate-300 hover:text-white" onClick={() => createProjectFromLead(selectedLead)}>
+              <div className="mt-8 pt-6 border-t border-[var(--border-subtle)] flex justify-end gap-4">
+                <Button variant="outline" className="border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]" onClick={() => createProjectFromLead(selectedLead)}>
                   <Briefcase className="w-4 h-4 mr-2" /> Convertir en Proyecto
                 </Button>
                 <a href={generateWhatsappLink(selectedLead)} target="_blank" rel="noreferrer">
-                  <Button className="bg-[#1FB6D5] text-[#021019] hover:bg-white font-bold">
+                  <Button className="bg-[var(--color-primary)] text-[#050607] hover:bg-white font-bold">
                     Contactar ahora
                   </Button>
                 </a>
