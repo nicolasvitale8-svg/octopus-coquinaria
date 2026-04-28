@@ -68,8 +68,8 @@ const AdminProjectHub = () => {
         }
     };
 
-    if (isLoading) return <div className="p-8 text-center text-slate-500">Cargando Hub...</div>;
-    if (!project) return <div className="p-8 text-center text-red-500">Proyecto no encontrado.</div>;
+    if (isLoading) return <div className="p-8 text-center text-[var(--text-muted)]">Cargando Hub...</div>;
+    if (!project) return <div className="p-8 text-center text-[var(--color-danger)]">Proyecto no encontrado.</div>;
 
     // --- PORTAL CLIENTE (VIEW REDIRECT) ---
     if (profile?.role === 'client') {
@@ -80,9 +80,9 @@ const AdminProjectHub = () => {
             {/* Nav Context / Back Button */}
             <button
                 onClick={() => navigate('/admin/projects')}
-                className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors group"
+                className="flex items-center gap-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors group"
             >
-                <div className="p-2 rounded-full bg-slate-800/50 group-hover:bg-slate-800">
+                <div className="p-2 rounded-full bg-[var(--bg-surface)]/50 group-hover:bg-[var(--bg-surface)]">
                     <ArrowLeft className="w-4 h-4" />
                 </div>
                 <span className="text-sm font-bold uppercase tracking-widest">Listado de Proyectos</span>
@@ -95,35 +95,35 @@ const AdminProjectHub = () => {
             />
 
             {/* Tabs Navigation */}
-            <div className="flex border-b border-slate-800 gap-8">
+            <div className="flex border-b border-[var(--border-subtle)] gap-8">
                 <button
                     onClick={() => setActiveTab('overview')}
-                    className={`pb-4 text-sm font-bold transition-all px-2 relative ${activeTab === 'overview' ? 'text-cyan-400' : 'text-slate-500 hover:text-slate-300'}`}
+                    className={`pb-4 text-sm font-bold transition-all px-2 relative ${activeTab === 'overview' ? 'text-[var(--color-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'}`}
                 >
                     Resumen Geral
-                    {activeTab === 'overview' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-cyan-400 rounded-full" />}
+                    {activeTab === 'overview' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--color-primary)] rounded-full" />}
                 </button>
                 <button
                     onClick={() => setActiveTab('tasks')}
-                    className={`pb-4 text-sm font-bold transition-all px-2 relative ${activeTab === 'tasks' ? 'text-cyan-400' : 'text-slate-500 hover:text-slate-300'}`}
+                    className={`pb-4 text-sm font-bold transition-all px-2 relative ${activeTab === 'tasks' ? 'text-[var(--color-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'}`}
                 >
                     Tareas y Colaboración
-                    <span className="ml-2 bg-slate-800 text-slate-400 text-[10px] px-1.5 py-0.5 rounded-full">Pro</span>
-                    {activeTab === 'tasks' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-cyan-400 rounded-full" />}
+                    <span className="ml-2 bg-[var(--bg-surface)] text-[var(--text-muted)] text-[10px] px-1.5 py-0.5 rounded-full">Pro</span>
+                    {activeTab === 'tasks' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--color-primary)] rounded-full" />}
                 </button>
                 <button
                     onClick={() => setActiveTab('deliverables')}
-                    className={`pb-4 text-sm font-bold transition-all px-2 relative ${activeTab === 'deliverables' ? 'text-cyan-400' : 'text-slate-500 hover:text-slate-300'}`}
+                    className={`pb-4 text-sm font-bold transition-all px-2 relative ${activeTab === 'deliverables' ? 'text-[var(--color-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'}`}
                 >
                     Entregables
-                    {activeTab === 'deliverables' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-cyan-400 rounded-full" />}
+                    {activeTab === 'deliverables' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--color-primary)] rounded-full" />}
                 </button>
                 <button
                     onClick={() => setActiveTab('journal')}
-                    className={`pb-4 text-sm font-bold transition-all px-2 relative ${activeTab === 'journal' ? 'text-cyan-400' : 'text-slate-500 hover:text-slate-300'}`}
+                    className={`pb-4 text-sm font-bold transition-all px-2 relative ${activeTab === 'journal' ? 'text-[var(--color-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'}`}
                 >
                     Bitácora
-                    {activeTab === 'journal' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-cyan-400 rounded-full" />}
+                    {activeTab === 'journal' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--color-primary)] rounded-full" />}
                 </button>
             </div>
 
@@ -175,15 +175,15 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { has
     render() {
         if (this.state.hasError) {
             return (
-                <div className="p-12 bg-slate-950 text-white min-h-screen flex flex-col items-center justify-center font-mono">
-                    <div className="bg-slate-900 border border-red-500/50 rounded-xl p-8 max-w-2xl w-full shadow-2xl">
-                        <Activity className="w-12 h-12 text-red-500 mb-4" />
-                        <h1 className="text-2xl text-red-400 font-bold mb-4">¡Ups! Algo se rompió.</h1>
-                        <p className="text-slate-400 mb-6">Se ha producido un error crítico al renderizar este componente. Por favor comparte esta captura:</p>
+                <div className="p-12 bg-[var(--bg-base)] text-[var(--text-primary)] min-h-screen flex flex-col items-center justify-center font-mono">
+                    <div className="bg-[var(--bg-base)] border border-[var(--color-danger)]/50 rounded-md p-8 max-w-2xl w-full shadow-2xl">
+                        <Activity className="w-12 h-12 text-[var(--color-danger)] mb-4" />
+                        <h1 className="text-2xl text-[var(--color-danger)] font-bold mb-4">¡Ups! Algo se rompió.</h1>
+                        <p className="text-[var(--text-muted)] mb-6">Se ha producido un error crítico al renderizar este componente. Por favor comparte esta captura:</p>
 
-                        <div className="bg-black/50 p-4 rounded-lg border border-slate-800 overflow-auto max-h-64 text-xs text-red-300 mb-4">
+                        <div className="bg-black/50 p-4 rounded-lg border border-[var(--border-subtle)] overflow-auto max-h-64 text-xs text-[var(--color-danger)] mb-4">
                             <strong>{this.state.error?.toString()}</strong>
-                            <pre className="mt-2 text-slate-500">{this.state.errorInfo?.componentStack}</pre>
+                            <pre className="mt-2 text-[var(--text-muted)]">{this.state.errorInfo?.componentStack}</pre>
                         </div>
 
                         <Button onClick={() => window.location.reload()}>

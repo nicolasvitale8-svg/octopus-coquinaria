@@ -119,10 +119,10 @@ const AdminBoard = () => {
 
     const getItemStatus = (item: NewsBoardItem) => {
         const now = new Date().toISOString().split('T')[0];
-        if (!item.is_visible) return { label: 'Oculto', color: 'text-slate-500', icon: <EyeOff size={12} /> };
+        if (!item.is_visible) return { label: 'Oculto', color: 'text-[var(--text-muted)]', icon: <EyeOff size={12} /> };
         if (now < item.start_date) return { label: 'Programado', color: 'text-blue-400', icon: <Clock size={12} /> };
-        if (now > item.end_date) return { label: 'Vencido', color: 'text-red-400', icon: <AlertCircle size={12} /> };
-        return { label: 'Activo', color: 'text-emerald-400', icon: <CheckCircle size={12} /> };
+        if (now > item.end_date) return { label: 'Vencido', color: 'text-[var(--color-danger)]', icon: <AlertCircle size={12} /> };
+        return { label: 'Activo', color: 'text-[var(--color-success)]', icon: <CheckCircle size={12} /> };
     };
 
     const filteredItems = items.filter(item => {
@@ -136,32 +136,32 @@ const AdminBoard = () => {
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-                        <Megaphone className="text-[#1FB6D5]" /> Pizarra de Novedades
+                    <h1 className="text-2xl font-bold text-[var(--text-primary)] flex items-center gap-2">
+                        <Megaphone className="text-[var(--color-primary)]" /> Pizarra de Novedades
                     </h1>
-                    <p className="text-slate-400 text-sm">Gestiona los comunicados públicos de la Home.</p>
+                    <p className="text-[var(--text-muted)] text-sm">Gestiona los comunicados públicos de la Home.</p>
                 </div>
-                <Button onClick={() => { setEditingItem({ type: 'TIP', priority: 2, is_visible: true, start_date: new Date().toISOString().split('T')[0] }); setIsModalOpen(true); }} className="bg-[#1FB6D5] text-[#021019] hover:bg-white font-bold">
+                <Button onClick={() => { setEditingItem({ type: 'TIP', priority: 2, is_visible: true, start_date: new Date().toISOString().split('T')[0] }); setIsModalOpen(true); }} className="bg-[var(--color-primary)] text-[#050607] hover:bg-white font-bold">
                     <Plus size={18} className="mr-2" /> Nueva Novedad
                 </Button>
             </div>
 
-            <div className="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden shadow-xl">
+            <div className="bg-[var(--bg-base)] rounded-md border border-[var(--border-subtle)] overflow-hidden shadow-xl">
                 {/* Filters */}
-                <div className="p-4 border-b border-slate-800 flex flex-col md:flex-row gap-4">
+                <div className="p-4 border-b border-[var(--border-subtle)] flex flex-col md:flex-row gap-4">
                     <div className="relative flex-grow">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
                         <input
                             type="text"
                             placeholder="Buscar por título o contenido..."
-                            className="w-full bg-slate-800 border-none rounded-lg pl-10 pr-4 py-2 text-sm text-white focus:ring-1 focus:ring-[#1FB6D5]"
+                            className="w-full bg-[var(--bg-surface)] border-none rounded-lg pl-10 pr-4 py-2 text-sm text-[var(--text-primary)] focus:ring-1 focus:ring-[var(--color-primary)]"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                         />
                     </div>
                     <div className="flex gap-2">
                         <select
-                            className="bg-slate-800 border-none rounded-lg px-3 py-2 text-sm text-white focus:ring-1 focus:ring-[#1FB6D5]"
+                            className="bg-[var(--bg-surface)] border-none rounded-lg px-3 py-2 text-sm text-[var(--text-primary)] focus:ring-1 focus:ring-[var(--color-primary)]"
                             value={filterType}
                             onChange={(e) => setFilterType(e.target.value)}
                         >
@@ -176,8 +176,8 @@ const AdminBoard = () => {
 
                 {/* Table */}
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm text-slate-300">
-                        <thead className="bg-[#0b1120] text-slate-500 uppercase text-[10px] font-bold tracking-widest">
+                    <table className="w-full text-left text-sm text-[var(--text-secondary)]">
+                        <thead className="bg-[#0F1416] text-[var(--text-muted)] uppercase text-[10px] font-bold tracking-widest">
                             <tr>
                                 <th className="px-6 py-4">Item</th>
                                 <th className="px-6 py-4 text-center">Estado</th>
@@ -186,57 +186,57 @@ const AdminBoard = () => {
                                 <th className="px-6 py-4 text-right">Acciones</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-800">
+                        <tbody className="divide-y divide-[var(--border-subtle)]">
                             {loading ? (
-                                <tr><td colSpan={5} className="px-6 py-20 text-center text-slate-500">Cargando pizarra...</td></tr>
+                                <tr><td colSpan={5} className="px-6 py-20 text-center text-[var(--text-muted)]">Cargando pizarra...</td></tr>
                             ) : filteredItems.length === 0 ? (
-                                <tr><td colSpan={5} className="px-6 py-20 text-center text-slate-500">No se encontraron items.</td></tr>
+                                <tr><td colSpan={5} className="px-6 py-20 text-center text-[var(--text-muted)]">No se encontraron items.</td></tr>
                             ) : filteredItems.map((item) => {
                                 const status = getItemStatus(item);
                                 return (
-                                    <tr key={item.id} className="hover:bg-slate-800/30 transition-colors group">
+                                    <tr key={item.id} className="hover:bg-[var(--bg-surface)]/30 transition-colors group">
                                         <td className="px-6 py-4 max-w-lg">
                                             <div className="flex flex-col">
                                                 <div className="flex items-center gap-2 mb-1">
-                                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase whitespace-nowrap ${item.type === 'TIP' ? 'bg-yellow-400/10 text-yellow-400' :
-                                                        item.type === 'DESCUENTO' ? 'bg-green-400/10 text-green-400' :
-                                                            item.type === 'NOVEDAD_APP' ? 'bg-[#1FB6D5]/10 text-[#1FB6D5]' : 'bg-purple-400/10 text-purple-400'
+                                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase whitespace-nowrap ${item.type === 'TIP' ? 'bg-[rgba(255,177,42,0.10)] text-[var(--color-warning)]' :
+                                                        item.type === 'DESCUENTO' ? 'bg-[var(--color-success)]/10 text-[var(--color-success)]' :
+                                                            item.type === 'NOVEDAD_APP' ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]' : 'bg-[rgba(0,255,157,0.10)] text-[var(--color-primary)]'
                                                         }`}>
                                                         {item.type}
                                                     </span>
-                                                    <span className="font-bold text-white group-hover:text-[#1FB6D5] transition-colors">{item.title}</span>
+                                                    <span className="font-bold text-[var(--text-primary)] group-hover:text-[var(--color-primary)] transition-colors">{item.title}</span>
                                                 </div>
-                                                <span className="text-xs text-slate-500 line-clamp-2 whitespace-normal">{item.summary}</span>
+                                                <span className="text-xs text-[var(--text-muted)] line-clamp-2 whitespace-normal">{item.summary}</span>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 text-center">
-                                            <div className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-slate-800 text-xs font-medium ${status.color}`}>
+                                            <div className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-[var(--bg-surface)] text-xs font-medium ${status.color}`}>
                                                 {status.icon}
                                                 {status.label}
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 text-center">
-                                            <span className={`w-6 h-6 inline-flex items-center justify-center rounded text-[10px] font-bold ${item.priority === 1 ? 'bg-red-500 text-white' :
-                                                item.priority === 2 ? 'bg-[#1FB6D5] text-slate-900' : 'bg-slate-700 text-slate-300'
+                                            <span className={`w-6 h-6 inline-flex items-center justify-center rounded text-[10px] font-bold ${item.priority === 1 ? 'bg-[var(--color-danger)] text-[var(--text-primary)]' :
+                                                item.priority === 2 ? 'bg-[var(--color-primary)] text-[var(--text-on-phosphor)]' : 'bg-[var(--bg-surface-soft)] text-[var(--text-secondary)]'
                                                 }`}>
                                                 {item.priority}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <div className="flex flex-col text-[11px] text-slate-500 font-mono">
+                                            <div className="flex flex-col text-[11px] text-[var(--text-muted)] font-mono">
                                                 <span>Desde: {item.start_date}</span>
                                                 <span>Hasta: {item.end_date}</span>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <div className="flex items-center justify-end gap-2">
-                                                <button onClick={() => { setEditingItem(item); setIsModalOpen(true); }} className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded transition-all">
+                                                <button onClick={() => { setEditingItem(item); setIsModalOpen(true); }} className="p-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-soft)] rounded transition-all">
                                                     <Edit2 size={16} />
                                                 </button>
-                                                <button onClick={() => handleToggleVisibility(item)} className="p-2 text-slate-400 hover:text-cyan-400 hover:bg-slate-700 rounded transition-all">
+                                                <button onClick={() => handleToggleVisibility(item)} className="p-2 text-[var(--text-muted)] hover:text-[var(--color-primary)] hover:bg-[var(--bg-surface-soft)] rounded transition-all">
                                                     {item.is_visible ? <Eye size={16} /> : <EyeOff size={16} />}
                                                 </button>
-                                                <button onClick={() => handleDelete(item.id)} className="p-2 text-slate-500 hover:text-red-400 hover:bg-red-900/10 rounded transition-all">
+                                                <button onClick={() => handleDelete(item.id)} className="p-2 text-[var(--text-muted)] hover:text-[var(--color-danger)] hover:bg-[rgba(255,77,77,0.12)]/10 rounded transition-all">
                                                     <Trash2 size={16} />
                                                 </button>
                                             </div>
@@ -252,26 +252,26 @@ const AdminBoard = () => {
             {/* Modal */}
             {isModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                    <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden animate-slide-up">
-                        <div className="p-6 border-b border-slate-800">
-                            <h2 className="text-xl font-bold text-white">{editingItem?.id ? 'Editar Novedad' : 'Nueva Novedad'}</h2>
+                    <div className="bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-md w-full max-w-lg shadow-2xl overflow-hidden animate-slide-up">
+                        <div className="p-6 border-b border-[var(--border-subtle)]">
+                            <h2 className="text-xl font-bold text-[var(--text-primary)]">{editingItem?.id ? 'Editar Novedad' : 'Nueva Novedad'}</h2>
                         </div>
                         <form onSubmit={handleSave} className="p-6 space-y-4">
                             <div>
-                                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Título (Máx 80)</label>
+                                <label className="block text-xs font-bold text-[var(--text-muted)] uppercase mb-1">Título (Máx 80)</label>
                                 <input
                                     required
                                     maxLength={80}
-                                    className="w-full bg-slate-800 border-slate-700 rounded-lg text-white"
+                                    className="w-full bg-[var(--bg-surface)] border-[var(--border-subtle)] rounded-lg text-[var(--text-primary)]"
                                     value={editingItem?.title || ''}
                                     onChange={e => setEditingItem({ ...editingItem, title: e.target.value })}
                                 />
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Tipo</label>
+                                    <label className="block text-xs font-bold text-[var(--text-muted)] uppercase mb-1">Tipo</label>
                                     <select
-                                        className="w-full bg-slate-800 border-slate-700 rounded-lg text-white"
+                                        className="w-full bg-[var(--bg-surface)] border-[var(--border-subtle)] rounded-lg text-[var(--text-primary)]"
                                         value={editingItem?.type || 'TIP'}
                                         onChange={e => setEditingItem({ ...editingItem, type: e.target.value as NewsBoardItemType })}
                                     >
@@ -282,9 +282,9 @@ const AdminBoard = () => {
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Prioridad (1=Alta)</label>
+                                    <label className="block text-xs font-bold text-[var(--text-muted)] uppercase mb-1">Prioridad (1=Alta)</label>
                                     <select
-                                        className="w-full bg-slate-800 border-slate-700 rounded-lg text-white"
+                                        className="w-full bg-[var(--bg-surface)] border-[var(--border-subtle)] rounded-lg text-[var(--text-primary)]"
                                         value={editingItem?.priority || 2}
                                         onChange={e => setEditingItem({ ...editingItem, priority: parseInt(e.target.value) as 1 | 2 | 3 })}
                                     >
@@ -295,33 +295,33 @@ const AdminBoard = () => {
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Resumen (Máx 200)</label>
+                                <label className="block text-xs font-bold text-[var(--text-muted)] uppercase mb-1">Resumen (Máx 200)</label>
                                 <textarea
                                     required
                                     maxLength={200}
                                     rows={3}
-                                    className="w-full bg-slate-800 border-slate-700 rounded-lg text-white text-sm"
+                                    className="w-full bg-[var(--bg-surface)] border-[var(--border-subtle)] rounded-lg text-[var(--text-primary)] text-sm"
                                     value={editingItem?.summary || ''}
                                     onChange={e => setEditingItem({ ...editingItem, summary: e.target.value })}
                                 />
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Inicia</label>
+                                    <label className="block text-xs font-bold text-[var(--text-muted)] uppercase mb-1">Inicia</label>
                                     <input
                                         type="date"
                                         required
-                                        className="w-full bg-slate-800 border-slate-700 rounded-lg text-white"
+                                        className="w-full bg-[var(--bg-surface)] border-[var(--border-subtle)] rounded-lg text-[var(--text-primary)]"
                                         value={editingItem?.start_date || ''}
                                         onChange={e => setEditingItem({ ...editingItem, start_date: e.target.value })}
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Vence</label>
+                                    <label className="block text-xs font-bold text-[var(--text-muted)] uppercase mb-1">Vence</label>
                                     <input
                                         type="date"
                                         required
-                                        className="w-full bg-slate-800 border-slate-700 rounded-lg text-white"
+                                        className="w-full bg-[var(--bg-surface)] border-[var(--border-subtle)] rounded-lg text-[var(--text-primary)]"
                                         value={editingItem?.end_date || ''}
                                         onChange={e => setEditingItem({ ...editingItem, end_date: e.target.value })}
                                     />
@@ -329,18 +329,18 @@ const AdminBoard = () => {
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Etiqueta Botón</label>
+                                    <label className="block text-xs font-bold text-[var(--text-muted)] uppercase mb-1">Etiqueta Botón</label>
                                     <input
-                                        className="w-full bg-slate-800 border-slate-700 rounded-lg text-white"
+                                        className="w-full bg-[var(--bg-surface)] border-[var(--border-subtle)] rounded-lg text-[var(--text-primary)]"
                                         value={editingItem?.cta_label || ''}
                                         placeholder="Ej: Ver más"
                                         onChange={e => setEditingItem({ ...editingItem, cta_label: e.target.value })}
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">URL Botón</label>
+                                    <label className="block text-xs font-bold text-[var(--text-muted)] uppercase mb-1">URL Botón</label>
                                     <input
-                                        className="w-full bg-slate-800 border-slate-700 rounded-lg text-white"
+                                        className="w-full bg-[var(--bg-surface)] border-[var(--border-subtle)] rounded-lg text-[var(--text-primary)]"
                                         value={editingItem?.cta_url || ''}
                                         placeholder="/academy o https://..."
                                         onChange={e => setEditingItem({ ...editingItem, cta_url: e.target.value })}
@@ -348,9 +348,9 @@ const AdminBoard = () => {
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Tag (Opcional)</label>
+                                <label className="block text-xs font-bold text-[var(--text-muted)] uppercase mb-1">Tag (Opcional)</label>
                                 <input
-                                    className="w-full bg-slate-800 border-slate-700 rounded-lg text-white"
+                                    className="w-full bg-[var(--bg-surface)] border-[var(--border-subtle)] rounded-lg text-[var(--text-primary)]"
                                     value={editingItem?.tag || ''}
                                     placeholder="Ej: Verano"
                                     onChange={e => setEditingItem({ ...editingItem, tag: e.target.value })}
@@ -361,25 +361,25 @@ const AdminBoard = () => {
                                 <input
                                     type="checkbox"
                                     id="visible"
-                                    className="w-4 h-4 rounded border-slate-700 bg-slate-800 text-[#1FB6D5] focus:ring-[#1FB6D5]"
+                                    className="w-4 h-4 rounded border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
                                     checked={editingItem?.is_visible || false}
                                     onChange={e => setEditingItem({ ...editingItem, is_visible: e.target.checked })}
                                 />
-                                <label htmlFor="visible" className="text-sm text-white cursor-pointer select-none font-bold">
+                                <label htmlFor="visible" className="text-sm text-[var(--text-primary)] cursor-pointer select-none font-bold">
                                     Publicar (Visibilidad en la Home)
                                 </label>
                             </div>
 
                             {/* URL Presets */}
                             <div className="pt-2">
-                                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-3 tracking-widest">Accesos Rápidos</label>
+                                <label className="block text-[10px] font-bold text-[var(--text-muted)] uppercase mb-3 tracking-widest">Accesos Rápidos</label>
                                 <div className="flex flex-wrap gap-2">
                                     {URL_PRESETS.map((preset, idx) => (
                                         <button
                                             key={idx}
                                             type="button"
                                             onClick={() => applyPreset(preset)}
-                                            className="flex items-center gap-2 px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-xs text-slate-300 hover:border-[#1FB6D5] hover:text-[#1FB6D5] transition-all"
+                                            className="flex items-center gap-2 px-3 py-1.5 bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg text-xs text-[var(--text-secondary)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] transition-all"
                                         >
                                             {preset.icon}
                                             {preset.label}
@@ -390,7 +390,7 @@ const AdminBoard = () => {
 
                             <div className="flex justify-end gap-3 mt-6">
                                 <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>Cancelar</Button>
-                                <Button type="submit" className="bg-[#1FB6D5] text-[#021019] font-bold">Guardar Cambios</Button>
+                                <Button type="submit" className="bg-[var(--color-primary)] text-[#050607] font-bold">Guardar Cambios</Button>
                             </div>
                         </form>
                     </div>

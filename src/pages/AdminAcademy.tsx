@@ -86,21 +86,21 @@ const AdminAcademy = () => {
                 actions={
                     <Button
                         onClick={() => navigate('/admin/academy/documents')}
-                        className="bg-slate-800 text-slate-200 border border-slate-700 hover:bg-slate-700 hover:text-white flex items-center gap-2"
+                        className="bg-[var(--bg-surface)] text-[var(--text-secondary)] border border-[var(--border-subtle)] hover:bg-[var(--bg-surface-soft)] hover:text-[var(--text-primary)] flex items-center gap-2"
                     >
                         <FileText className="w-4 h-4" /> Generador PDF
                     </Button>
                 }
             />
 
-            <div className="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden shadow-xl">
+            <div className="bg-[var(--bg-base)] rounded-md border border-[var(--border-subtle)] overflow-hidden shadow-xl">
                 {/* Search Bar Inline */}
-                <div className="p-4 border-b border-slate-800 flex items-center">
-                    <Search className="w-5 h-5 text-slate-500 mr-3" />
+                <div className="p-4 border-b border-[var(--border-subtle)] flex items-center">
+                    <Search className="w-5 h-5 text-[var(--text-muted)] mr-3" />
                     <input
                         type="text"
                         placeholder="Buscar por título, categoría o formato..."
-                        className="bg-transparent border-none focus:ring-0 text-white w-full placeholder-slate-600"
+                        className="bg-transparent border-none focus:ring-0 text-[var(--text-primary)] w-full placeholder-[var(--text-muted)]"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                     />
