@@ -199,7 +199,7 @@ const Dashboard = () => {
                 <MiniProgressRing
                   value={lastDiagnostic?.scoreGlobal || 0}
                   label="Salud Global"
-                  color="#D4B681"
+                  color="#00FF9D"
                 />
               </MetricCard>
             </div>
@@ -219,10 +219,10 @@ const Dashboard = () => {
                   label="Resultado"
                   color={
                     margenTone === 'success'
-                      ? '#22C55E'
+                      ? '#00C57D'
                       : margenTone === 'warning'
-                      ? '#EAB308'
-                      : '#EF4444'
+                      ? '#FFB12A'
+                      : '#FF4D4D'
                   }
                 />
               </MetricCard>
@@ -243,10 +243,10 @@ const Dashboard = () => {
                   label="Costo %"
                   color={
                     cmvTone === 'success'
-                      ? '#22C55E'
+                      ? '#00C57D'
                       : cmvTone === 'warning'
-                      ? '#EAB308'
-                      : '#EF4444'
+                      ? '#FFB12A'
+                      : '#FF4D4D'
                   }
                 />
                 <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--text-muted)]">
@@ -257,12 +257,14 @@ const Dashboard = () => {
 
             {/* MAIN CHART — Evolución Costos */}
             <div
-              className="md:col-span-8 rounded-xl border p-6 md:p-8"
+              className="md:col-span-8 relative border p-6 md:p-8"
               style={{
                 background: 'var(--bg-surface)',
                 borderColor: 'var(--border-subtle)',
               }}
             >
+              <span aria-hidden="true" className="absolute top-0 left-0 w-2.5 h-2.5 border-l border-t" style={{ borderColor: 'var(--color-primary)' }} />
+              <span aria-hidden="true" className="absolute bottom-0 right-0 w-2.5 h-2.5 border-r border-b" style={{ borderColor: 'var(--color-primary)' }} />
               <div className="mb-6 flex items-center justify-between gap-4 flex-wrap">
                 <div>
                   <h3 className="font-display text-lg md:text-xl font-semibold tracking-tight text-[var(--text-primary)]">
@@ -313,33 +315,33 @@ const Dashboard = () => {
                       />
                       <XAxis
                         dataKey="month"
-                        stroke="#6F7A89"
+                        stroke="#636A6F"
                         fontSize={10}
                         tickLine={false}
                         axisLine={false}
                         dy={10}
                       />
                       <YAxis
-                        stroke="#6F7A89"
+                        stroke="#636A6F"
                         fontSize={10}
                         tickLine={false}
                         axisLine={false}
                         dx={-10}
                       />
                       <Tooltip
-                        cursor={{ fill: 'rgba(243, 239, 228, 0.04)' }}
+                        cursor={{ fill: 'rgba(0, 255, 157, 0.06)' }}
                         contentStyle={{
-                          backgroundColor: '#101826',
-                          border: '1px solid rgba(212, 182, 129, 0.18)',
-                          borderRadius: '12px',
-                          color: '#F3EFE4',
+                          backgroundColor: '#0F1416',
+                          border: '1px solid rgba(0, 255, 157, 0.30)',
+                          borderRadius: '4px',
+                          color: '#E6E8E5',
                           fontFamily: "'IBM Plex Mono', monospace",
                           fontSize: '12px',
                         }}
-                        labelStyle={{ color: '#AAB4C3', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em' }}
+                        labelStyle={{ color: '#00FF9D', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em' }}
                       />
-                      <Bar dataKey="cogs" fill="#9F7A43" radius={[4, 4, 0, 0]} barSize={20} />
-                      <Bar dataKey="labor" fill="#D4B681" radius={[4, 4, 0, 0]} barSize={20} />
+                      <Bar dataKey="cogs" fill="#00B070" radius={[2, 2, 0, 0]} barSize={20} />
+                      <Bar dataKey="labor" fill="#00FF9D" radius={[2, 2, 0, 0]} barSize={20} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>

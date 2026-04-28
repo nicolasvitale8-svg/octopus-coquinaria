@@ -7,6 +7,11 @@ import { Mail, ArrowLeft, Loader2 } from 'lucide-react';
 import { supabase } from '../services/supabase';
 import { useAuth } from '../contexts/AuthContext';
 
+/**
+ * Login — entry HUD/terminal · FASE 3
+ * Refactor: paleta phosphor, corner brackets, mono labels, sharp corners.
+ */
+
 const Login = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -22,15 +27,12 @@ const Login = () => {
     setIsGoogleLoading(true);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/dashboard`,
-      },
+      options: { redirectTo: `${window.location.origin}/dashboard` },
     });
     if (error) {
       setIsGoogleLoading(false);
       setErrorMessage('No se pudo iniciar sesión con Google. Intentá de nuevo.');
     }
-    // Si no hay error, el browser redirige a Google y esta página se descarta.
   };
 
   const handlePasswordRecovery = async (e: React.FormEvent) => {
@@ -39,16 +41,12 @@ const Login = () => {
     setIsLoading(true);
     setErrorMessage(null);
     setSuccessMessage(null);
-
     const target = e.currentTarget as HTMLFormElement;
     const email = (target.elements.namedItem('recovery-email') as HTMLInputElement).value;
-
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset-password`,
     });
-
     setIsLoading(false);
-
     if (error) {
       setErrorMessage('Error al enviar el email. Verificá que el email sea correcto.');
     } else {
@@ -56,34 +54,62 @@ const Login = () => {
     }
   };
 
+  // ----- Recovery view -----
   if (isRecoveryMode) {
     return (
       <Layout>
-        <div className="min-h-[80vh] flex items-center justify-center px-4">
-          <div className="bg-slate-900 p-8 rounded-xl border border-slate-800 shadow-2xl w-full max-w-md">
+        <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
+          <div
+            className="relative p-8 border w-full max-w-md"
+            style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}
+          >
+            <span aria-hidden="true" className="absolute top-0 left-0 w-3 h-3 border-l border-t" style={{ borderColor: 'var(--color-primary)' }} />
+            <span aria-hidden="true" className="absolute top-0 right-0 w-3 h-3 border-r border-t" style={{ borderColor: 'var(--color-primary)' }} />
+            <span aria-hidden="true" className="absolute bottom-0 left-0 w-3 h-3 border-l border-b" style={{ borderColor: 'var(--color-primary)' }} />
+            <span aria-hidden="true" className="absolute bottom-0 right-0 w-3 h-3 border-r border-b" style={{ borderColor: 'var(--color-primary)' }} />
+
             <button
               onClick={() => { setIsRecoveryMode(false); setErrorMessage(null); setSuccessMessage(null); }}
-              className="flex items-center gap-2 text-slate-400 hover:text-white text-sm mb-6 transition-colors"
+              className="flex items-center gap-2 text-[var(--text-muted)] hover:text-[var(--color-primary)] text-xs font-mono uppercase tracking-[0.18em] mb-6 transition-colors"
             >
-              <ArrowLeft size={16} /> Volver al login
+              <ArrowLeft size={14} /> Volver al login
             </button>
+
             <div className="text-center mb-8">
-              <div className="w-16 h-16 bg-cyan-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Mail className="text-cyan-400" size={28} />
+              <div className="font-mono text-[10px] uppercase tracking-[0.28em] text-[var(--color-primary)] mb-2">
+                — Sistema · Recovery
               </div>
-              <h1 className="text-2xl font-bold text-white">Recuperar Contraseña</h1>
-              <p className="text-slate-400 text-sm mt-2">Ingresá tu email y te enviamos un link para resetear tu contraseña.</p>
+              <div
+                className="w-14 h-14 border flex items-center justify-center mx-auto mb-4"
+                style={{ background: 'var(--bg-base)', borderColor: 'var(--border-subtle)', color: 'var(--color-primary)' }}
+              >
+                <Mail size={22} strokeWidth={1.75} />
+              </div>
+              <h1 className="font-display text-xl font-bold tracking-tight text-[var(--text-primary)]">
+                Recuperar contraseña
+              </h1>
+              <p className="font-mono text-[11px] leading-relaxed text-[var(--text-secondary)] mt-2">
+                Ingresá tu email y te enviamos un link para resetear.
+              </p>
             </div>
+
             {errorMessage && (
-              <div className="p-3 bg-red-500/10 border border-red-500/50 rounded-lg text-red-400 text-sm text-center mb-4">
+              <div
+                className="p-3 border text-xs text-center mb-4 font-mono"
+                style={{ background: 'rgba(255, 77, 77, 0.10)', borderColor: 'rgba(255, 77, 77, 0.45)', color: 'var(--color-danger)' }}
+              >
                 {errorMessage}
               </div>
             )}
             {successMessage && (
-              <div className="p-4 bg-emerald-500/10 border border-emerald-500/50 rounded-lg text-emerald-400 text-sm text-center mb-4">
+              <div
+                className="p-4 border text-xs text-center mb-4 font-mono"
+                style={{ background: 'rgba(0, 197, 125, 0.12)', borderColor: 'rgba(0, 197, 125, 0.45)', color: 'var(--color-success)' }}
+              >
                 {successMessage}
               </div>
             )}
+
             {!successMessage && (
               <form onSubmit={handlePasswordRecovery} className="space-y-4">
                 <Input
@@ -92,58 +118,73 @@ const Login = () => {
                   type="email"
                   placeholder="tu@email.com"
                   required
-                  className="bg-slate-950 border-slate-700 focus:border-[#1FB6D5]"
                 />
-                <Button
-                  fullWidth
-                  variant="primary"
-                  type="submit"
-                  disabled={isLoading}
-                  className="text-sm py-3 font-bold shadow-lg shadow-[#1FB6D5]/20"
-                >
-                  {isLoading ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <Loader2 className="animate-spin" size={16} /> Enviando...
-                    </span>
-                  ) : (
-                    'ENVIAR LINK DE RECUPERACIÓN'
-                  )}
+                <Button fullWidth variant="primary" type="submit" disabled={isLoading} icon={isLoading ? Loader2 : undefined}>
+                  {isLoading ? 'Enviando…' : 'Enviar link de recuperación'}
                 </Button>
               </form>
             )}
+
+            <div className="mt-6 pt-4 border-t flex items-center justify-between font-mono text-[9px] uppercase tracking-[0.22em] text-[var(--text-muted)]" style={{ borderColor: 'var(--border-subtle)' }}>
+              <span>CPD-AUTH-RCV-001</span>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="inline-flex h-1 w-1 rounded-full animate-pulse" style={{ background: 'var(--color-primary)' }} />
+                Online
+              </span>
+            </div>
           </div>
         </div>
       </Layout>
     );
   }
 
+  // ----- Login view -----
   return (
     <Layout>
-      <div className="min-h-[80vh] flex items-center justify-center px-4">
-        <div className="bg-slate-900 p-8 rounded-xl border border-slate-800 shadow-2xl w-full max-w-md">
+      <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
+        <div
+          className="relative p-8 border w-full max-w-md"
+          style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}
+        >
+          <span aria-hidden="true" className="absolute top-0 left-0 w-3 h-3 border-l border-t" style={{ borderColor: 'var(--color-primary)' }} />
+          <span aria-hidden="true" className="absolute top-0 right-0 w-3 h-3 border-r border-t" style={{ borderColor: 'var(--color-primary)' }} />
+          <span aria-hidden="true" className="absolute bottom-0 left-0 w-3 h-3 border-l border-b" style={{ borderColor: 'var(--color-primary)' }} />
+          <span aria-hidden="true" className="absolute bottom-0 right-0 w-3 h-3 border-r border-b" style={{ borderColor: 'var(--color-primary)' }} />
+
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-white">Bienvenido de nuevo</h1>
-            <p className="text-slate-400 text-sm">Ingresá a tu tablero de control.</p>
+            <div className="font-mono text-[10px] uppercase tracking-[0.28em] text-[var(--color-primary)] mb-2">
+              — Sistema · Login
+            </div>
+            <h1 className="font-display text-xl font-bold tracking-tight text-[var(--text-primary)]">
+              Bienvenido de nuevo
+            </h1>
+            <p className="font-mono text-[11px] text-[var(--text-secondary)] mt-1">
+              Ingresá a tu tablero de control.
+            </p>
           </div>
 
-          <div className="space-y-6 animate-fade-in">
+          <div className="space-y-5 animate-fade-in">
             {errorMessage && (
-              <div className="p-3 bg-red-500/10 border border-red-500/50 rounded-lg text-red-400 text-sm text-center">
+              <div
+                className="p-3 border text-xs text-center font-mono"
+                style={{ background: 'rgba(255, 77, 77, 0.10)', borderColor: 'rgba(255, 77, 77, 0.45)', color: 'var(--color-danger)' }}
+              >
                 {errorMessage}
               </div>
             )}
 
-            {/* Botón Continuar con Google */}
+            {/* Botón Google — blanco para reconocibilidad de marca */}
             <button
               type="button"
               onClick={handleGoogleLogin}
               disabled={isGoogleLoading}
-              className="w-full flex items-center justify-center gap-3 bg-white hover:bg-slate-100 disabled:opacity-60 disabled:cursor-not-allowed text-slate-800 font-semibold py-3 px-4 rounded-lg transition-colors shadow-lg"
+              className="w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed text-gray-800 font-medium py-3 px-4 transition-colors border"
+              style={{ borderColor: 'rgba(255,255,255,0.2)' }}
             >
               {isGoogleLoading ? (
                 <>
                   <Loader2 className="animate-spin" size={18} />
-                  <span>Conectando con Google...</span>
+                  <span>Conectando con Google…</span>
                 </>
               ) : (
                 <>
@@ -159,61 +200,58 @@ const Login = () => {
             </button>
 
             <div className="flex items-center gap-3">
-              <div className="flex-1 h-px bg-slate-700"></div>
-              <span className="text-slate-500 text-xs">o con email</span>
-              <div className="flex-1 h-px bg-slate-700"></div>
+              <div className="flex-1 h-px" style={{ background: 'var(--border-subtle)' }} />
+              <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--text-muted)]">o con email</span>
+              <div className="flex-1 h-px" style={{ background: 'var(--border-subtle)' }} />
             </div>
 
-            <form onSubmit={async (e) => {
-              e.preventDefault();
-              setErrorMessage(null);
-              const target = e.currentTarget as HTMLFormElement;
-              const email = (target.elements.namedItem('email') as HTMLInputElement).value;
-              const password = (target.elements.namedItem('password') as HTMLInputElement).value;
-
-              if (!supabase) return;
-
-              const { error } = await supabase.auth.signInWithPassword({ email, password });
-
-              if (error) {
-                setErrorMessage("Credenciales inválidas. Intente nuevamente.");
-              } else {
-                navigate('/dashboard');
-              }
-            }} className="space-y-4">
-              <Input
-                label="Usuario (Email)"
-                name="email"
-                type="email"
-                placeholder="admin@octopus.com"
-                required
-                className="bg-slate-950 border-slate-700 focus:border-[#1FB6D5]"
-              />
-              <Input
-                label="Contraseña"
-                name="password"
-                type="password"
-                placeholder="••••••••"
-                required
-                className="bg-slate-950 border-slate-700 focus:border-[#1FB6D5]"
-              />
-              <Button fullWidth variant="primary" type="submit" className="text-sm py-3 font-bold shadow-lg shadow-[#1FB6D5]/20">
-                INGRESAR AL SISTEMA
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setErrorMessage(null);
+                const target = e.currentTarget as HTMLFormElement;
+                const email = (target.elements.namedItem('email') as HTMLInputElement).value;
+                const password = (target.elements.namedItem('password') as HTMLInputElement).value;
+                if (!supabase) return;
+                const { error } = await supabase.auth.signInWithPassword({ email, password });
+                if (error) {
+                  setErrorMessage('Credenciales inválidas. Intentá nuevamente.');
+                } else {
+                  navigate('/dashboard');
+                }
+              }}
+              className="space-y-4"
+            >
+              <Input label="Usuario (Email)" name="email" type="email" placeholder="admin@octopuscoquinaria.com" required />
+              <Input label="Contraseña" name="password" type="password" placeholder="••••••••" required />
+              <Button fullWidth variant="primary" type="submit">
+                Ingresar al sistema
               </Button>
             </form>
 
             <div className="text-center">
               <button
                 onClick={() => setIsRecoveryMode(true)}
-                className="text-cyan-400 hover:text-cyan-300 text-sm hover:underline transition-colors"
+                className="font-mono text-[11px] uppercase tracking-[0.18em] text-[var(--text-muted)] hover:text-[var(--color-primary)] transition-colors"
               >
                 ¿Olvidaste tu contraseña?
               </button>
             </div>
           </div>
 
-          <p className="mt-4 text-center text-sm text-slate-400">
-            ¿No tenés cuenta? <Link to="/quick-diagnostic" className="text-cyan-400 hover:underline">Hacé un diagnóstico primero</Link>
+          <div className="mt-6 pt-4 border-t flex items-center justify-between font-mono text-[9px] uppercase tracking-[0.22em] text-[var(--text-muted)]" style={{ borderColor: 'var(--border-subtle)' }}>
+            <span>CPD-AUTH-LGN-001</span>
+            <span className="inline-flex items-center gap-1.5">
+              <span className="inline-flex h-1 w-1 rounded-full animate-pulse" style={{ background: 'var(--color-primary)' }} />
+              Online
+            </span>
+          </div>
+
+          <p className="mt-6 text-center font-mono text-[11px] text-[var(--text-muted)]">
+            ¿No tenés cuenta?{' '}
+            <Link to="/quick-diagnostic" className="text-[var(--color-primary)] hover:text-[var(--color-primary-soft)] transition-colors">
+              Hacé un diagnóstico primero →
+            </Link>
           </p>
         </div>
       </div>
