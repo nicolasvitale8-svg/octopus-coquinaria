@@ -7,83 +7,91 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        // Display = Sora (headings, hero, claims)
-        display: ['Sora', 'Inter', 'system-ui', 'sans-serif'],
-        // Sans / UI = Inter (body, labels, botones)
-        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-        // Mono = IBM Plex Mono (código de doc, KPIs, datos)
+        // Display = Exo 2 (headings, hero, claims, HUD titles)
+        display: ['"Exo 2"', 'Sora', 'system-ui', 'sans-serif'],
+        // Sans / UI = Exo 2 (body, labels, botones)
+        sans: ['"Exo 2"', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        // Mono = IBM Plex Mono (código de doc, KPIs, datos, terminal)
         mono: ['"IBM Plex Mono"', '"JetBrains Mono"', 'ui-monospace', 'monospace'],
-        // Aliases legacy para no romper componentes existentes hasta que se migren
-        space: ['Sora', 'Inter', 'sans-serif'],
+        // Aliases legacy
+        space: ['"Exo 2"', 'Sora', 'sans-serif'],
       },
       colors: {
-        // ---------- Tokens nuevos (rebrand) ----------
-        // Backgrounds
-        'bg-base':         '#070D14',
-        'bg-surface':      '#101826',
-        'bg-surface-soft': '#162033',
-        'bg-elevated':     '#1B2638',
+        // ---------- FASE 2 — Phosphor / HUD ----------
+        // Backgrounds (abyss black scale)
+        'bg-base':         '#050607',
+        'bg-surface':      '#0F1416',
+        'bg-surface-soft': '#161D22',
+        'bg-elevated':     '#1A2025',
         // Texto
-        'text-primary':    '#F3EFE4',
-        'text-secondary':  '#AAB4C3',
-        'text-muted':      '#6F7A89',
-        'text-on-gold':    '#1A1308',
-        // Marca primaria (gold/cream)
-        'gold':            '#D4B681',
-        'gold-soft':       '#E8D6B0',
-        'gold-dark':       '#9F7A43',
+        'text-primary':    '#E6E8E5',
+        'text-secondary':  '#A8B0B5',
+        'text-muted':      '#636A6F',
+        'text-on-phosphor':'#050607',
+        // Marca primaria (phosphor green)
+        'phosphor':        '#00FF9D',
+        'phosphor-soft':   '#5DFFC1',
+        'phosphor-dark':   '#00B070',
+        'terminal-green':  '#00C57D',
         // Acentos técnicos
-        'cyan-tech':       '#1FB6D5',
+        'amber-hud':       '#FFB12A',
+        'cyan-tech':       '#00FF9D', // alias for backwards compat
         'blue-tech':       '#3B82F6',
         // Estados
-        'state-success':   '#22C55E',
-        'state-warning':   '#EAB308',
-        'state-danger':    '#EF4444',
-        'state-info':      '#8B5CF6',
+        'state-success':   '#00C57D',
+        'state-warning':   '#FFB12A',
+        'state-danger':    '#FF4D4D',
+        'state-info':      '#00FF9D',
 
-        // ---------- Aliases legacy (para no romper código existente
-        // antes de migrar pantalla por pantalla). Eliminar cuando esté
-        // todo migrado. ----------
-        'octopus-blue':    '#00344F',
-        'deep-blue':       '#021019',
-        'warm-sand':       '#F4EBDC',
-        'bone-white':      '#F9F7F4',
-        'cyan-detail':     '#1FB6D5',
-        'ink-gray':        '#2E3238',
-        'soft-gray':       '#D5D7DB',
-        'status-green':    '#22C55E',
-        'status-yellow':   '#EAB308',
-        'status-red':      '#EF4444',
-        'fin-bg':          '#070D14',
-        'fin-card':        '#101826',
-        'fin-border':      'rgba(243, 239, 228, 0.08)',
-        'fin-text':        '#F3EFE4',
-        'fin-muted':       '#AAB4C3',
-        'brand':           '#D4B681',
-        'brand-hover':     '#E8D6B0',
+        // ---------- Aliases legacy (no romper código aún) ----------
+        // Mapean tokens antiguos a la paleta nueva para que páginas
+        // todavía no migradas no queden con colores rotos.
+        'gold':            '#00FF9D',  // gold ahora es phosphor
+        'gold-soft':       '#5DFFC1',
+        'gold-dark':       '#00B070',
+        'octopus-blue':    '#0F1416',
+        'deep-blue':       '#050607',
+        'warm-sand':       '#E6E8E5',
+        'bone-white':      '#F2F4F1',
+        'cyan-detail':     '#00FF9D',
+        'ink-gray':        '#1A2025',
+        'soft-gray':       '#A8B0B5',
+        'status-green':    '#00C57D',
+        'status-yellow':   '#FFB12A',
+        'status-red':      '#FF4D4D',
+        'fin-bg':          '#050607',
+        'fin-card':        '#0F1416',
+        'fin-border':      'rgba(230, 232, 229, 0.08)',
+        'fin-text':        '#E6E8E5',
+        'fin-muted':       '#A8B0B5',
+        'brand':           '#00FF9D',
+        'brand-hover':     '#5DFFC1',
+        'text-on-gold':    '#050607',
       },
       borderColor: {
-        'subtle':   'rgba(212, 182, 129, 0.16)',
-        'strong':   'rgba(212, 182, 129, 0.38)',
-        'neutral':  'rgba(243, 239, 228, 0.08)',
-        'divider':  'rgba(243, 239, 228, 0.04)',
+        'subtle':   'rgba(0, 255, 157, 0.14)',
+        'strong':   'rgba(0, 255, 157, 0.38)',
+        'neutral':  'rgba(230, 232, 229, 0.08)',
+        'divider':  'rgba(230, 232, 229, 0.04)',
       },
       boxShadow: {
-        'glow-primary': '0 0 24px rgba(212, 182, 129, 0.24)',
-        'glow-cyan':    '0 0 24px rgba(31, 182, 213, 0.20)',
-        'glow-success': '0 0 24px rgba(34, 197, 94, 0.22)',
-        'glow-danger':  '0 0 24px rgba(239, 68, 68, 0.22)',
-        'card':         '0 4px 12px rgba(0, 0, 0, 0.4)',
-        'elevated':     '0 12px 32px rgba(0, 0, 0, 0.5)',
+        'glow-primary':   '0 0 24px rgba(0, 255, 157, 0.30)',
+        'glow-secondary': '0 0 18px rgba(0, 197, 125, 0.22)',
+        'glow-amber':     '0 0 22px rgba(255, 177, 42, 0.28)',
+        'glow-danger':    '0 0 22px rgba(255, 77, 77, 0.24)',
+        'glow-cyan':      '0 0 24px rgba(0, 255, 157, 0.30)',
+        'glow-success':   '0 0 18px rgba(0, 197, 125, 0.22)',
+        'card':           '0 4px 12px rgba(0, 0, 0, 0.6)',
+        'elevated':       '0 12px 32px rgba(0, 0, 0, 0.7)',
       },
       borderRadius: {
-        'sm': '6px',
-        'md': '10px',
-        'lg': '14px',
-        'xl': '20px',
+        'sm': '2px',
+        'md': '4px',
+        'lg': '6px',
+        'xl': '10px',
       },
       fontSize: {
-        'display': ['clamp(2.5rem, 6vw, 4.5rem)', { lineHeight: '1.05', letterSpacing: '-0.02em' }],
+        'display': ['clamp(2.75rem, 6vw, 5rem)', { lineHeight: '1.05', letterSpacing: '-0.02em' }],
       },
       animation: {
         'faulty-flicker':  'faulty-flicker 4s infinite linear',
@@ -93,6 +101,9 @@ export default {
         'fade-in-up':      'fadeInUp 0.5s ease-out forwards',
         'progress':        'progress 1.5s ease-in-out infinite',
         'octopus-pulse':   'octopus-pulse 2.4s ease-in-out infinite',
+        'phosphor-pulse':  'phosphor-pulse 2s ease-in-out infinite',
+        'scanline':        'scanline 4s linear infinite',
+        'radar-sweep':     'radar-sweep 4s linear infinite',
       },
       keyframes: {
         'progress': {
@@ -102,6 +113,20 @@ export default {
         'octopus-pulse': {
           '0%, 100%': { opacity: '0.4', transform: 'scale(0.96)' },
           '50%':      { opacity: '1',   transform: 'scale(1)' },
+        },
+        'phosphor-pulse': {
+          '0%, 100%': { opacity: '0.55', filter: 'drop-shadow(0 0 4px rgba(0,255,157,0.3))' },
+          '50%':      { opacity: '1',    filter: 'drop-shadow(0 0 12px rgba(0,255,157,0.7))' },
+        },
+        'scanline': {
+          '0%':   { transform: 'translateY(-100%)', opacity: '0' },
+          '10%':  { opacity: '0.6' },
+          '90%':  { opacity: '0.6' },
+          '100%': { transform: 'translateY(100%)',  opacity: '0' },
+        },
+        'radar-sweep': {
+          '0%':   { transform: 'rotate(0deg)' },
+          '100%': { transform: 'rotate(360deg)' },
         },
       },
     },

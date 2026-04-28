@@ -8,7 +8,6 @@ import {
   Settings,
   LogOut,
   Menu,
-  X,
   Briefcase,
   Megaphone,
   BarChart2,
@@ -21,19 +20,16 @@ import { supabase } from '../services/supabase';
 import StatusBadge from './ui/StatusBadge';
 
 /**
- * AdminLayout — sidebar admin del rebrand.
+ * AdminLayout — sidebar admin · FASE 3 HUD/terminal.
  *
- * Cambios respecto a versión anterior:
- *   - Wordmark: nombre del usuario + Octopus·Admin en mono gold (sin isotipo).
- *     (Se descarta LOGO_ADMIN_URL y OctopusMark a esta escala.)
- *   - Tokens en bg/text/border. Sin slate-* / cyan-[hex] / amber-* hardcoded.
- *   - Active item: bg-surface-soft + text gold + barra lateral gold.
- *   - Badge de pendientes → StatusBadge tone="warning" variant="solid".
- *   - "Forzar sincronización" usa StatusBadge cyan (técnica) + spinner.
- *   - "Ver sitio público" en cyan-tech (link externo conceptual).
- *   - "Cerrar sesión" en danger token.
- *   - Mobile header con wordmark "OCTOPUS · Admin" (sin isotipo).
- *   - Doc-code OCT-LAYOUT-ADM-001 al pie de la sidebar.
+ * Diferencias vs version FASE 2:
+ *   - Sharp corners (sin rounded en nav items)
+ *   - Active nav: bracket phosphor TL + barra lateral phosphor + bg-surface-soft
+ *   - Sidebar header con kicker mono "— Operador" arriba del nombre
+ *   - SISTEMA · ONLINE indicator debajo del wordmark
+ *   - Forzar sync con frame mono terminal
+ *   - Doc-code CPD-LAYOUT-ADM-001 + version + uptime al pie
+ *   - Mobile header con corner brackets phosphor
  */
 
 const AdminLayout = () => {
@@ -72,16 +68,16 @@ const AdminLayout = () => {
   const navItems = React.useMemo(
     () =>
       [
-        { path: isAdmin ? '/admin/dashboard' : '/admin/consultant-dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-        { path: '/admin/leads', icon: Users, label: 'CRM Leads', hidden: !isAdmin },
-        { path: '/admin/projects', icon: Briefcase, label: 'Hub Proyectos' },
-        { path: '/admin/users', icon: Users, label: 'Usuarios y Roles', hidden: !isAdmin, badge: pendingCount },
-        { path: isAdmin ? '/admin/calendar' : '/hub/calendar', icon: Calendar, label: 'Calendario' },
-        { path: '/admin/academy', icon: GraduationCap, label: 'Academia' },
-        { path: '/admin/board', icon: Megaphone, label: 'Pizarra Home' },
-        { path: '/admin/procurement', icon: ShieldCheck, label: 'Compras / Gatekeeper' },
-        { path: '/finance', icon: BarChart2, label: 'FinanzaFlow' },
-        { path: '/admin/config', icon: Settings, label: 'Configuración', hidden: !isAdmin },
+        { path: isAdmin ? '/admin/dashboard' : '/admin/consultant-dashboard', icon: LayoutDashboard, label: 'Dashboard',          code: 'DSH' },
+        { path: '/admin/leads',        icon: Users,        label: 'CRM Leads',           hidden: !isAdmin, code: 'CRM' },
+        { path: '/admin/projects',     icon: Briefcase,    label: 'Hub Proyectos',                          code: 'PRJ' },
+        { path: '/admin/users',        icon: Users,        label: 'Usuarios y Roles',    hidden: !isAdmin, badge: pendingCount, code: 'USR' },
+        { path: isAdmin ? '/admin/calendar' : '/hub/calendar', icon: Calendar, label: 'Calendario',         code: 'CAL' },
+        { path: '/admin/academy',      icon: GraduationCap,label: 'Academia',                              code: 'ACA' },
+        { path: '/admin/board',        icon: Megaphone,    label: 'Pizarra Home',                          code: 'BRD' },
+        { path: '/admin/procurement',  icon: ShieldCheck,  label: 'Compras / Gatekeeper',                  code: 'GKP' },
+        { path: '/finance',            icon: BarChart2,    label: 'FinanzaFlow',                           code: 'FIN' },
+        { path: '/admin/config',       icon: Settings,     label: 'Configuración',       hidden: !isAdmin, code: 'CFG' },
       ].filter((item) => !item.hidden),
     [isAdmin, pendingCount],
   );
@@ -127,14 +123,13 @@ const AdminLayout = () => {
       {isSidebarOpen && (
         <div
           className="fixed inset-0 z-20 md:hidden"
-          style={{ background: 'rgba(0, 0, 0, 0.55)' }}
+          style={{ background: 'rgba(0, 0, 0, 0.65)' }}
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
 
       {/* ============================================================
-          SIDEBAR
-          OCT-LAYOUT-ADM-001
+          SIDEBAR · CPD-LAYOUT-ADM-001
          ============================================================ */}
       <aside
         className={`fixed inset-y-0 left-0 z-30 w-64 border-r transition-transform duration-300 ease-in-out md:relative md:translate-x-0 flex flex-col ${
@@ -145,27 +140,44 @@ const AdminLayout = () => {
           borderColor: 'var(--border-subtle)',
         }}
       >
-        {/* Wordmark / Profile */}
-        <Link
-          to="/admin/profile"
-          className="flex flex-col h-16 px-5 border-b group transition-colors justify-center leading-tight"
-          style={{ borderColor: 'var(--border-subtle)' }}
-        >
-          <span
-            className="font-display text-sm font-semibold tracking-tight truncate text-[var(--text-primary)] group-hover:text-[var(--color-primary)] transition-colors"
+        {/* Wordmark / Profile block */}
+        <div className="relative px-5 pt-5 pb-4 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
+          {/* Corner bracket TL phosphor */}
+          <span aria-hidden="true" className="absolute top-0 left-0 w-2 h-2 border-l border-t" style={{ borderColor: 'var(--color-primary)' }} />
+
+          <div className="font-mono text-[9px] uppercase tracking-[0.28em] text-[var(--text-muted)] mb-1">
+            — Operador
+          </div>
+
+          <Link
+            to="/admin/profile"
+            className="block group"
             title={profile?.name || profile?.email}
           >
-            {profile?.name
-              ? profile.name
-              : profile?.email?.split('@')[0] || 'Admin'}
-          </span>
-          <span className="font-mono text-[9px] uppercase tracking-[0.28em] text-[var(--color-primary)]">
-            {isAdmin ? 'Octopus · Admin' : `Octopus · ${profile?.role || 'Invitado'}`}
-          </span>
-        </Link>
+            <div className="font-display text-base font-bold tracking-tight truncate text-[var(--text-primary)] group-hover:text-[var(--color-primary)] transition-colors">
+              {profile?.name
+                ? profile.name
+                : profile?.email?.split('@')[0] || 'Admin'}
+            </div>
+            <div className="font-mono text-[9px] uppercase tracking-[0.28em] text-[var(--color-primary)] mt-0.5">
+              {isAdmin ? 'Octopus · Admin' : `Octopus · ${profile?.role || 'Invitado'}`}
+            </div>
+          </Link>
+
+          {/* SISTEMA · ONLINE */}
+          <div className="mt-3 inline-flex items-center gap-2 px-2 py-1 border" style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-base)' }}>
+            <span aria-hidden="true" className="inline-flex h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: 'var(--color-primary)', boxShadow: '0 0 6px rgba(0,255,157,0.7)' }} />
+            <span className="font-mono text-[9px] uppercase tracking-[0.22em] text-[var(--color-primary)]">
+              Sistema · Online
+            </span>
+          </div>
+        </div>
 
         {/* Nav */}
-        <nav className="flex-1 overflow-y-auto p-3 space-y-1">
+        <nav className="flex-1 overflow-y-auto p-2 space-y-0.5">
+          <div className="px-3 pt-2 pb-3 font-mono text-[9px] uppercase tracking-[0.28em] text-[var(--text-muted)]">
+            — Módulos
+          </div>
           {navItems.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.path);
@@ -174,10 +186,10 @@ const AdminLayout = () => {
                 key={item.path}
                 to={item.path}
                 onClick={() => setIsSidebarOpen(false)}
-                className={`relative flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all ${
+                className={`relative flex items-center gap-3 px-3 py-2 text-sm font-medium transition-colors ${
                   active
                     ? 'text-[var(--color-primary)]'
-                    : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                    : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-soft)]'
                 }`}
                 style={
                   active
@@ -186,11 +198,14 @@ const AdminLayout = () => {
                 }
               >
                 {active && (
-                  <span
-                    aria-hidden="true"
-                    className="absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-r"
-                    style={{ background: 'var(--color-primary)' }}
-                  />
+                  <>
+                    <span
+                      aria-hidden="true"
+                      className="absolute left-0 top-0 bottom-0 w-[2px]"
+                      style={{ background: 'var(--color-primary)', boxShadow: '0 0 8px rgba(0,255,157,0.6)' }}
+                    />
+                    <span aria-hidden="true" className="absolute top-0 right-0 w-1.5 h-1.5 border-r border-t" style={{ borderColor: 'var(--color-primary)' }} />
+                  </>
                 )}
                 <Icon className="h-4 w-4 flex-shrink-0" strokeWidth={1.75} />
                 <span className="flex-1 truncate">{item.label}</span>
@@ -198,35 +213,40 @@ const AdminLayout = () => {
                   <StatusBadge tone="warning" variant="solid" size="sm">
                     {(item as { badge?: number }).badge}
                   </StatusBadge>
-                ) : null}
+                ) : (
+                  <span className="font-mono text-[8px] uppercase tracking-[0.18em] text-[var(--text-muted)] opacity-60 group-hover:opacity-100">
+                    {item.code}
+                  </span>
+                )}
               </Link>
             );
           })}
 
           {/* Forzar Sync */}
           <div className="pt-3 mt-3 border-t" style={{ borderColor: 'var(--border-subtle)' }}>
+            <div className="px-3 pt-1 pb-2 font-mono text-[9px] uppercase tracking-[0.28em] text-[var(--text-muted)]">
+              — Sistema
+            </div>
             <button
               onClick={handleSync}
               disabled={isSyncing}
-              className="flex w-full items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors text-[var(--color-cyan)] hover:bg-[var(--bg-surface-soft)] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex w-full items-center gap-3 px-3 py-2 text-sm font-medium transition-colors text-[var(--color-primary)] hover:bg-[var(--bg-surface-soft)] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <RefreshCw className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} strokeWidth={1.75} />
               <span>{isSyncing ? 'Sincronizando…' : 'Forzar sincronización'}</span>
             </button>
-          </div>
 
-          {/* Footer items */}
-          <div className="pt-3 mt-3 border-t space-y-1" style={{ borderColor: 'var(--border-subtle)' }}>
             <Link
               to="/"
-              className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors text-[var(--text-secondary)] hover:bg-[var(--bg-surface-soft)] hover:text-[var(--text-primary)]"
+              className="flex items-center gap-3 px-3 py-2 text-sm font-medium transition-colors text-[var(--text-secondary)] hover:bg-[var(--bg-surface-soft)] hover:text-[var(--text-primary)]"
             >
               <ExternalLink className="h-4 w-4" strokeWidth={1.75} />
               <span>Ver sitio público</span>
             </Link>
+
             <button
               onClick={handleLogout}
-              className="flex w-full items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors hover:bg-[var(--bg-surface-soft)]"
+              className="flex w-full items-center gap-3 px-3 py-2 text-sm font-medium transition-colors hover:bg-[var(--bg-surface-soft)]"
               style={{ color: 'var(--color-danger)' }}
             >
               <LogOut className="h-4 w-4" strokeWidth={1.75} />
@@ -237,18 +257,28 @@ const AdminLayout = () => {
 
         {/* Doc-code footer */}
         <div
-          className="px-5 py-3 border-t flex items-center justify-between"
+          className="relative px-5 py-3 border-t"
           style={{ borderColor: 'var(--border-subtle)' }}
         >
-          <span className="font-mono text-[9px] uppercase tracking-[0.22em] text-[var(--text-muted)]">
-            OCT-LAYOUT-ADM-001
-          </span>
-          <span
-            className="inline-flex h-1.5 w-1.5 rounded-full animate-pulse"
-            style={{ background: 'var(--color-success)' }}
-            aria-label="Sistema activo"
-            title="Conectado a Supabase"
-          />
+          {/* Corner bracket BR phosphor */}
+          <span aria-hidden="true" className="absolute bottom-0 right-0 w-2 h-2 border-r border-b" style={{ borderColor: 'var(--color-primary)' }} />
+
+          <div className="flex items-center justify-between font-mono text-[8px] uppercase tracking-[0.22em] text-[var(--text-muted)]">
+            <span>CPD-LAYOUT-ADM-001</span>
+            <span>v2.0.7</span>
+          </div>
+          <div className="flex items-center justify-between font-mono text-[8px] uppercase tracking-[0.22em] text-[var(--text-muted)] mt-1">
+            <span>Build · CPD-FASE-3</span>
+            <span className="inline-flex items-center gap-1">
+              <span
+                className="inline-flex h-1 w-1 rounded-full animate-pulse"
+                style={{ background: 'var(--color-primary)' }}
+                aria-label="Sistema activo"
+                title="Conectado a Supabase"
+              />
+              99.98%
+            </span>
+          </div>
         </div>
       </aside>
 
@@ -256,18 +286,23 @@ const AdminLayout = () => {
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top header (mobile) */}
         <header
-          className="h-14 flex items-center justify-between px-4 border-b md:hidden"
+          className="relative h-14 flex items-center justify-between px-4 border-b md:hidden"
           style={{
             background: 'var(--bg-surface)',
             borderColor: 'var(--border-subtle)',
           }}
         >
+          {/* Corner brackets phosphor */}
+          <span aria-hidden="true" className="absolute top-0 left-0 w-2 h-2 border-l border-t" style={{ borderColor: 'var(--color-primary)' }} />
+          <span aria-hidden="true" className="absolute bottom-0 right-0 w-2 h-2 border-r border-b" style={{ borderColor: 'var(--color-primary)' }} />
+
           <button
             onClick={() => setIsSidebarOpen(true)}
-            className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+            className="inline-flex items-center justify-center w-8 h-8 border text-[var(--text-secondary)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] transition-colors"
+            style={{ borderColor: 'var(--border-subtle)' }}
             aria-label="Abrir menú"
           >
-            <Menu className="h-5 w-5" />
+            <Menu className="h-4 w-4" />
           </button>
           <div className="flex flex-col leading-tight">
             <span className="font-display text-sm font-bold tracking-tight text-[var(--text-primary)]">
@@ -277,7 +312,7 @@ const AdminLayout = () => {
               Admin
             </span>
           </div>
-          <div className="w-5" />
+          <span aria-hidden="true" className="inline-flex h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: 'var(--color-primary)', boxShadow: '0 0 6px rgba(0,255,157,0.7)' }} />
         </header>
 
         <main

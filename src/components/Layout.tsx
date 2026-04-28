@@ -143,6 +143,22 @@ const Layout: React.FC<LayoutProps> = ({ children, user: propUser }) => {
 
             {/* Right side */}
             <div className="hidden md:flex items-center gap-3">
+              {/* SISTEMA: ONLINE indicator (HUD aesthetic) */}
+              <div
+                className="hidden lg:inline-flex items-center gap-2 px-2.5 py-1 border mr-2"
+                style={{ borderColor: 'var(--border-subtle)', background: 'rgba(0, 255, 157, 0.04)' }}
+                title="Estado del sistema en tiempo real"
+              >
+                <span
+                  aria-hidden="true"
+                  className="inline-flex h-1.5 w-1.5 rounded-full animate-pulse"
+                  style={{ background: 'var(--color-primary)', boxShadow: '0 0 6px rgba(0,255,157,0.6)' }}
+                />
+                <span className="font-mono text-[9px] uppercase tracking-[0.22em] text-[var(--color-primary)]">
+                  Sistema · Online
+                </span>
+              </div>
+
               {(isAdmin || isConsultant) && (
                 <Link to="/admin/leads">
                   <Button variant="outline" size="sm" icon={Database}>
@@ -316,10 +332,30 @@ const Layout: React.FC<LayoutProps> = ({ children, user: propUser }) => {
             </div>
 
             <div>
-              <h3 className="font-display text-sm font-semibold mb-4 text-[var(--text-primary)] uppercase tracking-wider">
-                Plataforma
+              <h3 className="font-mono text-[11px] uppercase tracking-[0.28em] text-[var(--text-muted)] mb-4">
+                — Navegación
               </h3>
               <ul className="space-y-2 text-sm">
+                <li>
+                  <Link to="/" className="text-[var(--text-secondary)] hover:text-[var(--color-primary)] transition-colors">
+                    Inicio
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/methodology" className="text-[var(--text-secondary)] hover:text-[var(--color-primary)] transition-colors">
+                    Método 7P
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/services" className="text-[var(--text-secondary)] hover:text-[var(--color-primary)] transition-colors">
+                    Servicios
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/academy" className="text-[var(--text-secondary)] hover:text-[var(--color-primary)] transition-colors">
+                    Academia
+                  </Link>
+                </li>
                 <li>
                   <Link to="/quick-diagnostic" className="text-[var(--text-secondary)] hover:text-[var(--color-primary)] transition-colors">
                     Diagnóstico rápido
@@ -330,40 +366,12 @@ const Layout: React.FC<LayoutProps> = ({ children, user: propUser }) => {
                     Iniciar sesión
                   </Link>
                 </li>
-                <li>
-                  <Link to="/admin/leads" className="text-[var(--text-secondary)] hover:text-[var(--color-primary)] transition-colors">
-                    Acceso consultor
-                  </Link>
-                </li>
               </ul>
             </div>
 
             <div>
-              <h3 className="font-display text-sm font-semibold mb-4 text-[var(--text-primary)] uppercase tracking-wider">
-                Recursos
-              </h3>
-              <ul className="space-y-2 text-sm">
-                <li>
-                  <Link to="/methodology" className="text-[var(--text-secondary)] hover:text-[var(--color-primary)] transition-colors">
-                    Método 7P
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/academy" className="text-[var(--text-secondary)] hover:text-[var(--color-primary)] transition-colors">
-                    Academia y videos
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/services" className="text-[var(--text-secondary)] hover:text-[var(--color-primary)] transition-colors">
-                    Casos de éxito
-                  </Link>
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="font-display text-sm font-semibold mb-4 text-[var(--text-primary)] uppercase tracking-wider">
-                Contacto
+              <h3 className="font-mono text-[11px] uppercase tracking-[0.28em] text-[var(--text-muted)] mb-4">
+                — Contacto
               </h3>
               <div className="space-y-2 text-sm">
                 <a
@@ -372,13 +380,15 @@ const Layout: React.FC<LayoutProps> = ({ children, user: propUser }) => {
                   rel="noreferrer"
                   className="block text-[var(--text-secondary)] hover:text-[var(--color-primary)] transition-colors"
                 >
-                  WhatsApp: {DISPLAY_PHONE}
+                  <span className="font-mono text-[10px] uppercase tracking-wider text-[var(--text-muted)] mr-1">WA</span>
+                  {DISPLAY_PHONE}
                 </a>
                 <a
                   href={`mailto:${CONTACT_EMAIL}`}
-                  className="block text-[var(--text-secondary)] hover:text-[var(--color-primary)] transition-colors"
+                  className="block text-[var(--text-secondary)] hover:text-[var(--color-primary)] transition-colors break-all"
                 >
-                  Email: {CONTACT_EMAIL}
+                  <span className="font-mono text-[10px] uppercase tracking-wider text-[var(--text-muted)] mr-1">EM</span>
+                  {CONTACT_EMAIL}
                 </a>
                 <a
                   href={INSTAGRAM_URL}
@@ -386,7 +396,8 @@ const Layout: React.FC<LayoutProps> = ({ children, user: propUser }) => {
                   rel="noreferrer"
                   className="block text-[var(--text-secondary)] hover:text-[var(--color-primary)] transition-colors"
                 >
-                  Instagram: @octopuscoquinaria
+                  <span className="font-mono text-[10px] uppercase tracking-wider text-[var(--text-muted)] mr-1">IG</span>
+                  @octopuscoquinaria
                 </a>
                 <a
                   href={YOUTUBE_URL}
@@ -394,9 +405,37 @@ const Layout: React.FC<LayoutProps> = ({ children, user: propUser }) => {
                   rel="noreferrer"
                   className="block text-[var(--text-secondary)] hover:text-[var(--color-primary)] transition-colors"
                 >
-                  YouTube: @octopuscoquinaria
+                  <span className="font-mono text-[10px] uppercase tracking-wider text-[var(--text-muted)] mr-1">YT</span>
+                  @octopuscoquinaria
                 </a>
               </div>
+            </div>
+
+            <div>
+              <h3 className="font-mono text-[11px] uppercase tracking-[0.28em] text-[var(--text-muted)] mb-4">
+                — Sistema
+              </h3>
+              <ul className="space-y-2.5 text-sm font-mono">
+                <li className="flex items-center justify-between">
+                  <span className="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">Estado</span>
+                  <span className="inline-flex items-center gap-1.5 text-[var(--color-primary)] text-xs">
+                    <span aria-hidden="true" className="inline-flex h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: 'var(--color-primary)', boxShadow: '0 0 6px rgba(0,255,157,0.7)' }} />
+                    Online
+                  </span>
+                </li>
+                <li className="flex items-center justify-between">
+                  <span className="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">Versión</span>
+                  <span className="text-[var(--text-primary)] text-xs">2.0.7</span>
+                </li>
+                <li className="flex items-center justify-between">
+                  <span className="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">Uptime</span>
+                  <span className="text-[var(--text-primary)] text-xs">99.98%</span>
+                </li>
+                <li className="flex items-center justify-between">
+                  <span className="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">Build</span>
+                  <span className="text-[var(--text-primary)] text-xs">CPD-FASE-2</span>
+                </li>
+              </ul>
             </div>
           </div>
 

@@ -76,7 +76,7 @@ const ModuleCard: React.FC<ModuleCardProps> = ({
   const isFeature = variant === 'feature';
 
   const containerClass =
-    'group relative flex flex-col overflow-hidden rounded-xl border transition-all duration-300 hover:-translate-y-0.5';
+    'group relative flex flex-col overflow-hidden border transition-all duration-300 hover:-translate-y-0.5';
 
   const padding = isCompact ? 'p-5' : 'p-6';
   const heightHint = isCompact ? '' : 'h-full';
@@ -85,7 +85,7 @@ const ModuleCard: React.FC<ModuleCardProps> = ({
     ? {
         background: 'var(--bg-elevated)',
         borderColor: 'var(--border-strong)',
-        boxShadow: '0 0 40px rgba(212, 182, 129, 0.10)',
+        boxShadow: '0 0 40px rgba(0, 255, 157, 0.10)',
       }
     : {
         background: 'var(--bg-surface)',
@@ -94,6 +94,10 @@ const ModuleCard: React.FC<ModuleCardProps> = ({
 
   const inner = (
     <>
+      {/* HUD corner brackets phosphor */}
+      <span aria-hidden="true" className="absolute top-0 left-0 w-2.5 h-2.5 border-l border-t" style={{ borderColor: 'var(--color-primary)' }} />
+      <span aria-hidden="true" className="absolute bottom-0 right-0 w-2.5 h-2.5 border-r border-b" style={{ borderColor: 'var(--color-primary)' }} />
+
       {/* Glow halo */}
       <div
         aria-hidden="true"
@@ -115,9 +119,9 @@ const ModuleCard: React.FC<ModuleCardProps> = ({
         </div>
       )}
 
-      {/* Icon badge */}
+      {/* Icon badge — square HUD frame */}
       <div
-        className={`relative flex items-center justify-center rounded-xl border border-[var(--border-subtle)] transition-transform duration-300 group-hover:scale-105 ${
+        className={`relative flex items-center justify-center border border-[var(--border-subtle)] transition-transform duration-300 group-hover:scale-105 ${
           isCompact ? 'h-9 w-9' : 'h-11 w-11'
         }`}
         style={{

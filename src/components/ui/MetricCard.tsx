@@ -111,24 +111,28 @@ const MetricCard: React.FC<MetricCardProps> = ({
 
   return (
     <div
-      className={`group relative overflow-hidden rounded-xl border border-[var(--border-subtle)] backdrop-blur-md transition-all hover:border-[var(--border-strong)] ${padding[size]} ${className}`}
+      className={`group relative overflow-hidden border border-[var(--border-subtle)] transition-all hover:border-[var(--border-strong)] ${padding[size]} ${className}`}
       style={{ background: bg }}
     >
+      {/* HUD corner brackets phosphor */}
+      <span aria-hidden="true" className="absolute top-0 left-0 w-2 h-2 border-l border-t" style={{ borderColor: 'var(--color-primary)' }} />
+      <span aria-hidden="true" className="absolute bottom-0 right-0 w-2 h-2 border-r border-b" style={{ borderColor: 'var(--color-primary)' }} />
+
       {/* Glow on hover */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full opacity-0 blur-3xl transition-opacity duration-500 group-hover:opacity-100"
-        style={{ background: toneColor[tone], filter: 'opacity(0.15)' }}
+        style={{ background: toneColor[tone], filter: 'opacity(0.18)' }}
       />
 
       {/* Header: label + icon */}
       <div className="relative flex items-start justify-between gap-3">
-        <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--text-muted)]">
+        <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--text-muted)]">
           {label}
         </span>
         {Icon && (
           <span
-            className="flex h-7 w-7 items-center justify-center rounded-full border border-[var(--border-subtle)]"
+            className="flex h-7 w-7 items-center justify-center border border-[var(--border-subtle)]"
             style={{ background: 'var(--bg-surface-soft)', color: toneColor[tone] }}
           >
             <Icon className="h-3.5 w-3.5" strokeWidth={2} />
@@ -154,7 +158,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
       {delta && (
         <div className="relative mt-3 flex items-center gap-2">
           <span
-            className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold"
+            className="inline-flex items-center gap-1 border px-2 py-0.5 text-xs font-mono font-semibold"
             style={{
               color: toneColor[deltaTone],
               borderColor: 'var(--border-subtle)',
@@ -165,7 +169,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
             {delta.value && <span>{delta.value}</span>}
           </span>
           {delta.caption && (
-            <span className="text-[11px] text-[var(--text-muted)]">{delta.caption}</span>
+            <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--text-muted)]">{delta.caption}</span>
           )}
         </div>
       )}

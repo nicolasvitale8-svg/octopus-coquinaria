@@ -72,7 +72,6 @@ const PILLAR_ICONS: LucideIcon[] = [
 ];
 
 const Home = () => {
-  const [imgError, setImgError] = useState(false);
   const [isOctopusMode, setIsOctopusMode] = useState(true);
   const [featuredResources, setFeaturedResources] = useState<AcademyResource[]>([]);
   const [loadingResources, setLoadingResources] = useState(true);
@@ -132,77 +131,148 @@ const Home = () => {
           OCT-LAND-HERO-001
          ============================================================ */}
       <section className="relative overflow-hidden min-h-[90vh] flex items-center bg-[var(--bg-base)]">
-        {/* Subtle grid */}
+        {/* HUD grid backdrop — más fuerte que opacity 0.04 */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 opacity-[0.04]"
+          className="pointer-events-none absolute inset-0 opacity-[0.08]"
           style={{
             backgroundImage:
               'linear-gradient(var(--color-primary) 1px, transparent 1px), linear-gradient(90deg, var(--color-primary) 1px, transparent 1px)',
-            backgroundSize: '64px 64px',
+            backgroundSize: '48px 48px',
           }}
         />
 
-        {/* DESKTOP HERO ILLUSTRATION */}
-        <div className="hidden lg:block absolute top-1/2 right-0 -translate-y-1/2 h-[95vh] w-[50vw] translate-x-12 z-10 pointer-events-none">
-          {/* Glow gold detrás */}
-          <div className="absolute top-1/2 left-[60%] -translate-x-1/2 -translate-y-1/2 w-[60%] h-[60%] rounded-full blur-[80px] -z-10 animate-pulse"
-               style={{ background: 'rgba(212, 182, 129, 0.18)' }} />
-          {!imgError ? (
-            <picture>
-              <source
-                type="image/webp"
-                srcSet="/brand/octopus-system.webp 1x, /brand/octopus-system@2x.webp 2x"
-              />
-              <img
-                src="/brand/octopus-system.png"
-                alt="Octopus Coquinaria — sistema operativo gastronómico"
-                className="w-full h-full object-contain object-right drop-shadow-2xl"
-                onError={() => setImgError(true)}
-                loading="eager"
-                fetchPriority="high"
-              />
-            </picture>
-          ) : (
-            <div className="w-full h-full flex items-center justify-end pr-10">
-              <OctopusMark variant="duotone" className="h-[70%] w-auto" animated />
+        {/* Corner reticles — HUD aesthetic */}
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0">
+          {/* TL */}
+          <div className="absolute top-4 left-4 w-6 h-6 border-l border-t" style={{ borderColor: 'var(--color-primary)' }} />
+          {/* TR */}
+          <div className="absolute top-4 right-4 w-6 h-6 border-r border-t" style={{ borderColor: 'var(--color-primary)' }} />
+          {/* BL */}
+          <div className="absolute bottom-4 left-4 w-6 h-6 border-l border-b" style={{ borderColor: 'var(--color-primary)' }} />
+          {/* BR */}
+          <div className="absolute bottom-4 right-4 w-6 h-6 border-r border-b" style={{ borderColor: 'var(--color-primary)' }} />
+        </div>
+
+        {/* DESKTOP — RADAR HUD + CEPHALOPOD */}
+        <div className="hidden lg:block absolute top-1/2 right-0 -translate-y-1/2 h-[80vh] w-[48vw] z-10 pointer-events-none">
+          {/* Glow phosphor */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[55%] h-[55%] rounded-full blur-[100px]"
+               style={{ background: 'rgba(0, 255, 157, 0.14)' }} />
+
+          <div className="relative w-full h-full flex items-center justify-center">
+            {/* Radar SVG */}
+            <svg viewBox="0 0 600 600" className="absolute inset-0 w-full h-full" preserveAspectRatio="xMidYMid meet">
+              <defs>
+                <linearGradient id="radarSweep" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%"   stopColor="#00FF9D" stopOpacity="0" />
+                  <stop offset="100%" stopColor="#00FF9D" stopOpacity="0.5" />
+                </linearGradient>
+              </defs>
+
+              {/* Radar concentric circles */}
+              <g fill="none" stroke="#00FF9D" strokeOpacity="0.25" strokeWidth="0.8">
+                <circle cx="300" cy="300" r="270" />
+                <circle cx="300" cy="300" r="210" />
+                <circle cx="300" cy="300" r="150" />
+                <circle cx="300" cy="300" r="90" />
+                <circle cx="300" cy="300" r="30" />
+              </g>
+
+              {/* Crosshairs */}
+              <g stroke="#00FF9D" strokeOpacity="0.18" strokeWidth="0.6" strokeDasharray="3 4">
+                <line x1="20" y1="300" x2="580" y2="300" />
+                <line x1="300" y1="20" x2="300" y2="580" />
+              </g>
+
+              {/* Tick marks at cardinal points */}
+              <g stroke="#00FF9D" strokeOpacity="0.6" strokeWidth="1.5">
+                <line x1="300" y1="20" x2="300" y2="36" />
+                <line x1="300" y1="564" x2="300" y2="580" />
+                <line x1="20" y1="300" x2="36" y2="300" />
+                <line x1="564" y1="300" x2="580" y2="300" />
+              </g>
+
+              {/* Mono labels */}
+              <g fontFamily="IBM Plex Mono, monospace" fontSize="9" fill="#00FF9D" fillOpacity="0.55" letterSpacing="2">
+                <text x="300" y="14" textAnchor="middle">N</text>
+                <text x="300" y="595" textAnchor="middle">S</text>
+                <text x="14"  y="304" textAnchor="middle">W</text>
+                <text x="586" y="304" textAnchor="middle">E</text>
+                <text x="34"  y="40"  textAnchor="start">CORE_ID 7P-OP-01</text>
+                <text x="566" y="40"  textAnchor="end">VER 2.0</text>
+                <text x="34"  y="572" textAnchor="start">RANGE 270</text>
+                <text x="566" y="572" textAnchor="end">SCAN ON</text>
+              </g>
+
+              {/* Radar sweep — rotating wedge */}
+              <g className="animate-radar-sweep" style={{ transformOrigin: '300px 300px' }}>
+                <path d="M 300 300 L 570 300 A 270 270 0 0 1 528 462 Z" fill="url(#radarSweep)" />
+                <line x1="300" y1="300" x2="570" y2="300" stroke="#00FF9D" strokeOpacity="0.85" strokeWidth="1.2" />
+              </g>
+
+              {/* Data points (random "blips") */}
+              <g fill="#00FF9D">
+                <circle cx="380" cy="220" r="3" opacity="0.85"/>
+                <circle cx="240" cy="180" r="2" opacity="0.55"/>
+                <circle cx="430" cy="380" r="3.5" opacity="0.9"/>
+                <circle cx="195" cy="395" r="2.5" opacity="0.5"/>
+                <circle cx="350" cy="470" r="2" opacity="0.6"/>
+              </g>
+            </svg>
+
+            {/* Cephalopod centered, on top of the radar */}
+            <div className="relative z-10 w-[55%] max-w-[340px]">
+              <OctopusMark variant="phosphor" animated />
             </div>
-          )}
+          </div>
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20 w-full">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center w-full">
             {/* Texto + CTA */}
             <div className="text-left order-2 lg:order-1 relative z-20 max-w-2xl">
-              {/* Social row */}
-              <div className="flex gap-3 mb-8">
-                <a
-                  href={YOUTUBE_URL}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-[var(--text-secondary)] hover:text-[var(--color-primary)] transition-colors bg-[var(--bg-surface)] border border-[var(--border-subtle)] p-2 rounded-full"
-                  title="YouTube"
-                >
-                  <Video className="w-4 h-4" />
-                </a>
-                <a
-                  href={INSTAGRAM_URL}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-[var(--text-secondary)] hover:text-[var(--color-primary)] transition-colors bg-[var(--bg-surface)] border border-[var(--border-subtle)] p-2 rounded-full"
-                  title="Instagram"
-                >
-                  <Instagram className="w-4 h-4" />
-                </a>
-                <a
-                  href={`https://wa.me/${WHATSAPP_NUMBER}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-[var(--text-secondary)] hover:text-[var(--color-primary)] transition-colors bg-[var(--bg-surface)] border border-[var(--border-subtle)] p-2 rounded-full"
-                  title="WhatsApp"
-                >
-                  <MessageCircle className="w-4 h-4" />
-                </a>
+              {/* SISTEMA: ONLINE indicator + social row */}
+              <div className="flex items-center justify-between gap-4 mb-8 flex-wrap">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 border" style={{ borderColor: 'var(--border-subtle)', background: 'rgba(0, 255, 157, 0.04)' }}>
+                  <span className="inline-flex h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: 'var(--color-primary)', boxShadow: '0 0 6px rgba(0,255,157,0.7)' }} />
+                  <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--color-primary)]">
+                    Sistema: online
+                  </span>
+                </div>
+
+                <div className="flex gap-2">
+                  <a
+                    href={YOUTUBE_URL}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-[var(--text-secondary)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] transition-colors p-2 border"
+                    style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-surface)' }}
+                    title="YouTube"
+                  >
+                    <Video className="w-4 h-4" />
+                  </a>
+                  <a
+                    href={INSTAGRAM_URL}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-[var(--text-secondary)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] transition-colors p-2 border"
+                    style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-surface)' }}
+                    title="Instagram"
+                  >
+                    <Instagram className="w-4 h-4" />
+                  </a>
+                  <a
+                    href={`https://wa.me/${WHATSAPP_NUMBER}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-[var(--text-secondary)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] transition-colors p-2 border"
+                    style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-surface)' }}
+                    title="WhatsApp"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                  </a>
+                </div>
               </div>
 
               {/* Eyebrow / wordmark */}
@@ -213,7 +283,7 @@ const Home = () => {
                   style={{ background: 'var(--color-primary)' }}
                 />
                 <span className="font-mono text-[11px] uppercase tracking-[0.28em] text-[var(--text-secondary)]">
-                  Octopus Coquinaria · Sistemas operativos para gastronomía
+                  Inteligencia operativa para gastronomía
                 </span>
               </div>
 
@@ -258,31 +328,33 @@ const Home = () => {
               <div className="mt-10 flex items-center gap-2 opacity-60">
                 <span className="h-px w-8 bg-[var(--border-strong)]" />
                 <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--text-muted)]">
-                  OCT-LAND-HERO-001
+                  CPD-HOM-HUD-001
                 </span>
               </div>
             </div>
 
-            {/* MOBILE-only illustration */}
+            {/* MOBILE-only illustration: cephalopod phosphor sobre radar simple */}
             <div className="order-1 lg:hidden flex justify-center items-center relative mb-2">
-              <div className="w-[70%] max-w-[360px]">
-                {!imgError ? (
-                  <picture>
-                    <source
-                      type="image/webp"
-                      srcSet="/brand/octopus-system.webp 1x, /brand/octopus-system@2x.webp 2x"
-                    />
-                    <img
-                      src="/brand/octopus-system.png"
-                      alt="Octopus Coquinaria — sistema operativo gastronómico"
-                      className="w-full h-auto drop-shadow-2xl"
-                      onError={() => setImgError(true)}
-                      loading="lazy"
-                    />
-                  </picture>
-                ) : (
-                  <OctopusMark variant="duotone" className="w-full h-auto" />
-                )}
+              <div className="w-[70%] max-w-[280px] relative aspect-square">
+                {/* Glow phosphor */}
+                <div className="absolute inset-0 rounded-full blur-[60px]" style={{ background: 'rgba(0, 255, 157, 0.15)' }} />
+                {/* Radar circles */}
+                <svg viewBox="0 0 300 300" className="absolute inset-0 w-full h-full">
+                  <g fill="none" stroke="#00FF9D" strokeOpacity="0.22" strokeWidth="0.6">
+                    <circle cx="150" cy="150" r="135"/>
+                    <circle cx="150" cy="150" r="100"/>
+                    <circle cx="150" cy="150" r="65"/>
+                    <circle cx="150" cy="150" r="30"/>
+                  </g>
+                  <g stroke="#00FF9D" strokeOpacity="0.14" strokeWidth="0.5" strokeDasharray="3 3">
+                    <line x1="15" y1="150" x2="285" y2="150"/>
+                    <line x1="150" y1="15" x2="150" y2="285"/>
+                  </g>
+                </svg>
+                {/* Cephalopod centered */}
+                <div className="absolute inset-[18%]">
+                  <OctopusMark variant="phosphor" animated />
+                </div>
               </div>
             </div>
           </div>
@@ -293,60 +365,451 @@ const Home = () => {
       <TickerGastronomico />
 
       {/* ============================================================
-          7 PILARES OCTOPUS — OCT-LAND-7P-001
+          SERVICIOS — CPD-HOM-SVC-001
+         ============================================================ */}
+      <section className="py-24 border-t border-[var(--border-subtle)] relative z-20" style={{ background: 'var(--bg-base)' }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Section header */}
+          <div className="flex items-center justify-between mb-12 reveal-on-scroll">
+            <div className="inline-flex items-center gap-3">
+              <span className="font-mono text-[11px] uppercase tracking-[0.28em] text-[var(--text-muted)]">— Servicios</span>
+            </div>
+            <Link to="/services" className="hidden md:inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)] hover:text-[var(--color-primary)] transition-colors">
+              Ver todos los servicios
+              <span className="inline-flex items-center justify-center w-4 h-4 border" style={{ borderColor: 'var(--border-subtle)' }}>+</span>
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 reveal-on-scroll">
+            {[
+              {
+                icon: ShieldCheck,
+                title: 'Diagnóstico Operativo',
+                desc: 'Análisis profundo de procesos, datos y operaciones para detectar brechas, riesgos y oportunidades.',
+                href: '/quick-diagnostic',
+              },
+              {
+                icon: FileText,
+                title: 'Sistema Documental',
+                desc: 'Estandarizamos y documentamos para dar claridad, garantizar cumplimiento y facilitar auditorías.',
+                href: '/services',
+              },
+              {
+                icon: Activity,
+                title: 'Dashboards y Control',
+                desc: 'Visualizamos lo importante. Indicadores en tiempo real para decisiones con criterio.',
+                href: '/services',
+              },
+              {
+                icon: GraduationCap,
+                title: 'Capacitación',
+                desc: 'Formación práctica y alineada al sistema para fortalecer equipos y ejecutar con consistencia.',
+                href: '/academy',
+              },
+            ].map((s, i) => {
+              const Icon = s.icon;
+              return (
+                <Link
+                  key={s.title}
+                  to={s.href}
+                  className="group relative p-5 border transition-all hover:bg-[var(--bg-surface-soft)]"
+                  style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-surface)' }}
+                >
+                  {/* Corner reticles */}
+                  <span aria-hidden="true" className="absolute top-0 left-0 w-2 h-2 border-l border-t" style={{ borderColor: 'var(--color-primary)' }} />
+                  <span aria-hidden="true" className="absolute bottom-0 right-0 w-2 h-2 border-r border-b" style={{ borderColor: 'var(--color-primary)' }} />
+
+                  <div className="flex items-start justify-between mb-6">
+                    <span
+                      className="flex items-center justify-center w-10 h-10 border"
+                      style={{ borderColor: 'var(--border-subtle)', color: 'var(--color-primary)', background: 'var(--bg-surface-soft)' }}
+                    >
+                      <Icon className="w-5 h-5" strokeWidth={1.75} />
+                    </span>
+                    <span className="font-mono text-[9px] uppercase tracking-[0.22em] text-[var(--text-muted)]">
+                      0{i + 1}
+                    </span>
+                  </div>
+
+                  <h3 className="font-display text-base font-semibold tracking-tight text-[var(--text-primary)] mb-2 group-hover:text-[var(--color-primary)] transition-colors">
+                    {s.title}
+                  </h3>
+                  <p className="font-mono text-[11px] leading-relaxed text-[var(--text-secondary)] mb-6 min-h-[60px]">
+                    {s.desc}
+                  </p>
+
+                  <span
+                    className="inline-flex items-center justify-center w-7 h-7 border transition-colors group-hover:border-[var(--color-primary)] group-hover:text-[var(--color-primary)]"
+                    style={{ borderColor: 'var(--border-subtle)', color: 'var(--text-muted)' }}
+                  >
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================================
+          MÉTODO OCTOPUS 7P — CPD-HOM-7P-001
          ============================================================ */}
       <section className="py-24 border-t border-[var(--border-subtle)] relative z-20" style={{ background: 'var(--bg-surface)' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16 reveal-on-scroll">
-            <div className="mb-4 inline-flex items-center gap-2">
-              <span className="h-px w-8 bg-[var(--color-primary)]" />
-              <span className="font-mono text-[11px] uppercase tracking-[0.22em] text-[var(--color-primary)]">
-                Método 7P
-              </span>
-              <span className="h-px w-8 bg-[var(--color-primary)]" />
+          <div className="flex items-end justify-between mb-12 reveal-on-scroll flex-wrap gap-4">
+            <div>
+              <div className="inline-flex items-center gap-3 mb-3">
+                <span className="font-mono text-[11px] uppercase tracking-[0.28em] text-[var(--text-muted)]">— Método Octopus 7P</span>
+              </div>
+              <h2 className="font-display text-2xl md:text-3xl font-semibold tracking-tight text-[var(--text-primary)] max-w-2xl">
+                Nuestro método propio en siete principios que guían cada sistema.
+              </h2>
             </div>
-            <h2 className="font-display text-3xl md:text-4xl font-semibold tracking-tight mb-4 text-[var(--text-primary)]">
-              Los 7 Pilares <span className="text-gradient-gold">OCTOPUS</span>
-            </h2>
-            <p className="text-[var(--text-secondary)] max-w-2xl mx-auto">
-              Marco operativo único para ordenar gastronomía profesional —
-              desde un foodtruck hasta una planta de catering hospitalario.
-            </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 reveal-on-scroll">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 reveal-on-scroll">
             {METHODOLOGY_7P.map((item, idx) => {
               const Icon = PILLAR_ICONS[idx % PILLAR_ICONS.length];
+              const num = String(idx + 1).padStart(2, '0');
+              return (
+                <Link
+                  key={item.id}
+                  to="/methodology"
+                  className="group relative px-4 py-6 border transition-all hover:bg-[var(--bg-surface-soft)] flex flex-col items-center text-center"
+                  style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-base)', minHeight: '160px' }}
+                  title={item.tagline}
+                >
+                  {/* Corner brackets phosphor */}
+                  <span aria-hidden="true" className="absolute top-0 left-0 w-2 h-2 border-l border-t" style={{ borderColor: 'var(--color-primary)' }} />
+                  <span aria-hidden="true" className="absolute bottom-0 right-0 w-2 h-2 border-r border-b" style={{ borderColor: 'var(--color-primary)' }} />
+
+                  {/* Number */}
+                  <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--color-primary)] mb-3 self-start">
+                    {num}
+                  </span>
+
+                  {/* Big icon centered */}
+                  <Icon
+                    className="w-8 h-8 text-[var(--color-primary)] mb-3 transition-transform group-hover:scale-110"
+                    strokeWidth={1.5}
+                  />
+
+                  {/* Title */}
+                  <h3 className="font-display text-sm font-bold tracking-tight text-[var(--text-primary)] uppercase group-hover:text-[var(--color-primary)] transition-colors">
+                    {item.letter}
+                  </h3>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================================
+          CONTROL EN TIEMPO REAL + SISTEMA DOCUMENTAL
+          CPD-OPS-CTL-001 / CPD-DOC-FMT-001
+         ============================================================ */}
+      <section className="py-24 border-t border-[var(--border-subtle)] relative z-20" style={{ background: 'var(--bg-base)' }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 reveal-on-scroll">
+
+            {/* ========== CONTROL CENTER (3/5) ========== */}
+            <div className="lg:col-span-3 relative p-6 border" style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-surface)' }}>
+              {/* Corner brackets */}
+              <span aria-hidden="true" className="absolute top-0 left-0 w-3 h-3 border-l border-t" style={{ borderColor: 'var(--color-primary)' }} />
+              <span aria-hidden="true" className="absolute top-0 right-0 w-3 h-3 border-r border-t" style={{ borderColor: 'var(--color-primary)' }} />
+              <span aria-hidden="true" className="absolute bottom-0 left-0 w-3 h-3 border-l border-b" style={{ borderColor: 'var(--color-primary)' }} />
+              <span aria-hidden="true" className="absolute bottom-0 right-0 w-3 h-3 border-r border-b" style={{ borderColor: 'var(--color-primary)' }} />
+
+              <div className="flex items-center justify-between mb-6 pb-4 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-[11px] uppercase tracking-[0.28em] text-[var(--text-muted)]">— Control en tiempo real</span>
+                </div>
+                <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--color-primary)]">
+                  Período · 01 May → 31 May
+                </span>
+              </div>
+
+              <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--color-primary)] mb-4">
+                Octopus Control Center
+              </div>
+
+              {/* KPI tiles */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                {[
+                  { label: 'Ventas Totales',     value: '$1,248,730', delta: '+12.4%', dir: 'up'   },
+                  { label: 'Costo Mercancía',    value: '28.6%',      delta: '-2.1%',  dir: 'down' },
+                  { label: 'Mano de Obra',       value: '24.3%',      delta: '-1.7%',  dir: 'down' },
+                  { label: 'Ticket Promedio',    value: '$34.80',     delta: '+5.3%',  dir: 'up'   },
+                ].map((k) => (
+                  <div key={k.label} className="p-3 border" style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-base)' }}>
+                    <div className="font-mono text-[9px] uppercase tracking-[0.22em] text-[var(--text-muted)] mb-2">
+                      {k.label}
+                    </div>
+                    <div className="font-mono text-xl font-bold text-[var(--text-primary)] mb-1">
+                      {k.value}
+                    </div>
+                    <div className="font-mono text-[10px]" style={{ color: k.dir === 'up' ? 'var(--color-primary)' : 'var(--color-warning)' }}>
+                      {k.delta} <span className="text-[var(--text-muted)]">vs período anterior</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Charts row */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {/* Sparkline ventas por día */}
+                <div className="p-3 border" style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-base)' }}>
+                  <div className="font-mono text-[9px] uppercase tracking-[0.22em] text-[var(--text-muted)] mb-2">Ventas por día</div>
+                  <svg viewBox="0 0 200 80" className="w-full h-20" preserveAspectRatio="none">
+                    <defs>
+                      <linearGradient id="sparkFill" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stopColor="#00FF9D" stopOpacity="0.32"/>
+                        <stop offset="100%" stopColor="#00FF9D" stopOpacity="0"/>
+                      </linearGradient>
+                    </defs>
+                    <path d="M 0,62 L 18,58 L 36,42 L 54,48 L 72,30 L 90,38 L 108,22 L 126,28 L 144,16 L 162,18 L 180,10 L 200,8 L 200,80 L 0,80 Z" fill="url(#sparkFill)" />
+                    <polyline points="0,62 18,58 36,42 54,48 72,30 90,38 108,22 126,28 144,16 162,18 180,10 200,8" fill="none" stroke="#00FF9D" strokeWidth="1.5" />
+                    {[0,18,36,54,72,90,108,126,144,162,180,200].map((x, i) => (
+                      <circle key={i} cx={x} cy={[62,58,42,48,30,38,22,28,16,18,10,8][i]} r="1.5" fill="#00FF9D" />
+                    ))}
+                  </svg>
+                  <div className="flex justify-between font-mono text-[9px] text-[var(--text-muted)] mt-1">
+                    <span>1.5M</span>
+                    <span>0</span>
+                  </div>
+                </div>
+
+                {/* Donut Mix de Ventas */}
+                <div className="p-3 border" style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-base)' }}>
+                  <div className="font-mono text-[9px] uppercase tracking-[0.22em] text-[var(--text-muted)] mb-2">Mix de ventas</div>
+                  <div className="flex items-center justify-center gap-3">
+                    <svg viewBox="0 0 100 100" className="w-20 h-20">
+                      {/* 62% phosphor */}
+                      <circle cx="50" cy="50" r="40" fill="none" stroke="#00FF9D" strokeWidth="14"
+                              strokeDasharray="155.8 251.3" transform="rotate(-90 50 50)" />
+                      {/* 26% terminal */}
+                      <circle cx="50" cy="50" r="40" fill="none" stroke="#00C57D" strokeWidth="14"
+                              strokeDasharray="65.3 251.3" strokeDashoffset="-155.8" transform="rotate(-90 50 50)" />
+                      {/* 12% amber */}
+                      <circle cx="50" cy="50" r="40" fill="none" stroke="#FFB12A" strokeWidth="14"
+                              strokeDasharray="30.2 251.3" strokeDashoffset="-221.1" transform="rotate(-90 50 50)" />
+                    </svg>
+                    <ul className="font-mono text-[9px] space-y-1">
+                      <li className="flex items-center gap-1.5">
+                        <span className="w-2 h-2 inline-block" style={{ background: '#00FF9D' }} />
+                        <span className="text-[var(--text-secondary)]">Alimentos 62%</span>
+                      </li>
+                      <li className="flex items-center gap-1.5">
+                        <span className="w-2 h-2 inline-block" style={{ background: '#00C57D' }} />
+                        <span className="text-[var(--text-secondary)]">Bebidas 26%</span>
+                      </li>
+                      <li className="flex items-center gap-1.5">
+                        <span className="w-2 h-2 inline-block" style={{ background: '#FFB12A' }} />
+                        <span className="text-[var(--text-secondary)]">Otros 12%</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                {/* Gauge SOP */}
+                <div className="p-3 border" style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-base)' }}>
+                  <div className="font-mono text-[9px] uppercase tracking-[0.22em] text-[var(--text-muted)] mb-2">Cumplimiento SOP</div>
+                  <div className="flex items-center justify-center">
+                    <svg viewBox="0 0 100 100" className="w-20 h-20">
+                      <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(0,255,157,0.12)" strokeWidth="8" />
+                      <circle cx="50" cy="50" r="40" fill="none" stroke="#00FF9D" strokeWidth="8"
+                              strokeDasharray="231.2 251.3" strokeLinecap="round"
+                              transform="rotate(-90 50 50)" />
+                      <text x="50" y="48" textAnchor="middle" fill="#00FF9D" fontFamily="IBM Plex Mono, monospace" fontSize="18" fontWeight="700">92%</text>
+                      <text x="50" y="62" textAnchor="middle" fill="#A8B0B5" fontFamily="IBM Plex Mono, monospace" fontSize="7" letterSpacing="1">CUMPLIMIENTO</text>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between mt-6 pt-4 border-t" style={{ borderColor: 'var(--border-subtle)' }}>
+                <span className="font-mono text-[9px] uppercase tracking-[0.22em] text-[var(--text-muted)]">
+                  Sistema actualizado hace 5 min
+                </span>
+                <span className="font-mono text-[9px] uppercase tracking-[0.22em] text-[var(--text-muted)]">
+                  Fuente · Octopus OS
+                </span>
+              </div>
+            </div>
+
+            {/* ========== SISTEMA DOCUMENTAL (2/5) ========== */}
+            <div className="lg:col-span-2 relative p-6 border flex flex-col" style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-surface)' }}>
+              <span aria-hidden="true" className="absolute top-0 left-0 w-3 h-3 border-l border-t" style={{ borderColor: 'var(--color-primary)' }} />
+              <span aria-hidden="true" className="absolute bottom-0 right-0 w-3 h-3 border-r border-b" style={{ borderColor: 'var(--color-primary)' }} />
+
+              <div className="font-mono text-[11px] uppercase tracking-[0.28em] text-[var(--text-muted)] mb-6">
+                — Sistema Documental
+              </div>
+
+              {/* Big code format display */}
+              <div className="font-mono font-bold tracking-tight mb-1 text-[var(--color-primary)] text-2xl md:text-3xl break-all">
+                CPD-[ÁREA]-[TIPO]-[###]
+              </div>
+              <div className="font-mono text-[9px] uppercase tracking-[0.22em] text-[var(--text-muted)] mb-6">
+                Código de documento
+              </div>
+
+              {/* Chips */}
+              <div className="flex flex-wrap gap-1.5 mb-5">
+                {['SOP','INS','CHK','FOR','REG','GUI','POL'].map((c) => (
+                  <span
+                    key={c}
+                    className="font-mono text-[10px] font-semibold px-2 py-1 border"
+                    style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-base)', color: 'var(--color-primary)' }}
+                  >
+                    {c}
+                  </span>
+                ))}
+              </div>
+
+              {/* Mapping table */}
+              <ul className="font-mono text-[10px] space-y-1.5 mb-6">
+                {[
+                  ['SOP', 'Procedimientos Operativos Estandarizados'],
+                  ['INS', 'Instructivos de Trabajo'],
+                  ['CHK', 'Checklists de Verificación'],
+                  ['FOR', 'Formularios y Registros'],
+                  ['REG', 'Registros y Evidencias'],
+                  ['GUI', 'Guías y Manuales'],
+                  ['POL', 'Políticas y Protocolos'],
+                ].map(([code, desc]) => (
+                  <li key={code} className="flex gap-3">
+                    <span className="font-bold text-[var(--color-primary)] w-8 flex-shrink-0">{code}</span>
+                    <span className="text-[var(--text-secondary)]">{desc}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <div className="mt-auto pt-4 border-t flex items-center justify-center gap-3 font-mono text-[9px] uppercase tracking-[0.22em] text-[var(--color-primary)]" style={{ borderColor: 'var(--border-subtle)' }}>
+                <span>Trazabilidad</span>
+                <span style={{ color: 'var(--text-muted)' }}>•</span>
+                <span>Control</span>
+                <span style={{ color: 'var(--text-muted)' }}>•</span>
+                <span>Consistencia</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* NEWS BOARD */}
+      <NewsBoard />
+
+      {/* ============================================================
+          APLICACIONES — CPD-HOM-APP-001
+         ============================================================ */}
+      <section className="py-24 border-t border-[var(--border-subtle)] relative z-20" style={{ background: 'var(--bg-base)' }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between mb-12 reveal-on-scroll flex-wrap gap-4">
+            <span className="font-mono text-[11px] uppercase tracking-[0.28em] text-[var(--text-muted)]">— Aplicaciones</span>
+            <Link to="/services" className="font-mono text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)] hover:text-[var(--color-primary)] transition-colors inline-flex items-center gap-2">
+              Ver más casos
+              <span className="inline-flex items-center justify-center w-4 h-4 border" style={{ borderColor: 'var(--border-subtle)' }}>+</span>
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 reveal-on-scroll">
+            {[
+              {
+                icon: LayoutGrid,
+                title: 'Restaurantes',
+                desc: 'Sistemas que alinean operación, experiencia y rentabilidad.',
+                metrics: [
+                  ['Tiempo promedio',  '−18%'],
+                  ['Costo mercancía',  '−2.4pp'],
+                  ['Cumplimiento SOP', '+27%'],
+                ],
+              },
+              {
+                icon: Cpu,
+                title: 'Centros de Producción',
+                desc: 'Control total de procesos, calidad y eficiencia operativa.',
+                metrics: [
+                  ['Rendimiento',      '+16%'],
+                  ['Desperdicio',      '−23%'],
+                  ['Trazabilidad',     '100%'],
+                ],
+              },
+              {
+                icon: GraduationCap,
+                title: 'Academia / Capacitación',
+                desc: 'Programas y talleres para desarrollar equipos de alto desempeño.',
+                metrics: [
+                  ['Evaluaciones',     '98%'],
+                  ['Adopción sistema', '+35%'],
+                  ['Retención',        '+22%'],
+                ],
+              },
+            ].map((app) => {
+              const Icon = app.icon;
               return (
                 <div
-                  key={item.id}
-                  className="group p-6 rounded-lg border border-[var(--border-subtle)] hover:border-[var(--color-primary)] transition-all shadow-sm"
-                  style={{ background: 'var(--bg-elevated)' }}
+                  key={app.title}
+                  className="group relative border overflow-hidden flex flex-col"
+                  style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-surface)' }}
                 >
-                  <div className="flex items-center gap-3 mb-4">
-                    <span className="w-10 h-10 rounded-full flex items-center justify-center transition-colors border border-[var(--border-subtle)] group-hover:border-[var(--color-primary)]"
-                          style={{ background: 'var(--bg-surface-soft)', color: 'var(--color-primary)' }}>
-                      <Icon className="w-5 h-5" strokeWidth={1.75} />
-                    </span>
-                    <h3 className="font-display text-lg font-semibold text-[var(--text-primary)]">
-                      {item.letter}
+                  {/* Corner brackets */}
+                  <span aria-hidden="true" className="absolute top-0 left-0 w-3 h-3 border-l border-t z-10" style={{ borderColor: 'var(--color-primary)' }} />
+                  <span aria-hidden="true" className="absolute bottom-0 right-0 w-3 h-3 border-r border-b z-10" style={{ borderColor: 'var(--color-primary)' }} />
+
+                  {/* Image area: dark gradient + watermark icon + grid */}
+                  <div className="relative h-40 overflow-hidden" style={{ background: 'var(--bg-elevated)' }}>
+                    <div
+                      aria-hidden="true"
+                      className="absolute inset-0 opacity-[0.08]"
+                      style={{
+                        backgroundImage:
+                          'linear-gradient(var(--color-primary) 1px, transparent 1px), linear-gradient(90deg, var(--color-primary) 1px, transparent 1px)',
+                        backgroundSize: '24px 24px',
+                      }}
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <Icon
+                        className="text-[var(--color-primary)] opacity-25 transition-transform duration-500 group-hover:scale-110 group-hover:opacity-40"
+                        style={{ width: '88px', height: '88px' }}
+                        strokeWidth={1.25}
+                      />
+                    </div>
+                    <div className="absolute inset-0" style={{
+                      background: 'linear-gradient(180deg, transparent 0%, var(--bg-surface) 100%)',
+                    }} />
+                  </div>
+
+                  {/* Body */}
+                  <div className="p-5 flex-1 flex flex-col">
+                    <h3 className="font-display text-lg font-semibold tracking-tight text-[var(--text-primary)] mb-2 group-hover:text-[var(--color-primary)] transition-colors">
+                      {app.title}
                     </h3>
+                    <p className="font-mono text-[11px] leading-relaxed text-[var(--text-secondary)] mb-4">
+                      {app.desc}
+                    </p>
+
+                    {/* Metrics strip */}
+                    <div className="mt-auto pt-4 border-t grid grid-cols-3 gap-2" style={{ borderColor: 'var(--border-subtle)' }}>
+                      {app.metrics.map(([label, value]) => (
+                        <div key={label} className="flex flex-col">
+                          <span className="font-mono text-[8px] uppercase tracking-[0.18em] text-[var(--text-muted)] truncate">{label}</span>
+                          <span className="font-mono text-base font-bold text-[var(--color-primary)]">{value}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <p className="text-sm text-[var(--text-secondary)] mb-4 italic min-h-[40px]">
-                    "{item.tagline}"
-                  </p>
-                  <div className="mb-4">
-                    <StatusBadge tone="danger" variant="soft" size="sm">
-                      <AlertTriangle className="w-3 h-3" />
-                      <span>{item.symptoms[0]}</span>
-                    </StatusBadge>
-                  </div>
+
+                  {/* Arrow on hover */}
                   <Link
-                    to="/methodology"
-                    className="text-[var(--color-primary)] text-xs font-semibold hover:text-[var(--color-primary-soft)] inline-flex items-center gap-1 uppercase tracking-wide"
+                    to="/services"
+                    aria-label={`Ver más sobre ${app.title}`}
+                    className="absolute bottom-3 right-3 inline-flex items-center justify-center w-8 h-8 border opacity-0 group-hover:opacity-100 transition-opacity"
+                    style={{ borderColor: 'var(--color-primary)', color: 'var(--color-primary)', background: 'var(--bg-surface)' }}
                   >
-                    Ver cómo lo trabajamos
-                    <ArrowRight className="w-3 h-3" />
+                    <ArrowRight className="w-3.5 h-3.5" />
                   </Link>
                 </div>
               );
@@ -354,9 +817,6 @@ const Home = () => {
           </div>
         </div>
       </section>
-
-      {/* NEWS BOARD */}
-      <NewsBoard />
 
       {/* ============================================================
           BENEFITS — Toggle Caos/Octopus — OCT-LAND-IMP-001
@@ -654,6 +1114,71 @@ const Home = () => {
               ))}
             </div>
           )}
+        </div>
+      </section>
+
+      {/* ============================================================
+          CTA FINAL — CPD-HOM-CTA-001
+         ============================================================ */}
+      <section className="py-20 border-t border-[var(--border-subtle)] relative z-20" style={{ background: 'var(--bg-base)' }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div
+            className="relative p-8 md:p-12 border overflow-hidden"
+            style={{
+              borderColor: 'var(--border-strong)',
+              background: 'var(--bg-surface)',
+              boxShadow: '0 0 50px rgba(0, 255, 157, 0.10)',
+            }}
+          >
+            {/* Corner brackets phosphor */}
+            <span aria-hidden="true" className="absolute top-0 left-0 w-4 h-4 border-l border-t" style={{ borderColor: 'var(--color-primary)' }} />
+            <span aria-hidden="true" className="absolute top-0 right-0 w-4 h-4 border-r border-t" style={{ borderColor: 'var(--color-primary)' }} />
+            <span aria-hidden="true" className="absolute bottom-0 left-0 w-4 h-4 border-l border-b" style={{ borderColor: 'var(--color-primary)' }} />
+            <span aria-hidden="true" className="absolute bottom-0 right-0 w-4 h-4 border-r border-b" style={{ borderColor: 'var(--color-primary)' }} />
+
+            {/* Grid backdrop */}
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 opacity-[0.05] pointer-events-none"
+              style={{
+                backgroundImage:
+                  'linear-gradient(var(--color-primary) 1px, transparent 1px), linear-gradient(90deg, var(--color-primary) 1px, transparent 1px)',
+                backgroundSize: '32px 32px',
+              }}
+            />
+
+            <div className="relative grid grid-cols-1 md:grid-cols-[auto,1fr,auto] items-center gap-8">
+              {/* Left: cephalopod logo */}
+              <div className="hidden md:block w-20 h-20 flex-shrink-0">
+                <OctopusMark variant="phosphor" animated />
+              </div>
+
+              {/* Center: copy */}
+              <div>
+                <h3 className="font-display text-2xl md:text-3xl font-bold tracking-tight uppercase text-[var(--text-primary)] leading-tight mb-3">
+                  Convertí tu operación en un{' '}
+                  <span className="text-[var(--color-primary)]">sistema inteligente</span>.
+                </h3>
+                <p className="font-mono text-xs md:text-sm uppercase tracking-[0.18em] text-[var(--text-secondary)]">
+                  Menos improvisación · más control. Menos caos · más criterio.
+                </p>
+              </div>
+
+              {/* Right: CTA button */}
+              <div className="flex-shrink-0">
+                <Link to="/quick-diagnostic">
+                  <Button variant="primary" size="lg" icon={ArrowRight} iconPosition="right">
+                    Solicitar diagnóstico
+                  </Button>
+                </Link>
+              </div>
+            </div>
+
+            <div className="relative mt-6 pt-4 border-t flex items-center justify-between font-mono text-[9px] uppercase tracking-[0.22em] text-[var(--text-muted)]" style={{ borderColor: 'var(--border-subtle)' }}>
+              <span>Octopus Coquinaria · Sistemas operativos para gastronomía</span>
+              <span>CPD-HOM-CTA-001</span>
+            </div>
+          </div>
         </div>
       </section>
     </Layout>

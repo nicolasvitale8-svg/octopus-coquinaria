@@ -1,29 +1,24 @@
 import React from 'react';
 
 /**
- * StatusBadge — primitivo único para estado / etiqueta / chip.
+ * StatusBadge — primitivo único para estado / etiqueta / chip · FASE 3 HUD.
  *
- * Reemplaza cualquier `<span class="bg-green-... text-green-...">` ad-hoc
- * disperso por la app. Una sola fuente de verdad para los colores de estado.
+ * Reemplaza la version pill rounded por chip cuadrado terminal-aesthetic.
+ * Tones mapeados a la nueva paleta phosphor.
  *
  * tones disponibles:
- *   - "neutral"  → cream / muted (default).
- *   - "primary"  → gold (marca, items destacados).
- *   - "success"  → verde (aprobado, completado, OK).
- *   - "warning"  → amarillo (atención, vencimientos próximos).
+ *   - "neutral"  → off-white / muted (default).
+ *   - "primary"  → phosphor green (marca, items destacados).
+ *   - "success"  → terminal green (aprobado, OK).
+ *   - "warning"  → hazard amber (atención).
  *   - "danger"   → rojo (error, rechazado, vencido).
- *   - "info"     → violeta (informativo, notas).
- *   - "cyan"     → cyan-tech (datos técnicos, doc-codes, módulos).
+ *   - "info"     → phosphor (informativo) — alias.
+ *   - "cyan"     → phosphor (datos técnicos) — alias.
  *
  * variants:
- *   - "soft"  → fondo translúcido + texto color del tone (default).
- *   - "solid" → fondo color sólido + texto contraste.
+ *   - "soft"   → fondo translúcido + texto color del tone (default).
+ *   - "solid"  → fondo sólido + texto abyss black.
  *   - "outline" → sin fondo, sólo borde + texto.
- *
- * Uso típico:
- *   <StatusBadge tone="success">Aprobado</StatusBadge>
- *   <StatusBadge tone="warning" dot>Pendiente</StatusBadge>
- *   <StatusBadge tone="cyan" variant="outline">OCT-FIN-DOC-001</StatusBadge>
  */
 
 export type StatusTone =
@@ -40,7 +35,6 @@ export type StatusVariant = 'soft' | 'solid' | 'outline';
 export interface StatusBadgeProps {
   tone?: StatusTone;
   variant?: StatusVariant;
-  /** Punto coloreado a la izquierda (estados live). */
   dot?: boolean;
   size?: 'sm' | 'md';
   className?: string;
@@ -50,45 +44,45 @@ export interface StatusBadgeProps {
 const toneTokens: Record<StatusTone, { color: string; bg: string; border: string; solidText: string }> = {
   neutral: {
     color: 'var(--text-secondary)',
-    bg: 'rgba(243, 239, 228, 0.08)',
-    border: 'rgba(243, 239, 228, 0.18)',
+    bg: 'rgba(230, 232, 229, 0.06)',
+    border: 'rgba(230, 232, 229, 0.20)',
     solidText: 'var(--bg-base)',
   },
   primary: {
-    color: 'var(--color-primary)',
-    bg: 'rgba(212, 182, 129, 0.10)',
-    border: 'rgba(212, 182, 129, 0.38)',
-    solidText: 'var(--text-on-gold)',
+    color: '#00FF9D',
+    bg: 'rgba(0, 255, 157, 0.10)',
+    border: 'rgba(0, 255, 157, 0.40)',
+    solidText: '#050607',
   },
   success: {
-    color: '#4ADE80',
-    bg: 'rgba(34, 197, 94, 0.12)',
-    border: 'rgba(34, 197, 94, 0.40)',
-    solidText: '#062711',
+    color: '#00C57D',
+    bg: 'rgba(0, 197, 125, 0.12)',
+    border: 'rgba(0, 197, 125, 0.45)',
+    solidText: '#04211A',
   },
   warning: {
-    color: '#FACC15',
-    bg: 'rgba(234, 179, 8, 0.12)',
-    border: 'rgba(234, 179, 8, 0.40)',
-    solidText: '#3A2A02',
+    color: '#FFB12A',
+    bg: 'rgba(255, 177, 42, 0.12)',
+    border: 'rgba(255, 177, 42, 0.45)',
+    solidText: '#3A2402',
   },
   danger: {
-    color: '#F87171',
-    bg: 'rgba(239, 68, 68, 0.12)',
-    border: 'rgba(239, 68, 68, 0.40)',
+    color: '#FF4D4D',
+    bg: 'rgba(255, 77, 77, 0.12)',
+    border: 'rgba(255, 77, 77, 0.40)',
     solidText: '#3A0808',
   },
   info: {
-    color: '#A78BFA',
-    bg: 'rgba(139, 92, 246, 0.12)',
-    border: 'rgba(139, 92, 246, 0.40)',
-    solidText: '#1A0F3A',
+    color: '#00FF9D',
+    bg: 'rgba(0, 255, 157, 0.10)',
+    border: 'rgba(0, 255, 157, 0.40)',
+    solidText: '#050607',
   },
   cyan: {
-    color: '#5DD3E8',
-    bg: 'rgba(31, 182, 213, 0.12)',
-    border: 'rgba(31, 182, 213, 0.40)',
-    solidText: '#06222A',
+    color: '#00FF9D',
+    bg: 'rgba(0, 255, 157, 0.10)',
+    border: 'rgba(0, 255, 157, 0.40)',
+    solidText: '#050607',
   },
 };
 
@@ -130,14 +124,17 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full border font-medium uppercase tracking-wide whitespace-nowrap ${sizeClasses} ${className}`}
+      className={`inline-flex items-center gap-1.5 border font-mono font-medium uppercase tracking-[0.18em] whitespace-nowrap ${sizeClasses} ${className}`}
       style={style}
     >
       {dot && (
         <span
           aria-hidden="true"
           className="inline-block h-1.5 w-1.5 rounded-full"
-          style={{ backgroundColor: variant === 'solid' ? t.solidText : t.color }}
+          style={{
+            backgroundColor: variant === 'solid' ? t.solidText : t.color,
+            boxShadow: variant === 'solid' ? undefined : `0 0 6px ${t.color}80`,
+          }}
         />
       )}
       {children}
