@@ -65,12 +65,53 @@ const SupplyItemsPage = lazy(() => import('./procurement/pages/SupplyItems').the
 const StockAlerts = lazy(() => import('./procurement/pages/StockAlerts').then(m => ({ default: m.StockAlerts })));
 const StockMovements = lazy(() => import('./procurement/pages/StockMovements').then(m => ({ default: m.StockMovements })));
 
-// Loading fallback component
+// Loading fallback HUD/terminal · phosphor green
 const LoadingFallback = () => (
-  <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800">
-    <div className="text-center">
-      <div className="w-16 h-16 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-      <p className="text-amber-400 text-lg font-medium">Cargando...</p>
+  <div
+    className="min-h-screen flex items-center justify-center relative"
+    style={{ background: 'var(--bg-base)' }}
+  >
+    {/* HUD grid backdrop */}
+    <div
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-0 opacity-[0.04]"
+      style={{
+        backgroundImage:
+          'linear-gradient(var(--color-primary) 1px, transparent 1px), linear-gradient(90deg, var(--color-primary) 1px, transparent 1px)',
+        backgroundSize: '48px 48px',
+      }}
+    />
+    {/* Corner reticles */}
+    <span aria-hidden="true" className="absolute top-4 left-4 w-5 h-5 border-l border-t" style={{ borderColor: 'var(--color-primary)' }} />
+    <span aria-hidden="true" className="absolute top-4 right-4 w-5 h-5 border-r border-t" style={{ borderColor: 'var(--color-primary)' }} />
+    <span aria-hidden="true" className="absolute bottom-4 left-4 w-5 h-5 border-l border-b" style={{ borderColor: 'var(--color-primary)' }} />
+    <span aria-hidden="true" className="absolute bottom-4 right-4 w-5 h-5 border-r border-b" style={{ borderColor: 'var(--color-primary)' }} />
+
+    <div className="relative text-center space-y-5">
+      {/* Phosphor pulse spinner */}
+      <div className="relative inline-block">
+        <div className="absolute inset-0 rounded-full blur-2xl animate-pulse" style={{ background: 'rgba(0, 255, 157, 0.45)' }} />
+        <div
+          className="relative w-14 h-14 border-2 border-t-transparent rounded-full animate-spin mx-auto"
+          style={{ borderColor: 'var(--color-primary)', borderTopColor: 'transparent' }}
+        />
+      </div>
+
+      <div className="space-y-1">
+        <p className="font-mono text-[10px] uppercase tracking-[0.28em]" style={{ color: 'var(--color-primary)' }}>
+          ▸ Octopus OS
+        </p>
+        <p className="font-mono text-[10px] uppercase tracking-[0.22em]" style={{ color: 'var(--text-muted)' }}>
+          Inicializando módulo…
+        </p>
+      </div>
+
+      {/* Animated progress dots */}
+      <div className="flex gap-1 justify-center">
+        <span className="inline-block w-1.5 h-1.5 animate-pulse" style={{ background: 'var(--color-primary)', animationDelay: '0ms' }} />
+        <span className="inline-block w-1.5 h-1.5 animate-pulse" style={{ background: 'var(--color-primary)', animationDelay: '150ms' }} />
+        <span className="inline-block w-1.5 h-1.5 animate-pulse" style={{ background: 'var(--color-primary)', animationDelay: '300ms' }} />
+      </div>
     </div>
   </div>
 );

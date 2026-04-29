@@ -145,7 +145,7 @@ const DetailModal: React.FC<{
                     ))}
                   </Pie>
                   <Tooltip
-                    contentStyle={{ backgroundColor: '#141C2F', borderRadius: '24px', border: '1px solid #1F2937', padding: '16px' }}
+                    contentStyle={{ backgroundColor: 'var(--bg-surface)', borderRadius: '4px', border: '1px solid rgba(0, 255, 157, 0.30)', padding: '12px', fontFamily: "'IBM Plex Mono', monospace", fontSize: '12px', color: 'var(--text-primary)' }}
                     itemStyle={{ fontSize: '12px', fontWeight: '900', color: '#fff', textTransform: 'uppercase' }}
                   />
                 </PieChart>
@@ -567,17 +567,47 @@ export const Dashboard: React.FC = () => {
 
   if (loading && transactions.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-[60vh] space-y-4 animate-pulse">
-        <div className="w-12 h-12 bg-brand/20 rounded-full flex items-center justify-center">
-          <Sparkles className="text-brand animate-spin" size={24} />
+      <div
+        className="relative flex flex-col items-center justify-center h-[80vh] space-y-5"
+        style={{ background: 'var(--bg-base)' }}
+      >
+        {/* Corner reticles HUD */}
+        <span aria-hidden="true" className="absolute top-4 left-4 w-4 h-4 border-l border-t" style={{ borderColor: 'var(--color-primary)' }} />
+        <span aria-hidden="true" className="absolute top-4 right-4 w-4 h-4 border-r border-t" style={{ borderColor: 'var(--color-primary)' }} />
+        <span aria-hidden="true" className="absolute bottom-4 left-4 w-4 h-4 border-l border-b" style={{ borderColor: 'var(--color-primary)' }} />
+        <span aria-hidden="true" className="absolute bottom-4 right-4 w-4 h-4 border-r border-b" style={{ borderColor: 'var(--color-primary)' }} />
+
+        {/* Phosphor pulse */}
+        <div className="relative">
+          <div className="absolute inset-0 rounded-full blur-2xl animate-pulse" style={{ background: 'rgba(0, 255, 157, 0.45)' }} />
+          <div
+            className="relative w-14 h-14 border flex items-center justify-center"
+            style={{ background: 'var(--bg-surface)', borderColor: 'var(--color-primary)' }}
+          >
+            <Sparkles className="text-[var(--color-primary)] animate-spin" size={22} strokeWidth={1.5} />
+          </div>
         </div>
-        <p className="text-fin-muted font-bold uppercase tracking-widest text-[10px]">Sincronizando con Octopus...</p>
+
+        <div className="text-center space-y-1.5">
+          <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-[var(--color-primary)]">
+            ▸ Octopus OS · Sync en curso
+          </p>
+          <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--text-muted)]">
+            Cargando datos financieros…
+          </p>
+        </div>
+
+        <div className="flex gap-1 mt-1">
+          <span className="inline-block w-1.5 h-1.5 animate-pulse" style={{ background: 'var(--color-primary)', animationDelay: '0ms' }} />
+          <span className="inline-block w-1.5 h-1.5 animate-pulse" style={{ background: 'var(--color-primary)', animationDelay: '150ms' }} />
+          <span className="inline-block w-1.5 h-1.5 animate-pulse" style={{ background: 'var(--color-primary)', animationDelay: '300ms' }} />
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0E1629] text-white p-4 md:p-8 font-sans animate-fade-in relative z-0">
+    <div className="min-h-screen p-4 md:p-8 font-sans animate-fade-in relative z-0" style={{ background: 'var(--bg-base)', color: 'var(--text-primary)' }}>
 
       {/* Detail Modals (Audits & Lists) */}
       {monthReport && (
@@ -602,20 +632,30 @@ export const Dashboard: React.FC = () => {
       )}
 
       {/* HEADER FINANCIAS PRO */}
-      <div className="flex flex-col mb-6 bg-[#172033] p-6 rounded-2xl border border-[#2A3445] shadow-lg shadow-black/20">
+      <div
+        className="relative flex flex-col mb-6 p-6 border"
+        style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}
+      >
+        <span aria-hidden="true" className="absolute top-0 left-0 w-3 h-3 border-l border-t" style={{ borderColor: 'var(--color-primary)' }} />
+        <span aria-hidden="true" className="absolute bottom-0 right-0 w-3 h-3 border-r border-b" style={{ borderColor: 'var(--color-primary)' }} />
+
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
           <div className="flex items-center gap-4">
-            <div className="flex bg-gradient-to-br from-brand/20 to-brand/10 p-2.5 rounded-xl border border-brand/20">
-              <TrendingUp className="text-brand" size={26} />
+            <div
+              className="flex p-2.5 border"
+              style={{ background: 'rgba(0, 255, 157, 0.10)', borderColor: 'rgba(0, 255, 157, 0.40)' }}
+            >
+              <TrendingUp className="text-[var(--color-primary)]" size={22} strokeWidth={1.75} />
             </div>
             <div>
-              <h1 className="text-xl md:text-2xl font-black text-white tracking-widest flex items-center gap-3">
-                FINANCIAS <span className="text-brand">PRO</span>
+              <div className="font-mono text-[10px] uppercase tracking-[0.28em] text-[var(--text-muted)] mb-1">— FinanzaFlow · CPD-FIN-DSH-001</div>
+              <h1 className="font-display text-xl md:text-2xl font-bold tracking-tight text-[var(--text-primary)] flex items-center gap-2">
+                Financias <span className="text-[var(--color-primary)] font-bold uppercase tracking-wide" style={{ textShadow: '0 0 12px rgba(0, 255, 157, 0.35)' }}>PRO</span>
               </h1>
             </div>
           </div>
-          <h2 className="text-lg md:text-xl font-black uppercase tracking-widest text-[#94A3B8] hidden lg:block">MI RESUMEN FINANCIERO PERSONAL</h2>
-          <div className="flex items-center gap-4 text-[#94A3B8]">
+          <h2 className="font-mono text-xs md:text-sm uppercase tracking-[0.22em] text-[var(--text-muted)] hidden lg:block">Mi resumen financiero personal</h2>
+          <div className="flex items-center gap-4 text-[var(--text-muted)]">
             {availableEntities.length > 1 && (
               <select
                 className="bg-[#0E1629] border border-[#2A3445] rounded-xl px-4 py-2 text-[11px] font-black uppercase tracking-widest text-white outline-none cursor-pointer hover:border-brand/50 transition-colors"

@@ -86,9 +86,10 @@ const AdminAcademy = () => {
                 actions={
                     <Button
                         onClick={() => navigate('/admin/academy/documents')}
-                        className="bg-[var(--bg-surface)] text-[var(--text-secondary)] border border-[var(--border-subtle)] hover:bg-[var(--bg-surface-soft)] hover:text-[var(--text-primary)] flex items-center gap-2"
+                        variant="secondary"
+                        icon={FileText}
                     >
-                        <FileText className="w-4 h-4" /> Generador PDF
+                        Generador PDF
                     </Button>
                 }
             />
