@@ -14,18 +14,18 @@ const DiagnosticStepBusiness: React.FC<DiagnosticStepBusinessProps> = ({ formDat
     return (
         <div className="space-y-6 animate-fade-in">
             <div>
-                <h2 className="text-2xl font-bold text-white mb-2 font-space">Datos del Negocio</h2>
-                <p className="text-slate-400">Empecemos por entender el contexto de tu operación.</p>
+                <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-2 font-space">Datos del Negocio</h2>
+                <p className="text-[var(--text-muted)]">Empecemos por entender el contexto de tu operación.</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-1">Tipo de Negocio</label>
+                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Tipo de Negocio</label>
                     <select
                         name="businessType"
                         value={formData.businessType}
                         onChange={handleChange}
-                        className="bg-[#00344F]/40 border border-slate-600 text-white text-sm rounded-md block w-full p-2.5 focus:ring-[#1FB6D5] focus:border-[#1FB6D5]"
+                        className="bg-[#0F1416]/40 border border-[var(--border-strong)] text-[var(--text-primary)] text-sm rounded-md block w-full p-2.5 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]"
                     >
                         {Object.values(BusinessType).map(t => <option key={t} value={t} className="text-gray-900 bg-white">{t}</option>)}
                     </select>

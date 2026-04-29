@@ -454,7 +454,7 @@ export const AdminUserModal: React.FC<AdminUserModalProps> = ({ isOpen, onClose,
                                             className={`p-3 rounded-lg border cursor-pointer transition-all flex items-start gap-3 ${isActive ? 'bg-[rgba(0,255,157,0.10)]/10 border-blue-500/40' : 'bg-[var(--bg-base)] border-[var(--border-subtle)] hover:border-[var(--border-subtle)]'
                                                 }`}
                                         >
-                                            <div className={`mt-0.5 w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 ${isActive ? 'bg-[var(--color-primary)] border-blue-500 text-[var(--text-primary)]' : 'border-[var(--border-strong)]'
+                                            <div className={`mt-0.5 w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 ${isActive ? 'bg-[var(--color-primary)] border-blue-500 text-[#050607]' : 'border-[var(--border-strong)]'
                                                 }`}>
                                                 {isActive && <Check size={10} />}
                                             </div>
@@ -517,7 +517,7 @@ export const AdminUserModal: React.FC<AdminUserModalProps> = ({ isOpen, onClose,
                 {/* Footer */}
                 <div className="p-6 border-t border-[var(--border-subtle)] flex justify-end gap-3 bg-[var(--bg-base)] sticky bottom-0 z-10">
                     <Button variant="ghost" onClick={onClose} disabled={isSubmitting}>Cancelar</Button>
-                    <Button onClick={handleSubmit} disabled={isSubmitting} className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-soft)] text-[var(--text-primary)]">
+                    <Button onClick={handleSubmit} disabled={isSubmitting} className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-soft)] text-[#050607]">
                         {isSubmitting ? (
                             <>
                                 <Loader2 className="animate-spin mr-2" size={16} /> Procesando...

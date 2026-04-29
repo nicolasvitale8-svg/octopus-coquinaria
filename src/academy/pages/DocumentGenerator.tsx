@@ -123,18 +123,18 @@ export const DocumentGenerator: React.FC = () => {
                 {/* Header */}
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-amber-500/20 rounded-2xl flex items-center justify-center">
-                            <FileText className="text-amber-400" size={24} />
+                        <div className="w-12 h-12 bg-[var(--color-warning)]/20 rounded-md flex items-center justify-center">
+                            <FileText className="text-[var(--color-warning)]" size={24} />
                         </div>
                         <div>
-                            <h1 className="text-2xl font-black text-white uppercase tracking-wider">Generador de Documentos</h1>
-                            <p className="text-sm text-slate-400">Academia Octopus • Documentos Controlados</p>
+                            <h1 className="text-2xl font-black text-[var(--text-primary)] uppercase tracking-wider">Generador de Documentos</h1>
+                            <p className="text-sm text-[var(--text-muted)]">Academia Octopus • Documentos Controlados</p>
                         </div>
                     </div>
                     <button
                         onClick={handleExportPDF}
                         disabled={exporting || !document.metadata.title}
-                        className="flex items-center gap-2 px-6 py-3 bg-amber-500 text-slate-900 font-black text-sm uppercase tracking-wider rounded-xl hover:bg-amber-400 transition-all disabled:opacity-50"
+                        className="flex items-center gap-2 px-6 py-3 bg-[var(--color-warning)] text-slate-900 font-black text-sm uppercase tracking-wider rounded-md hover:bg-amber-400 transition-all disabled:opacity-50"
                     >
                         {exporting ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
                         {exporting ? 'Generando...' : 'Exportar PDF'}
@@ -142,11 +142,11 @@ export const DocumentGenerator: React.FC = () => {
                 </div>
 
                 {/* Metadata Form */}
-                <div className="bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-slate-700 p-6">
-                    <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Metadatos del Documento</h3>
+                <div className="bg-[var(--bg-surface)]/50 backdrop-blur-xl rounded-md border border-[var(--border-subtle)] p-6">
+                    <h3 className="text-xs font-black text-[var(--text-muted)] uppercase tracking-widest mb-4">Metadatos del Documento</h3>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         <div>
-                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Tipo</label>
+                            <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest block mb-1">Tipo</label>
                             <select
                                 value={document.metadata.type}
                                 onChange={e => {
@@ -154,7 +154,7 @@ export const DocumentGenerator: React.FC = () => {
                                     updateMetadata('type', type);
                                     updateMetadata('code', generateDocumentCode(type, 1));
                                 }}
-                                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white text-sm font-bold focus:border-amber-500 outline-none"
+                                className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-md px-4 py-3 text-[var(--text-primary)] text-sm font-bold focus:border-[var(--color-warning)] outline-none"
                             >
                                 {Object.entries(DOCUMENT_TYPE_LABELS).map(([key, label]) => (
                                     <option key={key} value={key}>{label}</option>
@@ -162,29 +162,29 @@ export const DocumentGenerator: React.FC = () => {
                             </select>
                         </div>
                         <div>
-                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Código</label>
+                            <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest block mb-1">Código</label>
                             <input
                                 type="text"
                                 value={document.metadata.code}
                                 onChange={e => updateMetadata('code', e.target.value)}
-                                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white text-sm font-mono focus:border-amber-500 outline-none"
+                                className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-md px-4 py-3 text-[var(--text-primary)] text-sm font-mono focus:border-[var(--color-warning)] outline-none"
                             />
                         </div>
                         <div>
-                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Versión</label>
+                            <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest block mb-1">Versión</label>
                             <input
                                 type="text"
                                 value={document.metadata.version}
                                 onChange={e => updateMetadata('version', e.target.value)}
-                                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white text-sm font-bold focus:border-amber-500 outline-none"
+                                className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-md px-4 py-3 text-[var(--text-primary)] text-sm font-bold focus:border-[var(--color-warning)] outline-none"
                             />
                         </div>
                         <div>
-                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Estado</label>
+                            <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest block mb-1">Estado</label>
                             <select
                                 value={document.metadata.status}
                                 onChange={e => updateMetadata('status', e.target.value)}
-                                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white text-sm font-bold focus:border-amber-500 outline-none"
+                                className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-md px-4 py-3 text-[var(--text-primary)] text-sm font-bold focus:border-[var(--color-warning)] outline-none"
                             >
                                 <option value="BORRADOR">BORRADOR</option>
                                 <option value="EN REVISIÓN">EN REVISIÓN</option>
@@ -193,30 +193,30 @@ export const DocumentGenerator: React.FC = () => {
                             </select>
                         </div>
                         <div className="md:col-span-2">
-                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Título</label>
+                            <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest block mb-1">Título</label>
                             <input
                                 type="text"
                                 value={document.metadata.title}
                                 onChange={e => updateMetadata('title', e.target.value)}
                                 placeholder="Ej: Por dónde empezar en la Academia Octopus"
-                                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white text-sm focus:border-amber-500 outline-none placeholder:text-slate-600"
+                                className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-md px-4 py-3 text-[var(--text-primary)] text-sm focus:border-[var(--color-warning)] outline-none placeholder:text-[var(--text-muted)]"
                             />
                         </div>
                         <div>
-                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Propietario</label>
+                            <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest block mb-1">Propietario</label>
                             <input
                                 type="text"
                                 value={document.metadata.owner}
                                 onChange={e => updateMetadata('owner', e.target.value)}
-                                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white text-sm focus:border-amber-500 outline-none"
+                                className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-md px-4 py-3 text-[var(--text-primary)] text-sm focus:border-[var(--color-warning)] outline-none"
                             />
                         </div>
                         <div>
-                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Acceso</label>
+                            <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest block mb-1">Acceso</label>
                             <select
                                 value={document.metadata.access}
                                 onChange={e => updateMetadata('access', e.target.value as AccessLevel)}
-                                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white text-sm font-bold focus:border-amber-500 outline-none"
+                                className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-md px-4 py-3 text-[var(--text-primary)] text-sm font-bold focus:border-[var(--color-warning)] outline-none"
                             >
                                 {Object.entries(ACCESS_LEVEL_LABELS).map(([key, label]) => (
                                     <option key={key} value={key}>{label}</option>
@@ -230,18 +230,18 @@ export const DocumentGenerator: React.FC = () => {
                 <div className="flex gap-2">
                     <button
                         onClick={() => setActiveTab('edit')}
-                        className={`flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-black uppercase tracking-wider transition-all ${activeTab === 'edit'
-                            ? 'bg-amber-500 text-slate-900'
-                            : 'bg-slate-800 text-slate-400 hover:text-white'
+                        className={`flex items-center gap-2 px-6 py-3 rounded-md text-sm font-black uppercase tracking-wider transition-all ${activeTab === 'edit'
+                            ? 'bg-[var(--color-warning)] text-slate-900'
+                            : 'bg-[var(--bg-surface)] text-[var(--text-muted)] hover:text-[var(--text-primary)]'
                             }`}
                     >
                         <Edit3 size={16} /> Editor
                     </button>
                     <button
                         onClick={() => setActiveTab('preview')}
-                        className={`flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-black uppercase tracking-wider transition-all ${activeTab === 'preview'
-                            ? 'bg-amber-500 text-slate-900'
-                            : 'bg-slate-800 text-slate-400 hover:text-white'
+                        className={`flex items-center gap-2 px-6 py-3 rounded-md text-sm font-black uppercase tracking-wider transition-all ${activeTab === 'preview'
+                            ? 'bg-[var(--color-warning)] text-slate-900'
+                            : 'bg-[var(--bg-surface)] text-[var(--text-muted)] hover:text-[var(--text-primary)]'
                             }`}
                     >
                         <Eye size={16} /> Vista Previa
@@ -253,23 +253,23 @@ export const DocumentGenerator: React.FC = () => {
                     {/* Editor */}
                     {activeTab === 'edit' && (
                         <div className="lg:col-span-2 space-y-6">
-                            <div className="bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-slate-700 p-6">
-                                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Contenido (Markdown)</h3>
+                            <div className="bg-[var(--bg-surface)]/50 backdrop-blur-xl rounded-md border border-[var(--border-subtle)] p-6">
+                                <h3 className="text-xs font-black text-[var(--text-muted)] uppercase tracking-widest mb-4">Contenido (Markdown)</h3>
                                 <textarea
                                     value={document.content}
                                     onChange={e => updateContent(e.target.value)}
-                                    className="w-full h-96 bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white font-mono text-sm resize-none focus:border-amber-500 outline-none"
+                                    className="w-full h-96 bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-md px-4 py-3 text-[var(--text-primary)] font-mono text-sm resize-none focus:border-[var(--color-warning)] outline-none"
                                     placeholder="Escribí tu contenido en Markdown..."
                                 />
                             </div>
 
                             {/* Change Log */}
-                            <div className="bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-slate-700 p-6">
+                            <div className="bg-[var(--bg-surface)]/50 backdrop-blur-xl rounded-md border border-[var(--border-subtle)] p-6">
                                 <div className="flex justify-between items-center mb-4">
-                                    <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Registro de Cambios</h3>
+                                    <h3 className="text-xs font-black text-[var(--text-muted)] uppercase tracking-widest">Registro de Cambios</h3>
                                     <button
                                         onClick={addChangeLogEntry}
-                                        className="flex items-center gap-1 px-3 py-1.5 bg-slate-700 rounded-lg text-xs font-bold text-slate-300 hover:bg-slate-600"
+                                        className="flex items-center gap-1 px-3 py-1.5 bg-[var(--bg-surface-soft)] rounded-lg text-xs font-bold text-[var(--text-secondary)] hover:bg-[var(--bg-surface-soft)]"
                                     >
                                         <Plus size={14} /> Agregar
                                     </button>
@@ -281,26 +281,26 @@ export const DocumentGenerator: React.FC = () => {
                                                 type="text"
                                                 value={entry.version}
                                                 onChange={e => updateChangeLogEntry(idx, 'version', e.target.value)}
-                                                className="w-20 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs font-mono"
+                                                className="w-20 bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-[var(--text-primary)] text-xs font-mono"
                                                 placeholder="v1.0"
                                             />
                                             <input
                                                 type="text"
                                                 value={entry.change}
                                                 onChange={e => updateChangeLogEntry(idx, 'change', e.target.value)}
-                                                className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs"
+                                                className="flex-1 bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-[var(--text-primary)] text-xs"
                                                 placeholder="Descripción del cambio"
                                             />
                                             <input
                                                 type="text"
                                                 value={entry.date}
                                                 onChange={e => updateChangeLogEntry(idx, 'date', e.target.value)}
-                                                className="w-28 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs"
+                                                className="w-28 bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-[var(--text-primary)] text-xs"
                                                 placeholder="dd/mm/yyyy"
                                             />
                                             <button
                                                 onClick={() => removeChangeLogEntry(idx)}
-                                                className="p-2 text-slate-500 hover:text-red-400"
+                                                className="p-2 text-[var(--text-muted)] hover:text-[var(--color-danger)]"
                                             >
                                                 <Trash2 size={14} />
                                             </button>
@@ -310,34 +310,34 @@ export const DocumentGenerator: React.FC = () => {
                             </div>
 
                             {/* Approvals */}
-                            <div className="bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-slate-700 p-6">
-                                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Aprobaciones</h3>
+                            <div className="bg-[var(--bg-surface)]/50 backdrop-blur-xl rounded-md border border-[var(--border-subtle)] p-6">
+                                <h3 className="text-xs font-black text-[var(--text-muted)] uppercase tracking-widest mb-4">Aprobaciones</h3>
                                 <div className="grid grid-cols-3 gap-4">
                                     <div>
-                                        <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Elaboró</label>
+                                        <label className="text-[10px] font-black text-[var(--text-muted)] uppercase block mb-1">Elaboró</label>
                                         <input
                                             type="text"
                                             value={document.approvals.elaboratedBy}
                                             onChange={e => setDocument(prev => ({ ...prev, approvals: { ...prev.approvals, elaboratedBy: e.target.value } }))}
-                                            className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm"
+                                            className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-[var(--text-primary)] text-sm"
                                         />
                                     </div>
                                     <div>
-                                        <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Revisó</label>
+                                        <label className="text-[10px] font-black text-[var(--text-muted)] uppercase block mb-1">Revisó</label>
                                         <input
                                             type="text"
                                             value={document.approvals.reviewedBy}
                                             onChange={e => setDocument(prev => ({ ...prev, approvals: { ...prev.approvals, reviewedBy: e.target.value } }))}
-                                            className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm"
+                                            className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-[var(--text-primary)] text-sm"
                                         />
                                     </div>
                                     <div>
-                                        <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Aprobó</label>
+                                        <label className="text-[10px] font-black text-[var(--text-muted)] uppercase block mb-1">Aprobó</label>
                                         <input
                                             type="text"
                                             value={document.approvals.approvedBy}
                                             onChange={e => setDocument(prev => ({ ...prev, approvals: { ...prev.approvals, approvedBy: e.target.value } }))}
-                                            className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm"
+                                            className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-[var(--text-primary)] text-sm"
                                         />
                                     </div>
                                 </div>
@@ -356,7 +356,7 @@ export const DocumentGenerator: React.FC = () => {
                                             <img src="/logo_simple.png" alt="Octopus" className="w-12 h-12 object-contain" />
                                             <div>
                                                 <div className="text-lg font-black text-gray-800">ACADEMIA OCTOPUS</div>
-                                                <div className="text-xs text-gray-500">Guía operativa | Documento controlado</div>
+                                                <div className="text-xs text-[var(--text-muted)]">Guía operativa | Documento controlado</div>
                                             </div>
                                         </div>
                                     </div>
@@ -479,7 +479,7 @@ export const DocumentGenerator: React.FC = () => {
 
                                 {/* Footer */}
                                 <div className="px-8 py-4 border-t border-gray-200">
-                                    <div className="flex justify-between items-center text-xs text-gray-400">
+                                    <div className="flex justify-between items-center text-xs text-[var(--text-muted)]">
                                         <div>{document.metadata.code} | v{document.metadata.version} | {document.metadata.reference}</div>
                                         <div>Página 1</div>
                                     </div>

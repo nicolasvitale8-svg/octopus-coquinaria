@@ -83,14 +83,14 @@ export const StockMovements: React.FC = () => {
             <div>
                 <button
                     onClick={() => navigate('/admin/procurement')}
-                    className="flex items-center text-gray-400 hover:text-brand transition-colors mb-4 group"
+                    className="flex items-center text-[var(--text-muted)] hover:text-brand transition-colors mb-4 group"
                 >
                     <ArrowLeft size={20} className="mr-2 group-hover:-translate-x-1 transition-transform" />
                     Volver al Dashboard
                 </button>
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
-                        <h1 className="text-4xl font-black text-white tracking-tighter uppercase font-space flex items-center gap-3">
+                        <h1 className="text-4xl font-black text-[var(--text-primary)] tracking-tighter uppercase font-space flex items-center gap-3">
                             <History className="text-brand" size={32} />
                             Movimientos de Stock
                         </h1>
@@ -100,7 +100,7 @@ export const StockMovements: React.FC = () => {
                     </div>
                     <button
                         onClick={() => setIsModalOpen(true)}
-                        className="bg-brand hover:bg-brand-hover text-black px-6 py-3 rounded-xl font-black uppercase text-xs tracking-widest flex items-center gap-2 shadow-lg shadow-brand/20"
+                        className="bg-brand hover:bg-brand-hover text-black px-6 py-3 rounded-md font-black uppercase text-xs tracking-widest flex items-center gap-2 shadow-lg shadow-brand/20"
                     >
                         <Plus size={16} />
                         Nuevo Movimiento
@@ -113,7 +113,7 @@ export const StockMovements: React.FC = () => {
                 <select
                     value={filtroTipo}
                     onChange={e => setFiltroTipo(e.target.value)}
-                    className="bg-black/20 border border-gray-700 rounded-xl p-3 text-white font-bold focus:border-brand outline-none"
+                    className="bg-black/20 border border-[var(--border-subtle)] rounded-md p-3 text-[var(--text-primary)] font-bold focus:border-brand outline-none"
                 >
                     <option value="">Todos los tipos</option>
                     <option value="ENTRADA">Solo Entradas</option>
@@ -122,7 +122,7 @@ export const StockMovements: React.FC = () => {
                 <select
                     value={filtroInsumo}
                     onChange={e => setFiltroInsumo(e.target.value)}
-                    className="bg-black/20 border border-gray-700 rounded-xl p-3 text-white font-bold focus:border-brand outline-none min-w-[200px]"
+                    className="bg-black/20 border border-[var(--border-subtle)] rounded-md p-3 text-[var(--text-primary)] font-bold focus:border-brand outline-none min-w-[200px]"
                 >
                     <option value="">Todos los insumos</option>
                     {insumos.map(i => (
@@ -132,18 +132,18 @@ export const StockMovements: React.FC = () => {
             </div>
 
             {/* Tabla de Movimientos */}
-            <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
+            <div className="bg-[var(--bg-base)] rounded-md border border-gray-800 overflow-hidden">
                 {loading ? (
-                    <div className="p-8 text-center text-gray-500">Cargando movimientos...</div>
+                    <div className="p-8 text-center text-[var(--text-muted)]">Cargando movimientos...</div>
                 ) : movimientos.length === 0 ? (
-                    <div className="p-12 text-center text-gray-500">
+                    <div className="p-12 text-center text-[var(--text-muted)]">
                         <Package size={48} className="mx-auto mb-4 opacity-50" />
                         <p className="text-lg font-bold">No hay movimientos registrados</p>
                         <p className="text-sm">Registra una entrada o salida de stock</p>
                     </div>
                 ) : (
-                    <table className="w-full text-left text-gray-400">
-                        <thead className="text-xs uppercase bg-gray-800/50 text-gray-500 font-semibold">
+                    <table className="w-full text-left text-[var(--text-muted)]">
+                        <thead className="text-xs uppercase bg-[var(--bg-surface)]/50 text-[var(--text-muted)] font-semibold">
                             <tr>
                                 <th className="px-6 py-4">Fecha</th>
                                 <th className="px-6 py-4">Tipo</th>
@@ -154,28 +154,28 @@ export const StockMovements: React.FC = () => {
                         </thead>
                         <tbody className="divide-y divide-gray-800">
                             {movimientos.map(mov => (
-                                <tr key={mov.id} className="hover:bg-gray-800/30 transition-colors">
+                                <tr key={mov.id} className="hover:bg-[var(--bg-surface)]/30 transition-colors">
                                     <td className="px-6 py-4 text-sm">
                                         {new Date(mov.fecha).toLocaleString()}
                                     </td>
                                     <td className="px-6 py-4">
                                         {mov.tipo === 'ENTRADA' ? (
-                                            <span className="flex items-center gap-2 text-green-400 font-bold">
+                                            <span className="flex items-center gap-2 text-[var(--color-success)] font-bold">
                                                 <ArrowDownCircle size={18} /> Entrada
                                             </span>
                                         ) : (
-                                            <span className="flex items-center gap-2 text-red-400 font-bold">
+                                            <span className="flex items-center gap-2 text-[var(--color-danger)] font-bold">
                                                 <ArrowUpCircle size={18} /> Salida
                                             </span>
                                         )}
                                     </td>
-                                    <td className="px-6 py-4 font-medium text-white">
+                                    <td className="px-6 py-4 font-medium text-[var(--text-primary)]">
                                         {getInsumoNombre(mov.insumo_id)}
                                     </td>
                                     <td className="px-6 py-4 text-sm">
                                         {getOrigenLabel(mov.origen)}
                                     </td>
-                                    <td className={`px-6 py-4 text-right font-mono font-bold text-lg ${mov.tipo === 'ENTRADA' ? 'text-green-400' : 'text-red-400'}`}>
+                                    <td className={`px-6 py-4 text-right font-mono font-bold text-lg ${mov.tipo === 'ENTRADA' ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'}`}>
                                         {mov.tipo === 'ENTRADA' ? '+' : '-'}{mov.cantidad}
                                     </td>
                                 </tr>
@@ -189,10 +189,10 @@ export const StockMovements: React.FC = () => {
             {isModalOpen && (
                 <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
                     <div className="bg-[#0b1221] border border-white/10 w-full max-w-md rounded-3xl p-8 shadow-2xl relative">
-                        <button onClick={() => setIsModalOpen(false)} className="absolute top-4 right-4 text-gray-500 hover:text-white">
+                        <button onClick={() => setIsModalOpen(false)} className="absolute top-4 right-4 text-[var(--text-muted)] hover:text-[var(--text-primary)]">
                             <X size={20} />
                         </button>
-                        <h2 className="text-2xl font-black text-white mb-6 uppercase tracking-tight font-space">
+                        <h2 className="text-2xl font-black text-[var(--text-primary)] mb-6 uppercase tracking-tight font-space">
                             Nuevo Movimiento
                         </h2>
                         <form onSubmit={handleSave} className="space-y-5">
@@ -200,7 +200,7 @@ export const StockMovements: React.FC = () => {
                                 <label className="text-[10px] font-black text-brand uppercase tracking-widest ml-1 mb-1 block">Insumo</label>
                                 <select
                                     required
-                                    className="w-full bg-black/20 border border-gray-700 rounded-xl p-3 text-white font-bold focus:border-brand outline-none"
+                                    className="w-full bg-black/20 border border-[var(--border-subtle)] rounded-md p-3 text-[var(--text-primary)] font-bold focus:border-brand outline-none"
                                     value={nuevoMov.insumo_id || ''}
                                     onChange={e => setNuevoMov({ ...nuevoMov, insumo_id: e.target.value })}
                                 >
@@ -215,7 +215,7 @@ export const StockMovements: React.FC = () => {
                                 <div>
                                     <label className="text-[10px] font-black text-brand uppercase tracking-widest ml-1 mb-1 block">Tipo</label>
                                     <select
-                                        className="w-full bg-black/20 border border-gray-700 rounded-xl p-3 text-white font-bold focus:border-brand outline-none"
+                                        className="w-full bg-black/20 border border-[var(--border-subtle)] rounded-md p-3 text-[var(--text-primary)] font-bold focus:border-brand outline-none"
                                         value={nuevoMov.tipo}
                                         onChange={e => setNuevoMov({ ...nuevoMov, tipo: e.target.value as 'ENTRADA' | 'SALIDA' })}
                                     >
@@ -226,7 +226,7 @@ export const StockMovements: React.FC = () => {
                                 <div>
                                     <label className="text-[10px] font-black text-brand uppercase tracking-widest ml-1 mb-1 block">Origen</label>
                                     <select
-                                        className="w-full bg-black/20 border border-gray-700 rounded-xl p-3 text-white font-bold focus:border-brand outline-none"
+                                        className="w-full bg-black/20 border border-[var(--border-subtle)] rounded-md p-3 text-[var(--text-primary)] font-bold focus:border-brand outline-none"
                                         value={nuevoMov.origen}
                                         onChange={e => setNuevoMov({ ...nuevoMov, origen: e.target.value as any })}
                                     >
@@ -247,7 +247,7 @@ export const StockMovements: React.FC = () => {
                                     required
                                     step="0.1"
                                     min="0.1"
-                                    className="w-full bg-black/20 border border-gray-700 rounded-xl p-3 text-white font-bold focus:border-brand outline-none"
+                                    className="w-full bg-black/20 border border-[var(--border-subtle)] rounded-md p-3 text-[var(--text-primary)] font-bold focus:border-brand outline-none"
                                     value={nuevoMov.cantidad || ''}
                                     onChange={e => setNuevoMov({ ...nuevoMov, cantidad: Number(e.target.value) })}
                                     placeholder="0"
@@ -255,10 +255,10 @@ export const StockMovements: React.FC = () => {
                             </div>
 
                             <div className="pt-4 flex gap-3">
-                                <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 bg-white/5 hover:bg-white/10 text-white rounded-xl py-3 font-bold uppercase text-xs">
+                                <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 bg-white/5 hover:bg-white/10 text-[var(--text-primary)] rounded-md py-3 font-bold uppercase text-xs">
                                     Cancelar
                                 </button>
-                                <button type="submit" className="flex-1 bg-brand hover:bg-brand-hover text-black rounded-xl py-3 font-black uppercase text-xs tracking-widest shadow-lg shadow-brand/20">
+                                <button type="submit" className="flex-1 bg-brand hover:bg-brand-hover text-black rounded-md py-3 font-black uppercase text-xs tracking-widest shadow-lg shadow-brand/20">
                                     Registrar
                                 </button>
                             </div>

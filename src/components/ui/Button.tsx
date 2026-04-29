@@ -54,16 +54,16 @@ const variantClasses: Record<ButtonVariant, string> = {
     'active:bg-[var(--color-primary-dark)] ' +
     'shadow-[0_1px_0_rgba(255,255,255,0.08)_inset,0_4px_18px_-6px_var(--glow-primary)]',
   secondary:
-    'bg-[var(--bg-surface)] text-[var(--text-primary)] border border-[var(--border-subtle)] ' +
+    'bg-[var(--bg-surface)] text-[#050607] border border-[var(--border-subtle)] ' +
     'hover:bg-[var(--bg-surface-soft)] hover:border-[var(--border-strong)]',
   outline:
     'bg-transparent text-[var(--color-primary)] border border-[var(--color-primary)] ' +
     'hover:bg-[var(--color-primary)] hover:text-[var(--text-on-gold)]',
   ghost:
     'bg-transparent text-[var(--text-secondary)] border border-transparent ' +
-    'hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-soft)]',
+    'hover:text-[#050607] hover:bg-[var(--bg-surface-soft)]',
   danger:
-    'bg-[var(--color-danger)] text-white border border-[var(--color-danger)] ' +
+    'bg-[var(--color-danger)] text-[#050607] border border-[var(--color-danger)] ' +
     'hover:opacity-90 active:opacity-80',
 };
 

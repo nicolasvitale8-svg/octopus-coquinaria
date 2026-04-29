@@ -378,7 +378,7 @@ export const ImportPage: React.FC = () => {
     return (
       <div className="max-w-3xl mx-auto space-y-12 animate-fade-in pb-20">
         <div className="text-center space-y-4">
-          <h1 className="text-4xl font-black text-white tracking-tight">Sincronizador Inteligente</h1>
+          <h1 className="text-4xl font-black text-[var(--text-primary)] tracking-tight">Sincronizador Inteligente</h1>
           <p className="text-fin-muted max-w-lg mx-auto font-medium">Carga capturas de tus billeteras digitales (MercadoPago, Lemon, Brubank) para automatizar tu registro.</p>
         </div>
 
@@ -388,23 +388,23 @@ export const ImportPage: React.FC = () => {
             <div className="absolute top-0 right-0 w-40 h-40 bg-[#009ee3]/10 rounded-full -mr-20 -mt-20 blur-3xl"></div>
             <div className="relative z-10">
               <div className="flex items-center gap-4 mb-6">
-                <div className="w-14 h-14 bg-[#009ee3] rounded-2xl flex items-center justify-center shadow-lg shadow-[#009ee3]/30">
-                  <Zap className="text-white" size={28} />
+                <div className="w-14 h-14 bg-[#009ee3] rounded-md flex items-center justify-center shadow-lg shadow-[#009ee3]/30">
+                  <Zap className="text-[var(--text-primary)]" size={28} />
                 </div>
                 <div>
-                  <h2 className="text-xl font-black text-white">Mercado Pago API</h2>
+                  <h2 className="text-xl font-black text-[var(--text-primary)]">Mercado Pago API</h2>
                   <p className="text-fin-muted text-sm">Sincronización automática de movimientos</p>
                 </div>
               </div>
 
               <div className="flex flex-wrap items-center gap-4">
                 {/* Toggle modo */}
-                <div className="flex items-center gap-2 bg-fin-bg/50 rounded-xl p-1">
+                <div className="flex items-center gap-2 bg-fin-bg/50 rounded-md p-1">
                   <button
                     onClick={() => setMpFilterMode('days')}
                     className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all ${mpFilterMode === 'days'
-                      ? 'bg-[#009ee3] text-white'
-                      : 'text-fin-muted hover:text-white'
+                      ? 'bg-[#009ee3] text-[var(--text-primary)]'
+                      : 'text-fin-muted hover:text-[var(--text-primary)]'
                       }`}
                   >
                     Últimos días
@@ -412,8 +412,8 @@ export const ImportPage: React.FC = () => {
                   <button
                     onClick={() => setMpFilterMode('range')}
                     className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all ${mpFilterMode === 'range'
-                      ? 'bg-[#009ee3] text-white'
-                      : 'text-fin-muted hover:text-white'
+                      ? 'bg-[#009ee3] text-[var(--text-primary)]'
+                      : 'text-fin-muted hover:text-[var(--text-primary)]'
                       }`}
                   >
                     Rango fechas
@@ -425,7 +425,7 @@ export const ImportPage: React.FC = () => {
                   <select
                     value={mpSyncDays}
                     onChange={e => setMpSyncDays(Number(e.target.value))}
-                    className="bg-fin-bg border border-white/10 rounded-xl px-3 py-2 text-white font-bold text-sm focus:border-brand outline-none"
+                    className="bg-fin-bg border border-white/10 rounded-md px-3 py-2 text-[var(--text-primary)] font-bold text-sm focus:border-brand outline-none"
                   >
                     <option value={7}>7 días</option>
                     <option value={15}>15 días</option>
@@ -439,14 +439,14 @@ export const ImportPage: React.FC = () => {
                       type="date"
                       value={mpDateFrom}
                       onChange={e => setMpDateFrom(e.target.value)}
-                      className="bg-fin-bg border border-white/10 rounded-xl px-3 py-2 text-white font-bold text-sm focus:border-brand outline-none"
+                      className="bg-fin-bg border border-white/10 rounded-md px-3 py-2 text-[var(--text-primary)] font-bold text-sm focus:border-brand outline-none"
                     />
                     <span className="text-fin-muted text-xs">a</span>
                     <input
                       type="date"
                       value={mpDateTo}
                       onChange={e => setMpDateTo(e.target.value)}
-                      className="bg-fin-bg border border-white/10 rounded-xl px-3 py-2 text-white font-bold text-sm focus:border-brand outline-none"
+                      className="bg-fin-bg border border-white/10 rounded-md px-3 py-2 text-[var(--text-primary)] font-bold text-sm focus:border-brand outline-none"
                     />
                   </div>
                 )}
@@ -454,7 +454,7 @@ export const ImportPage: React.FC = () => {
                 <button
                   onClick={syncMercadoPago}
                   disabled={mpSyncStatus === 'syncing'}
-                  className="flex items-center gap-3 px-6 py-3 bg-[#009ee3] hover:bg-[#00b1ff] disabled:opacity-50 disabled:cursor-not-allowed text-white font-black text-sm uppercase tracking-wider rounded-xl shadow-lg shadow-[#009ee3]/30 transition-all active:scale-95"
+                  className="flex items-center gap-3 px-6 py-3 bg-[#009ee3] hover:bg-[#00b1ff] disabled:opacity-50 disabled:cursor-not-allowed text-[var(--text-primary)] font-black text-sm uppercase tracking-wider rounded-md shadow-lg shadow-[#009ee3]/30 transition-all active:scale-95"
                 >
                   {mpSyncStatus === 'syncing' ? (
                     <><Loader2 className="animate-spin" size={18} /> Sincronizando...</>
@@ -464,14 +464,14 @@ export const ImportPage: React.FC = () => {
                 </button>
 
                 {mpSyncStatus === 'success' && mpSyncResult && (
-                  <div className="flex items-center gap-2 text-emerald-400 text-sm font-bold animate-fade-in">
+                  <div className="flex items-center gap-2 text-[var(--color-success)] text-sm font-bold animate-fade-in">
                     <CheckCircle2 size={18} />
                     <span>{mpSyncResult.inserted} nuevos, {mpSyncResult.skipped} existentes</span>
                   </div>
                 )}
 
                 {mpSyncStatus === 'error' && (
-                  <div className="flex items-center gap-2 text-red-400 text-sm font-bold animate-fade-in">
+                  <div className="flex items-center gap-2 text-[var(--color-danger)] text-sm font-bold animate-fade-in">
                     <AlertTriangle size={18} />
                     <span>{mpReportProgress || 'Error al sincronizar'}</span>
                   </div>
@@ -497,10 +497,10 @@ export const ImportPage: React.FC = () => {
                   <circle cx="64" cy="64" r="60" stroke="currentColor" strokeWidth="8" fill="transparent" strokeDasharray={377} strokeDashoffset={377 - (377 * scanProgress) / 100} className="text-brand transition-all duration-300 stroke-round" />
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-2xl font-black text-white tabular-nums">{scanProgress}%</span>
+                  <span className="text-2xl font-black text-[var(--text-primary)] tabular-nums">{scanProgress}%</span>
                 </div>
               </div>
-              <h3 className="text-xl font-black text-white mb-2">Procesando Imagen...</h3>
+              <h3 className="text-xl font-black text-[var(--text-primary)] mb-2">Procesando Imagen...</h3>
               <p className="text-fin-muted text-sm font-medium">Tesseract está extrayendo los datos mediante OCR</p>
             </div>
           )}
@@ -513,7 +513,7 @@ export const ImportPage: React.FC = () => {
               <select
                 value={selectedAccountId}
                 onChange={e => setSelectedAccountId(e.target.value)}
-                className="w-full bg-[#020b14] border border-white/10 rounded-2xl p-4 text-white font-bold focus:border-brand outline-none appearance-none cursor-pointer transition-all"
+                className="w-full bg-[#020b14] border border-white/10 rounded-md p-4 text-[var(--text-primary)] font-bold focus:border-brand outline-none appearance-none cursor-pointer transition-all"
               >
                 <option value="">Seleccionar cuenta destino...</option>
                 {accounts.filter(a => a.isActive).map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
@@ -524,7 +524,7 @@ export const ImportPage: React.FC = () => {
               <label className="text-[10px] font-black uppercase tracking-[0.2em] text-fin-muted ml-1 flex items-center gap-2">
                 <Info size={12} /> Sugerencia
               </label>
-              <div className="bg-fin-bg/50 border border-fin-border rounded-2xl p-4 text-[11px] text-fin-muted italic">
+              <div className="bg-fin-bg/50 border border-fin-border rounded-md p-4 text-[11px] text-fin-muted italic">
                 Sube capturas de pantalla o el PDF del resumen de Mercado Pago, Lemon, etc.
               </div>
             </div>
@@ -540,9 +540,9 @@ export const ImportPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setImportMode('manual')}
-                  className={`flex-1 py-3 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${importMode === 'manual'
+                  className={`flex-1 py-3 px-4 rounded-md text-[10px] font-black uppercase tracking-widest transition-all ${importMode === 'manual'
                     ? 'bg-brand text-fin-bg shadow-lg shadow-brand/20'
-                    : 'bg-fin-bg border border-fin-border text-fin-muted hover:text-white'
+                    : 'bg-fin-bg border border-fin-border text-fin-muted hover:text-[var(--text-primary)]'
                     }`}
                 >
                   📱 Manual (Screenshot)
@@ -550,9 +550,9 @@ export const ImportPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setImportMode('auto')}
-                  className={`flex-1 py-3 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${importMode === 'auto'
+                  className={`flex-1 py-3 px-4 rounded-md text-[10px] font-black uppercase tracking-widest transition-all ${importMode === 'auto'
                     ? 'bg-brand text-fin-bg shadow-lg shadow-brand/20'
-                    : 'bg-fin-bg border border-fin-border text-fin-muted hover:text-white'
+                    : 'bg-fin-bg border border-fin-border text-fin-muted hover:text-[var(--text-primary)]'
                     }`}
                 >
                   📄 Auto (PDF)
@@ -574,7 +574,7 @@ export const ImportPage: React.FC = () => {
                   type="date"
                   value={importDate}
                   onChange={e => setImportDate(e.target.value)}
-                  className="w-full bg-[#020b14] border border-brand/30 rounded-2xl p-4 text-white font-bold focus:border-brand outline-none transition-all"
+                  className="w-full bg-[#020b14] border border-brand/30 rounded-md p-4 text-[var(--text-primary)] font-bold focus:border-brand outline-none transition-all"
                 />
                 <p className="text-[9px] text-fin-muted/60 ml-1">
                   Los movimientos se importarán con esta fecha
@@ -589,13 +589,13 @@ export const ImportPage: React.FC = () => {
               }`}
           >
             {/* Scanning Beam Animation */}
-            {isScanning && <div className="absolute inset-0 w-full h-1 bg-gradient-to-r from-transparent via-brand to-transparent animate-[scan_2s_linear_infinite] shadow-[0_0_15px_#3B82F6]"></div>}
+            {isScanning && <div className="absolute inset-0 w-full h-1 bg-gradient-to-r from-transparent via-brand to-transparent animate-[scan_2s_linear_infinite] shadow-[0_0_15px_#00FF9D]"></div>}
 
-            <div className="p-5 bg-brand/10 rounded-2xl text-brand group-hover:scale-110 transition-transform">
+            <div className="p-5 bg-brand/10 rounded-md text-brand group-hover:scale-110 transition-transform">
               <FileUp size={40} strokeWidth={2} />
             </div>
             <div className="text-center">
-              <p className="text-lg font-black text-white">{isScanning ? scanStatus : 'Subir Archivo'}</p>
+              <p className="text-lg font-black text-[var(--text-primary)]">{isScanning ? scanStatus : 'Subir Archivo'}</p>
               <p className="text-xs text-fin-muted font-medium mt-1">Imagen (PNG/JPG) o PDF de Mercado Pago</p>
             </div>
             <input
@@ -614,7 +614,7 @@ export const ImportPage: React.FC = () => {
                 {rawText && (
                   <button
                     onClick={clearText}
-                    className="text-[9px] font-black text-red-500 uppercase tracking-widest hover:underline flex items-center gap-1"
+                    className="text-[9px] font-black text-[var(--color-danger)] uppercase tracking-widest hover:underline flex items-center gap-1"
                   >
                     <RotateCcw size={10} /> Limpiar
                   </button>
@@ -632,16 +632,16 @@ export const ImportPage: React.FC = () => {
                 value={rawText}
                 onChange={e => setRawText(e.target.value)}
                 placeholder="Pega texto directamente o sube una imagen..."
-                className="w-full h-44 bg-[#020b14] border border-white/10 rounded-2xl p-5 text-xs text-white/70 font-mono focus:text-white focus:border-brand outline-none resize-none transition-all scrollbar-hide"
+                className="w-full h-44 bg-[#020b14] border border-white/10 rounded-md p-5 text-xs text-[var(--text-primary)]/70 font-mono focus:text-[var(--text-primary)] focus:border-brand outline-none resize-none transition-all scrollbar-hide"
               />
-              <FileText className="absolute bottom-5 right-5 text-white/10" size={20} />
+              <FileText className="absolute bottom-5 right-5 text-[var(--text-primary)]/10" size={20} />
             </div>
           </div>
 
           <button
             onClick={processText}
             disabled={!rawText || !selectedAccountId || isScanning}
-            className="w-full bg-brand text-white py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-xs hover:bg-brand-hover disabled:opacity-20 transition-all shadow-xl shadow-brand/20 flex items-center justify-center gap-3 group"
+            className="w-full bg-brand text-[var(--text-primary)] py-5 rounded-md font-black uppercase tracking-[0.2em] text-xs hover:bg-brand-hover disabled:opacity-20 transition-all shadow-xl shadow-brand/20 flex items-center justify-center gap-3 group"
           >
             Analizar Movimientos <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
           </button>
@@ -654,18 +654,18 @@ export const ImportPage: React.FC = () => {
     <div className="space-y-10 animate-fade-in pb-20">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
         <div className="flex items-center gap-5">
-          <button onClick={() => setStep(1)} className="p-3.5 bg-fin-card border border-fin-border rounded-2xl text-fin-muted hover:text-white transition-all shadow-lg">
+          <button onClick={() => setStep(1)} className="p-3.5 bg-fin-card border border-fin-border rounded-md text-fin-muted hover:text-[var(--text-primary)] transition-all shadow-lg">
             <ChevronLeft size={24} strokeWidth={3} />
           </button>
           <div>
-            <h1 className="text-3xl font-black text-white tracking-tight">Validación de Datos</h1>
+            <h1 className="text-3xl font-black text-[var(--text-primary)] tracking-tight">Validación de Datos</h1>
             <p className="text-fin-muted text-xs font-bold uppercase tracking-widest mt-1">Revisa y categoriza antes de guardar</p>
           </div>
         </div>
         <button
           onClick={handleImport}
           disabled={isImporting || importedLines.filter(l => l.isSelected && l.categoryId).length === 0}
-          className="w-full sm:w-auto bg-emerald-500 text-white px-10 py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl shadow-emerald-500/20 flex items-center justify-center gap-3 hover:bg-emerald-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full sm:w-auto bg-[var(--color-success)] text-[var(--text-primary)] px-10 py-4 rounded-md font-black text-xs uppercase tracking-[0.2em] shadow-xl shadow-emerald-500/20 flex items-center justify-center gap-3 hover:bg-emerald-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isImporting ? (
             <><Loader2 size={18} className="animate-spin" /> Importando...</>
@@ -677,13 +677,13 @@ export const ImportPage: React.FC = () => {
 
       {/* Duplicate Warning Banner */}
       {importedLines.some(l => l.isDuplicate) && (
-        <div className="bg-amber-500/10 border border-amber-500/30 p-5 rounded-2xl flex items-center gap-4 animate-fade-in">
-          <div className="p-2.5 bg-amber-500/20 text-amber-500 rounded-xl">
+        <div className="bg-[var(--color-warning)]/10 border border-[var(--color-warning)]/30 p-5 rounded-md flex items-center gap-4 animate-fade-in">
+          <div className="p-2.5 bg-[var(--color-warning)]/20 text-[var(--color-warning)] rounded-md">
             <AlertTriangle size={20} />
           </div>
           <div>
-            <p className="text-sm font-bold text-white">Posibles duplicados detectados</p>
-            <p className="text-xs text-amber-500/80 font-medium">Hemos desmarcado automáticamente los movimientos que ya parecen estar registrados.</p>
+            <p className="text-sm font-bold text-[var(--text-primary)]">Posibles duplicados detectados</p>
+            <p className="text-xs text-[var(--color-warning)]/80 font-medium">Hemos desmarcado automáticamente los movimientos que ya parecen estar registrados.</p>
           </div>
         </div>
       )}
@@ -713,11 +713,11 @@ export const ImportPage: React.FC = () => {
             </thead>
             <tbody className="divide-y divide-fin-border/30">
               {importedLines.map(line => (
-                <tr key={line.id} className={`${line.isDuplicate ? 'bg-amber-500/5' : 'hover:bg-fin-bg/30'} transition-colors group ${!line.isSelected ? 'opacity-50' : ''}`}>
+                <tr key={line.id} className={`${line.isDuplicate ? 'bg-[var(--color-warning)]/5' : 'hover:bg-fin-bg/30'} transition-colors group ${!line.isSelected ? 'opacity-50' : ''}`}>
                   <td className="px-4 py-4 text-center">
                     <input type="checkbox" checked={line.isSelected} onChange={e => setImportedLines(lines => lines.map(l => l.id === line.id ? { ...l, isSelected: e.target.checked } : l))} className="w-5 h-5 rounded-lg border-fin-border bg-fin-bg text-brand accent-brand cursor-pointer" />
                   </td>
-                  <td className="px-4 py-4 font-bold text-white/50 tabular-nums text-xs whitespace-nowrap">{line.date}</td>
+                  <td className="px-4 py-4 font-bold text-[var(--text-primary)]/50 tabular-nums text-xs whitespace-nowrap">{line.date}</td>
                   <td className="px-4 py-4">
                     <div className="space-y-1">
                       <input
@@ -725,22 +725,22 @@ export const ImportPage: React.FC = () => {
                         list="description-suggestions"
                         value={line.description}
                         onChange={e => setImportedLines(lines => lines.map(l => l.id === line.id ? { ...l, description: e.target.value } : l))}
-                        className="w-full bg-transparent border-b border-transparent hover:border-white/20 focus:border-brand px-1 py-0.5 text-[13px] font-bold text-white outline-none transition-all"
+                        className="w-full bg-transparent border-b border-transparent hover:border-white/20 focus:border-brand px-1 py-0.5 text-[13px] font-bold text-[var(--text-primary)] outline-none transition-all"
                         placeholder="Descripción..."
                       />
                       {line.isDuplicate && (
-                        <span className="inline-flex items-center gap-1.5 text-[9px] font-black text-amber-500 uppercase tracking-tighter bg-amber-500/10 px-2 py-0.5 rounded">
+                        <span className="inline-flex items-center gap-1.5 text-[9px] font-black text-[var(--color-warning)] uppercase tracking-tighter bg-[var(--color-warning)]/10 px-2 py-0.5 rounded">
                           <AlertTriangle size={8} /> Ya registrado
                         </span>
                       )}
                     </div>
                   </td>
-                  <td className={`px-4 py-4 text-right font-black tabular-nums text-base ${line.type === 'IN' ? 'text-emerald-500' : 'text-white'}`}>
+                  <td className={`px-4 py-4 text-right font-black tabular-nums text-base ${line.type === 'IN' ? 'text-[var(--color-success)]' : 'text-[var(--text-primary)]'}`}>
                     {line.type === 'IN' ? '+' : '-'}{formatCurrency(line.amount)}
                   </td>
                   <td className="px-4 py-4">
                     <select
-                      className="bg-[#020b14] border border-white/10 rounded-lg px-2 py-2 text-[10px] font-black text-white focus:border-brand outline-none w-full appearance-none cursor-pointer hover:border-brand/50 transition-all"
+                      className="bg-[#020b14] border border-white/10 rounded-lg px-2 py-2 text-[10px] font-black text-[var(--text-primary)] focus:border-brand outline-none w-full appearance-none cursor-pointer hover:border-brand/50 transition-all"
                       value={line.categoryId || ''}
                       onChange={e => setImportedLines(lines => lines.map(l => l.id === line.id ? { ...l, categoryId: e.target.value, subCategoryId: undefined } : l))}
                     >
@@ -750,7 +750,7 @@ export const ImportPage: React.FC = () => {
                   </td>
                   <td className="px-4 py-4">
                     <select
-                      className="bg-[#020b14] border border-white/10 rounded-lg px-2 py-2 text-[10px] font-black text-white focus:border-brand outline-none w-full appearance-none cursor-pointer hover:border-brand/50 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                      className="bg-[#020b14] border border-white/10 rounded-lg px-2 py-2 text-[10px] font-black text-[var(--text-primary)] focus:border-brand outline-none w-full appearance-none cursor-pointer hover:border-brand/50 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                       value={line.subCategoryId || ''}
                       onChange={e => setImportedLines(lines => lines.map(l => l.id === line.id ? { ...l, subCategoryId: e.target.value } : l))}
                       disabled={!line.categoryId}
@@ -764,7 +764,7 @@ export const ImportPage: React.FC = () => {
                   <td className="px-4 py-4 text-center">
                     <button
                       onClick={() => setImportedLines(lines => lines.filter(l => l.id !== line.id))}
-                      className="text-fin-muted hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                      className="text-fin-muted hover:text-[var(--color-danger)] opacity-0 group-hover:opacity-100 transition-all"
                     >
                       <Trash2 size={16} />
                     </button>

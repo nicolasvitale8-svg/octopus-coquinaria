@@ -37,11 +37,11 @@ export const OrdersList: React.FC = () => {
 
     const getStatusColor = (status: string) => {
         switch (status) {
-            case 'BORRADOR': return 'bg-gray-700 text-gray-300';
-            case 'ENVIADO': return 'bg-blue-900/50 text-blue-300';
-            case 'CONFIRMADO': return 'bg-purple-900/50 text-purple-300';
-            case 'RECIBIDO': return 'bg-green-900/50 text-green-300';
-            case 'CANCELADO': return 'bg-red-900/50 text-red-300';
+            case 'BORRADOR': return 'bg-gray-700 text-[var(--text-secondary)]';
+            case 'ENVIADO': return 'bg-[rgba(0,255,157,0.10)]/50 text-[var(--color-primary-soft)]';
+            case 'CONFIRMADO': return 'bg-[var(--bg-elevated)]/50 text-[var(--color-primary)]';
+            case 'RECIBIDO': return 'bg-green-900/50 text-[var(--color-success)]';
+            case 'CANCELADO': return 'bg-[rgba(255,77,77,0.12)]/50 text-[var(--color-danger)]';
             default: return 'bg-gray-700';
         }
     };
@@ -51,10 +51,10 @@ export const OrdersList: React.FC = () => {
             {/* Header & Budget */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 space-y-4">
-                    <h1 className="text-3xl font-bold text-white tracking-tight">
+                    <h1 className="text-3xl font-bold text-[var(--text-primary)] tracking-tight">
                         Gestión de Compras
                     </h1>
-                    <p className="text-gray-400 text-lg">
+                    <p className="text-[var(--text-muted)] text-lg">
                         Control de pedidos, proveedores y presupuesto.
                     </p>
                     <div className="flex flex-wrap gap-3 pt-2">
@@ -66,19 +66,19 @@ export const OrdersList: React.FC = () => {
                         </button>
                         <button
                             onClick={() => navigate('/admin/supply')}
-                            className="bg-gray-800 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-lg border border-gray-600 transition-all"
+                            className="bg-[var(--bg-surface)] hover:bg-gray-700 text-[var(--text-primary)] font-semibold py-2 px-4 rounded-lg border border-gray-600 transition-all"
                         >
                             Insumos
                         </button>
                         <button
                             onClick={() => navigate('/admin/procurement/alerts')}
-                            className="bg-red-900/30 hover:bg-red-900/50 text-red-300 font-semibold py-2 px-4 rounded-lg border border-red-800/50 transition-all"
+                            className="bg-[rgba(255,77,77,0.12)]/30 hover:bg-[rgba(255,77,77,0.12)]/50 text-[var(--color-danger)] font-semibold py-2 px-4 rounded-lg border border-red-800/50 transition-all"
                         >
                             🔔 Alertas Stock
                         </button>
                         <button
                             onClick={() => navigate('/admin/procurement/movements')}
-                            className="bg-gray-800 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-lg border border-gray-600 transition-all"
+                            className="bg-[var(--bg-surface)] hover:bg-gray-700 text-[var(--text-primary)] font-semibold py-2 px-4 rounded-lg border border-gray-600 transition-all"
                         >
                             📦 Movimientos
                         </button>
@@ -91,13 +91,13 @@ export const OrdersList: React.FC = () => {
             </div>
 
             {/* Orders Table */}
-            <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
-                <div className="p-4 border-b border-gray-800 flex justify-between items-center bg-gray-800/50">
-                    <h2 className="font-semibold text-white">Historial de Pedidos</h2>
+            <div className="bg-[var(--bg-base)] rounded-md border border-gray-800 overflow-hidden">
+                <div className="p-4 border-b border-gray-800 flex justify-between items-center bg-[var(--bg-surface)]/50">
+                    <h2 className="font-semibold text-[var(--text-primary)]">Historial de Pedidos</h2>
                     <select
                         value={filtroEstado}
                         onChange={(e) => setFiltroEstado(e.target.value)}
-                        className="bg-gray-900 border border-gray-700 text-gray-300 text-sm rounded-lg p-2 focus:border-brand outline-none"
+                        className="bg-[var(--bg-base)] border border-[var(--border-subtle)] text-[var(--text-secondary)] text-sm rounded-lg p-2 focus:border-brand outline-none"
                     >
                         <option value="ALL">Todos los estados</option>
                         <option value="BORRADOR">Borrador</option>
@@ -109,17 +109,17 @@ export const OrdersList: React.FC = () => {
                 </div>
 
                 {loading ? (
-                    <div className="p-8 text-center text-gray-500">Cargando pedidos...</div>
+                    <div className="p-8 text-center text-[var(--text-muted)]">Cargando pedidos...</div>
                 ) : pedidosFiltrados.length === 0 ? (
-                    <div className="p-12 text-center text-gray-500">
+                    <div className="p-12 text-center text-[var(--text-muted)]">
                         {filtroEstado === 'ALL'
                             ? 'No hay pedidos registrados. Comienza creando uno nuevo.'
                             : `No hay pedidos con estado "${filtroEstado}".`}
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
-                        <table className="w-full text-left text-gray-400">
-                            <thead className="text-xs uppercase bg-gray-900/50 text-gray-500 font-semibold">
+                        <table className="w-full text-left text-[var(--text-muted)]">
+                            <thead className="text-xs uppercase bg-[var(--bg-base)]/50 text-[var(--text-muted)] font-semibold">
                                 <tr>
                                     <th className="px-6 py-3">Fecha</th>
                                     <th className="px-6 py-3">Proveedor</th>
@@ -130,11 +130,11 @@ export const OrdersList: React.FC = () => {
                             </thead>
                             <tbody className="divide-y divide-gray-800">
                                 {pedidosFiltrados.map((pedido) => (
-                                    <tr key={pedido.id} className="hover:bg-gray-800/30 transition-colors">
+                                    <tr key={pedido.id} className="hover:bg-[var(--bg-surface)]/30 transition-colors">
                                         <td className="px-6 py-4">
                                             {new Date(pedido.fecha).toLocaleDateString()}
                                         </td>
-                                        <td className="px-6 py-4 font-medium text-white">
+                                        <td className="px-6 py-4 font-medium text-[var(--text-primary)]">
                                             {pedido.proveedor || 'Sin proveedor'}
                                         </td>
                                         <td className="px-6 py-4 font-mono">
@@ -148,7 +148,7 @@ export const OrdersList: React.FC = () => {
                                         <td className="px-6 py-4 text-right">
                                             <button
                                                 onClick={() => navigate(`/admin/procurement/${pedido.id}`)}
-                                                className="text-brand hover:text-white font-bold text-sm"
+                                                className="text-brand hover:text-[var(--text-primary)] font-bold text-sm"
                                             >
                                                 Ver Detalles
                                             </button>

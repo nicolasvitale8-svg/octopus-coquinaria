@@ -66,7 +66,7 @@ const ResetPassword = () => {
         return (
             <Layout>
                 <div className="min-h-[80vh] flex items-center justify-center">
-                    <Loader2 className="animate-spin text-cyan-400" size={32} />
+                    <Loader2 className="animate-spin text-[var(--color-primary)]" size={32} />
                 </div>
             </Layout>
         );
@@ -76,12 +76,12 @@ const ResetPassword = () => {
         return (
             <Layout>
                 <div className="min-h-[80vh] flex items-center justify-center px-4">
-                    <div className="bg-slate-900 p-8 rounded-xl border border-slate-800 shadow-2xl w-full max-w-md text-center">
-                        <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <AlertCircle className="text-red-400" size={28} />
+                    <div className="bg-[var(--bg-base)] p-8 rounded-md border border-[var(--border-subtle)] shadow-2xl w-full max-w-md text-center">
+                        <div className="w-16 h-16 bg-[var(--color-danger)]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <AlertCircle className="text-[var(--color-danger)]" size={28} />
                         </div>
-                        <h1 className="text-xl font-bold text-white mb-2">Link Inválido o Expirado</h1>
-                        <p className="text-slate-400 text-sm mb-6">
+                        <h1 className="text-xl font-bold text-[var(--text-primary)] mb-2">Link Inválido o Expirado</h1>
+                        <p className="text-[var(--text-muted)] text-sm mb-6">
                             El link de recuperación ha expirado o no es válido. Por favor solicitá uno nuevo.
                         </p>
                         <Button onClick={() => navigate('/login')} variant="primary" fullWidth>
@@ -97,15 +97,15 @@ const ResetPassword = () => {
         return (
             <Layout>
                 <div className="min-h-[80vh] flex items-center justify-center px-4">
-                    <div className="bg-slate-900 p-8 rounded-xl border border-slate-800 shadow-2xl w-full max-w-md text-center">
-                        <div className="w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <CheckCircle className="text-emerald-400" size={28} />
+                    <div className="bg-[var(--bg-base)] p-8 rounded-md border border-[var(--border-subtle)] shadow-2xl w-full max-w-md text-center">
+                        <div className="w-16 h-16 bg-[var(--color-success)]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <CheckCircle className="text-[var(--color-success)]" size={28} />
                         </div>
-                        <h1 className="text-xl font-bold text-white mb-2">¡Contraseña Actualizada!</h1>
-                        <p className="text-slate-400 text-sm mb-4">
+                        <h1 className="text-xl font-bold text-[var(--text-primary)] mb-2">¡Contraseña Actualizada!</h1>
+                        <p className="text-[var(--text-muted)] text-sm mb-4">
                             Tu contraseña fue cambiada exitosamente. Redirigiendo al login...
                         </p>
-                        <div className="w-8 h-8 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                        <div className="w-8 h-8 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin mx-auto"></div>
                     </div>
                 </div>
             </Layout>
@@ -115,17 +115,17 @@ const ResetPassword = () => {
     return (
         <Layout>
             <div className="min-h-[80vh] flex items-center justify-center px-4">
-                <div className="bg-slate-900 p-8 rounded-xl border border-slate-800 shadow-2xl w-full max-w-md">
+                <div className="bg-[var(--bg-base)] p-8 rounded-md border border-[var(--border-subtle)] shadow-2xl w-full max-w-md">
                     <div className="text-center mb-8">
-                        <div className="w-16 h-16 bg-cyan-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <Lock className="text-cyan-400" size={28} />
+                        <div className="w-16 h-16 bg-[var(--color-primary)]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <Lock className="text-[var(--color-primary)]" size={28} />
                         </div>
-                        <h1 className="text-2xl font-bold text-white">Nueva Contraseña</h1>
-                        <p className="text-slate-400 text-sm mt-2">Elegí una contraseña segura para tu cuenta.</p>
+                        <h1 className="text-2xl font-bold text-[var(--text-primary)]">Nueva Contraseña</h1>
+                        <p className="text-[var(--text-muted)] text-sm mt-2">Elegí una contraseña segura para tu cuenta.</p>
                     </div>
 
                     {error && (
-                        <div className="p-3 bg-red-500/10 border border-red-500/50 rounded-lg text-red-400 text-sm text-center mb-4">
+                        <div className="p-3 bg-[var(--color-danger)]/10 border border-[var(--color-danger)]/50 rounded-lg text-[var(--color-danger)] text-sm text-center mb-4">
                             {error}
                         </div>
                     )}
@@ -138,7 +138,7 @@ const ResetPassword = () => {
                             onChange={(e) => setPassword(e.target.value)}
                             placeholder="••••••••"
                             required
-                            className="bg-slate-950 border-slate-700 focus:border-[#1FB6D5]"
+                            className="bg-[var(--bg-base)] border-[var(--border-subtle)] focus:border-[var(--color-primary)]"
                         />
                         <Input
                             label="Confirmar Contraseña"
@@ -147,14 +147,14 @@ const ResetPassword = () => {
                             onChange={(e) => setConfirmPassword(e.target.value)}
                             placeholder="••••••••"
                             required
-                            className="bg-slate-950 border-slate-700 focus:border-[#1FB6D5]"
+                            className="bg-[var(--bg-base)] border-[var(--border-subtle)] focus:border-[var(--color-primary)]"
                         />
                         <Button
                             fullWidth
                             variant="primary"
                             type="submit"
                             disabled={isLoading}
-                            className="text-sm py-3 font-bold shadow-lg shadow-[#1FB6D5]/20"
+                            className="text-sm py-3 font-bold shadow-lg shadow-[var(--color-primary)]/20"
                         >
                             {isLoading ? (
                                 <span className="flex items-center justify-center gap-2">

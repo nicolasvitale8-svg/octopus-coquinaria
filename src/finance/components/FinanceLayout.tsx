@@ -74,7 +74,7 @@ const FinanceLayout = () => {
                             to={item.path}
                             onClick={() => setIsSidebarOpen(false)}
                             className={`flex items-center px-4 py-3.5 rounded-md transition-all group ${isActive(item.path)
-                                ? 'bg-[var(--color-primary)] text-[var(--text-primary)] shadow-lg shadow-[rgba(0,255,157,0.30)] font-bold translate-x-1'
+                                ? 'bg-[var(--color-primary)] text-[#050607] shadow-lg shadow-[rgba(0,255,157,0.30)] font-bold translate-x-1'
                                 : 'text-[var(--text-muted)] hover:bg-[var(--bg-surface-soft)] hover:text-[var(--text-primary)]'
                                 } `}
                         >

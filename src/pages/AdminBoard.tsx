@@ -216,7 +216,7 @@ const AdminBoard = () => {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 text-center">
-                                            <span className={`w-6 h-6 inline-flex items-center justify-center rounded text-[10px] font-bold ${item.priority === 1 ? 'bg-[var(--color-danger)] text-[var(--text-primary)]' :
+                                            <span className={`w-6 h-6 inline-flex items-center justify-center rounded text-[10px] font-bold ${item.priority === 1 ? 'bg-[var(--color-danger)] text-[#050607]' :
                                                 item.priority === 2 ? 'bg-[var(--color-primary)] text-[var(--text-on-phosphor)]' : 'bg-[var(--bg-surface-soft)] text-[var(--text-secondary)]'
                                                 }`}>
                                                 {item.priority}

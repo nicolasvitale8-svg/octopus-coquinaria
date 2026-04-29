@@ -188,7 +188,7 @@ const AdminUsers = () => {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          <Button onClick={handleCreate} className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-soft)] text-[var(--text-primary)] whitespace-nowrap">
+          <Button onClick={handleCreate} className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-soft)] text-[#050607] whitespace-nowrap">
             <Plus className="w-4 h-4 mr-2" /> Agregar
           </Button>
         </div>

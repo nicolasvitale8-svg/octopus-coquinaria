@@ -291,32 +291,32 @@ export const Jars: React.FC = () => {
                <h1 className="text-3xl font-bold tracking-tight text-fin-text uppercase">Frascos</h1>
                <p className="text-fin-muted text-sm mt-1">Fondos reservados e inversiones activas</p>
             </div>
-            {isDemoMode && <div className="px-4 py-2 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-lg text-xs font-black uppercase tracking-widest animate-pulse">MODO DEMO</div>}
-            <button onClick={openNewForm} className="bg-brand text-fin-bg px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-brand-hover transition-all">
+            {isDemoMode && <div className="px-4 py-2 bg-[var(--color-warning)]/10 border border-[rgba(255,177,42,0.40)] text-[var(--color-warning)] rounded-lg text-xs font-black uppercase tracking-widest animate-pulse">MODO DEMO</div>}
+            <button onClick={openNewForm} className="bg-brand text-fin-bg px-6 py-3 rounded-md font-black text-xs uppercase tracking-widest hover:bg-brand-hover transition-all">
                Nuevo Frasco
             </button>
          </div>
 
          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="bg-fin-card p-10 rounded-2xl border border-fin-border group hover:border-fin-muted/30 transition-colors">
+            <div className="bg-fin-card p-10 rounded-md border border-fin-border group hover:border-fin-muted/30 transition-colors">
                <span className="text-[10px] font-black uppercase tracking-widest text-fin-muted block mb-4">Capital en Custodia</span>
                <p className="text-4xl font-black text-fin-text tracking-tighter">{formatCurrency(totalInvested)}</p>
             </div>
-            <div className="bg-fin-card p-10 rounded-2xl border border-brand/20 group hover:border-brand/40 transition-colors">
+            <div className="bg-fin-card p-10 rounded-md border border-brand/20 group hover:border-brand/40 transition-colors">
                <span className="text-[10px] font-black uppercase tracking-widest text-brand block mb-4">Valor Liquidable Hoy</span>
                <p className="text-4xl font-black text-brand tracking-tighter">{formatCurrency(totalValueNow)}</p>
             </div>
-            <div className="bg-emerald-500/5 p-10 rounded-2xl border border-emerald-500/20 group hover:border-emerald-500/40 transition-colors relative overflow-hidden">
-               <PiggyBank size={120} className="absolute -right-4 -top-4 opacity-5 group-hover:opacity-10 transition-opacity text-emerald-500" />
-               <span className="text-[10px] font-black uppercase tracking-widest text-emerald-500 flex items-center gap-2 mb-4">
+            <div className="bg-[var(--color-success)]/5 p-10 rounded-md border border-[var(--color-success)]/20 group hover:border-[var(--color-success)]/40 transition-colors relative overflow-hidden">
+               <PiggyBank size={120} className="absolute -right-4 -top-4 opacity-5 group-hover:opacity-10 transition-opacity text-[var(--color-success)]" />
+               <span className="text-[10px] font-black uppercase tracking-widest text-[var(--color-success)] flex items-center gap-2 mb-4">
                   <PiggyBank size={14} /> Ganancia Histórica
                </span>
-               <p className="text-4xl font-black text-emerald-400 tracking-tighter">+{formatCurrency(historicalEarnings)}</p>
+               <p className="text-4xl font-black text-[var(--color-success)] tracking-tighter">+{formatCurrency(historicalEarnings)}</p>
             </div>
          </div>
 
          {isFormOpen && (
-            <div className="bg-fin-card p-10 rounded-2xl border border-fin-border animate-fade-in shadow-2xl">
+            <div className="bg-fin-card p-10 rounded-md border border-fin-border animate-fade-in shadow-2xl">
                <div className="flex justify-between items-center mb-10">
                   <h3 className="text-lg font-black text-fin-text uppercase tracking-tight">
                      {isEditing ? 'Editar Frasco' : 'Configurar Reserva'}
@@ -328,30 +328,30 @@ export const Jars: React.FC = () => {
                <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                   <div className="space-y-1">
                      <label className="text-[10px] font-black uppercase tracking-widest text-fin-muted">Nombre</label>
-                     <input className="w-full bg-fin-bg border border-fin-border rounded-xl p-3 text-sm text-fin-text" value={editingJar.name || ''} onChange={e => setEditingJar({ ...editingJar, name: e.target.value })} placeholder="Ej. Viaje" required />
+                     <input className="w-full bg-fin-bg border border-fin-border rounded-md p-3 text-sm text-fin-text" value={editingJar.name || ''} onChange={e => setEditingJar({ ...editingJar, name: e.target.value })} placeholder="Ej. Viaje" required />
                   </div>
                   <div className="space-y-1">
                      <label className="text-[10px] font-black uppercase tracking-widest text-fin-muted">Cuenta Origen</label>
-                     <select className="w-full bg-fin-bg border border-fin-border rounded-xl p-3 text-sm text-fin-text" value={editingJar.accountId || ''} onChange={e => setEditingJar({ ...editingJar, accountId: e.target.value })} required>
+                     <select className="w-full bg-fin-bg border border-fin-border rounded-md p-3 text-sm text-fin-text" value={editingJar.accountId || ''} onChange={e => setEditingJar({ ...editingJar, accountId: e.target.value })} required>
                         <option value="">Seleccionar</option>
                         {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
                      </select>
                   </div>
                   <div className="space-y-1">
                      <label className="text-[10px] font-black uppercase tracking-widest text-fin-muted">Capital Inicial</label>
-                     <input type="number" step="0.01" className="w-full bg-fin-bg border border-fin-border rounded-xl p-3 text-sm text-fin-text font-bold" value={editingJar.principal || ''} onChange={e => setEditingJar({ ...editingJar, principal: Number(e.target.value) })} required />
+                     <input type="number" step="0.01" className="w-full bg-fin-bg border border-fin-border rounded-md p-3 text-sm text-fin-text font-bold" value={editingJar.principal || ''} onChange={e => setEditingJar({ ...editingJar, principal: Number(e.target.value) })} required />
                   </div>
                   <div className="space-y-1">
                      <label className="text-[10px] font-black uppercase tracking-widest text-fin-muted">Inicio</label>
-                     <input type="date" className="w-full bg-fin-bg border border-fin-border rounded-xl p-3 text-sm text-fin-text" value={editingJar.startDate || ''} onChange={e => setEditingJar({ ...editingJar, startDate: e.target.value })} required />
+                     <input type="date" className="w-full bg-fin-bg border border-fin-border rounded-md p-3 text-sm text-fin-text" value={editingJar.startDate || ''} onChange={e => setEditingJar({ ...editingJar, startDate: e.target.value })} required />
                   </div>
                   <div className="space-y-1">
                      <label className="text-[10px] font-black uppercase tracking-widest text-fin-muted">Fin</label>
-                     <input type="date" className="w-full bg-fin-bg border border-fin-border rounded-xl p-3 text-sm text-fin-text" value={editingJar.endDate || ''} onChange={e => setEditingJar({ ...editingJar, endDate: e.target.value })} required />
+                     <input type="date" className="w-full bg-fin-bg border border-fin-border rounded-md p-3 text-sm text-fin-text" value={editingJar.endDate || ''} onChange={e => setEditingJar({ ...editingJar, endDate: e.target.value })} required />
                   </div>
                   <div className="space-y-1">
                      <label className="text-[10px] font-black uppercase tracking-widest text-fin-muted">TNA (%)</label>
-                     <input type="number" step="0.01" className="w-full bg-fin-bg border border-fin-border rounded-xl p-3 text-sm text-fin-text" value={editingJar.annualRate || ''} onChange={e => setEditingJar({ ...editingJar, annualRate: Number(e.target.value) })} required />
+                     <input type="number" step="0.01" className="w-full bg-fin-bg border border-fin-border rounded-md p-3 text-sm text-fin-text" value={editingJar.annualRate || ''} onChange={e => setEditingJar({ ...editingJar, annualRate: Number(e.target.value) })} required />
                   </div>
                   <div className="md:col-span-2 lg:col-span-3 pt-4 pb-2 border-b border-fin-border/30">
                      <label className="flex items-center gap-3 cursor-pointer group w-fit">
@@ -371,11 +371,11 @@ export const Jars: React.FC = () => {
                      <p className="text-[9px] text-fin-muted mt-2 ml-9">Si se activa, al vencer el frasco actual se autoliquidará y se abrirá uno nuevo sumando capital e intereses a 14 días.</p>
                   </div>
                   <div className="md:col-span-2 lg:col-span-3 pt-4 flex gap-4">
-                     <button type="submit" disabled={isSaving} className="bg-brand text-fin-bg font-black py-4 px-10 rounded-xl flex-1 text-xs uppercase tracking-widest hover:bg-brand-hover transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                     <button type="submit" disabled={isSaving} className="bg-brand text-fin-bg font-black py-4 px-10 rounded-md flex-1 text-xs uppercase tracking-widest hover:bg-brand-hover transition-all disabled:opacity-50 disabled:cursor-not-allowed">
                         {isSaving ? 'GUARDANDO...' : (isEditing ? 'GUARDAR CAMBIOS' : 'ACTIVAR FRASCO')}
                      </button>
                      {isEditing && (
-                        <button type="button" onClick={closeForm} disabled={isSaving} className="border border-fin-border text-fin-muted font-black py-4 px-10 rounded-xl text-xs uppercase tracking-widest hover:text-fin-text hover:border-fin-text transition-all disabled:opacity-50">
+                        <button type="button" onClick={closeForm} disabled={isSaving} className="border border-fin-border text-fin-muted font-black py-4 px-10 rounded-md text-xs uppercase tracking-widest hover:text-fin-text hover:border-fin-text transition-all disabled:opacity-50">
                            CANCELAR
                         </button>
                      )}
@@ -401,15 +401,15 @@ export const Jars: React.FC = () => {
                const isMatured = daysRemaining <= 0;
 
                return (
-                  <div key={jar.id} className={`bg-fin-card rounded-2xl border overflow-hidden relative group transition-all shadow-xl ${isMatured ? 'border-emerald-500/40 hover:border-emerald-500/60' : 'border-fin-border hover:border-brand/30'}`}>
+                  <div key={jar.id} className={`bg-fin-card rounded-md border overflow-hidden relative group transition-all shadow-xl ${isMatured ? 'border-[var(--color-success)]/40 hover:border-[var(--color-success)]/60' : 'border-fin-border hover:border-brand/30'}`}>
                      {/* Barra de progreso temporal (parte superior) */}
                      <div className="h-1 bg-fin-bg w-full absolute top-0">
-                        <div className={`h-full transition-all duration-1000 ${isMatured ? 'bg-emerald-500' : 'bg-brand'}`} style={{ width: `${Math.min(timeProgress, 100)}%` }}></div>
+                        <div className={`h-full transition-all duration-1000 ${isMatured ? 'bg-[var(--color-success)]' : 'bg-brand'}`} style={{ width: `${Math.min(timeProgress, 100)}%` }}></div>
                      </div>
 
                      {/* Badge de estado vencido */}
                      {isMatured && (
-                        <div className="absolute top-4 left-8 px-3 py-1 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-full text-[8px] font-black uppercase tracking-widest">
+                        <div className="absolute top-4 left-8 px-3 py-1 bg-[var(--color-success)]/10 text-[var(--color-success)] border border-[var(--color-success)]/20 rounded-full text-[8px] font-black uppercase tracking-widest">
                            ✓ Vencido — Liquidado
                         </div>
                      )}
@@ -424,8 +424,8 @@ export const Jars: React.FC = () => {
                               </p>
                            </div>
                            <div className="text-right">
-                              <p className={`text-2xl font-black tabular-nums tracking-tighter ${isMatured ? 'text-emerald-400' : 'text-brand'}`}>{formatCurrency(isMatured ? finalValue : currentValue)}</p>
-                              <p className={`text-[9px] font-black uppercase tracking-widest ${isMatured ? 'text-emerald-500/60' : 'text-brand/60'}`}>{isMatured ? 'Valor final' : 'Valor actual'}</p>
+                              <p className={`text-2xl font-black tabular-nums tracking-tighter ${isMatured ? 'text-[var(--color-success)]' : 'text-brand'}`}>{formatCurrency(isMatured ? finalValue : currentValue)}</p>
+                              <p className={`text-[9px] font-black uppercase tracking-widest ${isMatured ? 'text-[var(--color-success)]/60' : 'text-brand/60'}`}>{isMatured ? 'Valor final' : 'Valor actual'}</p>
                            </div>
                         </div>
 
@@ -437,7 +437,7 @@ export const Jars: React.FC = () => {
                            </div>
                            <div>
                               <p className="text-[9px] font-black uppercase tracking-widest text-fin-muted mb-1">Rendimiento</p>
-                              <p className="text-sm font-bold text-emerald-500 tabular-nums">+{formatCurrency(interestAccrued)}</p>
+                              <p className="text-sm font-bold text-[var(--color-success)] tabular-nums">+{formatCurrency(interestAccrued)}</p>
                            </div>
                            <div>
                               <p className="text-[9px] font-black uppercase tracking-widest text-fin-muted mb-1 flex items-center gap-1">
@@ -452,7 +452,7 @@ export const Jars: React.FC = () => {
                         <div className="mb-6">
                            <div className="flex justify-between items-center mb-2">
                               <span className="text-[9px] font-black uppercase tracking-widest text-fin-muted">Evolución del rendimiento</span>
-                              <span className={`text-[10px] font-black tabular-nums ${isMatured ? 'text-emerald-400' : 'text-brand'}`}>{Math.min(valueProgress, 100).toFixed(1)}%</span>
+                              <span className={`text-[10px] font-black tabular-nums ${isMatured ? 'text-[var(--color-success)]' : 'text-brand'}`}>{Math.min(valueProgress, 100).toFixed(1)}%</span>
                            </div>
                            <div className="h-2 bg-fin-bg rounded-full overflow-hidden">
                               <div
@@ -460,7 +460,7 @@ export const Jars: React.FC = () => {
                                  style={{
                                     width: `${Math.min(valueProgress, 100)}%`,
                                     background: isMatured
-                                       ? 'linear-gradient(90deg, #22c55e 0%, #10b981 100%)'
+                                       ? 'linear-gradient(90deg, #22c55e 0%, #00C57D 100%)'
                                        : 'linear-gradient(90deg, var(--color-brand) 0%, #22c55e 100%)'
                                  }}
                               />
@@ -471,7 +471,7 @@ export const Jars: React.FC = () => {
                         {/* Fechas y días restantes */}
                         <div className="flex justify-between items-center text-[10px] font-black text-fin-muted uppercase tracking-widest bg-fin-bg/50 p-3 rounded-lg mb-6">
                            <span>{formatDateLocal(jar.startDate)}</span>
-                           <span className={isMatured ? 'text-emerald-500' : 'text-brand'}>
+                           <span className={isMatured ? 'text-[var(--color-success)]' : 'text-brand'}>
                               {isMatured ? 'COMPLETADO' : `${daysRemaining} DÍAS RESTANTES`}
                            </span>
                            <span>{formatDateLocal(jar.endDate)}</span>
@@ -482,13 +482,13 @@ export const Jars: React.FC = () => {
                            <div className="flex gap-4">
                               <button
                                  onClick={() => handleRegenerateJar(jar)}
-                                 className="flex-1 bg-brand/10 hover:bg-brand/20 text-brand border border-brand/20 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2"
+                                 className="flex-1 bg-brand/10 hover:bg-brand/20 text-brand border border-brand/20 py-3 rounded-md text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2"
                               >
                                  <Repeat size={14} /> Volver a generar frasco
                               </button>
                               <button
                                  onClick={() => handleFinishJar(jar)}
-                                 className="flex-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 border border-emerald-500/20 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2"
+                                 className="flex-1 bg-[var(--color-success)]/10 hover:bg-[var(--color-success)]/20 text-[var(--color-success)] border border-[var(--color-success)]/20 py-3 rounded-md text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2"
                               >
                                  <Sparkles size={14} /> Terminar frasco
                               </button>
@@ -500,8 +500,8 @@ export const Jars: React.FC = () => {
                            <button onClick={() => openEditForm(jar)} disabled={deletingId === jar.id} className="text-fin-muted hover:text-brand transition-colors disabled:opacity-50" title="Editar frasco">
                               <Pencil size={16} />
                            </button>
-                           <button onClick={() => handleFinishJar(jar)} disabled={deletingId === jar.id} className="text-fin-muted hover:text-red-500 transition-colors disabled:opacity-50" title="Eliminar/Terminar frasco">
-                              {deletingId === jar.id ? <Sparkles size={16} className="animate-spin text-red-500" /> : <Trash2 size={16} />}
+                           <button onClick={() => handleFinishJar(jar)} disabled={deletingId === jar.id} className="text-fin-muted hover:text-[var(--color-danger)] transition-colors disabled:opacity-50" title="Eliminar/Terminar frasco">
+                              {deletingId === jar.id ? <Sparkles size={16} className="animate-spin text-[var(--color-danger)]" /> : <Trash2 size={16} />}
                            </button>
                         </div>
                      </div>

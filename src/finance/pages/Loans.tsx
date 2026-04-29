@@ -20,15 +20,15 @@ const DIRECTION_LABELS: Record<LoanDirection, string> = {
 };
 
 const DIRECTION_COLORS: Record<LoanDirection, string> = {
-    TAKEN: 'text-red-400',
-    GIVEN: 'text-emerald-400',
-    CREDIT_CARD: 'text-purple-400',
+    TAKEN: 'text-[var(--color-danger)]',
+    GIVEN: 'text-[var(--color-success)]',
+    CREDIT_CARD: 'text-[var(--color-primary)]',
 };
 
 const DIRECTION_BG: Record<LoanDirection, string> = {
-    TAKEN: 'bg-red-500/10 border-red-500/20',
-    GIVEN: 'bg-emerald-500/10 border-emerald-500/20',
-    CREDIT_CARD: 'bg-purple-500/10 border-purple-500/20',
+    TAKEN: 'bg-[var(--color-danger)]/10 border-[var(--color-danger)]/20',
+    GIVEN: 'bg-[var(--color-success)]/10 border-[var(--color-success)]/20',
+    CREDIT_CARD: 'bg-[var(--color-primary)]/10 border-purple-500/20',
 };
 
 const TAB_ICONS: Record<LoanDirection, React.ReactNode> = {
@@ -574,7 +574,7 @@ export const Loans: React.FC = () => {
     if (loading) {
         return (
             <div className="flex items-center justify-center h-64">
-                <div className="w-8 h-8 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin" />
+                <div className="w-8 h-8 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" />
             </div>
         );
     }
@@ -584,16 +584,16 @@ export const Loans: React.FC = () => {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-black tracking-tight text-white">
+                    <h1 className="text-3xl font-black tracking-tight text-[var(--text-primary)]">
                         Préstamos & Cuotas
                     </h1>
-                    <p className="text-sm text-white/40 mt-1">Gestión de deudas, préstamos y compras en cuotas</p>
+                    <p className="text-sm text-[var(--text-primary)]/40 mt-1">Gestión de deudas, préstamos y compras en cuotas</p>
                 </div>
                 <div className="flex gap-2">
                     <button
                         onClick={syncAllLoansToBudget}
                         disabled={saving}
-                        className="flex items-center gap-2 px-4 py-3 bg-white/5 hover:bg-white/10 text-white/60 hover:text-white border border-white/10 font-bold rounded-2xl transition-all text-sm disabled:opacity-50"
+                        className="flex items-center gap-2 px-4 py-3 bg-white/5 hover:bg-white/10 text-[var(--text-primary)]/60 hover:text-[var(--text-primary)] border border-white/10 font-bold rounded-md transition-all text-sm disabled:opacity-50"
                         title="Sincronizar préstamos existentes con el presupuesto"
                     >
                         <Calendar size={16} />
@@ -601,7 +601,7 @@ export const Loans: React.FC = () => {
                     </button>
                     <button
                         onClick={() => { resetForm(); setForm(prev => ({ ...prev, direction: activeTab })); setShowModal(true); }}
-                        className="flex items-center gap-2 px-5 py-3 bg-cyan-500 hover:bg-cyan-400 text-black font-bold rounded-2xl transition-all shadow-lg shadow-cyan-500/20 hover:shadow-cyan-400/30 hover:scale-105"
+                        className="flex items-center gap-2 px-5 py-3 bg-[var(--color-primary)] hover:bg-[var(--color-primary)] text-black font-bold rounded-md transition-all shadow-lg shadow-[rgba(0,255,157,0.30)] hover:shadow-cyan-400/30 hover:scale-105"
                     >
                         <Plus size={18} />
                         <span>Nuevo</span>
@@ -613,9 +613,9 @@ export const Loans: React.FC = () => {
             <div className="flex justify-end">
                 <button
                     onClick={() => setShowCompleted(!showCompleted)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${showCompleted
-                        ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
-                        : 'bg-white/5 border-white/10 text-white/40 hover:text-white hover:bg-white/10'
+                    className={`flex items-center gap-2 px-4 py-2 rounded-md text-[10px] font-black uppercase tracking-widest transition-all border ${showCompleted
+                        ? 'bg-[var(--color-success)]/10 border-[var(--color-success)]/30 text-[var(--color-success)]'
+                        : 'bg-white/5 border-white/10 text-[var(--text-primary)]/40 hover:text-[var(--text-primary)] hover:bg-white/10'
                         }`}
                 >
                     <CheckCircle size={14} />
@@ -630,41 +630,41 @@ export const Loans: React.FC = () => {
                     label="Total Adeudado"
                     value={formatCurrency(summary.totalDebt)}
                     subValue={summary.totalDebt > 0 ? `P: ${formatCurrency(summary.totalDebtBreakdown['TAKEN'] || 0)} | T: ${formatCurrency(summary.totalDebtBreakdown['CREDIT_CARD'] || 0)}` : undefined}
-                    color="text-red-400"
-                    bg="bg-red-500/10 border-red-500/20"
+                    color="text-[var(--color-danger)]"
+                    bg="bg-[var(--color-danger)]/10 border-[var(--color-danger)]/20"
                 />
                 <SummaryCard
                     icon={<Users size={20} />}
                     label="Total a Cobrar"
                     value={formatCurrency(summary.totalReceivable)}
-                    color="text-emerald-400"
-                    bg="bg-emerald-500/10 border-emerald-500/20"
+                    color="text-[var(--color-success)]"
+                    bg="bg-[var(--color-success)]/10 border-[var(--color-success)]/20"
                 />
                 <SummaryCard
                     icon={<Calendar size={20} />}
                     label="Cuotas Este Mes"
                     value={formatCurrency(summary.pendingThisMonth)}
-                    color="text-cyan-400"
-                    bg="bg-cyan-500/10 border-cyan-500/20"
+                    color="text-[var(--color-primary)]"
+                    bg="bg-[var(--color-primary)]/10 border-[var(--color-primary)]/20"
                 />
                 <SummaryCard
                     icon={<AlertTriangle size={20} />}
                     label="Cuotas Vencidas"
                     value={String(summary.overdue)}
-                    color={summary.overdue > 0 ? 'text-amber-400' : 'text-white/40'}
-                    bg={summary.overdue > 0 ? 'bg-amber-500/10 border-amber-500/20' : 'bg-white/5 border-white/10'}
+                    color={summary.overdue > 0 ? 'text-[var(--color-warning)]' : 'text-[var(--text-primary)]/40'}
+                    bg={summary.overdue > 0 ? 'bg-[var(--color-warning)]/10 border-[rgba(255,177,42,0.40)]' : 'bg-white/5 border-white/10'}
                 />
             </div>
 
             {/* Tabs */}
-            <div className="flex gap-2 bg-white/5 p-1.5 rounded-2xl border border-white/5">
+            <div className="flex gap-2 bg-white/5 p-1.5 rounded-md border border-white/5">
                 {(['TAKEN', 'GIVEN', 'CREDIT_CARD'] as LoanDirection[]).map(dir => (
                     <button
                         key={dir}
                         onClick={() => setActiveTab(dir)}
-                        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all flex-1 justify-center ${activeTab === dir
-                            ? 'bg-cyan-500 text-black shadow-lg shadow-cyan-500/20'
-                            : 'text-white/50 hover:text-white hover:bg-white/5'
+                        className={`flex items-center gap-2 px-4 py-2.5 rounded-md text-sm font-bold transition-all flex-1 justify-center ${activeTab === dir
+                            ? 'bg-[var(--color-primary)] text-black shadow-lg shadow-[rgba(0,255,157,0.30)]'
+                            : 'text-[#050607]/50 hover:text-[var(--text-primary)] hover:bg-white/5'
                             }`}
                     >
                         {TAB_ICONS[dir]}
@@ -675,19 +675,19 @@ export const Loans: React.FC = () => {
 
             {/* Search */}
             <div className="relative">
-                <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30" />
+                <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-primary)]/30" />
                 <input
                     type="text"
                     placeholder="Buscar por nombre, descripción..."
                     value={searchTerm}
                     onChange={e => setSearchTerm(e.target.value)}
-                    className="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-all"
+                    className="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 rounded-md text-sm text-[var(--text-primary)] placeholder:text-[var(--text-primary)]/30 focus:outline-none focus:border-[var(--color-primary)]/50 focus:ring-1 focus:ring-[var(--color-primary)]/20 transition-all"
                 />
             </div>
 
             {/* Loans List */}
             {filteredLoans.length === 0 ? (
-                <div className="text-center py-20 text-white/30">
+                <div className="text-center py-20 text-[var(--text-primary)]/30">
                     <Receipt size={48} className="mx-auto mb-4 opacity-30" />
                     <p className="text-lg font-bold">No hay {DIRECTION_LABELS[activeTab].toLowerCase()}</p>
                     <p className="text-sm mt-1">Creá uno nuevo con el botón de arriba</p>
@@ -745,11 +745,11 @@ const SummaryCard: React.FC<{
     color: string;
     bg: string;
 }> = ({ icon, label, value, subValue, color, bg }) => (
-    <div className={`p-5 rounded-2xl border ${bg} transition-all hover:scale-[1.02]`}>
+    <div className={`p-5 rounded-md border ${bg} transition-all hover:scale-[1.02]`}>
         <div className={`${color} mb-3`}>{icon}</div>
-        <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">{label}</p>
+        <p className="text-[10px] font-black text-[var(--text-primary)]/40 uppercase tracking-widest">{label}</p>
         <p className={`text-xl font-black mt-1 ${color}`}>{value}</p>
-        {subValue && <p className="text-[9px] font-bold text-white/20 mt-1 uppercase tracking-tighter">{subValue}</p>}
+        {subValue && <p className="text-[9px] font-bold text-[var(--text-primary)]/20 mt-1 uppercase tracking-tighter">{subValue}</p>}
     </div>
 );
 
@@ -770,32 +770,32 @@ const LoanCard: React.FC<{
     const isOverdue = payments.some(p => p.status === 'PENDIENTE' && p.due_date < new Date().toISOString().split('T')[0]);
 
     return (
-        <div className={`rounded-2xl border transition-all ${loan.status !== 'ACTIVO'
+        <div className={`rounded-md border transition-all ${loan.status !== 'ACTIVO'
             ? 'bg-white/[0.02] border-white/5 opacity-60'
             : isOverdue
-                ? 'bg-amber-500/5 border-amber-500/20'
+                ? 'bg-[var(--color-warning)]/5 border-[rgba(255,177,42,0.40)]'
                 : 'bg-white/5 border-white/10 hover:border-white/20'
             }`}>
             {/* Header Row */}
             <div className="p-5 flex items-center gap-4 cursor-pointer" onClick={onToggle}>
-                <div className={`p-2.5 rounded-xl ${DIRECTION_BG[loan.direction]}`}>
+                <div className={`p-2.5 rounded-md ${DIRECTION_BG[loan.direction]}`}>
                     {TAB_ICONS[loan.direction]}
                 </div>
 
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                        <h3 className="font-bold text-white truncate">{loan.counterparty}</h3>
+                        <h3 className="font-bold text-[var(--text-primary)] truncate">{loan.counterparty}</h3>
                         {loan.status !== 'ACTIVO' && (
-                            <span className={`text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider ${loan.status === 'COMPLETADO' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'
+                            <span className={`text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider ${loan.status === 'COMPLETADO' ? 'bg-[var(--color-success)]/20 text-[var(--color-success)]' : 'bg-[var(--color-danger)]/20 text-[var(--color-danger)]'
                                 }`}>{loan.status}</span>
                         )}
                         {isOverdue && loan.status === 'ACTIVO' && (
-                            <span className="text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider bg-amber-500/20 text-amber-400">
+                            <span className="text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider bg-[var(--color-warning)]/20 text-[var(--color-warning)]">
                                 VENCIDA
                             </span>
                         )}
                     </div>
-                    <div className="flex items-center gap-3 mt-1 text-xs text-white/40">
+                    <div className="flex items-center gap-3 mt-1 text-xs text-[var(--text-primary)]/40">
                         <span>{accountName}</span>
                         <span>•</span>
                         <span>{paidCount}/{loan.total_installments} cuotas</span>
@@ -812,7 +812,7 @@ const LoanCard: React.FC<{
                     <p className={`text-lg font-black ${DIRECTION_COLORS[loan.direction]}`}>
                         {formatCurrency(loan.total_amount)}
                     </p>
-                    <p className="text-[10px] text-white/40 mt-0.5">
+                    <p className="text-[10px] text-[var(--text-primary)]/40 mt-0.5">
                         Cuota: {formatCurrency(loan.installment_amount)}
                     </p>
                 </div>
@@ -821,23 +821,23 @@ const LoanCard: React.FC<{
                 <div className="w-16 hidden md:block">
                     <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
                         <div
-                            className="h-full bg-cyan-500 rounded-full transition-all duration-500"
+                            className="h-full bg-[var(--color-primary)] rounded-full transition-all duration-500"
                             style={{ width: `${progress}%` }}
                         />
                     </div>
-                    <p className="text-[9px] text-white/40 text-center mt-1">{progress}%</p>
+                    <p className="text-[9px] text-[var(--text-primary)]/40 text-center mt-1">{progress}%</p>
                 </div>
 
                 <div className="flex items-center gap-2">
                     <button onClick={(e) => { e.stopPropagation(); onEdit(); }}
-                        className="p-2 text-white/30 hover:text-cyan-400 hover:bg-cyan-500/10 rounded-lg transition-all">
+                        className="p-2 text-[#050607]/30 hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 rounded-lg transition-all">
                         <Edit2 size={14} />
                     </button>
                     <button onClick={(e) => { e.stopPropagation(); onDelete(); }}
-                        className="p-2 text-white/30 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all">
+                        className="p-2 text-[var(--text-primary)]/30 hover:text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10 rounded-lg transition-all">
                         <Trash2 size={14} />
                     </button>
-                    <div className={`transition-transform duration-200 text-white/40 ${expanded ? 'rotate-180' : ''}`}>
+                    <div className={`transition-transform duration-200 text-[var(--text-primary)]/40 ${expanded ? 'rotate-180' : ''}`}>
                         <ChevronDown size={18} />
                     </div>
                 </div>
@@ -846,7 +846,7 @@ const LoanCard: React.FC<{
             {/* Description */}
             {loan.description && (
                 <div className="px-5 pb-2 -mt-2">
-                    <p className="text-xs text-white/30 italic">{loan.description}</p>
+                    <p className="text-xs text-[var(--text-primary)]/30 italic">{loan.description}</p>
                 </div>
             )}
 
@@ -854,13 +854,13 @@ const LoanCard: React.FC<{
             {expanded && (
                 <div className="border-t border-white/5 p-5">
                     <div className="flex items-center justify-between gap-4 mb-4">
-                        <h4 className="text-[10px] font-black text-white/40 uppercase tracking-widest">
+                        <h4 className="text-[10px] font-black text-[var(--text-primary)]/40 uppercase tracking-widest">
                             Cronograma de Cuotas
                         </h4>
                         {loan.status === 'ACTIVO' && payments.some(p => p.status === 'PENDIENTE') && (
                             <button
                                 onClick={(e) => { e.stopPropagation(); onSettle(); }}
-                                className="flex items-center gap-1.5 px-3 py-1.5 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/20 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all"
+                                className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--color-primary)]/10 hover:bg-[var(--color-primary)]/20 text-[var(--color-primary)] border border-[var(--color-primary)]/20 rounded-md text-[10px] font-black uppercase tracking-wider transition-all"
                             >
                                 <CheckCircle size={12} />
                                 {loan.direction === 'GIVEN' ? 'Cobro Anticipado' : 'Liquidación Anticipada'}
@@ -873,36 +873,36 @@ const LoanCard: React.FC<{
                             return (
                                 <div
                                     key={payment.id}
-                                    className={`flex items-center gap-4 p-3 rounded-xl transition-all ${payment.status === 'PAGADA'
-                                        ? 'bg-emerald-500/5 border border-emerald-500/10'
+                                    className={`flex items-center gap-4 p-3 rounded-md transition-all ${payment.status === 'PAGADA'
+                                        ? 'bg-[var(--color-success)]/5 border border-[var(--color-success)]/10'
                                         : isOverduePayment
-                                            ? 'bg-amber-500/5 border border-amber-500/20'
+                                            ? 'bg-[var(--color-warning)]/5 border border-[rgba(255,177,42,0.40)]'
                                             : 'bg-white/[0.02] border border-white/5'
                                         }`}
                                 >
-                                    <span className="text-xs font-mono text-white/30 w-8">
+                                    <span className="text-xs font-mono text-[var(--text-primary)]/30 w-8">
                                         #{payment.installment_number}
                                     </span>
 
                                     <div className="flex-1 flex items-center gap-3">
-                                        <span className="text-xs text-white/60">
+                                        <span className="text-xs text-[var(--text-primary)]/60">
                                             {new Date(payment.due_date + 'T12:00:00').toLocaleDateString('es-AR', {
                                                 day: '2-digit', month: 'short', year: 'numeric'
                                             })}
                                         </span>
                                         {isOverduePayment && (
-                                            <span className="text-[9px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full">
+                                            <span className="text-[9px] font-bold text-[var(--color-warning)] bg-[var(--color-warning)]/10 px-2 py-0.5 rounded-full">
                                                 VENCIDA
                                             </span>
                                         )}
                                         {payment.paid_date && (
-                                            <span className="text-[9px] text-emerald-400/60">
+                                            <span className="text-[9px] text-[var(--color-success)]/60">
                                                 Pagada {new Date(payment.paid_date + 'T12:00:00').toLocaleDateString('es-AR')}
                                             </span>
                                         )}
                                     </div>
 
-                                    <span className={`text-sm font-bold ${payment.status === 'PAGADA' ? 'text-emerald-400 line-through opacity-60' : 'text-white'
+                                    <span className={`text-sm font-bold ${payment.status === 'PAGADA' ? 'text-[var(--color-success)] line-through opacity-60' : 'text-[var(--text-primary)]'
                                         }`}>
                                         {formatCurrency(payment.amount)}
                                     </span>
@@ -910,7 +910,7 @@ const LoanCard: React.FC<{
                                     {payment.status === 'PENDIENTE' ? (
                                         <button
                                             onClick={() => onPayment(payment.id)}
-                                            className="p-1.5 text-white/30 hover:text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition-all"
+                                            className="p-1.5 text-[var(--text-primary)]/30 hover:text-[var(--color-success)] hover:bg-[var(--color-success)]/10 rounded-lg transition-all"
                                             title="Marcar como pagada"
                                         >
                                             <CheckCircle size={16} />
@@ -918,7 +918,7 @@ const LoanCard: React.FC<{
                                     ) : (
                                         <button
                                             onClick={() => onUndoPayment(payment.id)}
-                                            className="p-1.5 text-emerald-400/40 hover:text-amber-400 hover:bg-amber-500/10 rounded-lg transition-all"
+                                            className="p-1.5 text-[var(--color-success)]/40 hover:text-[var(--color-warning)] hover:bg-[var(--color-warning)]/10 rounded-lg transition-all"
                                             title="Deshacer pago"
                                         >
                                             <Undo2 size={16} />
@@ -959,7 +959,7 @@ const LoanModal: React.FC<{
                 onClick={e => e.stopPropagation()}
             >
                 <div className="p-6 border-b border-white/5">
-                    <h2 className="text-lg font-black text-white">
+                    <h2 className="text-lg font-black text-[var(--text-primary)]">
                         {editing ? 'Editar Préstamo' : 'Nuevo Préstamo'}
                     </h2>
                 </div>
@@ -967,16 +967,16 @@ const LoanModal: React.FC<{
                 <form onSubmit={onSubmit} className="p-6 space-y-5">
                     {/* Direction */}
                     <div>
-                        <label className="text-[10px] font-black text-white/40 uppercase tracking-widest block mb-2">Tipo</label>
+                        <label className="text-[10px] font-black text-[var(--text-primary)]/40 uppercase tracking-widest block mb-2">Tipo</label>
                         <div className="grid grid-cols-3 gap-2">
                             {(['TAKEN', 'GIVEN', 'CREDIT_CARD'] as LoanDirection[]).map(dir => (
                                 <button
                                     key={dir}
                                     type="button"
                                     onClick={() => onChange('direction', dir)}
-                                    className={`p-2.5 rounded-xl text-xs font-bold transition-all border ${form.direction === dir
-                                        ? 'bg-cyan-500/20 border-cyan-500/40 text-cyan-400'
-                                        : 'bg-white/5 border-white/10 text-white/40 hover:text-white'
+                                    className={`p-2.5 rounded-md text-xs font-bold transition-all border ${form.direction === dir
+                                        ? 'bg-[var(--color-primary)]/20 border-[var(--color-primary)]/40 text-[var(--color-primary)]'
+                                        : 'bg-white/5 border-white/10 text-[#050607]/40 hover:text-[var(--text-primary)]'
                                         }`}
                                 >
                                     {DIRECTION_LABELS[dir]}
@@ -987,14 +987,14 @@ const LoanModal: React.FC<{
 
                     {/* Counterparty */}
                     <div>
-                        <label className="text-[10px] font-black text-white/40 uppercase tracking-widest block mb-2">
+                        <label className="text-[10px] font-black text-[var(--text-primary)]/40 uppercase tracking-widest block mb-2">
                             {form.direction === 'CREDIT_CARD' ? 'Comercio / Descripción' : form.direction === 'GIVEN' ? 'A quién' : 'Entidad / Banco'}
                         </label>
                         <input
                             type="text"
                             value={form.counterparty || ''}
                             onChange={e => onChange('counterparty', e.target.value)}
-                            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-cyan-500/50 transition-all"
+                            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-md text-sm text-[var(--text-primary)] placeholder:text-[var(--text-primary)]/20 focus:outline-none focus:border-[var(--color-primary)]/50 transition-all"
                             placeholder="Ej: Banco Nación, Juan Pérez, Mercado Libre..."
                             required
                         />
@@ -1003,12 +1003,12 @@ const LoanModal: React.FC<{
                     {/* Amount + Installments Row */}
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="text-[10px] font-black text-white/40 uppercase tracking-widest block mb-2">Monto Total</label>
+                            <label className="text-[10px] font-black text-[var(--text-primary)]/40 uppercase tracking-widest block mb-2">Monto Total</label>
                             <input
                                 type="number"
                                 value={form.total_amount || ''}
                                 onChange={e => onChange('total_amount', e.target.value)}
-                                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-cyan-500/50 transition-all"
+                                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-md text-sm text-[var(--text-primary)] placeholder:text-[var(--text-primary)]/20 focus:outline-none focus:border-[var(--color-primary)]/50 transition-all"
                                 placeholder="0"
                                 min="0"
                                 step="0.01"
@@ -1016,12 +1016,12 @@ const LoanModal: React.FC<{
                             />
                         </div>
                         <div>
-                            <label className="text-[10px] font-black text-white/40 uppercase tracking-widest block mb-2">Cuotas</label>
+                            <label className="text-[10px] font-black text-[var(--text-primary)]/40 uppercase tracking-widest block mb-2">Cuotas</label>
                             <input
                                 type="number"
                                 value={form.total_installments || ''}
                                 onChange={e => onChange('total_installments', e.target.value)}
-                                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-cyan-500/50 transition-all"
+                                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-md text-sm text-[var(--text-primary)] placeholder:text-[var(--text-primary)]/20 focus:outline-none focus:border-[var(--color-primary)]/50 transition-all"
                                 placeholder="12"
                                 min="1"
                                 required
@@ -1032,18 +1032,18 @@ const LoanModal: React.FC<{
                     {/* Paid Installments - only for new loans */}
                     {!editing && (
                         <div>
-                            <label className="text-[10px] font-black text-white/40 uppercase tracking-widest block mb-2">Cuotas ya pagadas</label>
+                            <label className="text-[10px] font-black text-[var(--text-primary)]/40 uppercase tracking-widest block mb-2">Cuotas ya pagadas</label>
                             <input
                                 type="number"
                                 value={paidInstallments || ''}
                                 onChange={e => onPaidInstallmentsChange(Math.min(Number(e.target.value) || 0, Number(form.total_installments) || 0))}
-                                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-cyan-500/50 transition-all"
+                                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-md text-sm text-[var(--text-primary)] placeholder:text-[var(--text-primary)]/20 focus:outline-none focus:border-[var(--color-primary)]/50 transition-all"
                                 placeholder="0"
                                 min="0"
                                 max={form.total_installments || 1}
                             />
                             {paidInstallments > 0 && (
-                                <p className="text-[10px] text-cyan-400/60 mt-1">Se marcarán las primeras {paidInstallments} cuota(s) como pagadas</p>
+                                <p className="text-[10px] text-[var(--color-primary)]/60 mt-1">Se marcarán las primeras {paidInstallments} cuota(s) como pagadas</p>
                             )}
                         </div>
                     )}
@@ -1051,29 +1051,29 @@ const LoanModal: React.FC<{
                     {/* Interest + Start Date + Payment Day */}
                     <div className="grid grid-cols-3 gap-4">
                         <div>
-                            <label className="text-[10px] font-black text-white/40 uppercase tracking-widest block mb-2">Tasa Anual %</label>
+                            <label className="text-[10px] font-black text-[var(--text-primary)]/40 uppercase tracking-widest block mb-2">Tasa Anual %</label>
                             <input
                                 type="number"
                                 value={form.interest_rate ?? ''}
                                 onChange={e => onChange('interest_rate', e.target.value)}
-                                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-cyan-500/50 transition-all"
+                                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-md text-sm text-[var(--text-primary)] placeholder:text-[var(--text-primary)]/20 focus:outline-none focus:border-[var(--color-primary)]/50 transition-all"
                                 placeholder="0"
                                 min="0"
                                 step="0.1"
                             />
                         </div>
                         <div>
-                            <label className="text-[10px] font-black text-white/40 uppercase tracking-widest block mb-2">Fecha Inicio</label>
+                            <label className="text-[10px] font-black text-[var(--text-primary)]/40 uppercase tracking-widest block mb-2">Fecha Inicio</label>
                             <input
                                 type="date"
                                 value={form.start_date || ''}
                                 onChange={e => onChange('start_date', e.target.value)}
-                                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-cyan-500/50 transition-all [color-scheme:dark]"
+                                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-md text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--color-primary)]/50 transition-all [color-scheme:dark]"
                                 required
                             />
                         </div>
                         <div>
-                            <label className="text-[10px] font-black text-white/40 uppercase tracking-widest block mb-2">Día Vto.</label>
+                            <label className="text-[10px] font-black text-[var(--text-primary)]/40 uppercase tracking-widest block mb-2">Día Vto.</label>
                             <input
                                 type="number"
                                 value={paymentDay ?? ''}
@@ -1081,7 +1081,7 @@ const LoanModal: React.FC<{
                                     const v = Number(e.target.value);
                                     onPaymentDayChange(v >= 1 && v <= 28 ? v : undefined);
                                 }}
-                                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-cyan-500/50 transition-all"
+                                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-md text-sm text-[var(--text-primary)] placeholder:text-[var(--text-primary)]/20 focus:outline-none focus:border-[var(--color-primary)]/50 transition-all"
                                 placeholder="10"
                                 min="1"
                                 max="28"
@@ -1091,12 +1091,12 @@ const LoanModal: React.FC<{
 
                     {/* Account */}
                     <div>
-                        <label className="text-[10px] font-black text-white/40 uppercase tracking-widest block mb-2">Cuenta / Tarjeta (opcional)</label>
+                        <label className="text-[10px] font-black text-[var(--text-primary)]/40 uppercase tracking-widest block mb-2">Cuenta / Tarjeta (opcional)</label>
                         {accounts.length > 0 ? (
                             <select
                                 value={form.account_id || ''}
                                 onChange={e => onChange('account_id', e.target.value)}
-                                className="w-full px-4 py-3 bg-[#0b1221] border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-cyan-500/50 transition-all"
+                                className="w-full px-4 py-3 bg-[#0b1221] border border-white/10 rounded-md text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--color-primary)]/50 transition-all"
                             >
                                 <option value="" style={{ background: '#0b1221', color: '#fff' }}>Sin asociar</option>
                                 {accounts.map(a => (
@@ -1104,40 +1104,40 @@ const LoanModal: React.FC<{
                                 ))}
                             </select>
                         ) : (
-                            <p className="text-xs text-white/30 py-3 px-4 bg-white/5 rounded-xl border border-white/5">
-                                No hay cuentas cargadas. Podés crearlas desde <span className="text-cyan-400">Administración</span>.
+                            <p className="text-xs text-[var(--text-primary)]/30 py-3 px-4 bg-white/5 rounded-md border border-white/5">
+                                No hay cuentas cargadas. Podés crearlas desde <span className="text-[var(--color-primary)]">Administración</span>.
                             </p>
                         )}
                     </div>
 
                     {/* Description */}
                     <div>
-                        <label className="text-[10px] font-black text-white/40 uppercase tracking-widest block mb-2">Descripción (opcional)</label>
+                        <label className="text-[10px] font-black text-[var(--text-primary)]/40 uppercase tracking-widest block mb-2">Descripción (opcional)</label>
                         <input
                             type="text"
                             value={form.description || ''}
                             onChange={e => onChange('description', e.target.value)}
-                            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-cyan-500/50 transition-all"
+                            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-md text-sm text-[var(--text-primary)] placeholder:text-[var(--text-primary)]/20 focus:outline-none focus:border-[var(--color-primary)]/50 transition-all"
                             placeholder="Notas adicionales..."
                         />
                     </div>
 
                     {/* Calculation Preview */}
                     {(form.total_amount ?? 0) > 0 && (form.total_installments ?? 0) > 0 && (
-                        <div className="p-4 rounded-xl bg-cyan-500/5 border border-cyan-500/10 space-y-2">
-                            <p className="text-[10px] font-black text-cyan-400 uppercase tracking-widest">Vista Previa</p>
+                        <div className="p-4 rounded-md bg-[var(--color-primary)]/5 border border-[var(--color-primary)]/10 space-y-2">
+                            <p className="text-[10px] font-black text-[var(--color-primary)] uppercase tracking-widest">Vista Previa</p>
                             <div className="flex justify-between text-sm">
-                                <span className="text-white/50">Valor cuota:</span>
-                                <span className="text-white font-bold">{formatCurrency(form.installment_amount || 0)}</span>
+                                <span className="text-[var(--text-primary)]/50">Valor cuota:</span>
+                                <span className="text-[var(--text-primary)] font-bold">{formatCurrency(form.installment_amount || 0)}</span>
                             </div>
                             <div className="flex justify-between text-sm">
-                                <span className="text-white/50">Total a pagar:</span>
-                                <span className="text-white font-bold">{formatCurrency(totalWithInterest)}</span>
+                                <span className="text-[var(--text-primary)]/50">Total a pagar:</span>
+                                <span className="text-[var(--text-primary)] font-bold">{formatCurrency(totalWithInterest)}</span>
                             </div>
                             {interestTotal > 0 && (
                                 <div className="flex justify-between text-sm">
-                                    <span className="text-white/50">Intereses:</span>
-                                    <span className="text-amber-400 font-bold">{formatCurrency(interestTotal)}</span>
+                                    <span className="text-[var(--text-primary)]/50">Intereses:</span>
+                                    <span className="text-[var(--color-warning)] font-bold">{formatCurrency(interestTotal)}</span>
                                 </div>
                             )}
                         </div>
@@ -1145,7 +1145,7 @@ const LoanModal: React.FC<{
 
                     {/* Error Banner */}
                     {error && (
-                        <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-bold">
+                        <div className="p-3 rounded-md bg-[var(--color-danger)]/10 border border-[var(--color-danger)]/20 text-[var(--color-danger)] text-xs font-bold">
                             ⚠️ {error}
                         </div>
                     )}
@@ -1155,14 +1155,14 @@ const LoanModal: React.FC<{
                         <button
                             type="button"
                             onClick={onClose}
-                            className="flex-1 py-3 bg-white/5 text-white/60 hover:text-white hover:bg-white/10 rounded-xl font-bold text-sm transition-all"
+                            className="flex-1 py-3 bg-white/5 text-[var(--text-primary)]/60 hover:text-[var(--text-primary)] hover:bg-white/10 rounded-md font-bold text-sm transition-all"
                         >
                             Cancelar
                         </button>
                         <button
                             type="submit"
                             disabled={saving}
-                            className="flex-1 py-3 bg-cyan-500 hover:bg-cyan-400 text-black font-bold rounded-xl text-sm transition-all shadow-lg shadow-cyan-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="flex-1 py-3 bg-[var(--color-primary)] hover:bg-[var(--color-primary)] text-black font-bold rounded-md text-sm transition-all shadow-lg shadow-[rgba(0,255,157,0.30)] disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {saving ? 'Guardando...' : editing ? 'Actualizar' : 'Crear Préstamo'}
                         </button>

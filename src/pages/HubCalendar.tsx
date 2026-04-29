@@ -64,21 +64,21 @@ const HubCalendar = () => {
 
     return (
         <Layout>
-            <div className="bg-[#021019] min-h-screen py-8 text-white">
+            <div className="bg-[#050607] min-h-screen py-8 text-[var(--text-primary)]">
                 <div className="max-w-6xl mx-auto px-4">
                     <div className="flex justify-between items-center mb-8">
                         <div>
                             <h1 className="text-3xl font-bold font-space">Mi Calendario</h1>
-                            <p className="text-slate-400">Eventos de Octopus + Tus Eventos Privados</p>
+                            <p className="text-[var(--text-muted)]">Eventos de Octopus + Tus Eventos Privados</p>
                         </div>
                         {/* Only Clients/Managers can add events */}
-                        <Button onClick={() => { setSelectedDate(new Date()); setIsModalOpen(true); }} className="bg-[#1FB6D5] text-black">
+                        <Button onClick={() => { setSelectedDate(new Date()); setIsModalOpen(true); }} className="bg-[var(--color-primary)] text-black">
                             <Plus className="w-4 h-4 mr-2" /> Nuevo Evento
                         </Button>
                     </div>
 
                     {/* Calendar Grid UI (Simplified from AdminCalendar) */}
-                    <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6">
+                    <div className="bg-[var(--bg-base)] rounded-md border border-[var(--border-subtle)] p-6">
                         <div className="flex justify-between items-center mb-6">
                             <h2 className="text-2xl font-bold capitalize">
                                 {format(currentDate, 'MMMM yyyy', { locale: es })}
@@ -89,9 +89,9 @@ const HubCalendar = () => {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-7 gap-px bg-slate-800 border border-slate-800 rounded-lg overflow-hidden">
+                        <div className="grid grid-cols-7 gap-px bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg overflow-hidden">
                             {['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'].map(d => (
-                                <div key={d} className="bg-slate-900 p-4 text-center text-slate-400 font-bold uppercase text-xs">
+                                <div key={d} className="bg-[var(--bg-base)] p-4 text-center text-[var(--text-muted)] font-bold uppercase text-xs">
                                     {d}
                                 </div>
                             ))}
@@ -111,16 +111,16 @@ const HubCalendar = () => {
                                     <div
                                         key={day.toISOString()}
                                         onClick={() => { setSelectedDate(day); setIsModalOpen(true); }}
-                                        className={`bg-slate-900 min-h-[120px] p-2 hover:bg-slate-800 transition-colors cursor-pointer relative ${!isSameMonth(day, monthStart) ? 'opacity-30' : ''}`}
+                                        className={`bg-[var(--bg-base)] min-h-[120px] p-2 hover:bg-[var(--bg-surface)] transition-colors cursor-pointer relative ${!isSameMonth(day, monthStart) ? 'opacity-30' : ''}`}
                                     >
-                                        <span className={`text-sm font-bold w-7 h-7 flex items-center justify-center rounded-full mb-2 ${isTodayDate ? 'bg-[#1FB6D5] text-black' : 'text-slate-400'}`}>
+                                        <span className={`text-sm font-bold w-7 h-7 flex items-center justify-center rounded-full mb-2 ${isTodayDate ? 'bg-[var(--color-primary)] text-black' : 'text-[var(--text-muted)]'}`}>
                                             {format(day, 'd')}
                                         </span>
 
                                         <div className="space-y-1">
                                             {dayEvents.map(evt => (
                                                 <div key={evt.id} className={`text-[10px] px-2 py-1 rounded border truncate
-                                                    ${evt.business_id ? 'bg-purple-900/30 border-purple-500/50 text-purple-200' : 'bg-slate-800 border-slate-700 text-slate-300'}
+                                                    ${evt.business_id ? 'bg-[var(--bg-elevated)]/30 border-purple-500/50 text-purple-200' : 'bg-[var(--bg-surface)] border-[var(--border-subtle)] text-[var(--text-secondary)]'}
                                                 `}>
                                                     {evt.title}
                                                 </div>
@@ -137,31 +137,31 @@ const HubCalendar = () => {
             {/* Modal Logic would go here (Simplified) */}
             {isModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
-                    <div className="bg-slate-900 p-6 rounded-xl w-full max-w-md border border-slate-800">
-                        <h3 className="text-xl font-bold text-white mb-4">
+                    <div className="bg-[var(--bg-base)] p-6 rounded-md w-full max-w-md border border-[var(--border-subtle)]">
+                        <h3 className="text-xl font-bold text-[var(--text-primary)] mb-4">
                             Nuevo Evento Privado ({selectedDate ? format(selectedDate, 'dd/MM/yyyy') : ''})
                         </h3>
                         <form onSubmit={handleCreateEvent} className="space-y-4">
                             <div>
-                                <label className="block text-slate-400 mb-1">Título</label>
+                                <label className="block text-[var(--text-muted)] mb-1">Título</label>
                                 <input
                                     value={newEventTitle}
                                     onChange={e => setNewEventTitle(e.target.value)}
-                                    className="w-full bg-slate-950 border border-slate-800 rounded p-2 text-white"
+                                    className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded p-2 text-[var(--text-primary)]"
                                     required
                                 />
                             </div>
                             <div>
-                                <label className="block text-slate-400 mb-1">Detalle</label>
+                                <label className="block text-[var(--text-muted)] mb-1">Detalle</label>
                                 <textarea
                                     value={newEventMsg}
                                     onChange={e => setNewEventMsg(e.target.value)}
-                                    className="w-full bg-slate-950 border border-slate-800 rounded p-2 text-white"
+                                    className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded p-2 text-[var(--text-primary)]"
                                 />
                             </div>
                             <div className="flex justify-end gap-3 mt-6">
                                 <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>Cancelar</Button>
-                                <Button type="submit" className="bg-purple-600 hover:bg-purple-500 text-white">Guardar Privado</Button>
+                                <Button type="submit" className="bg-purple-600 hover:bg-[var(--color-primary)] text-[#050607]">Guardar Privado</Button>
                             </div>
                         </form>
                     </div>

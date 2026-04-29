@@ -25,12 +25,12 @@ export const CategoryModal: React.FC<CategoryModalProps> = ({
                 <div className="absolute top-0 right-0 w-32 h-32 bg-brand/10 rounded-full -mr-16 -mt-16 blur-3xl"></div>
                 <button
                     onClick={onClose}
-                    className="absolute top-6 right-6 p-2 text-white/50 hover:text-white bg-white/5 hover:bg-white/10 rounded-full transition-all z-[60]"
+                    className="absolute top-6 right-6 p-2 text-[var(--text-primary)]/50 hover:text-[var(--text-primary)] bg-white/5 hover:bg-white/10 rounded-full transition-all z-[60]"
                     title="Cerrar (Esc)"
                 >
                     <X size={20} />
                 </button>
-                <h2 className="text-2xl font-black text-white mb-10 uppercase tracking-tight">
+                <h2 className="text-2xl font-black text-[var(--text-primary)] mb-10 uppercase tracking-tight">
                     {editingCategory?.id ? 'Editar Rubro' : 'Nuevo Rubro'}
                 </h2>
                 <form onSubmit={onSave} className="space-y-6 relative z-10 text-left">
@@ -40,7 +40,7 @@ export const CategoryModal: React.FC<CategoryModalProps> = ({
                             type="text"
                             value={editingCategory?.name || ''}
                             onChange={e => setEditingCategory({ ...editingCategory, name: e.target.value })}
-                            className="w-full bg-[#020b14] border border-white/10 rounded-2xl p-4 text-white font-bold outline-none focus:border-cyan-500 transition-all placeholder:text-white/20"
+                            className="w-full bg-[#020b14] border border-white/10 rounded-md p-4 text-[var(--text-primary)] font-bold outline-none focus:border-[var(--color-primary)] transition-all placeholder:text-[var(--text-primary)]/20"
                             placeholder="Ej: Servicios Públicos"
                             required
                         />
@@ -50,7 +50,7 @@ export const CategoryModal: React.FC<CategoryModalProps> = ({
                         <select
                             value={editingCategory?.type || ''}
                             onChange={e => setEditingCategory({ ...editingCategory, type: e.target.value as TransactionType })}
-                            className="w-full bg-[#020b14] border border-white/10 rounded-2xl p-4 text-white text-xs font-black uppercase tracking-widest outline-none focus:border-cyan-500 appearance-none cursor-pointer"
+                            className="w-full bg-[#020b14] border border-white/10 rounded-md p-4 text-[var(--text-primary)] text-xs font-black uppercase tracking-widest outline-none focus:border-[var(--color-primary)] appearance-none cursor-pointer"
                             required
                         >
                             <option value="IN">Ingresos</option>
@@ -60,7 +60,7 @@ export const CategoryModal: React.FC<CategoryModalProps> = ({
                     </div>
                     <button
                         type="submit"
-                        className="w-full py-5 bg-cyan-500 text-[#020b14] rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-lg shadow-cyan-500/20 active:scale-95 transition-all"
+                        className="w-full py-5 bg-[var(--color-primary)] text-[#020b14] rounded-md font-black text-xs uppercase tracking-[0.2em] shadow-lg shadow-[rgba(0,255,157,0.30)] active:scale-95 transition-all"
                     >
                         Guardar Rubro
                     </button>

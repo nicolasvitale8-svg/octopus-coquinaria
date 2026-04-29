@@ -223,11 +223,11 @@ export const Accounts: React.FC = () => {
       <div className="flex flex-col gap-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <h1 className="text-4xl font-extrabold text-white tracking-tight leading-none">Administración</h1>
+            <h1 className="text-4xl font-extrabold text-[var(--text-primary)] tracking-tight leading-none">Administración</h1>
             <div className="flex items-center gap-3 mt-2">
               <p className="text-fin-muted text-sm font-medium">Configura el motor de la aplicación y tus activos.</p>
               {isDemoMode && (
-                <span className="px-3 py-1 bg-amber-500/10 text-amber-500 border border-amber-500/20 rounded-full text-[10px] font-black uppercase tracking-widest animate-pulse">
+                <span className="px-3 py-1 bg-[var(--color-warning)]/10 text-[var(--color-warning)] border border-[rgba(255,177,42,0.40)] rounded-full text-[10px] font-black uppercase tracking-widest animate-pulse">
                   Modo Demo Activo
                 </span>
               )}
@@ -235,20 +235,20 @@ export const Accounts: React.FC = () => {
           </div>
           <button
             onClick={toggleDemoMode}
-            className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wide transition-all border shrink-0 ${isDemoMode ? 'bg-amber-500 text-black border-amber-500 hover:bg-amber-400' : 'bg-white/5 text-fin-muted border-white/10 hover:bg-white/10 hover:text-white'}`}
+            className={`px-4 py-2 rounded-md text-xs font-bold uppercase tracking-wide transition-all border shrink-0 ${isDemoMode ? 'bg-[var(--color-warning)] text-black border-[var(--color-warning)] hover:bg-amber-400' : 'bg-white/5 text-fin-muted border-white/10 hover:bg-white/10 hover:text-[var(--text-primary)]'}`}
           >
             {isDemoMode ? 'Salir del Modo Demo' : 'Probar Modo Demo'}
           </button>
         </div>
 
-        <div className="flex bg-fin-card p-1.5 rounded-2xl border border-fin-border shadow-lg w-full">
+        <div className="flex bg-fin-card p-1.5 rounded-md border border-fin-border shadow-lg w-full">
           {[
             { id: 'BALANCES', label: 'Saldos' },
             { id: 'ACCOUNTS', label: 'Cuentas' },
             { id: 'CATEGORIES', label: 'Rubros' },
             { id: 'RULES', label: 'Reglas Auto' }
           ].map((tab) => (
-            <button key={tab.id} onClick={() => setActiveTab(tab.id as TabType)} className={`flex-1 px-4 py-3 text-[11px] font-black uppercase tracking-widest rounded-xl transition-all ${activeTab === tab.id ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-fin-muted hover:text-fin-text hover:bg-white/5'}`}>{tab.label}</button>
+            <button key={tab.id} onClick={() => setActiveTab(tab.id as TabType)} className={`flex-1 px-4 py-3 text-[11px] font-black uppercase tracking-widest rounded-md transition-all ${activeTab === tab.id ? 'bg-brand text-[var(--text-primary)] shadow-lg shadow-brand/20' : 'text-fin-muted hover:text-fin-text hover:bg-white/5'}`}>{tab.label}</button>
           ))}
         </div>
       </div>
@@ -257,14 +257,14 @@ export const Accounts: React.FC = () => {
         <div className="space-y-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 bg-fin-card p-6 rounded-3xl border border-fin-border">
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-brand/10 text-brand rounded-2xl"><Info size={20} /></div>
+              <div className="p-3 bg-brand/10 text-brand rounded-md"><Info size={20} /></div>
               <div>
                 <p className="text-[10px] font-black uppercase tracking-widest text-fin-muted">Período de Conciliación</p>
-                <p className="text-sm font-bold text-white">Saldos iniciales para el mes seleccionado</p>
+                <p className="text-sm font-bold text-[var(--text-primary)]">Saldos iniciales para el mes seleccionado</p>
               </div>
             </div>
-            <div className="flex items-center gap-3 bg-fin-bg px-4 py-2 rounded-2xl border border-fin-border">
-              <select value={currentMonth} onChange={e => setCurrentMonth(Number(e.target.value))} className="bg-transparent border-none text-xs font-bold text-white uppercase outline-none">
+            <div className="flex items-center gap-3 bg-fin-bg px-4 py-2 rounded-md border border-fin-border">
+              <select value={currentMonth} onChange={e => setCurrentMonth(Number(e.target.value))} className="bg-transparent border-none text-xs font-bold text-[var(--text-primary)] uppercase outline-none">
                 {Array.from({ length: 12 }, (_, i) => <option key={i} value={i} className="bg-fin-card">{new Date(2025, i).toLocaleDateString('es-ES', { month: 'long' })}</option>)}
               </select>
               <div className="w-px h-4 bg-fin-border"></div>
@@ -292,8 +292,8 @@ export const Accounts: React.FC = () => {
                   const currentBalance = openingBal + monthlyIn - monthlyOut;
                   return (
                     <tr key={acc.id} className="hover:bg-fin-bg/30 transition-colors">
-                      <td className="px-8 py-5 font-bold text-white uppercase text-xs flex items-center gap-4">
-                        <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.4)]"></div>
+                      <td className="px-8 py-5 font-bold text-[var(--text-primary)] uppercase text-xs flex items-center gap-4">
+                        <div className="w-2 h-2 rounded-full bg-[var(--color-success)] shadow-[0_0_10px_rgba(16,185,129,0.4)]"></div>
                         {acc.name}
                       </td>
                       <td className="px-6 py-5 text-right">
@@ -301,7 +301,7 @@ export const Accounts: React.FC = () => {
                           <input
                             type="text"
                             inputMode="decimal"
-                            className="w-40 text-right bg-[#020b14] border border-white/10 rounded-xl px-4 py-2 text-sm text-white font-black outline-none focus:border-brand transition-all"
+                            className="w-40 text-right bg-[#020b14] border border-white/10 rounded-md px-4 py-2 text-sm text-[var(--text-primary)] font-black outline-none focus:border-brand transition-all"
                             placeholder="0,00"
                             defaultValue={formatArgNumber(openingBal)}
                             onBlur={(e) => {
@@ -317,7 +317,7 @@ export const Accounts: React.FC = () => {
                           />
                           <button
                             onClick={() => { setConciliatingAccount(acc); setRealBalance(''); setIsConciliateModalOpen(true); }}
-                            className="p-2 bg-brand/10 text-brand rounded-xl border border-brand/20 hover:bg-brand hover:text-white transition-all shadow-sm"
+                            className="p-2 bg-brand/10 text-brand rounded-md border border-brand/20 hover:bg-brand hover:text-[var(--text-primary)] transition-all shadow-sm"
                             title="Conciliar Saldo Real"
                           >
                             <Zap size={16} />
@@ -325,7 +325,7 @@ export const Accounts: React.FC = () => {
                         </div>
                       </td>
                       <td className="px-6 py-5 text-right">
-                        <span className={`text-sm font-black tabular-nums ${currentBalance >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                        <span className={`text-sm font-black tabular-nums ${currentBalance >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'}`}>
                           {formatCurrency(currentBalance)}
                         </span>
                       </td>
@@ -348,46 +348,46 @@ export const Accounts: React.FC = () => {
             const isWallet = typeName.includes('billetera');
             const isCC = typeName.includes('crédito') || typeName.includes('credito') || typeName.includes('tarjeta');
             const isCash = typeName.includes('efectivo');
-            const borderColor = isCC ? 'border-orange-500/40' : isBank ? 'border-blue-500/40' : isWallet ? 'border-cyan-500/40' : isCash ? 'border-emerald-500/40' : 'border-fin-border';
-            const iconColor = isCC ? 'text-orange-400' : isBank ? 'text-blue-400' : isWallet ? 'text-cyan-400' : isCash ? 'text-emerald-400' : 'text-brand';
-            const bgAccent = isCC ? 'bg-orange-500/5' : isBank ? 'bg-blue-500/5' : isWallet ? 'bg-cyan-500/5' : isCash ? 'bg-emerald-500/5' : 'bg-fin-card';
+            const borderColor = isCC ? 'border-orange-500/40' : isBank ? 'border-blue-500/40' : isWallet ? 'border-[var(--color-primary)]/40' : isCash ? 'border-[var(--color-success)]/40' : 'border-fin-border';
+            const iconColor = isCC ? 'text-[var(--color-warning)]' : isBank ? 'text-[var(--color-primary)]' : isWallet ? 'text-[var(--color-primary)]' : isCash ? 'text-[var(--color-success)]' : 'text-brand';
+            const bgAccent = isCC ? 'bg-[var(--color-warning)]/5' : isBank ? 'bg-[var(--color-primary)]/5' : isWallet ? 'bg-[var(--color-primary)]/5' : isCash ? 'bg-[var(--color-success)]/5' : 'bg-fin-card';
             return (
               <div key={acc.id} className={`${bgAccent} p-8 rounded-[32px] border ${borderColor} flex flex-col justify-between group relative overflow-hidden hover:scale-[1.02] transition-all shadow-xl`}>
                 <div className="absolute top-6 right-6 flex gap-2 opacity-0 group-hover:opacity-100 transition-all">
-                  <button onClick={() => { setEditingAccount(acc); setIsAccModalOpen(true); }} className="p-2.5 text-fin-muted hover:text-brand bg-fin-bg rounded-xl border border-fin-border transition-all"><Edit2 size={16} /></button>
-                  <button onClick={async () => { if (confirm('¿Borrar definitivamente esta cuenta?')) { await service.deleteAccount(acc.id); await loadData(); } }} className="p-2.5 text-fin-muted hover:text-red-500 bg-fin-bg rounded-xl border border-fin-border transition-all"><Trash2 size={16} /></button>
+                  <button onClick={() => { setEditingAccount(acc); setIsAccModalOpen(true); }} className="p-2.5 text-fin-muted hover:text-brand bg-fin-bg rounded-md border border-fin-border transition-all"><Edit2 size={16} /></button>
+                  <button onClick={async () => { if (confirm('¿Borrar definitivamente esta cuenta?')) { await service.deleteAccount(acc.id); await loadData(); } }} className="p-2.5 text-fin-muted hover:text-[var(--color-danger)] bg-fin-bg rounded-md border border-fin-border transition-all"><Trash2 size={16} /></button>
                 </div>
                 <div className="flex items-start gap-4 mb-8">
-                  <div className={`p-4 rounded-2xl bg-fin-bg border border-fin-border transition-transform group-hover:scale-110 ${iconColor}`}>
+                  <div className={`p-4 rounded-md bg-fin-bg border border-fin-border transition-transform group-hover:scale-110 ${iconColor}`}>
                     {isCC ? <Sparkles size={24} /> : acc.currency === 'USD' ? <Zap size={24} /> : <Wallet size={24} />}
                   </div>
                   <div>
-                    <h4 className="font-black text-white uppercase text-sm tracking-tight">{acc.name}</h4>
+                    <h4 className="font-black text-[var(--text-primary)] uppercase text-sm tracking-tight">{acc.name}</h4>
                     <span className={`text-[10px] font-black uppercase tracking-widest ${iconColor}`}>{accType?.name || 'Sin Tipo'}</span>
                   </div>
                 </div>
                 {/* Límite de crédito para tarjetas */}
                 {isCC && (acc as any).creditLimit && (
-                  <div className="mb-4 p-3 bg-orange-500/10 rounded-xl border border-orange-500/20">
-                    <span className="text-[9px] font-black text-orange-400 uppercase tracking-widest">Límite: </span>
-                    <span className="text-sm font-black text-white tabular-nums">{formatCurrency((acc as any).creditLimit)}</span>
+                  <div className="mb-4 p-3 bg-[var(--color-warning)]/10 rounded-md border border-orange-500/20">
+                    <span className="text-[9px] font-black text-[var(--color-warning)] uppercase tracking-widest">Límite: </span>
+                    <span className="text-sm font-black text-[var(--text-primary)] tabular-nums">{formatCurrency((acc as any).creditLimit)}</span>
                   </div>
                 )}
                 {/* TNA para cuentas/billeteras */}
                 {!isCC && (acc as any).annualRate && (
-                  <div className="mb-4 p-3 bg-emerald-500/10 rounded-xl border border-emerald-500/20 flex justify-between items-center">
-                    <span className="text-[9px] font-black text-emerald-400 uppercase tracking-widest">TNA Rendimiento: </span>
-                    <span className="text-sm font-black text-emerald-400 tabular-nums">{(acc as any).annualRate}%</span>
+                  <div className="mb-4 p-3 bg-[var(--color-success)]/10 rounded-md border border-[var(--color-success)]/20 flex justify-between items-center">
+                    <span className="text-[9px] font-black text-[var(--color-success)] uppercase tracking-widest">TNA Rendimiento: </span>
+                    <span className="text-sm font-black text-[var(--color-success)] tabular-nums">{(acc as any).annualRate}%</span>
                   </div>
                 )}
                 <div className="flex justify-between items-end border-t border-white/5 pt-6">
                   <div>
-                    <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">{acc.currency}</span>
-                    <p className="text-lg font-black text-white tabular-nums mt-1">{acc.currency === 'USD' ? 'U$D' : '$'}</p>
+                    <span className="text-[10px] font-black text-[var(--text-primary)]/40 uppercase tracking-[0.2em]">{acc.currency}</span>
+                    <p className="text-lg font-black text-[var(--text-primary)] tabular-nums mt-1">{acc.currency === 'USD' ? 'U$D' : '$'}</p>
                   </div>
                   <div className="flex flex-col items-end gap-2">
                     <span className="text-[8px] font-black text-fin-muted uppercase tracking-widest">Estado</span>
-                    <div className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest ${acc.isActive ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
+                    <div className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest ${acc.isActive ? 'bg-[var(--color-success)]/10 text-[var(--color-success)]' : 'bg-[var(--color-danger)]/10 text-[var(--color-danger)]'}`}>
                       {acc.isActive ? 'Activa' : 'Inactiva'}
                     </div>
                   </div>
@@ -408,23 +408,23 @@ export const Accounts: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
             {/* INCOMING CATEGORIES */}
             <div className="space-y-6 relative">
-              <div className="sticky top-0 z-10 flex justify-between items-center px-4 bg-[#020b14]/95 backdrop-blur-md py-4 rounded-2xl border border-emerald-500/20 shadow-xl">
+              <div className="sticky top-0 z-10 flex justify-between items-center px-4 bg-[#020b14]/95 backdrop-blur-md py-4 rounded-md border border-[var(--color-success)]/20 shadow-xl">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-emerald-500/20 text-emerald-500 rounded-lg"><TrendingUp size={16} /></div>
-                  <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500">Rubros de Ingresos</h3>
+                  <div className="p-2 bg-[var(--color-success)]/20 text-[var(--color-success)] rounded-lg"><TrendingUp size={16} /></div>
+                  <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--color-success)]">Rubros de Ingresos</h3>
                 </div>
-                <button onClick={() => { setEditingCategory({ type: TransactionType.IN }); setIsCatModalOpen(true); }} className="flex items-center gap-2 px-4 py-2 bg-emerald-500 text-[#020b14] rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-white transition-all shadow-lg shadow-emerald-500/20 active:scale-95"><Plus size={12} strokeWidth={3} /> Nuevo</button>
+                <button onClick={() => { setEditingCategory({ type: TransactionType.IN }); setIsCatModalOpen(true); }} className="flex items-center gap-2 px-4 py-2 bg-[var(--color-success)] text-[#020b14] rounded-md font-black text-[9px] uppercase tracking-widest hover:bg-white transition-all shadow-lg shadow-emerald-500/20 active:scale-95"><Plus size={12} strokeWidth={3} /> Nuevo</button>
               </div>
               <div className="space-y-4">
                 {categories.filter(c => c.type === TransactionType.IN || c.type === 'MIX').map(cat => (
-                  <div key={cat.id} className="bg-fin-card p-6 rounded-3xl border border-fin-border flex flex-col gap-5 group hover:border-emerald-500/30 transition-all shadow-xl">
+                  <div key={cat.id} className="bg-fin-card p-6 rounded-3xl border border-fin-border flex flex-col gap-5 group hover:border-[var(--color-success)]/30 transition-all shadow-xl">
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-3">
-                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
-                        <span className="text-sm font-black text-white uppercase tracking-tight">{cat.name}</span>
+                        <div className="w-1.5 h-1.5 rounded-full bg-[var(--color-success)] animate-pulse"></div>
+                        <span className="text-sm font-black text-[var(--text-primary)] uppercase tracking-tight">{cat.name}</span>
                       </div>
                       <div className="flex gap-2">
-                        <button onClick={() => { setEditingCategory(cat); setIsCatModalOpen(true); }} className="p-2 text-fin-muted hover:text-white bg-fin-bg rounded-xl border border-fin-border/50 transition-colors"><Edit2 size={14} /></button>
+                        <button onClick={() => { setEditingCategory(cat); setIsCatModalOpen(true); }} className="p-2 text-fin-muted hover:text-[var(--text-primary)] bg-fin-bg rounded-md border border-fin-border/50 transition-colors"><Edit2 size={14} /></button>
                         <button onClick={async () => {
                           if (confirm('¿Borrar rubro y todos sus subrubros?')) {
                             try {
@@ -434,13 +434,13 @@ export const Accounts: React.FC = () => {
                               alert("No se puede borrar el rubro porque tiene movimientos asociados. Primero borra los movimientos o cámbialos de rubro.");
                             }
                           }
-                        }} className="p-2 text-fin-muted hover:text-red-500 bg-fin-bg rounded-xl border border-fin-border/50 transition-colors"><Trash2 size={14} /></button>
+                        }} className="p-2 text-fin-muted hover:text-[var(--color-danger)] bg-fin-bg rounded-md border border-fin-border/50 transition-colors"><Trash2 size={14} /></button>
                       </div>
                     </div>
                     {/* Subcategories List */}
                     <div className="flex flex-wrap gap-2 pt-4 border-t border-fin-border/20">
                       {subCategories.filter(sc => sc.categoryId === cat.id).map(sub => (
-                        <div key={sub.id} className="bg-fin-bg px-4 py-2 rounded-xl border border-fin-border flex items-center gap-3 group/sub hover:border-emerald-500/20 transition-all">
+                        <div key={sub.id} className="bg-fin-bg px-4 py-2 rounded-md border border-fin-border flex items-center gap-3 group/sub hover:border-[var(--color-success)]/20 transition-all">
                           <span className="text-[10px] font-bold text-fin-muted uppercase tracking-wider">{sub.name}</span>
                           <button onClick={async () => {
                             if (confirm('¿Borrar subrubro?')) {
@@ -451,12 +451,12 @@ export const Accounts: React.FC = () => {
                                 alert("No se puede borrar el ítem porque tiene movimientos asociados.");
                               }
                             }
-                          }} className="text-fin-muted hover:text-red-500 transition-colors"><X size={12} /></button>
+                          }} className="text-fin-muted hover:text-[var(--color-danger)] transition-colors"><X size={12} /></button>
                         </div>
                       ))}
                       <button
                         onClick={() => { setEditingSubCategory({ categoryId: cat.id }); setIsSubCatModalOpen(true); }}
-                        className="flex items-center gap-2 text-[9px] font-black text-emerald-500 bg-emerald-500/5 hover:bg-emerald-500 hover:text-[#020b14] px-4 py-2 rounded-xl transition-all border border-emerald-500/20 border-dashed"
+                        className="flex items-center gap-2 text-[9px] font-black text-[var(--color-success)] bg-[var(--color-success)]/5 hover:bg-[var(--color-success)] hover:text-[#020b14] px-4 py-2 rounded-md transition-all border border-[var(--color-success)]/20 border-dashed"
                       >
                         <Plus size={12} strokeWidth={3} /> AÑADIR ITEM
                       </button>
@@ -468,23 +468,23 @@ export const Accounts: React.FC = () => {
 
             {/* OUTGOING CATEGORIES */}
             <div className="space-y-6 relative">
-              <div className="sticky top-0 z-10 flex justify-between items-center px-4 bg-[#020b14]/95 backdrop-blur-md py-4 rounded-2xl border border-red-500/20 shadow-xl">
+              <div className="sticky top-0 z-10 flex justify-between items-center px-4 bg-[#020b14]/95 backdrop-blur-md py-4 rounded-md border border-[var(--color-danger)]/20 shadow-xl">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-red-500/20 text-red-500 rounded-lg"><TrendingDown size={16} /></div>
-                  <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-red-500">Rubros de Gastos</h3>
+                  <div className="p-2 bg-[var(--color-danger)]/20 text-[var(--color-danger)] rounded-lg"><TrendingDown size={16} /></div>
+                  <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--color-danger)]">Rubros de Gastos</h3>
                 </div>
-                <button onClick={() => { setEditingCategory({ type: TransactionType.OUT }); setIsCatModalOpen(true); }} className="flex items-center gap-2 px-4 py-2 bg-red-500 text-[#020b14] rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-white transition-all shadow-lg shadow-red-500/20 active:scale-95"><Plus size={12} strokeWidth={3} /> Nuevo</button>
+                <button onClick={() => { setEditingCategory({ type: TransactionType.OUT }); setIsCatModalOpen(true); }} className="flex items-center gap-2 px-4 py-2 bg-[var(--color-danger)] text-[#020b14] rounded-md font-black text-[9px] uppercase tracking-widest hover:bg-white transition-all shadow-lg shadow-red-500/20 active:scale-95"><Plus size={12} strokeWidth={3} /> Nuevo</button>
               </div>
               <div className="space-y-4">
                 {categories.filter(c => c.type === TransactionType.OUT || c.type === 'MIX').map(cat => (
-                  <div key={cat.id} className="bg-fin-card p-6 rounded-3xl border border-fin-border flex flex-col gap-5 group hover:border-red-500/30 transition-all shadow-xl">
+                  <div key={cat.id} className="bg-fin-card p-6 rounded-3xl border border-fin-border flex flex-col gap-5 group hover:border-[var(--color-danger)]/30 transition-all shadow-xl">
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-3">
-                        <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></div>
-                        <span className="text-sm font-black text-white uppercase tracking-tight">{cat.name}</span>
+                        <div className="w-1.5 h-1.5 rounded-full bg-[var(--color-danger)] animate-pulse"></div>
+                        <span className="text-sm font-black text-[var(--text-primary)] uppercase tracking-tight">{cat.name}</span>
                       </div>
                       <div className="flex gap-2">
-                        <button onClick={() => { setEditingCategory(cat); setIsCatModalOpen(true); }} className="p-2 text-fin-muted hover:text-white bg-fin-bg rounded-xl border border-fin-border/50 transition-colors"><Edit2 size={14} /></button>
+                        <button onClick={() => { setEditingCategory(cat); setIsCatModalOpen(true); }} className="p-2 text-fin-muted hover:text-[var(--text-primary)] bg-fin-bg rounded-md border border-fin-border/50 transition-colors"><Edit2 size={14} /></button>
                         <button onClick={async () => {
                           if (confirm('¿Borrar rubro y todos sus subrubros?')) {
                             try {
@@ -494,13 +494,13 @@ export const Accounts: React.FC = () => {
                               alert("No se puede borrar el rubro porque tiene movimientos asociados.");
                             }
                           }
-                        }} className="p-2 text-fin-muted hover:text-red-500 bg-fin-bg rounded-xl border border-fin-border/50 transition-colors"><Trash2 size={14} /></button>
+                        }} className="p-2 text-fin-muted hover:text-[var(--color-danger)] bg-fin-bg rounded-md border border-fin-border/50 transition-colors"><Trash2 size={14} /></button>
                       </div>
                     </div>
                     {/* Subcategories List */}
                     <div className="flex flex-wrap gap-2 pt-4 border-t border-fin-border/20">
                       {subCategories.filter(sc => sc.categoryId === cat.id).map(sub => (
-                        <div key={sub.id} className="bg-fin-bg px-4 py-2 rounded-xl border border-fin-border flex items-center gap-3 group/sub hover:border-red-500/20 transition-all">
+                        <div key={sub.id} className="bg-fin-bg px-4 py-2 rounded-md border border-fin-border flex items-center gap-3 group/sub hover:border-[var(--color-danger)]/20 transition-all">
                           <span className="text-[10px] font-bold text-fin-muted uppercase tracking-wider">{sub.name}</span>
                           <button onClick={async () => {
                             if (confirm('¿Borrar subrubro?')) {
@@ -511,12 +511,12 @@ export const Accounts: React.FC = () => {
                                 alert("No se puede borrar el ítem porque tiene movimientos asociados.");
                               }
                             }
-                          }} className="text-fin-muted hover:text-red-500 transition-colors"><X size={12} /></button>
+                          }} className="text-fin-muted hover:text-[var(--color-danger)] transition-colors"><X size={12} /></button>
                         </div>
                       ))}
                       <button
                         onClick={() => { setEditingSubCategory({ categoryId: cat.id }); setIsSubCatModalOpen(true); }}
-                        className="flex items-center gap-2 text-[9px] font-black text-red-400 bg-red-400/5 hover:bg-red-400 hover:text-[#020b14] px-4 py-2 rounded-xl transition-all border border-red-400/20 border-dashed"
+                        className="flex items-center gap-2 text-[9px] font-black text-[var(--color-danger)] bg-[var(--color-danger)]/5 hover:bg-[var(--color-danger)] hover:text-[#020b14] px-4 py-2 rounded-md transition-all border border-red-400/20 border-dashed"
                       >
                         <Plus size={12} strokeWidth={3} /> AÑADIR ITEM
                       </button>
@@ -533,9 +533,9 @@ export const Accounts: React.FC = () => {
         <div className="space-y-6">
           <div className="bg-brand/5 border border-brand/20 p-6 rounded-3xl flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-brand text-white rounded-2xl shadow-lg shadow-brand/20"><Zap size={20} /></div>
+              <div className="p-3 bg-brand text-[var(--text-primary)] rounded-md shadow-lg shadow-brand/20"><Zap size={20} /></div>
               <div>
-                <h4 className="font-bold text-white">Auto-Categorización</h4>
+                <h4 className="font-bold text-[var(--text-primary)]">Auto-Categorización</h4>
                 <p className="text-xs text-fin-muted">Define palabras clave para que el importador OCR asigne rubros automáticamente.</p>
               </div>
             </div>
@@ -544,14 +544,14 @@ export const Accounts: React.FC = () => {
               <select
                 value={ruleFilterCategory}
                 onChange={(e) => setRuleFilterCategory(e.target.value)}
-                className="bg-fin-bg border border-fin-border rounded-xl px-4 py-2.5 text-xs font-bold text-white outline-none focus:border-brand appearance-none cursor-pointer"
+                className="bg-fin-bg border border-fin-border rounded-md px-4 py-2.5 text-xs font-bold text-[var(--text-primary)] outline-none focus:border-brand appearance-none cursor-pointer"
               >
                 <option value="ALL">Todos los rubros</option>
                 {categories.map(c => (
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
               </select>
-              <button onClick={() => { setEditingRule({}); setIsRuleModalOpen(true); }} className="bg-brand text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-brand-hover shadow-lg shadow-brand/20 transition-all flex items-center gap-2">
+              <button onClick={() => { setEditingRule({}); setIsRuleModalOpen(true); }} className="bg-brand text-[var(--text-primary)] px-6 py-3 rounded-md font-black text-[10px] uppercase tracking-widest hover:bg-brand-hover shadow-lg shadow-brand/20 transition-all flex items-center gap-2">
                 <Plus size={14} /> Nueva Regla
               </button>
             </div>
@@ -565,14 +565,14 @@ export const Accounts: React.FC = () => {
                 const subCategory = subCategories.find(s => s.id === rule.subCategoryId);
                 const isIncome = category?.type === 'IN';
                 const isExpense = category?.type === 'OUT';
-                const borderColor = isIncome ? 'border-emerald-500/50' : isExpense ? 'border-red-500/50' : 'border-purple-500/50';
-                const bgColor = isIncome ? 'bg-emerald-500/5' : isExpense ? 'bg-red-500/5' : 'bg-purple-500/5';
-                const typeColor = isIncome ? 'text-emerald-400' : isExpense ? 'text-red-400' : 'text-purple-400';
+                const borderColor = isIncome ? 'border-[var(--color-success)]/50' : isExpense ? 'border-[var(--color-danger)]/50' : 'border-purple-500/50';
+                const bgColor = isIncome ? 'bg-[var(--color-success)]/5' : isExpense ? 'bg-[var(--color-danger)]/5' : 'bg-[var(--color-primary)]/5';
+                const typeColor = isIncome ? 'text-[var(--color-success)]' : isExpense ? 'text-[var(--color-danger)]' : 'text-[var(--color-primary)]';
                 const typeLabel = isIncome ? 'INGRESO' : isExpense ? 'GASTO' : 'MIXTO';
                 return (
-                  <div key={rule.id} className={`${bgColor} p-5 rounded-2xl border ${borderColor} flex flex-col gap-3 group hover:scale-[1.02] transition-all`}>
+                  <div key={rule.id} className={`${bgColor} p-5 rounded-md border ${borderColor} flex flex-col gap-3 group hover:scale-[1.02] transition-all`}>
                     <div className="flex justify-between items-start">
-                      <p className="text-sm font-black text-white uppercase tracking-wide">{rule.pattern}</p>
+                      <p className="text-sm font-black text-[var(--text-primary)] uppercase tracking-wide">{rule.pattern}</p>
                       <span className={`text-[8px] font-black ${typeColor} bg-white/5 px-2 py-1 rounded-lg border border-current/20`}>{typeLabel}</span>
                     </div>
                     <div className="flex items-center gap-2 flex-wrap">
@@ -584,8 +584,8 @@ export const Accounts: React.FC = () => {
                       )}
                     </div>
                     <div className="flex gap-2 mt-auto pt-2 border-t border-white/5">
-                      <button onClick={() => { setEditingRule(rule); setIsRuleModalOpen(true); }} className="flex-1 p-2 text-fin-muted hover:text-white bg-fin-bg/50 rounded-lg text-[9px] font-bold uppercase flex items-center justify-center gap-1"><Edit2 size={12} /> Editar</button>
-                      <button onClick={async () => { if (confirm('¿Borrar regla?')) { await service.deleteRule(rule.id); await loadData(); } }} className="p-2 text-fin-muted hover:text-red-500 bg-fin-bg/50 rounded-lg"><Trash2 size={12} /></button>
+                      <button onClick={() => { setEditingRule(rule); setIsRuleModalOpen(true); }} className="flex-1 p-2 text-fin-muted hover:text-[var(--text-primary)] bg-fin-bg/50 rounded-lg text-[9px] font-bold uppercase flex items-center justify-center gap-1"><Edit2 size={12} /> Editar</button>
+                      <button onClick={async () => { if (confirm('¿Borrar regla?')) { await service.deleteRule(rule.id); await loadData(); } }} className="p-2 text-fin-muted hover:text-[var(--color-danger)] bg-fin-bg/50 rounded-lg"><Trash2 size={12} /></button>
                     </div>
                   </div>
                 );

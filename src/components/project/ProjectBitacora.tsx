@@ -119,7 +119,7 @@ const ProjectBitacora: React.FC<ProjectBitacoraProps> = ({ project }) => {
                 <div className="flex bg-[var(--bg-base)] p-1 rounded-lg border border-[var(--border-subtle)]">
                     <button
                         onClick={() => setFilter('ALL')}
-                        className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${filter === 'ALL' ? 'bg-[var(--bg-surface-soft)] text-[var(--text-primary)] shadow' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'}`}
+                        className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${filter === 'ALL' ? 'bg-[var(--bg-surface-soft)] text-[#050607] shadow' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'}`}
                     >
                         Todas
                     </button>

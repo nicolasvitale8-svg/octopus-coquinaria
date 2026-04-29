@@ -154,35 +154,35 @@ export const Cheques = () => {
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
                 <div>
-                    <h1 className="text-4xl font-extrabold text-white tracking-tight leading-none">Libro de Cheques</h1>
+                    <h1 className="text-4xl font-extrabold text-[var(--text-primary)] tracking-tight leading-none">Libro de Cheques</h1>
                     <p className="text-fin-muted mt-3 text-sm font-medium">Gestión de E-Cheqs y Valores Físicos</p>
                 </div>
                 <button
                     onClick={() => { resetForm(); setShowModal(true); }}
-                    className="bg-brand text-[#020b14] px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-white transition-all shadow-lg shadow-brand/20 flex items-center gap-2 active:scale-95"
+                    className="bg-brand text-[#020b14] px-6 py-3 rounded-md font-black text-xs uppercase tracking-widest hover:bg-white transition-all shadow-lg shadow-brand/20 flex items-center gap-2 active:scale-95"
                 >
                     <Plus size={16} strokeWidth={3} /> Nuevo Cheque
                 </button>
             </div>
 
             {/* Toggle Tabs */}
-            <div className="flex bg-[#020b14] p-1.5 rounded-2xl border border-fin-border w-full max-w-md mx-auto relative cursor-pointer">
+            <div className="flex bg-[#020b14] p-1.5 rounded-md border border-fin-border w-full max-w-md mx-auto relative cursor-pointer">
                 {/* Background Slider */}
                 <div
-                    className={`absolute inset-y-1.5 w-[calc(50%-6px)] bg-fin-card rounded-xl shadow-lg transition-transform duration-300 ease-out border border-fin-border ${activeTab === 'PROPIO' ? 'translate-x-[calc(100%+6px)]' : 'translate-x-0'
+                    className={`absolute inset-y-1.5 w-[calc(50%-6px)] bg-fin-card rounded-md shadow-lg transition-transform duration-300 ease-out border border-fin-border ${activeTab === 'PROPIO' ? 'translate-x-[calc(100%+6px)]' : 'translate-x-0'
                         }`}
                 />
 
                 <button
                     onClick={() => setActiveTab('TERCERO')}
-                    className={`flex-1 relative z-10 py-3 text-[10px] font-black uppercase tracking-widest transition-colors duration-300 flex items-center justify-center gap-2 ${activeTab === 'TERCERO' ? 'text-brand' : 'text-fin-muted hover:text-white'
+                    className={`flex-1 relative z-10 py-3 text-[10px] font-black uppercase tracking-widest transition-colors duration-300 flex items-center justify-center gap-2 ${activeTab === 'TERCERO' ? 'text-brand' : 'text-fin-muted hover:text-[var(--text-primary)]'
                         }`}
                 >
                     <Briefcase size={14} /> Cartera (Terceros)
                 </button>
                 <button
                     onClick={() => setActiveTab('PROPIO')}
-                    className={`flex-1 relative z-10 py-3 text-[10px] font-black uppercase tracking-widest transition-colors duration-300 flex items-center justify-center gap-2 ${activeTab === 'PROPIO' ? 'text-brand' : 'text-fin-muted hover:text-white'
+                    className={`flex-1 relative z-10 py-3 text-[10px] font-black uppercase tracking-widest transition-colors duration-300 flex items-center justify-center gap-2 ${activeTab === 'PROPIO' ? 'text-brand' : 'text-fin-muted hover:text-[var(--text-primary)]'
                         }`}
                 >
                     <Wallet size={14} /> Chequera (Propios)
@@ -193,36 +193,36 @@ export const Cheques = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="bg-fin-card p-6 rounded-3xl border border-fin-border">
                     <p className="text-[10px] font-black uppercase tracking-widest text-fin-muted mb-2">Total {activeTab === 'TERCERO' ? 'en Cartera' : 'a Pagar'}</p>
-                    <p className="text-3xl font-black text-white tabular-nums">{formatCurrency(totalAmount)}</p>
+                    <p className="text-3xl font-black text-[var(--text-primary)] tabular-nums">{formatCurrency(totalAmount)}</p>
                 </div>
                 <div className="bg-fin-card p-6 rounded-3xl border border-fin-border">
                     <p className="text-[10px] font-black uppercase tracking-widest text-fin-muted mb-2">Vencimientos esta semana</p>
-                    <p className="text-3xl font-black text-white tabular-nums">{formatCurrency(weeklyExpirationsAmount)}</p>
+                    <p className="text-3xl font-black text-[var(--text-primary)] tabular-nums">{formatCurrency(weeklyExpirationsAmount)}</p>
                 </div>
             </div>
 
             {/* List */}
             <div className="space-y-4">
                 {loading ? (
-                    <div className="p-8 text-center text-slate-500">Cargando cheques...</div>
+                    <div className="p-8 text-center text-[var(--text-muted)]">Cargando cheques...</div>
                 ) : filteredCheques.length === 0 ? (
                     <div className="text-center py-20 text-fin-muted opacity-50">
                         <p className="text-sm font-medium">No hay cheques registrados en esta sección.</p>
                     </div>
                 ) : (
                     filteredCheques.map(cheque => (
-                        <div key={cheque.id} className="bg-fin-card p-6 rounded-2xl border border-fin-border flex flex-col md:flex-row items-center justify-between gap-6 group hover:border-brand/30 transition-all">
+                        <div key={cheque.id} className="bg-fin-card p-6 rounded-md border border-fin-border flex flex-col md:flex-row items-center justify-between gap-6 group hover:border-brand/30 transition-all">
                             <div className="flex items-center gap-6 w-full md:w-auto">
-                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${cheque.type === 'PROPIO' ? 'bg-red-500/10 text-red-500' : 'bg-emerald-500/10 text-emerald-500'
+                                <div className={`w-12 h-12 rounded-md flex items-center justify-center ${cheque.type === 'PROPIO' ? 'bg-[var(--color-danger)]/10 text-[var(--color-danger)]' : 'bg-[var(--color-success)]/10 text-[var(--color-success)]'
                                     }`}>
                                     <DollarSign size={24} />
                                 </div>
                                 <div>
                                     <div className="flex items-center gap-3 mb-1">
-                                        <h3 className="font-bold text-white text-lg">{cheque.recipient_sender}</h3>
-                                        <span className={`px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-widest border ${cheque.status === 'COBRADO' || cheque.status === 'DEPOSITADO' ? 'border-emerald-500/30 text-emerald-500 bg-emerald-500/5' :
-                                            cheque.status === 'PENDIENTE' ? 'border-yellow-500/30 text-yellow-500 bg-yellow-500/5' :
-                                                'border-red-500/30 text-red-500 bg-red-500/5'
+                                        <h3 className="font-bold text-[var(--text-primary)] text-lg">{cheque.recipient_sender}</h3>
+                                        <span className={`px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-widest border ${cheque.status === 'COBRADO' || cheque.status === 'DEPOSITADO' ? 'border-[var(--color-success)]/30 text-[var(--color-success)] bg-[var(--color-success)]/5' :
+                                            cheque.status === 'PENDIENTE' ? 'border-yellow-500/30 text-[var(--color-warning)] bg-[var(--color-warning)]/5' :
+                                                'border-[var(--color-danger)]/30 text-[var(--color-danger)] bg-[var(--color-danger)]/5'
                                             }`}>
                                             {cheque.status}
                                         </span>
@@ -244,20 +244,20 @@ export const Cheques = () => {
                             </div>
 
                             <div className="flex items-center gap-6 w-full md:w-auto justify-between md:justify-end">
-                                <span className={`text-xl font-black tabular-nums ${cheque.type === 'PROPIO' ? 'text-red-400' : 'text-emerald-400'
+                                <span className={`text-xl font-black tabular-nums ${cheque.type === 'PROPIO' ? 'text-[var(--color-danger)]' : 'text-[var(--color-success)]'
                                     }`}>
                                     {cheque.type === 'PROPIO' ? '-' : '+'}{formatCurrency(cheque.amount)}
                                 </span>
                                 <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                     <button
                                         onClick={() => handleEdit(cheque)}
-                                        className="p-2 text-fin-muted hover:text-white bg-fin-bg hover:bg-fin-border rounded-lg transition-all"
+                                        className="p-2 text-fin-muted hover:text-[var(--text-primary)] bg-fin-bg hover:bg-fin-border rounded-lg transition-all"
                                     >
                                         <Edit2 size={16} />
                                     </button>
                                     <button
                                         onClick={() => handleDelete(cheque.id)}
-                                        className="p-2 text-fin-muted hover:text-red-500 bg-fin-bg hover:bg-fin-border rounded-lg transition-all"
+                                        className="p-2 text-fin-muted hover:text-[var(--color-danger)] bg-fin-bg hover:bg-fin-border rounded-lg transition-all"
                                     >
                                         <Trash2 size={16} />
                                     </button>
@@ -273,10 +273,10 @@ export const Cheques = () => {
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
                     <div className="bg-fin-card w-full max-w-2xl rounded-3xl border border-fin-border shadow-2xl overflow-hidden animate-scale-in">
                         <div className="p-6 border-b border-fin-border flex justify-between items-center bg-[#020b14]/50">
-                            <h2 className="text-xl font-black text-white">
+                            <h2 className="text-xl font-black text-[var(--text-primary)]">
                                 {editingCheque ? 'Editar Cheque' : `Nuevo Cheque (${activeTab === 'PROPIO' ? 'Propio' : 'Tercero'})`}
                             </h2>
-                            <button onClick={() => setShowModal(false)} className="text-fin-muted hover:text-white transition-colors">
+                            <button onClick={() => setShowModal(false)} className="text-fin-muted hover:text-[var(--text-primary)] transition-colors">
                                 <span className="text-2xl">×</span>
                             </button>
                         </div>
@@ -288,7 +288,7 @@ export const Cheques = () => {
                                         <select
                                             value={formData.bank_name}
                                             onChange={(e) => setFormData({ ...formData, bank_name: e.target.value })}
-                                            className="w-full bg-[#020b14] border border-fin-border rounded-xl px-4 py-3 text-white font-bold outline-none focus:border-brand transition-all appearance-none cursor-pointer"
+                                            className="w-full bg-[#020b14] border border-fin-border rounded-md px-4 py-3 text-[var(--text-primary)] font-bold outline-none focus:border-brand transition-all appearance-none cursor-pointer"
                                             required
                                         >
                                             <option value="">Selecciona tu Cuenta Bancaria...</option>
@@ -303,7 +303,7 @@ export const Cheques = () => {
                                             type="text"
                                             value={formData.bank_name}
                                             onChange={(e) => setFormData({ ...formData, bank_name: e.target.value })}
-                                            className="w-full bg-[#020b14] border border-fin-border rounded-xl px-4 py-3 text-white font-bold outline-none focus:border-brand transition-all placeholder:text-fin-muted/50"
+                                            className="w-full bg-[#020b14] border border-fin-border rounded-md px-4 py-3 text-[var(--text-primary)] font-bold outline-none focus:border-brand transition-all placeholder:text-fin-muted/50"
                                             placeholder="Ej: Galicia"
                                             required
                                         />
@@ -315,7 +315,7 @@ export const Cheques = () => {
                                         type="text"
                                         value={formData.cheque_number}
                                         onChange={(e) => setFormData({ ...formData, cheque_number: e.target.value })}
-                                        className="w-full bg-[#020b14] border border-fin-border rounded-xl px-4 py-3 text-white font-bold outline-none focus:border-brand transition-all placeholder:text-fin-muted/50"
+                                        className="w-full bg-[#020b14] border border-fin-border rounded-md px-4 py-3 text-[var(--text-primary)] font-bold outline-none focus:border-brand transition-all placeholder:text-fin-muted/50"
                                         placeholder="00012345"
                                         required
                                     />
@@ -326,7 +326,7 @@ export const Cheques = () => {
                                         type="number"
                                         value={formData.amount}
                                         onChange={(e) => setFormData({ ...formData, amount: Number(e.target.value) })}
-                                        className="w-full bg-[#020b14] border border-fin-border rounded-xl px-4 py-3 text-white font-bold outline-none focus:border-brand transition-all placeholder:text-fin-muted/50"
+                                        className="w-full bg-[#020b14] border border-fin-border rounded-md px-4 py-3 text-[var(--text-primary)] font-bold outline-none focus:border-brand transition-all placeholder:text-fin-muted/50"
                                         placeholder="0.00"
                                         step="0.01"
                                         required
@@ -337,7 +337,7 @@ export const Cheques = () => {
                                     <select
                                         value={formData.status}
                                         onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
-                                        className="w-full bg-[#020b14] border border-fin-border rounded-xl px-4 py-3 text-white font-bold outline-none focus:border-brand transition-all appearance-none cursor-pointer"
+                                        className="w-full bg-[#020b14] border border-fin-border rounded-md px-4 py-3 text-[var(--text-primary)] font-bold outline-none focus:border-brand transition-all appearance-none cursor-pointer"
                                     >
                                         <option value="PENDIENTE">PENDIENTE</option>
                                         <option value="ENTREGADO">ENTREGADO</option>
@@ -353,7 +353,7 @@ export const Cheques = () => {
                                         type="date"
                                         value={formData.issue_date}
                                         onChange={(e) => setFormData({ ...formData, issue_date: e.target.value })}
-                                        className="w-full bg-[#020b14] border border-fin-border rounded-xl px-4 py-3 text-white font-bold outline-none focus:border-brand transition-all"
+                                        className="w-full bg-[#020b14] border border-fin-border rounded-md px-4 py-3 text-[var(--text-primary)] font-bold outline-none focus:border-brand transition-all"
                                         required
                                     />
                                 </div>
@@ -363,7 +363,7 @@ export const Cheques = () => {
                                         type="date"
                                         value={formData.payment_date}
                                         onChange={(e) => setFormData({ ...formData, payment_date: e.target.value })}
-                                        className="w-full bg-[#020b14] border border-fin-border rounded-xl px-4 py-3 text-white font-bold outline-none focus:border-brand transition-all"
+                                        className="w-full bg-[#020b14] border border-fin-border rounded-md px-4 py-3 text-[var(--text-primary)] font-bold outline-none focus:border-brand transition-all"
                                         required
                                     />
                                 </div>
@@ -374,7 +374,7 @@ export const Cheques = () => {
                                     type="text"
                                     value={formData.recipient_sender}
                                     onChange={(e) => setFormData({ ...formData, recipient_sender: e.target.value })}
-                                    className="w-full bg-[#020b14] border border-fin-border rounded-xl px-4 py-3 text-white font-bold outline-none focus:border-brand transition-all placeholder:text-fin-muted/50"
+                                    className="w-full bg-[#020b14] border border-fin-border rounded-md px-4 py-3 text-[var(--text-primary)] font-bold outline-none focus:border-brand transition-all placeholder:text-fin-muted/50"
                                     placeholder="Nombre de la persona/empresa"
                                     required
                                 />
@@ -384,7 +384,7 @@ export const Cheques = () => {
                                 <textarea
                                     value={formData.description}
                                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                    className="w-full bg-[#020b14] border border-fin-border rounded-xl px-4 py-3 text-white font-bold outline-none focus:border-brand transition-all placeholder:text-fin-muted/50 h-24 resize-none"
+                                    className="w-full bg-[#020b14] border border-fin-border rounded-md px-4 py-3 text-[var(--text-primary)] font-bold outline-none focus:border-brand transition-all placeholder:text-fin-muted/50 h-24 resize-none"
                                     placeholder="Detalles adicionales..."
                                 />
                             </div>
@@ -392,13 +392,13 @@ export const Cheques = () => {
                                 <button
                                     type="button"
                                     onClick={() => setShowModal(false)}
-                                    className="flex-1 py-4 rounded-xl font-bold text-fin-muted hover:text-white hover:bg-fin-border transition-all"
+                                    className="flex-1 py-4 rounded-md font-bold text-fin-muted hover:text-[var(--text-primary)] hover:bg-fin-border transition-all"
                                 >
                                     Cancelar
                                 </button>
                                 <button
                                     type="submit"
-                                    className="flex-1 py-4 bg-brand text-[#020b14] rounded-xl font-black uppercase tracking-widest shadow-lg shadow-brand/20 hover:bg-white transition-all active:scale-95"
+                                    className="flex-1 py-4 bg-brand text-[#020b14] rounded-md font-black uppercase tracking-widest shadow-lg shadow-brand/20 hover:bg-white transition-all active:scale-95"
                                 >
                                     {editingCheque ? 'Guardar Cambios' : 'Crear Cheque'}
                                 </button>

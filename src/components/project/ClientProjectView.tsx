@@ -71,20 +71,20 @@ const ClientProjectView: React.FC<ClientProjectViewProps> = ({ project }) => {
             <div className="flex bg-[var(--bg-base)] p-1 rounded-md border border-[var(--border-subtle)]">
                 <button
                     onClick={() => setActiveTab('checklist')}
-                    className={`flex-1 py-3 px-4 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 ${activeTab === 'checklist' ? 'bg-[var(--color-primary)] text-[var(--text-primary)] shadow-lg shadow-[rgba(0,255,157,0.30)]' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'}`}
+                    className={`flex-1 py-3 px-4 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 ${activeTab === 'checklist' ? 'bg-[var(--color-primary)] text-[#050607] shadow-lg shadow-[rgba(0,255,157,0.30)]' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'}`}
                 >
                     <CheckSquare className="w-4 h-4" /> Checklist
                 </button>
                 <button
                     onClick={() => setActiveTab('approvals')}
-                    className={`flex-1 py-3 px-4 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 ${activeTab === 'approvals' ? 'bg-[var(--color-primary)] text-[var(--text-primary)] shadow-lg shadow-[rgba(0,255,157,0.30)]' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'}`}
+                    className={`flex-1 py-3 px-4 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 ${activeTab === 'approvals' ? 'bg-[var(--color-primary)] text-[#050607] shadow-lg shadow-[rgba(0,255,157,0.30)]' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'}`}
                 >
                     <FileText className="w-4 h-4" /> Aprobaciones
                     {pendingApprovals.length > 0 && <span className="bg-[var(--color-danger)] text-[var(--text-primary)] text-[10px] px-1.5 py-0.5 rounded-full">{pendingApprovals.length}</span>}
                 </button>
                 <button
                     onClick={() => setActiveTab('documents')}
-                    className={`flex-1 py-3 px-4 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 ${activeTab === 'documents' ? 'bg-[var(--color-primary)] text-[var(--text-primary)] shadow-lg shadow-[rgba(0,255,157,0.30)]' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'}`}
+                    className={`flex-1 py-3 px-4 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 ${activeTab === 'documents' ? 'bg-[var(--color-primary)] text-[#050607] shadow-lg shadow-[rgba(0,255,157,0.30)]' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'}`}
                 >
                     <Download className="w-4 h-4" /> Entregables
                 </button>

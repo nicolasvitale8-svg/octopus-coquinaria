@@ -26,7 +26,7 @@ const ProjectMilestonesCard: React.FC<ProjectMilestonesCardProps> = ({ project }
                 {Array.isArray(project.milestones) && project.milestones.map((m: ProjectMilestone, i: number) => (
                     <div key={i} className="relative z-10 flex gap-4 pb-6 last:pb-0 items-start group">
                         <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center border-4 border-slate-900 ${m.status === 'done' ? 'bg-[var(--color-success)] text-slate-900' :
-                            m.status === 'in_progress' ? 'bg-[var(--color-primary)] text-[var(--text-primary)]' : 'bg-[var(--bg-surface)] text-[var(--text-muted)]'
+                            m.status === 'in_progress' ? 'bg-[var(--color-primary)] text-[#050607]' : 'bg-[var(--bg-surface)] text-[var(--text-muted)]'
                             }`}>
                             {m.status === 'done' ? <CheckCircle className="w-5 h-5" /> :
                                 m.status === 'in_progress' ? <Clock className="w-5 h-5" /> : <Circle className="w-4 h-4" />}

@@ -208,21 +208,21 @@ export const Transactions: React.FC = () => {
       {/* Header Section */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
         <div>
-          <h1 className="text-4xl font-extrabold text-white tracking-tight">Movimientos</h1>
+          <h1 className="text-4xl font-extrabold text-[var(--text-primary)] tracking-tight">Movimientos</h1>
           <div className="flex items-center gap-2 mt-3">
-            <span className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest ${activeEntity.type === 'personal' ? 'bg-brand/10 text-brand border border-brand/20' : 'bg-amber-500/10 text-amber-500 border border-amber-500/20'}`}>
+            <span className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest ${activeEntity.type === 'personal' ? 'bg-brand/10 text-brand border border-brand/20' : 'bg-[var(--color-warning)]/10 text-[var(--color-warning)] border border-[rgba(255,177,42,0.40)]'}`}>
               {activeEntity.name}
             </span>
             <p className="text-fin-muted text-sm font-medium">Analiza y filtra tu actividad financiera</p>
-            {isDemoMode && <div className="px-3 py-0.5 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-lg text-[10px] font-black uppercase tracking-widest animate-pulse">MODO DEMO</div>}
+            {isDemoMode && <div className="px-3 py-0.5 bg-[var(--color-warning)]/10 border border-[rgba(255,177,42,0.40)] text-[var(--color-warning)] rounded-lg text-[10px] font-black uppercase tracking-widest animate-pulse">MODO DEMO</div>}
           </div>
         </div>
         <div className="flex gap-3 w-full md:w-auto">
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className={`flex-1 md:flex-none px-6 py-3.5 rounded-2xl font-bold text-sm transition-all border flex items-center justify-center gap-3 ${activeFilterCount > 0 || showFilters
+            className={`flex-1 md:flex-none px-6 py-3.5 rounded-md font-bold text-sm transition-all border flex items-center justify-center gap-3 ${activeFilterCount > 0 || showFilters
               ? 'bg-brand/10 border-brand text-brand shadow-lg shadow-brand/5'
-              : 'bg-fin-card border-fin-border text-fin-muted hover:text-white'
+              : 'bg-fin-card border-fin-border text-fin-muted hover:text-[var(--text-primary)]'
               }`}
           >
             <Filter size={18} />
@@ -230,14 +230,14 @@ export const Transactions: React.FC = () => {
           </button>
           <button
             onClick={() => navigate('/finance/import')}
-            className={`flex-1 md:flex-none px-6 py-3.5 rounded-2xl font-bold text-sm transition-all border flex items-center justify-center gap-3 bg-fin-card border-fin-border text-fin-muted hover:text-white hover:border-brand/30 hover:bg-brand/5`}
+            className={`flex-1 md:flex-none px-6 py-3.5 rounded-md font-bold text-sm transition-all border flex items-center justify-center gap-3 bg-fin-card border-fin-border text-fin-muted hover:text-[var(--text-primary)] hover:border-brand/30 hover:bg-brand/5`}
           >
             <FileUp size={18} />
             Importar
           </button>
           <button
             onClick={() => setIsModalOpen(true)}
-            className="flex-1 md:flex-none bg-brand text-white px-8 py-3.5 rounded-2xl font-bold text-sm hover:bg-brand-hover transition-all shadow-xl shadow-brand/20 flex items-center justify-center gap-3"
+            className="flex-1 md:flex-none bg-brand text-[var(--text-primary)] px-8 py-3.5 rounded-md font-bold text-sm hover:bg-brand-hover transition-all shadow-xl shadow-brand/20 flex items-center justify-center gap-3"
           >
             <Plus size={18} strokeWidth={3} /> Nueva
           </button>
@@ -246,7 +246,7 @@ export const Transactions: React.FC = () => {
 
       {/* Dynamic Filter Panel */}
       {showFilters && (
-        <div className="bg-fin-card p-8 rounded-2xl border border-fin-border animate-fade-in shadow-xl space-y-8">
+        <div className="bg-fin-card p-8 rounded-md border border-fin-border animate-fade-in shadow-xl space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
 
             {/* Search Input */}
@@ -259,7 +259,7 @@ export const Transactions: React.FC = () => {
                 placeholder="Descripción..."
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                className="w-full bg-[#020b14] border border-white/10 rounded-xl p-3 text-xs text-white focus:border-brand outline-none transition-all placeholder:text-white/20"
+                className="w-full bg-[#020b14] border border-white/10 rounded-md p-3 text-xs text-[var(--text-primary)] focus:border-brand outline-none transition-all placeholder:text-[var(--text-primary)]/20"
               />
             </div>
 
@@ -272,7 +272,7 @@ export const Transactions: React.FC = () => {
                 type="date"
                 value={filterStartDate}
                 onChange={e => setFilterStartDate(e.target.value)}
-                className="w-full bg-[#020b14] border border-white/10 rounded-xl p-3 text-xs text-white focus:border-brand outline-none transition-all"
+                className="w-full bg-[#020b14] border border-white/10 rounded-md p-3 text-xs text-[var(--text-primary)] focus:border-brand outline-none transition-all"
               />
             </div>
             <div className="space-y-2">
@@ -283,7 +283,7 @@ export const Transactions: React.FC = () => {
                 type="date"
                 value={filterEndDate}
                 onChange={e => setFilterEndDate(e.target.value)}
-                className="w-full bg-[#020b14] border border-white/10 rounded-xl p-3 text-xs text-white focus:border-brand outline-none transition-all"
+                className="w-full bg-[#020b14] border border-white/10 rounded-md p-3 text-xs text-[var(--text-primary)] focus:border-brand outline-none transition-all"
               />
             </div>
 
@@ -295,7 +295,7 @@ export const Transactions: React.FC = () => {
               <select
                 value={filterCategory}
                 onChange={e => setFilterCategory(e.target.value)}
-                className="w-full bg-[#020b14] border border-white/10 rounded-xl p-3 text-xs text-white focus:border-brand outline-none appearance-none cursor-pointer transition-all"
+                className="w-full bg-[#020b14] border border-white/10 rounded-md p-3 text-xs text-[var(--text-primary)] focus:border-brand outline-none appearance-none cursor-pointer transition-all"
               >
                 <option value="">Todos los rubros</option>
                 {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -309,7 +309,7 @@ export const Transactions: React.FC = () => {
               <select
                 value={filterAccount}
                 onChange={e => setFilterAccount(e.target.value)}
-                className="w-full bg-[#020b14] border border-white/10 rounded-xl p-3 text-xs text-white focus:border-brand outline-none appearance-none cursor-pointer transition-all"
+                className="w-full bg-[#020b14] border border-white/10 rounded-md p-3 text-xs text-[var(--text-primary)] focus:border-brand outline-none appearance-none cursor-pointer transition-all"
               >
                 <option value="">Todas las cuentas</option>
                 {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
@@ -324,7 +324,7 @@ export const Transactions: React.FC = () => {
                 <select
                   value={filterType}
                   onChange={e => setFilterType(e.target.value as any)}
-                  className="flex-1 bg-[#020b14] border border-white/10 rounded-xl p-3 text-xs text-white focus:border-brand outline-none appearance-none cursor-pointer transition-all"
+                  className="flex-1 bg-[#020b14] border border-white/10 rounded-md p-3 text-xs text-[var(--text-primary)] focus:border-brand outline-none appearance-none cursor-pointer transition-all"
                 >
                   <option value="">Ambos</option>
                   <option value={TransactionType.IN}>Ingresos</option>
@@ -333,7 +333,7 @@ export const Transactions: React.FC = () => {
                 {activeFilterCount > 0 && (
                   <button
                     onClick={clearFilters}
-                    className="p-3 bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all shadow-sm flex-shrink-0"
+                    className="p-3 bg-[var(--color-danger)]/10 text-[var(--color-danger)] rounded-md hover:bg-[var(--color-danger)] hover:text-[var(--text-primary)] transition-all shadow-sm flex-shrink-0"
                     title="Limpiar filtros"
                   >
                     <RotateCcw size={16} />
@@ -347,31 +347,31 @@ export const Transactions: React.FC = () => {
 
       {/* Filter Stats Summary */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-fin-card p-6 rounded-2xl border border-fin-border flex items-center gap-5 hover:border-emerald-500/30 transition-all group">
-          <div className="p-4 bg-emerald-500/10 text-emerald-500 rounded-2xl group-hover:scale-110 transition-transform"><TrendingUp size={24} /></div>
+        <div className="bg-fin-card p-6 rounded-md border border-fin-border flex items-center gap-5 hover:border-[var(--color-success)]/30 transition-all group">
+          <div className="p-4 bg-[var(--color-success)]/10 text-[var(--color-success)] rounded-md group-hover:scale-110 transition-transform"><TrendingUp size={24} /></div>
           <div>
             <p className="text-[10px] font-black text-fin-muted uppercase tracking-widest mb-1">Entradas Filtradas</p>
-            <p className="text-2xl font-black text-white tabular-nums tracking-tight">{formatCurrency(filteredTotals.in)}</p>
+            <p className="text-2xl font-black text-[var(--text-primary)] tabular-nums tracking-tight">{formatCurrency(filteredTotals.in)}</p>
           </div>
         </div>
-        <div className="bg-fin-card p-6 rounded-2xl border border-fin-border flex items-center gap-5 hover:border-red-500/30 transition-all group">
-          <div className="p-4 bg-red-500/10 text-red-500 rounded-2xl group-hover:scale-110 transition-transform"><TrendingDown size={24} /></div>
+        <div className="bg-fin-card p-6 rounded-md border border-fin-border flex items-center gap-5 hover:border-[var(--color-danger)]/30 transition-all group">
+          <div className="p-4 bg-[var(--color-danger)]/10 text-[var(--color-danger)] rounded-md group-hover:scale-110 transition-transform"><TrendingDown size={24} /></div>
           <div>
             <p className="text-[10px] font-black text-fin-muted uppercase tracking-widest mb-1">Salidas Filtradas</p>
-            <p className="text-2xl font-black text-white tabular-nums tracking-tight">{formatCurrency(filteredTotals.out)}</p>
+            <p className="text-2xl font-black text-[var(--text-primary)] tabular-nums tracking-tight">{formatCurrency(filteredTotals.out)}</p>
           </div>
         </div>
-        <div className="bg-fin-card p-6 rounded-2xl border border-fin-border flex items-center gap-5 hover:border-brand/30 transition-all group">
-          <div className="p-4 bg-brand/10 text-brand rounded-2xl group-hover:scale-110 transition-transform"><DollarSign size={24} /></div>
+        <div className="bg-fin-card p-6 rounded-md border border-fin-border flex items-center gap-5 hover:border-brand/30 transition-all group">
+          <div className="p-4 bg-brand/10 text-brand rounded-md group-hover:scale-110 transition-transform"><DollarSign size={24} /></div>
           <div>
             <p className="text-[10px] font-black text-fin-muted uppercase tracking-widest mb-1">Resultado Neto</p>
-            <p className="text-2xl font-black text-white tabular-nums tracking-tight">{formatCurrency(filteredTotals.in - filteredTotals.out)}</p>
+            <p className="text-2xl font-black text-[var(--text-primary)] tabular-nums tracking-tight">{formatCurrency(filteredTotals.in - filteredTotals.out)}</p>
           </div>
         </div>
       </div>
 
       {/* Table Section */}
-      <div className="bg-fin-card rounded-2xl border border-fin-border overflow-hidden shadow-sm">
+      <div className="bg-fin-card rounded-md border border-fin-border overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm border-collapse">
             <thead className="bg-fin-bg/40 border-b border-fin-border">
@@ -393,13 +393,13 @@ export const Transactions: React.FC = () => {
                         <ListFilter size={48} strokeWidth={1} className="opacity-30" />
                       </div>
                       <div className="space-y-1">
-                        <p className="text-sm font-bold text-white">Sin resultados</p>
+                        <p className="text-sm font-bold text-[var(--text-primary)]">Sin resultados</p>
                         <p className="text-xs font-medium italic opacity-60">No encontramos movimientos que coincidan con los filtros aplicados</p>
                       </div>
                       {activeFilterCount > 0 && (
                         <button
                           onClick={clearFilters}
-                          className="px-6 py-2.5 bg-brand/10 text-brand rounded-xl text-[11px] font-black uppercase tracking-widest border border-brand/20 hover:bg-brand hover:text-white transition-all"
+                          className="px-6 py-2.5 bg-brand/10 text-brand rounded-md text-[11px] font-black uppercase tracking-widest border border-brand/20 hover:bg-brand hover:text-[var(--text-primary)] transition-all"
                         >
                           Limpiar Todos los Filtros
                         </button>
@@ -413,9 +413,9 @@ export const Transactions: React.FC = () => {
                   const acc = accounts.find(a => a.id === t.accountId);
                   return (
                     <tr key={t.id} className="hover:bg-fin-bg/30 transition-colors group">
-                      <td className="px-8 py-5 font-bold text-white/60 tabular-nums text-xs whitespace-nowrap">{t.date}</td>
+                      <td className="px-8 py-5 font-bold text-[var(--text-primary)]/60 tabular-nums text-xs whitespace-nowrap">{t.date}</td>
                       <td className="px-8 py-5">
-                        <p className="font-bold text-white text-[14px] leading-tight truncate max-w-[220px]">{t.description}</p>
+                        <p className="font-bold text-[var(--text-primary)] text-[14px] leading-tight truncate max-w-[220px]">{t.description}</p>
                       </td>
                       <td className="px-8 py-5">
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-fin-bg border border-fin-border rounded-lg text-[10px] font-black text-brand uppercase tracking-tighter">
@@ -427,7 +427,7 @@ export const Transactions: React.FC = () => {
                           {acc?.name}
                         </span>
                       </td>
-                      <td className={`px-8 py-5 text-right font-black tabular-nums text-[16px] ${t.type === 'IN' ? 'text-emerald-500' : 'text-white'}`}>
+                      <td className={`px-8 py-5 text-right font-black tabular-nums text-[16px] ${t.type === 'IN' ? 'text-[var(--color-success)]' : 'text-[var(--text-primary)]'}`}>
                         {t.type === 'IN' ? '+' : '-'}{formatCurrency(t.amount)}
                       </td>
                       <td className="px-8 py-5">
@@ -441,7 +441,7 @@ export const Transactions: React.FC = () => {
                           </button>
                           <button
                             onClick={() => handleDelete(t.id)}
-                            className="p-2 text-fin-muted hover:text-red-500 bg-fin-bg rounded-lg border border-fin-border/50 transition-colors"
+                            className="p-2 text-fin-muted hover:text-[var(--color-danger)] bg-fin-bg rounded-lg border border-fin-border/50 transition-colors"
                             title="Eliminar"
                           >
                             <Trash2 size={14} />
@@ -461,10 +461,10 @@ export const Transactions: React.FC = () => {
       {isModalOpen && (
         <div className="fixed inset-0 bg-fin-bg/80 backdrop-blur-md flex items-start justify-center z-50 p-4 overflow-y-auto">
           <div className="bg-fin-card rounded-3xl w-full max-w-md border border-fin-border shadow-2xl p-10 animate-fade-in relative my-8">
-            <button onClick={closeModal} className="absolute top-6 right-6 p-2 text-fin-muted hover:text-white transition-colors">
+            <button onClick={closeModal} className="absolute top-6 right-6 p-2 text-fin-muted hover:text-[var(--text-primary)] transition-colors">
               <X size={24} />
             </button>
-            <h2 className="text-2xl font-black text-white mb-10 tracking-tight">
+            <h2 className="text-2xl font-black text-[var(--text-primary)] mb-10 tracking-tight">
               {editingTransaction ? 'Editar Movimiento' : 'Nueva Operación'}
             </h2>
 
@@ -472,32 +472,32 @@ export const Transactions: React.FC = () => {
               {/* Solo mostrar selector de tipo para nuevas transacciones */}
               {!editingTransaction ? (
                 <div className="flex gap-4">
-                  <div className="flex-1 flex bg-[#020b14] border border-white/10 rounded-2xl p-1">
+                  <div className="flex-1 flex bg-[#020b14] border border-white/10 rounded-md p-1">
                     <button
                       type="button"
                       onClick={() => setFormData({ ...formData, isTransfer: false, type: TransactionType.OUT, categoryId: undefined, subCategoryId: undefined })}
-                      className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${!formData.isTransfer && formData.type === TransactionType.OUT ? 'bg-red-500 text-white shadow-lg shadow-red-500/20' : 'text-fin-muted'}`}
+                      className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-md transition-all ${!formData.isTransfer && formData.type === TransactionType.OUT ? 'bg-[var(--color-danger)] text-[var(--text-primary)] shadow-lg shadow-red-500/20' : 'text-fin-muted'}`}
                     >
                       Gasto
                     </button>
                     <button
                       type="button"
                       onClick={() => setFormData({ ...formData, isTransfer: false, type: TransactionType.IN, categoryId: undefined, subCategoryId: undefined })}
-                      className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${!formData.isTransfer && formData.type === TransactionType.IN ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'text-fin-muted'}`}
+                      className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-md transition-all ${!formData.isTransfer && formData.type === TransactionType.IN ? 'bg-[var(--color-success)] text-[var(--text-primary)] shadow-lg shadow-emerald-500/20' : 'text-fin-muted'}`}
                     >
                       Ingreso
                     </button>
                     <button
                       type="button"
                       onClick={() => setFormData({ ...formData, isTransfer: true, type: TransactionType.OUT, categoryId: undefined, subCategoryId: undefined })}
-                      className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${formData.isTransfer ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-fin-muted'}`}
+                      className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-md transition-all ${formData.isTransfer ? 'bg-brand text-[var(--text-primary)] shadow-lg shadow-brand/20' : 'text-fin-muted'}`}
                     >
                       Transferencia
                     </button>
                   </div>
                 </div>
               ) : (
-                <div className={`text-center py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest ${formData.type === TransactionType.IN ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-red-500/10 text-red-500 border border-red-500/20'}`}>
+                <div className={`text-center py-3 rounded-md text-[10px] font-black uppercase tracking-widest ${formData.type === TransactionType.IN ? 'bg-[var(--color-success)]/10 text-[var(--color-success)] border border-[var(--color-success)]/20' : 'bg-[var(--color-danger)]/10 text-[var(--color-danger)] border border-[var(--color-danger)]/20'}`}>
                   {formData.type === TransactionType.IN ? '📥 Ingreso' : '📤 Gasto'}
                 </div>
               )}
@@ -507,7 +507,7 @@ export const Transactions: React.FC = () => {
                   <label className="text-[10px] font-black uppercase tracking-widest text-fin-muted flex items-center gap-2 ml-1">
                     <Calendar size={12} /> Fecha
                   </label>
-                  <input type="date" value={formData.date} onChange={e => setFormData({ ...formData, date: e.target.value })} className="w-full bg-[#020b14] border border-white/10 rounded-xl p-3 text-sm text-white focus:border-brand outline-none transition-all" required />
+                  <input type="date" value={formData.date} onChange={e => setFormData({ ...formData, date: e.target.value })} className="w-full bg-[#020b14] border border-white/10 rounded-md p-3 text-sm text-[var(--text-primary)] focus:border-brand outline-none transition-all" required />
                 </div>
               </div>
 
@@ -515,18 +515,18 @@ export const Transactions: React.FC = () => {
                 <div className="grid grid-cols-2 gap-6 animate-fade-in">
                   <div className="space-y-2">
                     <label className="text-[10px] font-black uppercase tracking-widest text-fin-muted flex items-center gap-2 ml-1">
-                      <TrendingDown size={12} className="text-red-500" /> Desde (Origen)
+                      <TrendingDown size={12} className="text-[var(--color-danger)]" /> Desde (Origen)
                     </label>
-                    <select value={formData.accountId || ''} onChange={e => setFormData({ ...formData, accountId: e.target.value })} className="w-full bg-[#020b14] border border-white/10 rounded-xl p-3 text-sm text-white focus:border-brand outline-none appearance-none cursor-pointer transition-all" required>
+                    <select value={formData.accountId || ''} onChange={e => setFormData({ ...formData, accountId: e.target.value })} className="w-full bg-[#020b14] border border-white/10 rounded-md p-3 text-sm text-[var(--text-primary)] focus:border-brand outline-none appearance-none cursor-pointer transition-all" required>
                       <option value="">Seleccionar...</option>
                       {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
                     </select>
                   </div>
                   <div className="space-y-2">
                     <label className="text-[10px] font-black uppercase tracking-widest text-fin-muted flex items-center gap-2 ml-1">
-                      <TrendingUp size={12} className="text-emerald-500" /> Hacia (Destino)
+                      <TrendingUp size={12} className="text-[var(--color-success)]" /> Hacia (Destino)
                     </label>
-                    <select value={formData.toAccountId || ''} onChange={e => setFormData({ ...formData, toAccountId: e.target.value })} className="w-full bg-[#020b14] border border-white/10 rounded-xl p-3 text-sm text-white focus:border-brand outline-none appearance-none cursor-pointer transition-all" required>
+                    <select value={formData.toAccountId || ''} onChange={e => setFormData({ ...formData, toAccountId: e.target.value })} className="w-full bg-[#020b14] border border-white/10 rounded-md p-3 text-sm text-[var(--text-primary)] focus:border-brand outline-none appearance-none cursor-pointer transition-all" required>
                       <option value="">Seleccionar...</option>
                       {accounts.filter(a => a.id !== formData.accountId).map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
                     </select>
@@ -542,7 +542,7 @@ export const Transactions: React.FC = () => {
                       <select
                         value={formData.categoryId || ''}
                         onChange={e => setFormData({ ...formData, categoryId: e.target.value, subCategoryId: undefined })}
-                        className="w-full bg-[#020b14] border border-white/10 rounded-xl p-3 text-sm text-white focus:border-brand outline-none appearance-none cursor-pointer transition-all" required
+                        className="w-full bg-[#020b14] border border-white/10 rounded-md p-3 text-sm text-[var(--text-primary)] focus:border-brand outline-none appearance-none cursor-pointer transition-all" required
                       >
                         <option value="">Elegir rubro...</option>
                         {categories
@@ -560,7 +560,7 @@ export const Transactions: React.FC = () => {
                           const sub = subCategories.find(s => s.id === e.target.value);
                           setFormData({ ...formData, subCategoryId: e.target.value, description: sub ? sub.name : formData.description });
                         }}
-                        className="w-full bg-[#020b14] border border-white/10 rounded-xl p-3 text-sm text-white focus:border-brand outline-none appearance-none cursor-pointer transition-all disabled:opacity-30"
+                        className="w-full bg-[#020b14] border border-white/10 rounded-md p-3 text-sm text-[var(--text-primary)] focus:border-brand outline-none appearance-none cursor-pointer transition-all disabled:opacity-30"
                         disabled={!formData.categoryId}
                       >
                         <option value="">Sugeridos...</option>
@@ -579,7 +579,7 @@ export const Transactions: React.FC = () => {
                     <select
                       value={formData.accountId || ''}
                       onChange={e => setFormData({ ...formData, accountId: e.target.value })}
-                      className="w-full bg-[#020b14] border border-white/10 rounded-xl p-3 text-sm text-white focus:border-brand outline-none appearance-none cursor-pointer transition-all"
+                      className="w-full bg-[#020b14] border border-white/10 rounded-md p-3 text-sm text-[var(--text-primary)] focus:border-brand outline-none appearance-none cursor-pointer transition-all"
                       required
                     >
                       <option value="">Seleccionar cuenta...</option>
@@ -588,27 +588,27 @@ export const Transactions: React.FC = () => {
                   </div>
 
                   <div className="flex justify-end pr-1">
-                    <button type="button" onClick={() => window.location.hash = '#/finance/accounts'} className="text-[9px] font-black text-brand uppercase tracking-widest hover:text-white transition-colors">Administrar Rubros →</button>
+                    <button type="button" onClick={() => window.location.hash = '#/finance/accounts'} className="text-[9px] font-black text-brand uppercase tracking-widest hover:text-[var(--text-primary)] transition-colors">Administrar Rubros →</button>
                   </div>
                 </>
               )}
 
               <div className="space-y-2">
                 <label className="text-[10px] font-black uppercase tracking-widest text-fin-muted ml-1">Concepto / Comentario</label>
-                <input type="text" value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} className="w-full bg-[#020b14] border border-white/10 rounded-xl p-3 text-sm text-white focus:border-brand outline-none transition-all placeholder:text-white/20" placeholder={formData.isTransfer ? "Ej: Transferencia de ahorro" : "¿En qué consistió la operación?"} required />
+                <input type="text" value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} className="w-full bg-[#020b14] border border-white/10 rounded-md p-3 text-sm text-[var(--text-primary)] focus:border-brand outline-none transition-all placeholder:text-[var(--text-primary)]/20" placeholder={formData.isTransfer ? "Ej: Transferencia de ahorro" : "¿En qué consistió la operación?"} required />
               </div>
 
               <div className="space-y-2">
                 <label className="text-[10px] font-black uppercase tracking-widest text-fin-muted ml-1">Monto (ARS)</label>
-                <input type="number" step="0.01" value={formData.amount || ''} onChange={e => setFormData({ ...formData, amount: Number(e.target.value) })} className="w-full bg-[#020b14] border border-white/10 rounded-xl p-4 text-3xl font-black text-white tabular-nums focus:border-brand outline-none transition-all" placeholder="0.00" required />
+                <input type="number" step="0.01" value={formData.amount || ''} onChange={e => setFormData({ ...formData, amount: Number(e.target.value) })} className="w-full bg-[#020b14] border border-white/10 rounded-md p-4 text-3xl font-black text-[var(--text-primary)] tabular-nums focus:border-brand outline-none transition-all" placeholder="0.00" required />
               </div>
 
               <button
                 type="submit"
                 disabled={isSaving}
-                className={`w-full py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-lg active:scale-95 transition-all mt-2 disabled:opacity-50 disabled:cursor-not-allowed ${formData.isTransfer ? 'bg-brand text-white shadow-brand/20' :
-                  formData.type === TransactionType.IN ? 'bg-emerald-500 text-white shadow-emerald-500/20' :
-                    'bg-red-500 text-white shadow-red-500/20'
+                className={`w-full py-5 rounded-md font-black text-xs uppercase tracking-[0.2em] shadow-lg active:scale-95 transition-all mt-2 disabled:opacity-50 disabled:cursor-not-allowed ${formData.isTransfer ? 'bg-brand text-[var(--text-primary)] shadow-brand/20' :
+                  formData.type === TransactionType.IN ? 'bg-[var(--color-success)] text-[var(--text-primary)] shadow-emerald-500/20' :
+                    'bg-[var(--color-danger)] text-[var(--text-primary)] shadow-red-500/20'
                   }`}>
                 {isSaving ? 'Guardando...' : (formData.isTransfer ? 'Ejecutar Transferencia' : 'Registrar Movimiento')}
               </button>

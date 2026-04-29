@@ -108,9 +108,9 @@ const UserProfile = () => {
             {/* Back Button */}
             <button
                 onClick={() => navigate(-1)}
-                className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors group mb-2"
+                className="flex items-center gap-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors group mb-2"
             >
-                <div className="p-2 rounded-full bg-slate-800/50 group-hover:bg-slate-800">
+                <div className="p-2 rounded-full bg-[var(--bg-surface)]/50 group-hover:bg-[var(--bg-surface)]">
                     <ArrowLeft className="w-4 h-4" />
                 </div>
                 <span className="text-sm font-bold uppercase tracking-widest">Volver</span>
@@ -118,19 +118,19 @@ const UserProfile = () => {
 
             {/* Header */}
             <div className="flex items-center gap-4 mb-2">
-                <div className="p-3 bg-cyan-500/10 rounded-2xl border border-cyan-500/20">
-                    <User className="w-8 h-8 text-cyan-400" />
+                <div className="p-3 bg-[var(--color-primary)]/10 rounded-md border border-[var(--color-primary)]/20">
+                    <User className="w-8 h-8 text-[var(--color-primary)]" />
                 </div>
                 <div>
-                    <h1 className="text-3xl font-bold text-white font-space tracking-tight">Mi Perfil</h1>
-                    <p className="text-slate-400">Gestiona tu información personal y seguridad de cuenta.</p>
+                    <h1 className="text-3xl font-bold text-[var(--text-primary)] font-space tracking-tight">Mi Perfil</h1>
+                    <p className="text-[var(--text-muted)]">Gestiona tu información personal y seguridad de cuenta.</p>
                 </div>
             </div>
 
             {message && (
-                <div className={`p-4 rounded-xl flex items-center gap-3 border animate-shake ${message.type === 'success'
-                    ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
-                    : 'bg-red-500/10 border-red-500/30 text-red-400'
+                <div className={`p-4 rounded-md flex items-center gap-3 border animate-shake ${message.type === 'success'
+                    ? 'bg-[var(--color-success)]/10 border-[var(--color-success)]/30 text-[var(--color-success)]'
+                    : 'bg-[var(--color-danger)]/10 border-[var(--color-danger)]/30 text-[var(--color-danger)]'
                     }`}>
                     {message.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
                     <span className="text-sm font-medium">{message.text}</span>
@@ -139,30 +139,30 @@ const UserProfile = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* Personal Information */}
-                <div className="bg-slate-900/50 border border-slate-800 rounded-3xl p-8 backdrop-blur-sm self-start shadow-xl">
-                    <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
-                        <Shield className="w-5 h-5 text-cyan-400" /> Información Personal
+                <div className="bg-[var(--bg-base)]/50 border border-[var(--border-subtle)] rounded-3xl p-8 backdrop-blur-sm self-start shadow-xl">
+                    <h3 className="text-lg font-bold text-[var(--text-primary)] mb-6 flex items-center gap-2">
+                        <Shield className="w-5 h-5 text-[var(--color-primary)]" /> Información Personal
                     </h3>
 
                     <form onSubmit={handleUpdateProfile} className="space-y-5">
                         <div className="space-y-2">
-                            <label className="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                            <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest flex items-center gap-2">
                                 <Mail className="w-3 h-3" /> Email (No editable)
                             </label>
-                            <div className="w-full bg-slate-950/50 border border-slate-800/50 text-slate-500 rounded-xl px-4 py-3 text-sm cursor-not-allowed font-mono">
+                            <div className="w-full bg-[var(--bg-base)]/50 border border-[var(--border-subtle)]/50 text-[var(--text-muted)] rounded-md px-4 py-3 text-sm cursor-not-allowed font-mono">
                                 {user?.email}
                             </div>
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Nombre Completo</label>
+                            <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest">Nombre Completo</label>
                             <div className="relative">
-                                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
                                 <input
                                     type="text"
                                     value={fullName}
                                     onChange={(e) => setFullName(e.target.value)}
-                                    className="w-full bg-slate-950 border border-slate-800 text-white rounded-xl pl-12 pr-4 py-3 text-sm focus:border-cyan-500 outline-none transition-all"
+                                    className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] text-[var(--text-primary)] rounded-md pl-12 pr-4 py-3 text-sm focus:border-[var(--color-primary)] outline-none transition-all"
                                     placeholder="Tu nombre completo"
                                     required
                                 />
@@ -171,27 +171,27 @@ const UserProfile = () => {
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Cargo / Puesto</label>
+                                <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest">Cargo / Puesto</label>
                                 <div className="relative">
-                                    <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                                    <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
                                     <input
                                         type="text"
                                         value={jobTitle}
                                         onChange={(e) => setJobTitle(e.target.value)}
-                                        className="w-full bg-slate-950 border border-slate-800 text-white rounded-xl pl-12 pr-4 py-3 text-sm focus:border-cyan-500 outline-none transition-all"
+                                        className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] text-[var(--text-primary)] rounded-md pl-12 pr-4 py-3 text-sm focus:border-[var(--color-primary)] outline-none transition-all"
                                         placeholder="Ej: Auditor"
                                     />
                                 </div>
                             </div>
                             <div className="space-y-2">
-                                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Teléfono</label>
+                                <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest">Teléfono</label>
                                 <div className="relative">
-                                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
                                     <input
                                         type="tel"
                                         value={phone}
                                         onChange={(e) => setPhone(e.target.value)}
-                                        className="w-full bg-slate-950 border border-slate-800 text-white rounded-xl pl-12 pr-4 py-3 text-sm focus:border-cyan-500 outline-none transition-all"
+                                        className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] text-[var(--text-primary)] rounded-md pl-12 pr-4 py-3 text-sm focus:border-[var(--color-primary)] outline-none transition-all"
                                         placeholder="+54 9..."
                                     />
                                 </div>
@@ -213,27 +213,27 @@ const UserProfile = () => {
                 </div>
 
                 {/* Security Section */}
-                <div className="bg-slate-900/50 border border-slate-800 rounded-3xl p-8 backdrop-blur-sm self-start shadow-xl">
-                    <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
-                        <Lock className="w-5 h-5 text-purple-400" /> Seguridad
+                <div className="bg-[var(--bg-base)]/50 border border-[var(--border-subtle)] rounded-3xl p-8 backdrop-blur-sm self-start shadow-xl">
+                    <h3 className="text-lg font-bold text-[var(--text-primary)] mb-6 flex items-center gap-2">
+                        <Lock className="w-5 h-5 text-[var(--color-primary)]" /> Seguridad
                     </h3>
 
                     <form onSubmit={handleChangePassword} className="space-y-5">
-                        <div className="bg-purple-500/5 border border-purple-500/10 p-4 rounded-2xl mb-2">
-                            <p className="text-xs text-purple-300/80 leading-relaxed italic">
+                        <div className="bg-[var(--color-primary)]/5 border border-purple-500/10 p-4 rounded-md mb-2">
+                            <p className="text-xs text-[var(--color-primary)]/80 leading-relaxed italic">
                                 Al cambiar tu contraseña, se cerrarán todas las demás sesiones activas por seguridad.
                             </p>
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Nueva Contraseña</label>
+                            <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest">Nueva Contraseña</label>
                             <div className="relative">
-                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
                                 <input
                                     type="password"
                                     value={newPassword}
                                     onChange={(e) => setNewPassword(e.target.value)}
-                                    className="w-full bg-slate-950 border border-slate-800 text-white rounded-xl pl-12 pr-4 py-3 text-sm focus:border-purple-500 outline-none transition-all"
+                                    className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] text-[var(--text-primary)] rounded-md pl-12 pr-4 py-3 text-sm focus:border-purple-500 outline-none transition-all"
                                     placeholder="Mínimo 6 caracteres"
                                     required
                                 />
@@ -241,14 +241,14 @@ const UserProfile = () => {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Confirmar Contraseña</label>
+                            <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest">Confirmar Contraseña</label>
                             <div className="relative">
-                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
                                 <input
                                     type="password"
                                     value={confirmPassword}
                                     onChange={(e) => setConfirmPassword(e.target.value)}
-                                    className="w-full bg-slate-950 border border-slate-800 text-white rounded-xl pl-12 pr-4 py-3 text-sm focus:border-purple-500 outline-none transition-all"
+                                    className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] text-[var(--text-primary)] rounded-md pl-12 pr-4 py-3 text-sm focus:border-purple-500 outline-none transition-all"
                                     placeholder="Repite la contraseña"
                                     required
                                 />
@@ -259,7 +259,7 @@ const UserProfile = () => {
                             <Button
                                 type="submit"
                                 variant="outline"
-                                className="w-full justify-center border-purple-500/30 text-purple-400 hover:bg-purple-500/10 group"
+                                className="w-full justify-center border-[rgba(0,255,157,0.30)] text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 group"
                                 disabled={isChangingPassword || !newPassword}
                             >
                                 {isChangingPassword ? <Loader2 className="w-4 h-4 animate-spin" /> : <Lock className="w-4 h-4 group-hover:scale-110 transition-transform" />}
@@ -270,8 +270,8 @@ const UserProfile = () => {
                 </div>
             </div>
 
-            <div className="p-8 bg-gradient-to-r from-slate-900 to-slate-800 border border-slate-800 rounded-3xl text-center">
-                <p className="text-slate-500 text-sm">
+            <div className="p-8 bg-gradient-to-r from-slate-900 to-slate-800 border border-[var(--border-subtle)] rounded-3xl text-center">
+                <p className="text-[var(--text-muted)] text-sm">
                     Recuerda que estas credenciales son estrictamente personales. Octopus Coquinaria nunca te pedirá tu contraseña por mail o WahtsApp.
                 </p>
             </div>

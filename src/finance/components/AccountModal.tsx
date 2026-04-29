@@ -35,12 +35,12 @@ export const AccountModal: React.FC<AccountModalProps> = ({
             <div className="bg-fin-card rounded-[32px] w-full max-w-lg border border-fin-border shadow-2xl p-10 relative">
                 <button
                     onClick={onClose}
-                    className="absolute top-6 right-6 p-2 text-white/50 hover:text-white bg-white/5 hover:bg-white/10 rounded-full transition-all z-[60]"
+                    className="absolute top-6 right-6 p-2 text-[var(--text-primary)]/50 hover:text-[var(--text-primary)] bg-white/5 hover:bg-white/10 rounded-full transition-all z-[60]"
                     title="Cerrar (Esc)"
                 >
                     <X size={20} />
                 </button>
-                <h2 className="text-2xl font-black text-white mb-10 uppercase tracking-tight">
+                <h2 className="text-2xl font-black text-[var(--text-primary)] mb-10 uppercase tracking-tight">
                     {editingAccount?.id ? 'Editar Cuenta' : 'Nueva Cuenta'}
                 </h2>
                 <form onSubmit={onSave} className="space-y-6 text-left">
@@ -50,7 +50,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                             type="text"
                             value={editingAccount?.name || ''}
                             onChange={e => setEditingAccount({ ...editingAccount, name: e.target.value })}
-                            className="w-full bg-[#020b14] border border-white/10 rounded-2xl p-4 text-white font-bold outline-none focus:border-brand transition-all placeholder:text-white/20"
+                            className="w-full bg-[#020b14] border border-white/10 rounded-md p-4 text-[var(--text-primary)] font-bold outline-none focus:border-brand transition-all placeholder:text-[var(--text-primary)]/20"
                             placeholder="Ej: Brubank Personal"
                             required
                         />
@@ -61,7 +61,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                             <select
                                 value={editingAccount?.accountTypeId || ''}
                                 onChange={e => setEditingAccount({ ...editingAccount, accountTypeId: e.target.value })}
-                                className="w-full bg-[#020b14] border border-white/10 rounded-2xl p-4 text-white text-[10px] font-black uppercase tracking-widest outline-none focus:border-brand cursor-pointer appearance-none"
+                                className="w-full bg-[#020b14] border border-white/10 rounded-md p-4 text-[var(--text-primary)] text-[10px] font-black uppercase tracking-widest outline-none focus:border-brand cursor-pointer appearance-none"
                                 required
                             >
                                 <option value="">Seleccionar Tipo...</option>
@@ -73,7 +73,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                             <select
                                 value={editingAccount?.currency || 'ARS'}
                                 onChange={e => setEditingAccount({ ...editingAccount, currency: e.target.value })}
-                                className="w-full bg-[#020b14] border border-white/10 rounded-2xl p-4 text-white text-xs font-black uppercase outline-none focus:border-brand cursor-pointer appearance-none"
+                                className="w-full bg-[#020b14] border border-white/10 rounded-md p-4 text-[var(--text-primary)] text-xs font-black uppercase outline-none focus:border-brand cursor-pointer appearance-none"
                             >
                                 <option value="ARS">ARS</option>
                                 <option value="USD">USD</option>
@@ -82,23 +82,23 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                     </div>
                     {/* Límite de Crédito - Solo para Tarjetas */}
                     {isCreditCard && (
-                        <div className="space-y-2 p-4 bg-orange-500/5 rounded-2xl border border-orange-500/20">
-                            <label className="text-[10px] font-black uppercase text-orange-400 ml-1 tracking-widest flex items-center gap-2">
+                        <div className="space-y-2 p-4 bg-[var(--color-warning)]/5 rounded-md border border-orange-500/20">
+                            <label className="text-[10px] font-black uppercase text-[var(--color-warning)] ml-1 tracking-widest flex items-center gap-2">
                                 <Sparkles size={12} /> Límite de Crédito
                             </label>
                             <input
                                 type="text"
                                 value={(editingAccount as any)?.creditLimit ? formatArgNumber((editingAccount as any).creditLimit) : ''}
                                 onChange={e => setEditingAccount({ ...editingAccount, creditLimit: parseArgNumber(e.target.value) } as any)}
-                                className="w-full bg-[#020b14] border border-orange-500/30 rounded-2xl p-4 text-white font-bold outline-none focus:border-orange-500 transition-all placeholder:text-white/20"
+                                className="w-full bg-[#020b14] border border-[rgba(255,177,42,0.40)] rounded-md p-4 text-[var(--text-primary)] font-bold outline-none focus:border-orange-500 transition-all placeholder:text-[var(--text-primary)]/20"
                                 placeholder="Ej: 500.000,00"
                             />
                         </div>
                     )}
                     {/* TNA - Rendimiento Anual (No aplicable a Tarjetas) */}
                     {!isCreditCard && (
-                        <div className="space-y-2 p-4 bg-emerald-500/5 rounded-2xl border border-emerald-500/20">
-                            <label className="text-[10px] font-black uppercase text-emerald-400 ml-1 tracking-widest flex items-center gap-2">
+                        <div className="space-y-2 p-4 bg-[var(--color-success)]/5 rounded-md border border-[var(--color-success)]/20">
+                            <label className="text-[10px] font-black uppercase text-[var(--color-success)] ml-1 tracking-widest flex items-center gap-2">
                                 <TrendingUp size={12} /> TNA Rendimiento Anual (%)
                             </label>
                             <input
@@ -106,14 +106,14 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                                 step="0.01"
                                 value={editingAccount?.annualRate || ''}
                                 onChange={e => setEditingAccount({ ...editingAccount, annualRate: e.target.value ? Number(e.target.value) : undefined })}
-                                className="w-full bg-[#020b14] border border-emerald-500/30 rounded-2xl p-4 text-white font-bold outline-none focus:border-emerald-500 transition-all placeholder:text-white/20"
+                                className="w-full bg-[#020b14] border border-[var(--color-success)]/30 rounded-md p-4 text-[var(--text-primary)] font-bold outline-none focus:border-[var(--color-success)] transition-all placeholder:text-[var(--text-primary)]/20"
                                 placeholder="Ej: 40.5"
                             />
                         </div>
                     )}
                     <button
                         type="submit"
-                        className="w-full py-5 bg-brand text-[#020b14] rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-lg shadow-brand/20 active:scale-95 transition-all mt-4"
+                        className="w-full py-5 bg-brand text-[#020b14] rounded-md font-black text-xs uppercase tracking-[0.2em] shadow-lg shadow-brand/20 active:scale-95 transition-all mt-4"
                     >
                         Guardar Cambios
                     </button>
