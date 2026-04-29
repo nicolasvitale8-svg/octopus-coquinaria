@@ -254,8 +254,8 @@ const AdminUsers = () => {
                     <div className="flex flex-col items-start gap-1">
                       <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border uppercase tracking-wide
                         ${user.role === 'admin' ? 'bg-[var(--bg-elevated)]/30 text-[var(--color-primary)] border-[rgba(0,255,157,0.30)]' :
-                          user.role === 'consultant' ? 'bg-blue-900/30 text-blue-400 border-blue-500/30' :
-                          user.role === 'manager' ? 'bg-orange-900/30 text-orange-400 border-orange-500/30' :
+                          user.role === 'consultant' ? 'bg-[var(--bg-elevated)]/30 text-[var(--color-primary-soft)] border-[rgba(0,255,157,0.30)]' :
+                          user.role === 'manager' ? 'bg-[rgba(255,177,42,0.15)]/30 text-[var(--color-warning)] border-[rgba(255,177,42,0.40)]' :
                           user.role === 'client' ? 'bg-[rgba(255,177,42,0.15)]/30 text-[var(--color-warning)] border-[var(--color-warning)]/30' :
                           isPending(user.role) ? 'bg-[var(--color-warning)]/15 text-[var(--color-warning)] border-[var(--color-warning)]/40' :
                           'bg-[var(--bg-surface)] text-[var(--text-muted)] border-[var(--border-subtle)]'}`}>

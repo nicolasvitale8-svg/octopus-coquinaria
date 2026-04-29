@@ -4,7 +4,11 @@ import Layout from '../components/Layout';
 import { METHODOLOGY_7P } from '../constants';
 import { getResources } from '../services/academyService';
 import { AcademyResource } from '../types';
-import { ArrowRight, CheckCircle, AlertTriangle, Zap, X, Video, FileText, BarChart2, ChevronLeft } from 'lucide-react';
+import { ArrowRight, CheckCircle, AlertTriangle, Zap, X, Video, FileText, BarChart2, ChevronLeft, Settings, Lightbulb, Cpu, Eye, Cog, Globe, Waves } from 'lucide-react';
+
+// Mapeo posicional 7P → lucide. Reemplaza emojis OS-render que aparecian
+// con colores nativos no acordes a la paleta phosphor.
+const PILLAR_ICONS = [Settings, Lightbulb, Cpu, Eye, Cog, Globe, Waves];
 import { Link } from 'react-router-dom';
 import Button from '../components/ui/Button';
 
@@ -102,17 +106,24 @@ const Methodology = () => {
 
           {/* Grid - Level 1 */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16 reveal-on-scroll">
-            {METHODOLOGY_7P.map((item) => (
+            {METHODOLOGY_7P.map((item, idx) => {
+              const Icon = PILLAR_ICONS[idx % PILLAR_ICONS.length];
+              return (
               <div
                 key={item.id}
-                className="reveal-child bg-[var(--bg-base)] rounded-md border border-[var(--border-subtle)] p-8 flex flex-col items-start hover:border-[var(--color-primary)]/50 hover:shadow-lg hover:shadow-[rgba(0,255,157,0.10)] transition-all cursor-pointer group h-full relative overflow-hidden"
+                className="reveal-child relative bg-[var(--bg-base)] border border-[var(--border-subtle)] p-8 flex flex-col items-start hover:border-[var(--color-primary)]/50 hover:shadow-lg hover:shadow-[rgba(0,255,157,0.10)] transition-all cursor-pointer group h-full overflow-hidden"
                 onClick={() => setSelectedId(item.id)}
               >
-                {/* Colored top accent */}
-                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-soft)] opacity-0 group-hover:opacity-100 transition-opacity" />
+                {/* Corner brackets phosphor */}
+                <span aria-hidden="true" className="absolute top-0 left-0 w-2.5 h-2.5 border-l border-t" style={{ borderColor: 'var(--color-primary)' }} />
+                <span aria-hidden="true" className="absolute bottom-0 right-0 w-2.5 h-2.5 border-r border-b" style={{ borderColor: 'var(--color-primary)' }} />
+
+                {/* Top accent */}
+                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-soft)] opacity-0 group-hover:opacity-100 transition-opacity" />
+
                 <div className="flex items-center gap-4 mb-4 w-full">
-                  <div className="w-14 h-14 bg-[var(--bg-surface)] group-hover:bg-[var(--bg-elevated)] rounded-md flex items-center justify-center text-2xl transition-colors shadow-inner">
-                    {(item as any).icon || item.key}
+                  <div className="w-12 h-12 bg-[var(--bg-surface)] group-hover:bg-[var(--bg-elevated)] border border-[var(--border-subtle)] flex items-center justify-center transition-colors text-[var(--color-primary)]">
+                    <Icon className="w-6 h-6" strokeWidth={1.5} />
                   </div>
                   <h3 className="text-2xl font-bold text-[var(--text-primary)] group-hover:text-[var(--color-primary)] transition-colors">{item.letter}</h3>
                 </div>
@@ -128,7 +139,8 @@ const Methodology = () => {
                   Ver detalle <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" />
                 </button>
               </div>
-            ))}
+              );
+            })}
           </div>
 
           <div className="text-center mt-12">
