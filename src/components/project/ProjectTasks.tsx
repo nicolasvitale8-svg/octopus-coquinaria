@@ -59,21 +59,21 @@ const ProjectTasks: React.FC<ProjectTasksProps> = ({ project }) => {
     const getStatusColor = (status: TaskStatus) => {
         switch (status) {
             case 'DONE':
-            case 'APPROVED': return 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20';
-            case 'DOING': return 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20';
+            case 'APPROVED': return 'text-[var(--color-success)] bg-[var(--color-success)]/10 border-[var(--color-success)]/20';
+            case 'DOING': return 'text-[var(--color-primary)] bg-[var(--color-primary)]/10 border-[var(--color-primary)]/20';
             case 'BLOCKED':
-            case 'REJECTED': return 'text-red-400 bg-red-500/10 border-red-500/20';
+            case 'REJECTED': return 'text-[var(--color-danger)] bg-[var(--color-danger)]/10 border-[var(--color-danger)]/20';
             case 'IN_REVIEW':
-            case 'PENDING': return 'text-amber-400 bg-amber-500/10 border-amber-500/20';
-            default: return 'text-slate-400 bg-slate-800 border-slate-700';
+            case 'PENDING': return 'text-[var(--color-warning)] bg-[var(--color-warning)]/10 border-[rgba(255,177,42,0.40)]';
+            default: return 'text-[var(--text-muted)] bg-[var(--bg-surface)] border-[var(--border-subtle)]';
         }
     };
 
     const getPriorityIcon = (priority: TaskPriority) => {
         switch (priority) {
-            case 'urgent': return <AlertCircle className="w-3 h-3 text-red-500" />;
-            case 'high': return <Clock className="w-3 h-3 text-orange-500" />;
-            default: return <Clock className="w-3 h-3 text-slate-500" />;
+            case 'urgent': return <AlertCircle className="w-3 h-3 text-[var(--color-danger)]" />;
+            case 'high': return <Clock className="w-3 h-3 text-[var(--color-warning)]" />;
+            default: return <Clock className="w-3 h-3 text-[var(--text-muted)]" />;
         }
     };
 
@@ -81,19 +81,19 @@ const ProjectTasks: React.FC<ProjectTasksProps> = ({ project }) => {
         <div className="space-y-6">
             {/* Toolbar */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div className="flex items-center gap-3 bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 w-full md:w-96">
-                    <Search className="w-4 h-4 text-slate-500" />
+                <div className="flex items-center gap-3 bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-lg px-3 py-1.5 w-full md:w-96">
+                    <Search className="w-4 h-4 text-[var(--text-muted)]" />
                     <input
                         type="text"
                         placeholder="Buscar tareas..."
-                        className="bg-transparent border-none focus:ring-0 text-sm text-white w-full"
+                        className="bg-transparent border-none focus:ring-0 text-sm text-[var(--text-primary)] w-full"
                         value={filter}
                         onChange={(e) => setFilter(e.target.value)}
                     />
                 </div>
                 <div className="flex items-center gap-2 w-full md:w-auto">
                     <select
-                        className="bg-slate-900 border border-slate-800 text-slate-300 text-xs rounded-lg px-3 py-2 outline-none"
+                        className="bg-[var(--bg-base)] border border-[var(--border-subtle)] text-[var(--text-secondary)] text-xs rounded-lg px-3 py-2 outline-none"
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value as any)}
                     >
@@ -120,17 +120,17 @@ const ProjectTasks: React.FC<ProjectTasksProps> = ({ project }) => {
             {/* Task List / Kanban View (Simplificada para MVP) */}
             <div className="grid grid-cols-1 gap-3">
                 {isLoading ? (
-                    <div className="py-20 text-center text-slate-500 animate-pulse">Cargando tareas...</div>
+                    <div className="py-20 text-center text-[var(--text-muted)] animate-pulse">Cargando tareas...</div>
                 ) : filteredTasks.length > 0 ? (
                     filteredTasks.map(task => (
-                        <div key={task.id} className="bg-slate-900 border border-slate-800 rounded-xl p-4 hover:border-slate-700 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div key={task.id} className="bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-md p-4 hover:border-[var(--border-subtle)] transition-all flex flex-col md:flex-row md:items-center justify-between gap-4">
                             <div className="flex items-start gap-3 flex-1">
-                                <button className="mt-1 text-slate-600 hover:text-emerald-400 transition-colors">
-                                    <CheckCircle2 className={`w-5 h-5 ${task.status === 'DONE' ? 'text-emerald-500' : ''}`} />
+                                <button className="mt-1 text-[var(--text-muted)] hover:text-[var(--color-success)] transition-colors">
+                                    <CheckCircle2 className={`w-5 h-5 ${task.status === 'DONE' ? 'text-[var(--color-success)]' : ''}`} />
                                 </button>
                                 <div>
-                                    <h4 className="text-white font-medium text-sm mb-1">{task.title}</h4>
-                                    <div className="flex flex-wrap items-center gap-3 text-[10px] text-slate-500 uppercase font-bold tracking-tight">
+                                    <h4 className="text-[var(--text-primary)] font-medium text-sm mb-1">{task.title}</h4>
+                                    <div className="flex flex-wrap items-center gap-3 text-[10px] text-[var(--text-muted)] uppercase font-bold tracking-tight">
                                         <span className={`px-2 py-0.5 rounded border ${getStatusColor(task.status)}`}>
                                             {task.status}
                                         </span>
@@ -140,15 +140,15 @@ const ProjectTasks: React.FC<ProjectTasksProps> = ({ project }) => {
                                         <span className="flex items-center gap-1">
                                             <Calendar className="w-3 h-3" /> {task.due_date || 'Sin fecha'}
                                         </span>
-                                        <span className={`px-2 py-0.5 rounded bg-slate-950 border border-slate-800`}>
+                                        <span className={`px-2 py-0.5 rounded bg-[var(--bg-base)] border border-[var(--border-subtle)]`}>
                                             {task.type}
                                         </span>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="flex items-center justify-between md:justify-end gap-6 border-t md:border-t-0 pt-3 md:pt-0 border-slate-800">
-                                <div className="flex items-center gap-4 text-slate-500">
+                            <div className="flex items-center justify-between md:justify-end gap-6 border-t md:border-t-0 pt-3 md:pt-0 border-[var(--border-subtle)]">
+                                <div className="flex items-center gap-4 text-[var(--text-muted)]">
                                     {task.attachments && task.attachments.length > 0 && (
                                         <span className="flex items-center gap-1 text-xs">
                                             <Paperclip className="w-3.5 h-3.5" /> {task.attachments.length}
@@ -160,17 +160,17 @@ const ProjectTasks: React.FC<ProjectTasksProps> = ({ project }) => {
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <div className="flex -space-x-2">
-                                        <div className="w-7 h-7 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-[10px] font-bold text-cyan-400" title="Asignado a...">
+                                        <div className="w-7 h-7 rounded-full bg-[var(--bg-surface)] border border-[var(--border-subtle)] flex items-center justify-center text-[10px] font-bold text-[var(--color-primary)]" title="Asignado a...">
                                             {task.assigned_to ? 'U' : <UserIcon className="w-3 h-3" />}
                                         </div>
                                     </div>
-                                    <button className="p-1.5 text-slate-500 hover:text-white hover:bg-slate-800 rounded-lg transition-all">
+                                    <button className="p-1.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] rounded-lg transition-all">
                                         <MoreVertical className="w-4 h-4" />
                                     </button>
                                     {(isAdmin || profile?.role === 'admin') && (
                                         <button
                                             onClick={() => handleDeleteTask(task.id)}
-                                            className="p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
+                                            className="p-1.5 text-[var(--text-muted)] hover:text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10 rounded-lg transition-all"
                                             title="Eliminar Tarea"
                                         >
                                             <Trash2 className="w-4 h-4" />
@@ -181,9 +181,9 @@ const ProjectTasks: React.FC<ProjectTasksProps> = ({ project }) => {
                         </div>
                     ))
                 ) : (
-                    <div className="py-20 text-center bg-slate-900/50 border border-slate-800 border-dashed rounded-2xl">
+                    <div className="py-20 text-center bg-[var(--bg-base)]/50 border border-[var(--border-subtle)] border-dashed rounded-md">
                         <AlertCircle className="w-8 h-8 text-slate-700 mx-auto mb-3" />
-                        <p className="text-slate-500 italic">No se encontraron tareas para este filtro.</p>
+                        <p className="text-[var(--text-muted)] italic">No se encontraron tareas para este filtro.</p>
                         <Button variant="ghost" size="sm" className="mt-4" onClick={() => setStatusFilter('ALL')}>
                             Ver todas
                         </Button>

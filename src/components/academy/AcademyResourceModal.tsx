@@ -101,12 +101,12 @@ const AcademyResourceModal: React.FC<AcademyResourceModalProps> = ({ isOpen, onC
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
-            <div className="bg-slate-900 rounded-xl border border-slate-700 w-full max-w-lg shadow-2xl animate-fade-in-up">
-                <div className="flex justify-between items-center p-6 border-b border-slate-800">
-                    <h3 className="text-xl font-bold text-white">
+            <div className="bg-[var(--bg-base)] rounded-md border border-[var(--border-subtle)] w-full max-w-lg shadow-2xl animate-fade-in-up">
+                <div className="flex justify-between items-center p-6 border-b border-[var(--border-subtle)]">
+                    <h3 className="text-xl font-bold text-[var(--text-primary)]">
                         {formData.id ? 'Editar Recurso' : 'Nuevo Recurso'}
                     </h3>
-                    <button onClick={onClose} className="text-slate-400 hover:text-white">
+                    <button onClick={onClose} className="text-[var(--text-muted)] hover:text-[var(--text-primary)]">
                         <X className="w-5 h-5" />
                     </button>
                 </div>
@@ -114,19 +114,19 @@ const AcademyResourceModal: React.FC<AcademyResourceModalProps> = ({ isOpen, onC
                 <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Título</label>
+                            <label className="block text-xs font-bold text-[var(--text-muted)] uppercase mb-1">Título</label>
                             <input
                                 type="text" required
-                                className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white focus:border-[#1FB6D5] focus:outline-none"
+                                className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded p-2 text-[var(--text-primary)] focus:border-[var(--color-primary)] focus:outline-none"
                                 value={formData.titulo}
                                 onChange={e => setFormData({ ...formData, titulo: e.target.value })}
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Logro / Resultado (Outcome)</label>
+                            <label className="block text-xs font-bold text-[var(--text-muted)] uppercase mb-1">Logro / Resultado (Outcome)</label>
                             <input
                                 type="text" required maxLength={120}
-                                className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-[#1FB6D5] focus:border-[#1FB6D5] focus:outline-none text-sm italic"
+                                className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded p-2 text-[var(--color-primary)] focus:border-[var(--color-primary)] focus:outline-none text-sm italic"
                                 placeholder="Ej: Dominar los costos de tu plato estrella"
                                 value={formData.outcome}
                                 onChange={e => setFormData({ ...formData, outcome: e.target.value })}
@@ -136,9 +136,9 @@ const AcademyResourceModal: React.FC<AcademyResourceModalProps> = ({ isOpen, onC
 
                     <div className="grid grid-cols-3 gap-4">
                         <div>
-                            <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Categoría</label>
+                            <label className="block text-xs font-bold text-[var(--text-muted)] uppercase mb-1">Categoría</label>
                             <select
-                                className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white text-xs"
+                                className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded p-2 text-[var(--text-primary)] text-xs"
                                 value={formData.category}
                                 onChange={e => setFormData({ ...formData, category: e.target.value as any })}
                             >
@@ -151,9 +151,9 @@ const AcademyResourceModal: React.FC<AcademyResourceModalProps> = ({ isOpen, onC
                             </select>
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Formato</label>
+                            <label className="block text-xs font-bold text-[var(--text-muted)] uppercase mb-1">Formato</label>
                             <select
-                                className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white text-xs"
+                                className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded p-2 text-[var(--text-primary)] text-xs"
                                 value={formData.format}
                                 onChange={e => setFormData({ ...formData, format: e.target.value as any })}
                             >
@@ -166,9 +166,9 @@ const AcademyResourceModal: React.FC<AcademyResourceModalProps> = ({ isOpen, onC
                             </select>
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Impacto</label>
+                            <label className="block text-xs font-bold text-[var(--text-muted)] uppercase mb-1">Impacto</label>
                             <select
-                                className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white text-xs"
+                                className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded p-2 text-[var(--text-primary)] text-xs"
                                 value={formData.impactTag}
                                 onChange={e => setFormData({ ...formData, impactTag: e.target.value as any })}
                             >
@@ -183,9 +183,9 @@ const AcademyResourceModal: React.FC<AcademyResourceModalProps> = ({ isOpen, onC
 
                     <div className="grid grid-cols-3 gap-4">
                         <div>
-                            <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Nivel</label>
+                            <label className="block text-xs font-bold text-[var(--text-muted)] uppercase mb-1">Nivel</label>
                             <select
-                                className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white text-xs"
+                                className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded p-2 text-[var(--text-primary)] text-xs"
                                 value={formData.level}
                                 onChange={e => setFormData({ ...formData, level: parseInt(e.target.value) as any })}
                             >
@@ -195,18 +195,18 @@ const AcademyResourceModal: React.FC<AcademyResourceModalProps> = ({ isOpen, onC
                             </select>
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Minutos</label>
+                            <label className="block text-xs font-bold text-[var(--text-muted)] uppercase mb-1">Minutos</label>
                             <input
                                 type="number"
-                                className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white text-xs"
+                                className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded p-2 text-[var(--text-primary)] text-xs"
                                 value={formData.durationMinutes}
                                 onChange={e => setFormData({ ...formData, durationMinutes: parseInt(e.target.value) })}
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Acceso</label>
+                            <label className="block text-xs font-bold text-[var(--text-muted)] uppercase mb-1">Acceso</label>
                             <select
-                                className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white text-xs"
+                                className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded p-2 text-[var(--text-primary)] text-xs"
                                 value={formData.access}
                                 onChange={e => setFormData({ ...formData, access: e.target.value as any })}
                             >
@@ -218,19 +218,19 @@ const AcademyResourceModal: React.FC<AcademyResourceModalProps> = ({ isOpen, onC
 
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-xs font-bold text-slate-400 uppercase mb-1">URL 1 / Descarga</label>
+                            <label className="block text-xs font-bold text-[var(--text-muted)] uppercase mb-1">URL 1 / Descarga</label>
                             <input
                                 type="text"
-                                className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white text-xs"
+                                className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded p-2 text-[var(--text-primary)] text-xs"
                                 value={formData.url}
                                 onChange={e => setFormData({ ...formData, url: e.target.value })}
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-slate-400 uppercase mb-1">YouTube ID (opcional)</label>
+                            <label className="block text-xs font-bold text-[var(--text-muted)] uppercase mb-1">YouTube ID (opcional)</label>
                             <input
                                 type="text"
-                                className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white text-xs"
+                                className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded p-2 text-[var(--text-primary)] text-xs"
                                 value={formData.youtube_id}
                                 onChange={e => setFormData({ ...formData, youtube_id: e.target.value })}
                             />
@@ -239,19 +239,19 @@ const AcademyResourceModal: React.FC<AcademyResourceModalProps> = ({ isOpen, onC
 
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-xs font-bold text-slate-400 uppercase mb-1">URL 2 (opcional)</label>
+                            <label className="block text-xs font-bold text-[var(--text-muted)] uppercase mb-1">URL 2 (opcional)</label>
                             <input
                                 type="text"
-                                className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white text-xs"
+                                className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded p-2 text-[var(--text-primary)] text-xs"
                                 value={formData.url2}
                                 onChange={e => setFormData({ ...formData, url2: e.target.value })}
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-slate-400 uppercase mb-1">URL 3 (opcional)</label>
+                            <label className="block text-xs font-bold text-[var(--text-muted)] uppercase mb-1">URL 3 (opcional)</label>
                             <input
                                 type="text"
-                                className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white text-xs"
+                                className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded p-2 text-[var(--text-primary)] text-xs"
                                 value={formData.url3}
                                 onChange={e => setFormData({ ...formData, url3: e.target.value })}
                             />
@@ -259,14 +259,14 @@ const AcademyResourceModal: React.FC<AcademyResourceModalProps> = ({ isOpen, onC
                     </div>
 
                     {/* SECCIÓN IMPACTO */}
-                    <div className="pt-4 border-t border-slate-800">
-                        <h4 className="text-xs font-bold text-[#1FB6D5] uppercase mb-4 tracking-widest">Sección Impacto</h4>
+                    <div className="pt-4 border-t border-[var(--border-subtle)]">
+                        <h4 className="text-xs font-bold text-[var(--color-primary)] uppercase mb-4 tracking-widest">Sección Impacto</h4>
                         <div className="space-y-4">
                             <div>
-                                <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Resultado (Impacto)</label>
+                                <label className="block text-xs font-bold text-[var(--text-muted)] uppercase mb-1">Resultado (Impacto)</label>
                                 <input
                                     type="text"
-                                    className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white text-xs"
+                                    className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded p-2 text-[var(--text-primary)] text-xs"
                                     placeholder="Ej: Ahorro de 10hs mensuales"
                                     value={formData.impactOutcome}
                                     onChange={e => setFormData({ ...formData, impactOutcome: e.target.value })}
@@ -274,20 +274,20 @@ const AcademyResourceModal: React.FC<AcademyResourceModalProps> = ({ isOpen, onC
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Formato Impacto</label>
+                                    <label className="block text-xs font-bold text-[var(--text-muted)] uppercase mb-1">Formato Impacto</label>
                                     <input
                                         type="text"
-                                        className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white text-xs"
+                                        className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded p-2 text-[var(--text-primary)] text-xs"
                                         placeholder="Ej: Plan Maestro"
                                         value={formData.impactFormat}
                                         onChange={e => setFormData({ ...formData, impactFormat: e.target.value })}
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Programa / Ruta / Sprint</label>
+                                    <label className="block text-xs font-bold text-[var(--text-muted)] uppercase mb-1">Programa / Ruta / Sprint</label>
                                     <input
                                         type="text"
-                                        className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white text-xs"
+                                        className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded p-2 text-[var(--text-primary)] text-xs"
                                         placeholder="Ej: Sprint de Costos"
                                         value={formData.impactProgram}
                                         onChange={e => setFormData({ ...formData, impactProgram: e.target.value })}
@@ -298,18 +298,18 @@ const AcademyResourceModal: React.FC<AcademyResourceModalProps> = ({ isOpen, onC
                     </div>
 
                     <div>
-                        <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Descripción</label>
+                        <label className="block text-xs font-bold text-[var(--text-muted)] uppercase mb-1">Descripción</label>
                         <textarea
-                            className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white focus:border-[#1FB6D5] focus:outline-none h-20 resize-none text-sm"
+                            className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded p-2 text-[var(--text-primary)] focus:border-[var(--color-primary)] focus:outline-none h-20 resize-none text-sm"
                             value={formData.description}
                             onChange={e => setFormData({ ...formData, description: e.target.value })}
                         />
                     </div>
 
                     <div>
-                        <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Passos de Acción (Uno por línea)</label>
+                        <label className="block text-xs font-bold text-[var(--text-muted)] uppercase mb-1">Passos de Acción (Uno por línea)</label>
                         <textarea
-                            className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white focus:border-[#1FB6D5] focus:outline-none h-20 resize-none text-sm"
+                            className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded p-2 text-[var(--text-primary)] focus:border-[var(--color-primary)] focus:outline-none h-20 resize-none text-sm"
                             placeholder="Revisar stock&#10;Hacer pedido&#10;Cargar factura"
                             value={stepsInput}
                             onChange={e => setStepsInput(e.target.value)}
@@ -320,29 +320,29 @@ const AcademyResourceModal: React.FC<AcademyResourceModalProps> = ({ isOpen, onC
                         <input
                             type="checkbox"
                             id="pinned"
-                            className="w-4 h-4 rounded border-slate-700 bg-slate-950 text-[#1FB6D5] focus:ring-[#1FB6D5]"
+                            className="w-4 h-4 rounded border-[var(--border-subtle)] bg-[var(--bg-base)] text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
                             checked={formData.isPinned}
                             onChange={e => setFormData({ ...formData, isPinned: e.target.checked })}
                         />
-                        <label htmlFor="pinned" className="text-sm text-white cursor-pointer select-none">
+                        <label htmlFor="pinned" className="text-sm text-[var(--text-primary)] cursor-pointer select-none">
                             Fijar arriba (Bloque "Por dónde empezar")
                         </label>
                     </div>
 
                     <div className="pt-2">
-                        <label className="block text-xs font-bold text-[#1FB6D5] uppercase mb-1 tracking-widest">🎓 Ruta de Maestría</label>
+                        <label className="block text-xs font-bold text-[var(--color-primary)] uppercase mb-1 tracking-widest">🎓 Ruta de Maestría</label>
                         <input
                             type="text"
-                            className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white text-xs focus:border-[#1FB6D5] focus:outline-none"
+                            className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded p-2 text-[var(--text-primary)] text-xs focus:border-[var(--color-primary)] focus:outline-none"
                             placeholder="Ej: Cortes de Verdura PRO, Sprint Rentabilidad, Sprint Orden Operativo"
                             value={formData.learningPath}
                             onChange={e => setFormData({ ...formData, learningPath: e.target.value })}
                         />
-                        <p className="text-[9px] text-slate-600 mt-1">Los recursos con la misma ruta se agrupan automáticamente en "Rutas de Maestría"</p>
+                        <p className="text-[9px] text-[var(--text-muted)] mt-1">Los recursos con la misma ruta se agrupan automáticamente en "Rutas de Maestría"</p>
                     </div>
 
                     <div>
-                        <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Vincular con Pilares Octopus (O-C-T-O-P-U-S)</label>
+                        <label className="block text-xs font-bold text-[var(--text-muted)] uppercase mb-2">Vincular con Pilares Octopus (O-C-T-O-P-U-S)</label>
                         <div className="flex flex-wrap gap-2">
                             {['orden', 'creatividad', 'tecnologia', 'observacion', 'pragmatismo', 'universalidad', 'sutileza'].map(pilar => (
                                 <button
@@ -352,7 +352,7 @@ const AcademyResourceModal: React.FC<AcademyResourceModalProps> = ({ isOpen, onC
                                         const cur = formData.pilares;
                                         setFormData({ ...formData, pilares: cur.includes(pilar) ? cur.filter(x => x !== pilar) : [...cur, pilar] });
                                     }}
-                                    className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase border transition-all ${formData.pilares.includes(pilar) ? 'bg-[#1FB6D5] text-[#021019] border-[#1FB6D5]' : 'bg-slate-950 text-slate-500 border-slate-800'}`}
+                                    className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase border transition-all ${formData.pilares.includes(pilar) ? 'bg-[var(--color-primary)] text-[#050607] border-[var(--color-primary)]' : 'bg-[var(--bg-base)] text-[var(--text-muted)] border-[var(--border-subtle)]'}`}
                                 >
                                     {pilar.charAt(0)}
                                 </button>
@@ -360,11 +360,11 @@ const AcademyResourceModal: React.FC<AcademyResourceModalProps> = ({ isOpen, onC
                         </div>
                     </div>
 
-                    <div className="pt-4 flex justify-end gap-3 border-t border-slate-800 mt-4">
-                        <Button type="button" variant="ghost" onClick={onClose} className="text-slate-400">
+                    <div className="pt-4 flex justify-end gap-3 border-t border-[var(--border-subtle)] mt-4">
+                        <Button type="button" variant="ghost" onClick={onClose} className="text-[var(--text-muted)]">
                             Cancelar
                         </Button>
-                        <Button type="submit" className="bg-[#1FB6D5] text-[#021019] font-bold hover:bg-white">
+                        <Button type="submit" className="bg-[var(--color-primary)] text-[#050607] font-bold hover:bg-white">
                             Guardar Recurso
                         </Button>
                     </div>

@@ -293,18 +293,18 @@ export const AdminUserModal: React.FC<AdminUserModalProps> = ({ isOpen, onClose,
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm px-4">
-            <div className="bg-slate-900 border border-slate-800 rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl relative flex flex-col">
+            <div className="bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-md w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl relative flex flex-col">
                 {/* Header */}
-                <div className="p-6 border-b border-slate-800 flex justify-between items-center sticky top-0 bg-slate-900 z-10">
+                <div className="p-6 border-b border-[var(--border-subtle)] flex justify-between items-center sticky top-0 bg-[var(--bg-base)] z-10">
                     <div>
-                        <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                        <h2 className="text-xl font-bold text-[var(--text-primary)] flex items-center gap-2">
                             {userToEdit ? 'Editar Ficha' : 'Alta de Nuevo Colaborador'}
                         </h2>
-                        <p className="text-sm text-slate-400">
+                        <p className="text-sm text-[var(--text-muted)]">
                             {userToEdit ? 'Modifica los datos y accesos.' : 'Crea un usuario y asígnale contraseña.'}
                         </p>
                     </div>
-                    <button onClick={onClose} className="text-slate-500 hover:text-white p-2 rounded-full hover:bg-slate-800 transition-colors">
+                    <button onClick={onClose} className="text-[var(--text-muted)] hover:text-[var(--text-primary)] p-2 rounded-full hover:bg-[var(--bg-surface)] transition-colors">
                         <X size={20} />
                     </button>
                 </div>
@@ -312,7 +312,7 @@ export const AdminUserModal: React.FC<AdminUserModalProps> = ({ isOpen, onClose,
                 {/* Body */}
                 <form onSubmit={handleSubmit} className="p-6 space-y-8 flex-1">
                     {error && (
-                        <div className="bg-red-900/20 border border-red-500/50 text-red-200 p-4 rounded-lg flex items-center gap-3">
+                        <div className="bg-[rgba(255,77,77,0.12)]/20 border border-[var(--color-danger)]/50 text-[var(--color-danger)] p-4 rounded-lg flex items-center gap-3">
                             <AlertCircle size={20} />
                             <span>{error}</span>
                         </div>
@@ -320,28 +320,28 @@ export const AdminUserModal: React.FC<AdminUserModalProps> = ({ isOpen, onClose,
 
                     {/* 1. Datos Personales */}
                     <div className="space-y-4">
-                        <h3 className="text-sm font-bold text-[#1FB6D5] uppercase tracking-wider flex items-center gap-2">
+                        <h3 className="text-sm font-bold text-[var(--color-primary)] uppercase tracking-wider flex items-center gap-2">
                             <User size={16} /> Información Personal
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-xs font-semibold text-slate-400 mb-1">Nombre Completo</label>
+                                <label className="block text-xs font-semibold text-[var(--text-muted)] mb-1">Nombre Completo</label>
                                 <input
                                     type="text"
                                     required
-                                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-2 text-white focus:border-[#1FB6D5] focus:outline-none"
+                                    className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-lg px-4 py-2 text-[var(--text-primary)] focus:border-[var(--color-primary)] focus:outline-none"
                                     value={formData.full_name}
                                     onChange={e => setFormData({ ...formData, full_name: e.target.value })}
                                     placeholder="Ej. Juan Pérez"
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-semibold text-slate-400 mb-1">Email (Usuario)</label>
+                                <label className="block text-xs font-semibold text-[var(--text-muted)] mb-1">Email (Usuario)</label>
                                 <input
                                     type="email"
                                     required
                                     disabled={!!userToEdit}
-                                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-2 text-white focus:border-[#1FB6D5] focus:outline-none disabled:opacity-50"
+                                    className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-lg px-4 py-2 text-[var(--text-primary)] focus:border-[var(--color-primary)] focus:outline-none disabled:opacity-50"
                                     value={formData.email}
                                     onChange={e => setFormData({ ...formData, email: e.target.value })}
                                     placeholder="usuario@ejemplo.com"
@@ -350,32 +350,32 @@ export const AdminUserModal: React.FC<AdminUserModalProps> = ({ isOpen, onClose,
 
                             {/* CAMPO DE CONTRASEÑA */}
                             {!userToEdit && (
-                                <div className="col-span-full md:col-span-2 bg-blue-900/10 border border-blue-500/20 p-4 rounded-lg">
-                                    <label className="block text-xs font-bold text-blue-400 mb-2 flex items-center gap-2">
+                                <div className="col-span-full md:col-span-2 bg-[rgba(0,255,157,0.10)]/10 border border-blue-500/20 p-4 rounded-lg">
+                                    <label className="block text-xs font-bold text-[var(--color-primary)] mb-2 flex items-center gap-2">
                                         <Lock size={12} /> CONTRASEÑA DE ACCESO
                                     </label>
                                     <input
                                         type="text"
                                         required
                                         minLength={6}
-                                        className="w-full bg-slate-900 border border-blue-500/30 rounded-lg px-4 py-2 text-white font-mono tracking-wide focus:border-[#1FB6D5] focus:outline-none"
+                                        className="w-full bg-[var(--bg-base)] border border-blue-500/30 rounded-lg px-4 py-2 text-[var(--text-primary)] font-mono tracking-wide focus:border-[var(--color-primary)] focus:outline-none"
                                         value={password}
                                         onChange={e => setPassword(e.target.value)}
                                         placeholder="Escribe la contraseña temporal..."
                                     />
-                                    <p className="text-[10px] text-blue-300/70 mt-1">
+                                    <p className="text-[10px] text-[var(--color-primary-soft)]/70 mt-1">
                                         * El usuario usará esta contraseña para ingresar. Podrá cambiarla luego.
                                     </p>
                                 </div>
                             )}
 
                             <div>
-                                <label className="block text-xs font-semibold text-slate-400 mb-1">Teléfono / WhatsApp</label>
+                                <label className="block text-xs font-semibold text-[var(--text-muted)] mb-1">Teléfono / WhatsApp</label>
                                 <div className="relative">
-                                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4" />
+                                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] w-4 h-4" />
                                     <input
                                         type="tel"
-                                        className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-10 pr-4 py-2 text-white focus:border-[#1FB6D5] focus:outline-none"
+                                        className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-lg pl-10 pr-4 py-2 text-[var(--text-primary)] focus:border-[var(--color-primary)] focus:outline-none"
                                         value={formData.phone}
                                         onChange={e => setFormData({ ...formData, phone: e.target.value })}
                                         placeholder="+54 9 11..."
@@ -383,12 +383,12 @@ export const AdminUserModal: React.FC<AdminUserModalProps> = ({ isOpen, onClose,
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-xs font-semibold text-slate-400 mb-1">Cargo / Puesto</label>
+                                <label className="block text-xs font-semibold text-[var(--text-muted)] mb-1">Cargo / Puesto</label>
                                 <div className="relative">
-                                    <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4" />
+                                    <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] w-4 h-4" />
                                     <input
                                         type="text"
-                                        className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-10 pr-4 py-2 text-white focus:border-[#1FB6D5] focus:outline-none"
+                                        className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-lg pl-10 pr-4 py-2 text-[var(--text-primary)] focus:border-[var(--color-primary)] focus:outline-none"
                                         value={formData.job_title}
                                         onChange={e => setFormData({ ...formData, job_title: e.target.value })}
                                         placeholder="Ej. Auditor Senior"
@@ -396,11 +396,11 @@ export const AdminUserModal: React.FC<AdminUserModalProps> = ({ isOpen, onClose,
                                 </div>
                             </div>
                             <div className="col-span-full">
-                                <label className="block text-xs font-semibold text-slate-400 mb-1">Notas Internas</label>
+                                <label className="block text-xs font-semibold text-[var(--text-muted)] mb-1">Notas Internas</label>
                                 <div className="relative">
-                                    <FileText className="absolute left-3 top-3 text-slate-500 w-4 h-4" />
+                                    <FileText className="absolute left-3 top-3 text-[var(--text-muted)] w-4 h-4" />
                                     <textarea
-                                        className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-10 pr-4 py-2 text-white focus:border-[#1FB6D5] focus:outline-none resize-none h-20"
+                                        className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-lg pl-10 pr-4 py-2 text-[var(--text-primary)] focus:border-[var(--color-primary)] focus:outline-none resize-none h-20"
                                         value={formData.notes}
                                         onChange={e => setFormData({ ...formData, notes: e.target.value })}
                                         placeholder="Información adicional..."
@@ -412,7 +412,7 @@ export const AdminUserModal: React.FC<AdminUserModalProps> = ({ isOpen, onClose,
 
                     {/* 2. Rol en la Plataforma */}
                     <div className="space-y-4">
-                        <h3 className="text-sm font-bold text-[#1FB6D5] uppercase tracking-wider flex items-center gap-2">
+                        <h3 className="text-sm font-bold text-[var(--color-primary)] uppercase tracking-wider flex items-center gap-2">
                             <Shield size={16} /> Nivel de Acceso (Rol)
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -422,8 +422,8 @@ export const AdminUserModal: React.FC<AdminUserModalProps> = ({ isOpen, onClose,
                                     type="button"
                                     onClick={() => setFormData({ ...formData, role: r })}
                                     className={`px-4 py-3 rounded-lg text-sm font-medium border transition-all text-left flex items-center justify-between ${formData.role === r
-                                        ? 'bg-[#1FB6D5]/20 border-[#1FB6D5] text-[#1FB6D5]'
-                                        : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-600'
+                                        ? 'bg-[var(--color-primary)]/20 border-[var(--color-primary)] text-[var(--color-primary)]'
+                                        : 'bg-[var(--bg-base)] border-[var(--border-subtle)] text-[var(--text-muted)] hover:border-[var(--border-strong)]'
                                         }`}
                                 >
                                     <span>{ROLE_LABELS[r]}</span>
@@ -436,7 +436,7 @@ export const AdminUserModal: React.FC<AdminUserModalProps> = ({ isOpen, onClose,
                     {/* 3. Permisos */}
                     {['manager', 'consultant'].includes(formData.role) && (
                         <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
-                            <h3 className="text-sm font-bold text-[#1FB6D5] uppercase tracking-wider flex items-center gap-2">
+                            <h3 className="text-sm font-bold text-[var(--color-primary)] uppercase tracking-wider flex items-center gap-2">
                                 <Check size={16} /> Permisos Funcionales
                             </h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -451,18 +451,18 @@ export const AdminUserModal: React.FC<AdminUserModalProps> = ({ isOpen, onClose,
                                                     : [...(formData.permissions || []), perm.id];
                                                 setFormData({ ...formData, permissions: newPerms });
                                             }}
-                                            className={`p-3 rounded-lg border cursor-pointer transition-all flex items-start gap-3 ${isActive ? 'bg-blue-900/10 border-blue-500/40' : 'bg-slate-950 border-slate-800 hover:border-slate-700'
+                                            className={`p-3 rounded-lg border cursor-pointer transition-all flex items-start gap-3 ${isActive ? 'bg-[rgba(0,255,157,0.10)]/10 border-blue-500/40' : 'bg-[var(--bg-base)] border-[var(--border-subtle)] hover:border-[var(--border-subtle)]'
                                                 }`}
                                         >
-                                            <div className={`mt-0.5 w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 ${isActive ? 'bg-blue-500 border-blue-500 text-white' : 'border-slate-600'
+                                            <div className={`mt-0.5 w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 ${isActive ? 'bg-[var(--color-primary)] border-blue-500 text-[var(--text-primary)]' : 'border-[var(--border-strong)]'
                                                 }`}>
                                                 {isActive && <Check size={10} />}
                                             </div>
                                             <div>
-                                                <div className={`text-sm font-medium ${isActive ? 'text-blue-300' : 'text-slate-300'}`}>
+                                                <div className={`text-sm font-medium ${isActive ? 'text-[var(--color-primary-soft)]' : 'text-[var(--text-secondary)]'}`}>
                                                     {perm.label}
                                                 </div>
-                                                <div className="text-xs text-slate-500">{perm.description}</div>
+                                                <div className="text-xs text-[var(--text-muted)]">{perm.description}</div>
                                             </div>
                                         </div>
                                     );
@@ -474,11 +474,11 @@ export const AdminUserModal: React.FC<AdminUserModalProps> = ({ isOpen, onClose,
                     {/* 4. Proyectos */}
                     {['client', 'manager', 'consultant'].includes(formData.role) && (
                         <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
-                            <h3 className="text-sm font-bold text-[#1FB6D5] uppercase tracking-wider flex items-center gap-2">
+                            <h3 className="text-sm font-bold text-[var(--color-primary)] uppercase tracking-wider flex items-center gap-2">
                                 <Briefcase size={16} /> Asignación de Proyectos
                             </h3>
                             {loadingProjects ? (
-                                <div className="text-slate-500 text-sm flex items-center gap-2">
+                                <div className="text-[var(--text-muted)] text-sm flex items-center gap-2">
                                     <Loader2 className="animate-spin" size={14} /> Cargando proyectos disponibles...
                                 </div>
                             ) : (
@@ -495,8 +495,8 @@ export const AdminUserModal: React.FC<AdminUserModalProps> = ({ isOpen, onClose,
                                                     setFormData({ ...formData, businessIds: newBids });
                                                 }}
                                                 className={`px-3 py-2 rounded border cursor-pointer text-sm truncate transition-colors ${isSelected
-                                                    ? 'bg-emerald-900/20 border-emerald-500/50 text-emerald-300'
-                                                    : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-600'
+                                                    ? 'bg-emerald-900/20 border-[var(--color-success)]/50 text-[var(--color-success)]'
+                                                    : 'bg-[var(--bg-base)] border-[var(--border-subtle)] text-[var(--text-muted)] hover:border-[var(--border-strong)]'
                                                     }`}
                                                 title={proj.name}
                                             >
@@ -505,7 +505,7 @@ export const AdminUserModal: React.FC<AdminUserModalProps> = ({ isOpen, onClose,
                                         );
                                     })}
                                     {projects.length === 0 && (
-                                        <div className="text-slate-500 text-xs col-span-full">No hay proyectos disponibles.</div>
+                                        <div className="text-[var(--text-muted)] text-xs col-span-full">No hay proyectos disponibles.</div>
                                     )}
                                 </div>
                             )}
@@ -515,9 +515,9 @@ export const AdminUserModal: React.FC<AdminUserModalProps> = ({ isOpen, onClose,
                 </form>
 
                 {/* Footer */}
-                <div className="p-6 border-t border-slate-800 flex justify-end gap-3 bg-slate-900 sticky bottom-0 z-10">
+                <div className="p-6 border-t border-[var(--border-subtle)] flex justify-end gap-3 bg-[var(--bg-base)] sticky bottom-0 z-10">
                     <Button variant="ghost" onClick={onClose} disabled={isSubmitting}>Cancelar</Button>
-                    <Button onClick={handleSubmit} disabled={isSubmitting} className="bg-[#1FB6D5] hover:bg-[#189bb5] text-white">
+                    <Button onClick={handleSubmit} disabled={isSubmitting} className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-soft)] text-[var(--text-primary)]">
                         {isSubmitting ? (
                             <>
                                 <Loader2 className="animate-spin mr-2" size={16} /> Procesando...

@@ -44,10 +44,10 @@ const ProjectDeliverables: React.FC<ProjectDeliverablesProps> = ({ project }) =>
 
     const getStatusStyles = (status: Deliverable['status']) => {
         switch (status) {
-            case 'APPROVED': return 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20';
-            case 'REJECTED': return 'text-red-400 bg-red-500/10 border-red-500/20';
-            case 'IN_REVIEW': return 'text-amber-400 bg-amber-500/10 border-amber-500/20';
-            default: return 'text-slate-400 bg-slate-800 border-slate-700';
+            case 'APPROVED': return 'text-[var(--color-success)] bg-[var(--color-success)]/10 border-[var(--color-success)]/20';
+            case 'REJECTED': return 'text-[var(--color-danger)] bg-[var(--color-danger)]/10 border-[var(--color-danger)]/20';
+            case 'IN_REVIEW': return 'text-[var(--color-warning)] bg-[var(--color-warning)]/10 border-[rgba(255,177,42,0.40)]';
+            default: return 'text-[var(--text-muted)] bg-[var(--bg-surface)] border-[var(--border-subtle)]';
         }
     };
 
@@ -90,11 +90,11 @@ const ProjectDeliverables: React.FC<ProjectDeliverablesProps> = ({ project }) =>
         >
             {/* DRAG OVERLAY FOR MULTIPLE FILES */}
             {isDragging && (
-                <div className="absolute inset-0 z-50 bg-cyan-900/40 backdrop-blur-sm border-2 border-cyan-500 border-dashed rounded-2xl flex flex-col items-center justify-center pointer-events-none transition-all">
-                    <div className="bg-slate-900/90 p-6 rounded-2xl flex flex-col items-center shadow-2xl">
-                        <Upload className="w-12 h-12 text-cyan-400 mb-4 animate-bounce" />
-                        <h3 className="text-xl font-bold text-white mb-1">Suelta el archivo aquí</h3>
-                        <p className="text-cyan-400/80 text-sm">Se agregará como un nuevo entregable</p>
+                <div className="absolute inset-0 z-50 bg-[var(--bg-elevated)]/40 backdrop-blur-sm border-2 border-[var(--color-primary)] border-dashed rounded-md flex flex-col items-center justify-center pointer-events-none transition-all">
+                    <div className="bg-[var(--bg-base)]/90 p-6 rounded-md flex flex-col items-center shadow-2xl">
+                        <Upload className="w-12 h-12 text-[var(--color-primary)] mb-4 animate-bounce" />
+                        <h3 className="text-xl font-bold text-[var(--text-primary)] mb-1">Suelta el archivo aquí</h3>
+                        <p className="text-[var(--color-primary)]/80 text-sm">Se agregará como un nuevo entregable</p>
                     </div>
                 </div>
             )}
@@ -102,8 +102,8 @@ const ProjectDeliverables: React.FC<ProjectDeliverablesProps> = ({ project }) =>
             {/* Toolbar */}
             <div className="flex justify-between items-center">
                 <div>
-                    <h3 className="text-lg font-bold text-white">Entregables y Documentación</h3>
-                    <p className="text-slate-500 text-sm">Gestión de archivos, revisiones y aprobaciones finales.</p>
+                    <h3 className="text-lg font-bold text-[var(--text-primary)]">Entregables y Documentación</h3>
+                    <p className="text-[var(--text-muted)] text-sm">Gestión de archivos, revisiones y aprobaciones finales.</p>
                 </div>
                 <Button size="sm" onClick={() => setIsAddModalOpen(true)}>
                     <Plus className="w-4 h-4 mr-1" /> Nuevo Entregable
@@ -113,18 +113,18 @@ const ProjectDeliverables: React.FC<ProjectDeliverablesProps> = ({ project }) =>
             {/* Grid of Deliverables */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {isLoading ? (
-                    <div className="col-span-full py-20 text-center text-slate-500 animate-pulse">Cargando entregables...</div>
+                    <div className="col-span-full py-20 text-center text-[var(--text-muted)] animate-pulse">Cargando entregables...</div>
                 ) : deliverables.length > 0 ? (
                     deliverables.map(item => (
-                        <div key={item.id} className="bg-slate-900 border border-slate-800 rounded-xl p-5 hover:border-slate-700 transition-all group">
+                        <div key={item.id} className="bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-md p-5 hover:border-[var(--border-subtle)] transition-all group">
                             <div className="flex items-start justify-between mb-4">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center text-cyan-400 border border-slate-700">
+                                    <div className="w-10 h-10 rounded-lg bg-[var(--bg-surface)] flex items-center justify-center text-[var(--color-primary)] border border-[var(--border-subtle)]">
                                         <FileText className="w-5 h-5" />
                                     </div>
                                     <div>
-                                        <h4 className="text-white font-medium group-hover:text-cyan-400 transition-colors">{item.title}</h4>
-                                        <p className="text-[10px] text-slate-500 font-mono uppercase tracking-widest mt-0.5">Versión {item.version || '1.0'}</p>
+                                        <h4 className="text-[var(--text-primary)] font-medium group-hover:text-[var(--color-primary)] transition-colors">{item.title}</h4>
+                                        <p className="text-[10px] text-[var(--text-muted)] font-mono uppercase tracking-widest mt-0.5">Versión {item.version || '1.0'}</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2">
@@ -134,18 +134,18 @@ const ProjectDeliverables: React.FC<ProjectDeliverablesProps> = ({ project }) =>
                                 </div>
                             </div>
 
-                            <div className="flex items-center justify-between mt-6 pt-4 border-t border-slate-800/50">
-                                <div className="flex items-center gap-3 text-slate-500">
+                            <div className="flex items-center justify-between mt-6 pt-4 border-t border-[var(--border-subtle)]/50">
+                                <div className="flex items-center gap-3 text-[var(--text-muted)]">
                                     <button
                                         onClick={() => item.file_url && window.open(item.file_url, '_blank')}
-                                        className={`flex items-center gap-1.5 text-xs transition-colors ${item.file_url ? 'hover:text-white' : 'opacity-30 cursor-not-allowed'}`}
+                                        className={`flex items-center gap-1.5 text-xs transition-colors ${item.file_url ? 'hover:text-[var(--text-primary)]' : 'opacity-30 cursor-not-allowed'}`}
                                         disabled={!item.file_url}
                                     >
                                         <Download className="w-3.5 h-3.5" /> Descargar
                                     </button>
                                     <button
                                         onClick={() => item.file_url && window.open(item.file_url, '_blank')}
-                                        className={`flex items-center gap-1.5 text-xs transition-colors ${item.file_url ? 'hover:text-white' : 'opacity-30 cursor-not-allowed'}`}
+                                        className={`flex items-center gap-1.5 text-xs transition-colors ${item.file_url ? 'hover:text-[var(--text-primary)]' : 'opacity-30 cursor-not-allowed'}`}
                                         disabled={!item.file_url}
                                     >
                                         <Eye className="w-3.5 h-3.5" /> Ver
@@ -157,14 +157,14 @@ const ProjectDeliverables: React.FC<ProjectDeliverablesProps> = ({ project }) =>
                                         <>
                                             <button
                                                 onClick={() => handleStatusUpdate(item.id, 'APPROVED')}
-                                                className="p-1.5 text-emerald-500 hover:bg-emerald-500/10 rounded-lg transition-all"
+                                                className="p-1.5 text-[var(--color-success)] hover:bg-[var(--color-success)]/10 rounded-lg transition-all"
                                                 title="Aprobar"
                                             >
                                                 <CheckCircle2 className="w-4 h-4" />
                                             </button>
                                             <button
                                                 onClick={() => handleStatusUpdate(item.id, 'REJECTED')}
-                                                className="p-1.5 text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
+                                                className="p-1.5 text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10 rounded-lg transition-all"
                                                 title="Rechazar"
                                             >
                                                 <XCircle className="w-4 h-4" />
@@ -173,7 +173,7 @@ const ProjectDeliverables: React.FC<ProjectDeliverablesProps> = ({ project }) =>
                                     )}
                                     <button
                                         onClick={() => handleDelete(item.id)}
-                                        className="p-1.5 text-slate-600 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all"
+                                        className="p-1.5 text-[var(--text-muted)] hover:text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10 rounded-lg transition-all"
                                     >
                                         <Trash2 className="w-4 h-4" />
                                     </button>
@@ -182,10 +182,10 @@ const ProjectDeliverables: React.FC<ProjectDeliverablesProps> = ({ project }) =>
                         </div>
                     ))
                 ) : (
-                    <div className="col-span-full py-20 text-center bg-slate-900/50 border border-slate-800 border-dashed rounded-2xl">
+                    <div className="col-span-full py-20 text-center bg-[var(--bg-base)]/50 border border-[var(--border-subtle)] border-dashed rounded-md">
                         <FileText className="w-10 h-10 text-slate-800 mx-auto mb-4" />
-                        <h5 className="text-slate-400 font-medium">Aún no hay entregables</h5>
-                        <p className="text-slate-600 text-sm mt-1">Sube el primer archivo o reporte para este proyecto.</p>
+                        <h5 className="text-[var(--text-muted)] font-medium">Aún no hay entregables</h5>
+                        <p className="text-[var(--text-muted)] text-sm mt-1">Sube el primer archivo o reporte para este proyecto.</p>
                         <Button variant="ghost" size="sm" className="mt-6" onClick={() => setIsAddModalOpen(true)}>
                             <Plus className="w-4 h-4 mr-2" /> Agregar Entregable
                         </Button>

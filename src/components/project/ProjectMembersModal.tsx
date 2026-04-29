@@ -101,14 +101,14 @@ const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({ project, isOp
 
     return ReactDOM.createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-scale-in">
+            <div className="bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-md w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-scale-in">
                 {/* Header */}
-                <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-900/50">
+                <div className="p-6 border-b border-[var(--border-subtle)] flex justify-between items-center bg-[var(--bg-base)]/50">
                     <div>
-                        <h2 className="text-xl font-bold text-white">Gestionar Equipo</h2>
-                        <p className="text-slate-500 text-sm">{project.business_name}</p>
+                        <h2 className="text-xl font-bold text-[var(--text-primary)]">Gestionar Equipo</h2>
+                        <p className="text-[var(--text-muted)] text-sm">{project.business_name}</p>
                     </div>
-                    <button onClick={onClose} className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-full transition-all">
+                    <button onClick={onClose} className="p-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] rounded-full transition-all">
                         <X className="w-6 h-6" />
                     </button>
                 </div>
@@ -116,44 +116,44 @@ const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({ project, isOp
                 <div className="flex-1 overflow-auto p-6 space-y-8">
                     {/* Add Member Section */}
                     <div>
-                        <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+                        <h3 className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest mb-4 flex items-center gap-2">
                             <UserPlus className="w-4 h-4" /> Añadir Nuevo Miembro
                         </h3>
                         <div className="relative mb-4">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
                             <input
                                 type="text"
                                 placeholder="Buscar usuarios por nombre o email..."
-                                className="w-full bg-slate-950 border border-slate-800 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white focus:border-cyan-500 outline-none transition-all"
+                                className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-md py-2.5 pl-10 pr-4 text-sm text-[var(--text-primary)] focus:border-[var(--color-primary)] outline-none transition-all"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />
                         </div>
 
                         {searchQuery && (
-                            <div className="bg-slate-950 border border-slate-800 rounded-xl max-h-48 overflow-auto divide-y divide-slate-800/50">
+                            <div className="bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-md max-h-48 overflow-auto divide-y divide-[var(--border-subtle)]/50">
                                 {filteredUsers.length > 0 ? (
                                     filteredUsers.map(user => (
                                         <button
                                             key={user.id}
                                             onClick={() => handleAddUser(user)}
-                                            className="w-full p-3 flex items-center justify-between hover:bg-slate-900 transition-colors text-left"
+                                            className="w-full p-3 flex items-center justify-between hover:bg-[var(--bg-base)] transition-colors text-left"
                                             disabled={isSaving}
                                         >
                                             <div className="flex items-center gap-3">
-                                                <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-400">
+                                                <div className="w-8 h-8 rounded-full bg-[var(--bg-surface)] flex items-center justify-center text-xs font-bold text-[var(--text-muted)]">
                                                     {user.full_name?.charAt(0)}
                                                 </div>
                                                 <div>
-                                                    <p className="text-white text-sm font-medium">{user.full_name}</p>
-                                                    <p className="text-slate-500 text-xs">{user.email}</p>
+                                                    <p className="text-[var(--text-primary)] text-sm font-medium">{user.full_name}</p>
+                                                    <p className="text-[var(--text-muted)] text-xs">{user.email}</p>
                                                 </div>
                                             </div>
-                                            <UserPlus className="w-4 h-4 text-cyan-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                            <UserPlus className="w-4 h-4 text-[var(--color-primary)] opacity-0 group-hover:opacity-100 transition-opacity" />
                                         </button>
                                     ))
                                 ) : (
-                                    <p className="p-4 text-center text-slate-500 text-sm">No se encontraron usuarios disponibles.</p>
+                                    <p className="p-4 text-center text-[var(--text-muted)] text-sm">No se encontraron usuarios disponibles.</p>
                                 )}
                             </div>
                         )}
@@ -161,24 +161,24 @@ const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({ project, isOp
 
                     {/* Active Members List */}
                     <div>
-                        <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Miembros Actualles ({members.length})</h3>
+                        <h3 className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest mb-4">Miembros Actualles ({members.length})</h3>
                         <div className="space-y-3">
                             {isLoading ? (
-                                <div className="py-8 text-center text-slate-500 animate-pulse">Cargando miembros...</div>
+                                <div className="py-8 text-center text-[var(--text-muted)] animate-pulse">Cargando miembros...</div>
                             ) : members.length > 0 ? (
                                 members.map(member => (
-                                    <div key={member.user_id} className="bg-slate-950/50 border border-slate-800 rounded-xl p-4 flex items-center justify-between group">
+                                    <div key={member.user_id} className="bg-[var(--bg-base)]/50 border border-[var(--border-subtle)] rounded-md p-4 flex items-center justify-between group">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-sm font-bold text-cyan-400">
+                                            <div className="w-10 h-10 rounded-full bg-[var(--bg-surface)] border border-[var(--border-subtle)] flex items-center justify-center text-sm font-bold text-[var(--color-primary)]">
                                                 {member.usuarios?.full_name?.charAt(0)}
                                             </div>
                                             <div>
                                                 <div className="flex items-center gap-2">
-                                                    <p className="text-white font-medium">{member.usuarios?.full_name}</p>
-                                                    {member.role_id === 'admin' && <Shield className="w-3 h-3 text-orange-400" />}
+                                                    <p className="text-[var(--text-primary)] font-medium">{member.usuarios?.full_name}</p>
+                                                    {member.role_id === 'admin' && <Shield className="w-3 h-3 text-[var(--color-warning)]" />}
                                                 </div>
-                                                <p className="text-slate-500 text-xs">{member.usuarios?.email}</p>
-                                                <p className="text-[10px] text-slate-600">ID Role: {member.role_id}</p>
+                                                <p className="text-[var(--text-muted)] text-xs">{member.usuarios?.email}</p>
+                                                <p className="text-[10px] text-[var(--text-muted)]">ID Role: {member.role_id}</p>
                                             </div>
                                         </div>
 
@@ -186,7 +186,7 @@ const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({ project, isOp
                                             <select
                                                 value={member.role_id}
                                                 onChange={(e) => handleUpdateRole(member.user_id, e.target.value)}
-                                                className="bg-slate-900 border border-slate-800 text-slate-300 text-xs rounded-lg px-2 py-1 outline-none focus:border-cyan-500 transition-all"
+                                                className="bg-[var(--bg-base)] border border-[var(--border-subtle)] text-[var(--text-secondary)] text-xs rounded-lg px-2 py-1 outline-none focus:border-[var(--color-primary)] transition-all"
                                                 disabled={isSaving}
                                             >
                                                 {roles.map(r => (
@@ -196,7 +196,7 @@ const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({ project, isOp
 
                                             <button
                                                 onClick={() => handleRemoveMember(member.user_id)}
-                                                className="p-1.5 text-slate-600 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all"
+                                                className="p-1.5 text-[var(--text-muted)] hover:text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10 rounded-lg transition-all"
                                                 disabled={isSaving}
                                             >
                                                 <Trash2 className="w-4 h-4" />
@@ -205,8 +205,8 @@ const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({ project, isOp
                                     </div>
                                 ))
                             ) : (
-                                <div className="py-8 text-center bg-slate-950/30 border border-slate-800 border-dashed rounded-xl">
-                                    <p className="text-slate-500 text-sm">Este proyecto no tiene miembros asignados aún.</p>
+                                <div className="py-8 text-center bg-[var(--bg-base)]/30 border border-[var(--border-subtle)] border-dashed rounded-md">
+                                    <p className="text-[var(--text-muted)] text-sm">Este proyecto no tiene miembros asignados aún.</p>
                                 </div>
                             )}
                         </div>
@@ -214,7 +214,7 @@ const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({ project, isOp
                 </div>
 
                 {/* Footer */}
-                <div className="p-6 border-t border-slate-800 flex justify-end">
+                <div className="p-6 border-t border-[var(--border-subtle)] flex justify-end">
                     <Button onClick={onClose} variant="secondary">Cerrar</Button>
                 </div>
             </div>

@@ -105,22 +105,22 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ project, onClose, onSuccess
 
     return (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[60] p-4 backdrop-blur-sm animate-fade-in">
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
-                <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-900/50">
+            <div className="bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-md w-full max-w-lg shadow-2xl overflow-hidden">
+                <div className="p-6 border-b border-[var(--border-subtle)] flex justify-between items-center bg-[var(--bg-base)]/50">
                     <div>
-                        <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                            <Plus className="w-5 h-5 text-cyan-400" /> Nueva Tarea
+                        <h2 className="text-xl font-bold text-[var(--text-primary)] flex items-center gap-2">
+                            <Plus className="w-5 h-5 text-[var(--color-primary)]" /> Nueva Tarea
                         </h2>
-                        <p className="text-slate-400 text-xs mt-1">Proyecto: {project.business_name}</p>
+                        <p className="text-[var(--text-muted)] text-xs mt-1">Proyecto: {project.business_name}</p>
                     </div>
-                    <button onClick={onClose} className="text-slate-500 hover:text-white transition-colors">
+                    <button onClick={onClose} className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">
                         <X className="w-5 h-5" />
                     </button>
                 </div>
 
                 <form onSubmit={handleSubmit} className="p-6 space-y-4">
                     {error && (
-                        <div className="bg-red-500/10 border border-red-500/30 p-3 rounded-lg flex items-center gap-2 text-red-400 text-sm animate-shake">
+                        <div className="bg-[var(--color-danger)]/10 border border-[var(--color-danger)]/30 p-3 rounded-lg flex items-center gap-2 text-[var(--color-danger)] text-sm animate-shake">
                             <AlertCircle className="w-4 h-4" /> {error}
                         </div>
                     )}
@@ -135,9 +135,9 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ project, onClose, onSuccess
                     />
 
                     <div>
-                        <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Descripción (Opcional)</label>
+                        <label className="block text-xs font-bold text-[var(--text-muted)] uppercase mb-2">Descripción (Opcional)</label>
                         <textarea
-                            className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white focus:border-cyan-500 outline-none transition-all resize-none min-h-[80px]"
+                            className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-md p-3 text-sm text-[var(--text-primary)] focus:border-[var(--color-primary)] outline-none transition-all resize-none min-h-[80px]"
                             placeholder="Detalles adicionales..."
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
@@ -146,11 +146,11 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ project, onClose, onSuccess
 
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Tipo</label>
+                            <label className="block text-xs font-bold text-[var(--text-muted)] uppercase mb-2">Tipo</label>
                             <select
                                 value={type}
                                 onChange={(e) => setType(e.target.value as any)}
-                                className="w-full bg-slate-950 border border-slate-800 text-sm text-white rounded-xl px-3 py-2.5 outline-none focus:border-cyan-500"
+                                className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] text-sm text-[var(--text-primary)] rounded-md px-3 py-2.5 outline-none focus:border-[var(--color-primary)]"
                             >
                                 <option value="INTERNAL">Interna (Equipo)</option>
                                 <option value="CLIENT">Para el Cliente</option>
@@ -159,11 +159,11 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ project, onClose, onSuccess
                             </select>
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Prioridad</label>
+                            <label className="block text-xs font-bold text-[var(--text-muted)] uppercase mb-2">Prioridad</label>
                             <select
                                 value={priority}
                                 onChange={(e) => setPriority(e.target.value as any)}
-                                className="w-full bg-slate-950 border border-slate-800 text-sm text-white rounded-xl px-3 py-2.5 outline-none focus:border-cyan-500"
+                                className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] text-sm text-[var(--text-primary)] rounded-md px-3 py-2.5 outline-none focus:border-[var(--color-primary)]"
                             >
                                 <option value="low">Baja</option>
                                 <option value="medium">Media</option>
@@ -175,13 +175,13 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ project, onClose, onSuccess
 
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-xs font-bold text-slate-500 uppercase mb-2 flex items-center gap-1.5">
-                                <User className="w-3 h-3 text-cyan-400" /> Asignar a
+                            <label className="block text-xs font-bold text-[var(--text-muted)] uppercase mb-2 flex items-center gap-1.5">
+                                <User className="w-3 h-3 text-[var(--color-primary)]" /> Asignar a
                             </label>
                             <select
                                 value={assignedTo}
                                 onChange={(e) => setAssignedTo(e.target.value)}
-                                className="w-full bg-slate-950 border border-slate-800 text-sm text-white rounded-xl px-3 py-2.5 outline-none focus:border-cyan-500"
+                                className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] text-sm text-[var(--text-primary)] rounded-md px-3 py-2.5 outline-none focus:border-[var(--color-primary)]"
                                 disabled={isLoadingMembers}
                             >
                                 <option value="">Sin asignar (Libre)</option>
@@ -193,27 +193,27 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ project, onClose, onSuccess
                             </select>
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-slate-500 uppercase mb-2 flex items-center gap-1.5">
-                                <Calendar className="w-3 h-3 text-purple-400" /> Fecha Límite
+                            <label className="block text-xs font-bold text-[var(--text-muted)] uppercase mb-2 flex items-center gap-1.5">
+                                <Calendar className="w-3 h-3 text-[var(--color-primary)]" /> Fecha Límite
                             </label>
                             <input
                                 type="date"
                                 value={dueDate}
                                 onChange={(e) => setDueDate(e.target.value)}
-                                className="w-full bg-slate-950 border border-slate-800 text-sm text-white rounded-xl px-3 py-2.5 outline-none focus:border-cyan-500 h-[42px]"
+                                className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] text-sm text-[var(--text-primary)] rounded-md px-3 py-2.5 outline-none focus:border-[var(--color-primary)] h-[42px]"
                             />
                         </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-xs font-bold text-slate-500 uppercase mb-2 flex items-center gap-1.5">
-                                <Shield className="w-3 h-3 text-indigo-400" /> Visibilidad
+                            <label className="block text-xs font-bold text-[var(--text-muted)] uppercase mb-2 flex items-center gap-1.5">
+                                <Shield className="w-3 h-3 text-[var(--color-primary)]" /> Visibilidad
                             </label>
                             <select
                                 value={visibility}
                                 onChange={(e) => setVisibility(e.target.value as any)}
-                                className="w-full bg-slate-950 border border-slate-800 text-sm text-white rounded-xl px-3 py-2.5 outline-none focus:border-cyan-500"
+                                className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] text-sm text-[var(--text-primary)] rounded-md px-3 py-2.5 outline-none focus:border-[var(--color-primary)]"
                             >
                                 <option value="SHARED">Compartido (Equipo + Cliente)</option>
                                 <option value="INTERNAL_ONLY">Solo Equipo Interno</option>
@@ -222,7 +222,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ project, onClose, onSuccess
                         </div>
                     </div>
 
-                    <div className="flex gap-3 pt-4 border-t border-slate-800">
+                    <div className="flex gap-3 pt-4 border-t border-[var(--border-subtle)]">
                         <Button type="button" variant="outline" className="flex-1" onClick={onClose}>
                             Cancelar
                         </Button>

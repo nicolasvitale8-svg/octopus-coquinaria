@@ -35,11 +35,11 @@ const TickerGastronomico = () => {
   if (activeEvents.length === 0) return null;
 
   return (
-    <div className="w-full bg-black border-t border-b border-slate-800 h-12 flex items-center relative overflow-hidden z-30">
+    <div className="w-full bg-black border-t border-b border-[var(--border-subtle)] h-12 flex items-center relative overflow-hidden z-30">
 
       {/* Label (Desktop only) */}
-      <div className="hidden md:flex items-center h-full px-4 bg-black z-20 shadow-[5px_0_10px_rgba(0,0,0,0.5)] border-r border-slate-800">
-        <span className="text-[#1FB6D5] text-xs font-bold uppercase tracking-wider flex items-center gap-2">
+      <div className="hidden md:flex items-center h-full px-4 bg-black z-20 shadow-[5px_0_10px_rgba(0,0,0,0.5)] border-r border-[var(--border-subtle)]">
+        <span className="text-[var(--color-primary)] text-xs font-bold uppercase tracking-wider flex items-center gap-2">
           <Calendar className="w-3 h-3" />
           Calendario Octopus
         </span>
@@ -56,13 +56,13 @@ const TickerGastronomico = () => {
           style={{ animationPlayState: isPaused ? 'paused' : 'running' }}
         >
           {activeEvents.map((evt) => (
-            <div key={evt.id} className="flex items-center text-sm font-medium text-slate-300 whitespace-nowrap">
-              <span className="w-2 h-2 rounded-full bg-[#1FB6D5] mr-3"></span>
+            <div key={evt.id} className="flex items-center text-sm font-medium text-[var(--text-secondary)] whitespace-nowrap">
+              <span className="w-2 h-2 rounded-full bg-[var(--color-primary)] mr-3"></span>
               <span className="mr-2">
                 {/* Highlight the date part if present (before the colon) */}
                 {evt.mensaje?.includes(':') ? (
                   <>
-                    <span className="text-[#1FB6D5] font-bold">{evt.mensaje.split(':')[0]}:</span>
+                    <span className="text-[var(--color-primary)] font-bold">{evt.mensaje.split(':')[0]}:</span>
                     {evt.mensaje.split(':')[1]}
                   </>
                 ) : (
@@ -73,12 +73,12 @@ const TickerGastronomico = () => {
           ))}
           {/* Duplicate for seamless loop effect (optional, though CSS marquee does 100% to -100%) */}
           {activeEvents.map((evt) => (
-            <div key={`${evt.id}-dup`} className="flex items-center text-sm font-medium text-slate-300 whitespace-nowrap">
-              <span className="w-2 h-2 rounded-full bg-[#1FB6D5] mr-3"></span>
+            <div key={`${evt.id}-dup`} className="flex items-center text-sm font-medium text-[var(--text-secondary)] whitespace-nowrap">
+              <span className="w-2 h-2 rounded-full bg-[var(--color-primary)] mr-3"></span>
               <span className="mr-2">
                 {evt.mensaje?.includes(':') ? (
                   <>
-                    <span className="text-[#1FB6D5] font-bold">{evt.mensaje.split(':')[0]}:</span>
+                    <span className="text-[var(--color-primary)] font-bold">{evt.mensaje.split(':')[0]}:</span>
                     {evt.mensaje.split(':')[1]}
                   </>
                 ) : (
@@ -91,15 +91,15 @@ const TickerGastronomico = () => {
       </div>
 
       {/* Controls */}
-      <div className="flex items-center h-full px-4 bg-black z-20 shadow-[-5px_0_10px_rgba(0,0,0,0.5)] border-l border-slate-800">
+      <div className="flex items-center h-full px-4 bg-black z-20 shadow-[-5px_0_10px_rgba(0,0,0,0.5)] border-l border-[var(--border-subtle)]">
         <button
           onClick={() => setIsPaused(!isPaused)}
-          className="text-slate-400 hover:text-white transition-colors p-1"
+          className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors p-1"
           title={isPaused ? "Reanudar" : "Pausar"}
         >
           {isPaused ? <Play className="w-3 h-3" fill="currentColor" /> : <Pause className="w-3 h-3" fill="currentColor" />}
         </button>
-        <Link to="/calendar" className="hidden sm:block ml-4 text-[10px] font-bold uppercase tracking-wider text-[#1FB6D5] hover:text-white transition-colors">
+        <Link to="/calendar" className="hidden sm:block ml-4 text-[10px] font-bold uppercase tracking-wider text-[var(--color-primary)] hover:text-[var(--text-primary)] transition-colors">
           Ver calendario completo
         </Link>
       </div>

@@ -70,18 +70,18 @@ const SystemAccessManager: React.FC<Props> = ({ systems, onChange }) => {
     const SystemIcon = (type: string) => {
         const found = SYSTEM_TYPES.find(t => t.value === type);
         const Icon = found?.icon || Server;
-        return <Icon className="w-4 h-4 text-[#1FB6D5]" />;
+        return <Icon className="w-4 h-4 text-[var(--color-primary)]" />;
     };
 
     return (
         <div className="space-y-4">
             <div className="flex justify-between items-center">
-                <h3 className="text-sm font-bold text-slate-300 uppercase tracking-wider">
+                <h3 className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider">
                     Accesos y Sistemas ({systems?.length || 0})
                 </h3>
                 <button
                     onClick={() => setIsAdding(!isAdding)}
-                    className="text-xs flex items-center gap-1 text-[#1FB6D5] hover:text-white transition-colors"
+                    className="text-xs flex items-center gap-1 text-[var(--color-primary)] hover:text-[var(--text-primary)] transition-colors"
                 >
                     <Plus className="w-3 h-3" /> Agregar Acceso
                 </button>
@@ -90,40 +90,40 @@ const SystemAccessManager: React.FC<Props> = ({ systems, onChange }) => {
             {/* List */}
             <div className="grid grid-cols-1 gap-3">
                 {systems?.map((sys) => (
-                    <div key={sys.id} className="bg-slate-800/50 border border-slate-700 p-4 rounded-xl hover:border-slate-600 transition-colors group">
+                    <div key={sys.id} className="bg-[var(--bg-surface)]/50 border border-[var(--border-subtle)] p-4 rounded-md hover:border-[var(--border-strong)] transition-colors group">
                         <div className="flex flex-col md:flex-row justify-between gap-4">
 
                             {/* Header Info */}
                             <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-1">
                                     {SystemIcon(sys.type)}
-                                    <span className="font-bold text-white">{sys.name}</span>
-                                    <span className="text-xs bg-slate-900 text-slate-500 px-2 py-0.5 rounded-full border border-slate-800">
+                                    <span className="font-bold text-[var(--text-primary)]">{sys.name}</span>
+                                    <span className="text-xs bg-[var(--bg-base)] text-[var(--text-muted)] px-2 py-0.5 rounded-full border border-[var(--border-subtle)]">
                                         {sys.type}
                                     </span>
                                 </div>
 
                                 {sys.url && (
-                                    <a href={sys.url} target="_blank" rel="noopener noreferrer" className="text-xs text-[#1FB6D5] hover:underline truncate block max-w-xs mb-2">
+                                    <a href={sys.url} target="_blank" rel="noopener noreferrer" className="text-xs text-[var(--color-primary)] hover:underline truncate block max-w-xs mb-2">
                                         {sys.url}
                                     </a>
                                 )}
 
                                 {sys.notes && (
-                                    <p className="text-xs text-slate-400 italic border-l-2 border-slate-700 pl-2 mt-2">
+                                    <p className="text-xs text-[var(--text-muted)] italic border-l-2 border-[var(--border-subtle)] pl-2 mt-2">
                                         {sys.notes}
                                     </p>
                                 )}
                             </div>
 
                             {/* Credentials Box */}
-                            <div className="flex-1 bg-slate-900/50 p-3 rounded-lg border border-slate-800 text-sm space-y-2 min-w-[200px]">
+                            <div className="flex-1 bg-[var(--bg-base)]/50 p-3 rounded-lg border border-[var(--border-subtle)] text-sm space-y-2 min-w-[200px]">
                                 {sys.username && (
                                     <div className="flex justify-between items-center">
-                                        <span className="text-slate-500 text-xs">Usuario:</span>
+                                        <span className="text-[var(--text-muted)] text-xs">Usuario:</span>
                                         <div className="flex items-center gap-2">
-                                            <code className="text-slate-200">{sys.username}</code>
-                                            <button onClick={() => copyToClipboard(sys.username!)} title="Copiar Usuario" className="text-slate-600 hover:text-white">
+                                            <code className="text-[var(--text-secondary)]">{sys.username}</code>
+                                            <button onClick={() => copyToClipboard(sys.username!)} title="Copiar Usuario" className="text-[var(--text-muted)] hover:text-[var(--text-primary)]">
                                                 <Copy className="w-3 h-3" />
                                             </button>
                                         </div>
@@ -132,15 +132,15 @@ const SystemAccessManager: React.FC<Props> = ({ systems, onChange }) => {
 
                                 {sys.password && (
                                     <div className="flex justify-between items-center">
-                                        <span className="text-slate-500 text-xs">Password:</span>
+                                        <span className="text-[var(--text-muted)] text-xs">Password:</span>
                                         <div className="flex items-center gap-2">
-                                            <code className="text-[#1FB6D5]">
+                                            <code className="text-[var(--color-primary)]">
                                                 {visiblePasswords[sys.id] ? sys.password : '••••••••'}
                                             </code>
-                                            <button onClick={() => togglePassword(sys.id)} className="text-slate-600 hover:text-white">
+                                            <button onClick={() => togglePassword(sys.id)} className="text-[var(--text-muted)] hover:text-[var(--text-primary)]">
                                                 {visiblePasswords[sys.id] ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
                                             </button>
-                                            <button onClick={() => copyToClipboard(sys.password!)} title="Copiar Password" className="text-slate-600 hover:text-white">
+                                            <button onClick={() => copyToClipboard(sys.password!)} title="Copiar Password" className="text-[var(--text-muted)] hover:text-[var(--text-primary)]">
                                                 <Copy className="w-3 h-3" />
                                             </button>
                                         </div>
@@ -150,7 +150,7 @@ const SystemAccessManager: React.FC<Props> = ({ systems, onChange }) => {
 
                             {/* Actions */}
                             <div className="flex items-center">
-                                <button onClick={() => removeSystem(sys.id)} className="p-2 text-slate-600 hover:text-red-400 hover:bg-red-900/20 rounded-lg transition-colors">
+                                <button onClick={() => removeSystem(sys.id)} className="p-2 text-[var(--text-muted)] hover:text-[var(--color-danger)] hover:bg-[rgba(255,77,77,0.12)]/20 rounded-lg transition-colors">
                                     <Trash2 className="w-4 h-4" />
                                 </button>
                             </div>
@@ -160,7 +160,7 @@ const SystemAccessManager: React.FC<Props> = ({ systems, onChange }) => {
                 ))}
 
                 {(!systems || systems.length === 0) && !isAdding && (
-                    <div className="text-center p-6 text-slate-500 text-sm border border-dashed border-slate-700 rounded-xl">
+                    <div className="text-center p-6 text-[var(--text-muted)] text-sm border border-dashed border-[var(--border-subtle)] rounded-md">
                         No hay sistemas registrados.
                     </div>
                 )}
@@ -168,22 +168,22 @@ const SystemAccessManager: React.FC<Props> = ({ systems, onChange }) => {
 
             {/* Add Form */}
             {isAdding && (
-                <div className="bg-slate-800 border border-[#1FB6D5]/30 p-4 rounded-xl animate-in fade-in zoom-in-95 duration-200">
-                    <h4 className="text-white font-bold mb-4 text-sm">Nuevo Sistema</h4>
+                <div className="bg-[var(--bg-surface)] border border-[var(--color-primary)]/30 p-4 rounded-md animate-in fade-in zoom-in-95 duration-200">
+                    <h4 className="text-[var(--text-primary)] font-bold mb-4 text-sm">Nuevo Sistema</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label className="text-xs text-slate-400 block mb-1">Nombre Sistema *</label>
+                            <label className="text-xs text-[var(--text-muted)] block mb-1">Nombre Sistema *</label>
                             <input
-                                className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-sm"
+                                className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded p-2 text-[var(--text-primary)] text-sm"
                                 placeholder="Ej: Fudo, Maxirest, PedidosYa"
                                 value={newItem.name}
                                 onChange={e => setNewItem({ ...newItem, name: e.target.value })}
                             />
                         </div>
                         <div>
-                            <label className="text-xs text-slate-400 block mb-1">Tipo</label>
+                            <label className="text-xs text-[var(--text-muted)] block mb-1">Tipo</label>
                             <select
-                                className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-sm"
+                                className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded p-2 text-[var(--text-primary)] text-sm"
                                 value={newItem.type}
                                 onChange={e => setNewItem({ ...newItem, type: e.target.value as any })}
                             >
@@ -191,27 +191,27 @@ const SystemAccessManager: React.FC<Props> = ({ systems, onChange }) => {
                             </select>
                         </div>
                         <div className="md:col-span-2">
-                            <label className="text-xs text-slate-400 block mb-1">URL Acceso</label>
+                            <label className="text-xs text-[var(--text-muted)] block mb-1">URL Acceso</label>
                             <input
-                                className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-sm"
+                                className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded p-2 text-[var(--text-primary)] text-sm"
                                 placeholder="https://..."
                                 value={newItem.url}
                                 onChange={e => setNewItem({ ...newItem, url: e.target.value })}
                             />
                         </div>
                         <div>
-                            <label className="text-xs text-slate-400 block mb-1">Usuario</label>
+                            <label className="text-xs text-[var(--text-muted)] block mb-1">Usuario</label>
                             <input
-                                className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-sm"
+                                className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded p-2 text-[var(--text-primary)] text-sm"
                                 placeholder="admin"
                                 value={newItem.username}
                                 onChange={e => setNewItem({ ...newItem, username: e.target.value })}
                             />
                         </div>
                         <div>
-                            <label className="text-xs text-slate-400 block mb-1">Contraseña / Link a Vault</label>
+                            <label className="text-xs text-[var(--text-muted)] block mb-1">Contraseña / Link a Vault</label>
                             <input
-                                className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-sm"
+                                className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded p-2 text-[var(--text-primary)] text-sm"
                                 placeholder="•••••••"
                                 type="text" // Text to allow "See 1Password" notes
                                 value={newItem.password}
@@ -219,9 +219,9 @@ const SystemAccessManager: React.FC<Props> = ({ systems, onChange }) => {
                             />
                         </div>
                         <div className="md:col-span-2">
-                            <label className="text-xs text-slate-400 block mb-1">Notas Adicionales</label>
+                            <label className="text-xs text-[var(--text-muted)] block mb-1">Notas Adicionales</label>
                             <input
-                                className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-sm"
+                                className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded p-2 text-[var(--text-primary)] text-sm"
                                 placeholder="Ej: Solo usar en horario laboral. 2FA activo."
                                 value={newItem.notes}
                                 onChange={e => setNewItem({ ...newItem, notes: e.target.value })}
@@ -229,8 +229,8 @@ const SystemAccessManager: React.FC<Props> = ({ systems, onChange }) => {
                         </div>
                     </div>
                     <div className="flex justify-end gap-2 mt-4">
-                        <button onClick={() => setIsAdding(false)} className="px-3 py-1 text-slate-400 hover:text-white text-sm">Cancelar</button>
-                        <button onClick={handleAdd} className="px-3 py-1 bg-[#1FB6D5] text-[#021019] rounded font-bold text-sm hover:bg-white transition-colors">Guardar Sistema</button>
+                        <button onClick={() => setIsAdding(false)} className="px-3 py-1 text-[var(--text-muted)] hover:text-[var(--text-primary)] text-sm">Cancelar</button>
+                        <button onClick={handleAdd} className="px-3 py-1 bg-[var(--color-primary)] text-[#050607] rounded font-bold text-sm hover:bg-white transition-colors">Guardar Sistema</button>
                     </div>
                 </div>
             )}
