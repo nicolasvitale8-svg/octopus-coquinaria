@@ -108,7 +108,7 @@ export const Loans: React.FC = () => {
             setSubCategories(subs);
 
             // --- AUTO LOAD SCRIPT ---
-            if (!localStorage.getItem('fix_loans_naranja_final') && cats.length > 0 && accs.length > 0) {
+            if (!localStorage.getItem('fix_loans_naranja_v3_dedup') && cats.length > 0 && accs.length > 0) {
                 const nxAcc = accs.find(a => a.name.toUpperCase().includes('NARANJA'));
                 const prestamosCat = cats.find(c => c.name === 'Préstamos');
                 let subCat = subs.find(s => s.name === 'Cuota Tarjeta' && s.categoryId === prestamosCat?.id);
@@ -128,10 +128,25 @@ export const Loans: React.FC = () => {
                         try { await SupabaseService.deleteBudgetItem(id); } catch(e){}
                     }
 
-                    // 2. Delete the old incorrect loan
+                    // 2. Delete TODOS los prestamos auto-importados anteriores
+                    //    (incluyendo los que esta migracion haya creado en runs previas
+                    //    cuando el flag de localStorage se limpio). Filtros usados:
+                    //    - description marker comun "Auto-importado desde resumen Naranja X"
+                    //    - counterparty incluye NARANJA (caso legacy)
+                    //    - total_amount === 114641.6 (caso legacy especifico)
+                    //    - account es Naranja Y categoria es Prestamos Y subcategoria
+                    //      Cuota Tarjeta (combinacion certera de auto-import)
                     const existingLoans = await loanService.getAll(projectId);
+                    const AUTO_IMPORT_MARKER = 'Auto-importado desde resumen Naranja X';
                     for (const el of existingLoans) {
-                        if (el.total_amount === 114641.6 || el.counterparty.toUpperCase().includes('NARANJA')) {
+                        const isAutoImported =
+                            el.description === AUTO_IMPORT_MARKER ||
+                            el.total_amount === 114641.6 ||
+                            el.counterparty.toUpperCase().includes('NARANJA') ||
+                            (el.account_id === nxAcc.id &&
+                             el.category_id === prestamosCat.id &&
+                             el.subcategory_id === subCat.id);
+                        if (isAutoImported) {
                             try { await loanService.delete(el.id); } catch(e){}
                         }
                     }
@@ -182,7 +197,7 @@ export const Loans: React.FC = () => {
                             await SupabaseService.saveBudgetItem(budgetItem, projectId ?? undefined);
                         }
                     }
-                    localStorage.setItem('fix_loans_naranja_final', 'true');
+                    localStorage.setItem('fix_loans_naranja_v3_dedup', 'true');
                     alert('¡Limpieza completada! Se borraron los préstamos mal cargados y se cargaron automáticamente las 4 deudas exactas de Naranja X.');
                     window.location.reload();
                 }
