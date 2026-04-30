@@ -214,10 +214,172 @@ export const parseMercadoPagoPDF = (text: string): ImportLine[] => {
 };
 
 /**
+ * Detector de capturas de pantalla de Naranja X mobile app.
+ * Busca marcadores característicos del feed de movimientos.
+ */
+const isNaranjaXScreenshot = (text: string): boolean => {
+    const lower = text.toLowerCase();
+    let score = 0;
+    // Markers fuertes (presencia => alta probabilidad)
+    if (/tarjeta\s*naranja\s*x/i.test(text)) score += 3;
+    if (/pago\s*de\s*resumen/i.test(text)) score += 2;
+    if (/rendimiento\s*diario/i.test(text)) score += 2;
+    if (/creaci[oó]n\s*de\s*frasco/i.test(text)) score += 2;
+    if (/acreditaci[oó]n\s*de\s*frasco/i.test(text)) score += 2;
+    if (/pago\s*con\s*tarjeta\s*de\s*d[eé]bito/i.test(text)) score += 1;
+    if (/perc\.?\s*rg/i.test(text)) score += 1;
+    // Mercado Pago tiene markers específicos que pesan en contra
+    if (/resumen\s*de\s*cuenta/i.test(text)) score -= 5;
+    if (/detalle\s*de\s*movimientos/i.test(text)) score -= 5;
+    return score >= 3;
+};
+
+/**
+ * Parser específico para capturas de pantalla de Naranja X mobile app.
+ *
+ * Formato típico (después del OCR) — bloques de 3 líneas por movimiento:
+ *   [día] de [mes]
+ *   [descripción] (a veces "subtítulo" en línea siguiente)
+ *   [+/-] $ [monto]
+ *
+ * Ruido de OCR a limpiar (íconos a la izquierda interpretados como chars):
+ *   - "l Rendimiento diario" → "Rendimiento diario"
+ *   - "a 27 de abril" → "27 de abril"
+ *   - "2 23 de abril" → "23 de abril"
+ *   - "Eo e." / "e Ln" → líneas de garbage puro a descartar
+ */
+export const parseNaranjaXScreenshot = (text: string): ImportLine[] => {
+    const result: ImportLine[] = [];
+    const months: Record<string, string> = {
+        enero:'01', febrero:'02', marzo:'03', abril:'04', mayo:'05', junio:'06',
+        julio:'07', agosto:'08', septiembre:'09', octubre:'10', noviembre:'11', diciembre:'12'
+    };
+    const currentYear = new Date().getFullYear();
+    const currentMonthNum = new Date().getMonth() + 1;
+
+    // Limpieza agresiva de prefijos de ícono OCR
+    const cleanLine = (str: string): string => {
+        let s = str;
+        // 1. Strip prefijos de 1-3 chars + espacio (típicos de iconos OCR mal capturados)
+        //    Pero NUNCA tocar +, -, $ o números seguidos de "de mes"
+        // Ejemplos válidos a limpiar: "l Rendimiento", "a 27 de", "Eo e.", "fu] PERC"
+        // Match: leading 1-3 letras (no acentuadas) + espacio
+        s = s.replace(/^[a-zA-Z]{1,3}\s+(?=[A-Z])/, ''); // "l Rendimiento" → "Rendimiento"
+        s = s.replace(/^[a-zA-Z0-9]\s+(?=\d{1,2}\s+de\s+[a-z])/i, ''); // "a 27 de abril" → "27 de abril"
+        s = s.replace(/^[a-zA-Z0-9]\s+(?=\d)/, ''); // "2 23 de abril" → "23 de abril" (un dígito + espacio + número)
+        // 2. Strip non-alphanumeric noise al inicio (pero conservar +, -, $)
+        s = s.replace(/^[^a-zA-Z0-9\+\-\$]+/, '');
+        return s.trim();
+    };
+
+    const isJunkLine = (s: string): boolean => {
+        // Líneas muy cortas sin $ ni dígitos
+        if (s.length < 4 && !/[\$\d]/.test(s)) return true;
+        // Líneas <8 chars con baja densidad alfabética
+        // ("Eo e.", "e Ln", "fu]" — íconos OCR mal capturados)
+        if (s.length < 10 && !/\$/.test(s) && !/\d{1,2}\s+de\s+/i.test(s)) {
+            const words = s.split(/\s+/).filter(w => w.length > 0);
+            const longestWordLetters = Math.max(0, ...words.map(w => (w.match(/[a-zA-Záéíóúñ]/gi) || []).length));
+            // Si la palabra más larga tiene <4 letras alfabéticas, es garbage
+            if (longestWordLetters < 4) return true;
+        }
+        return false;
+    };
+
+    const lines = text.split('\n').map(cleanLine).filter(l => l && !isJunkLine(l));
+
+    // Procesamos en bloques: buscar [fecha] [desc...] [monto]
+    let currentDate: string | null = null;
+    let descBuffer: string[] = [];
+
+    const flushTransaction = (sign: string, valueStr: string) => {
+        // valueStr: "2.112,49" o "0,85"
+        const cleanValue = valueStr.replace(/\./g, '').replace(',', '.');
+        const amount = parseFloat(cleanValue);
+        if (isNaN(amount) || amount <= 0 || !currentDate) return;
+
+        // Strip leading "En " de cada parte (común en subtítulos NX)
+        // "En Dlo*amazon Music" → "Dlo*amazon Music"
+        const cleanedParts = descBuffer
+            .map(p => p.replace(/^En\s+/i, '').trim())
+            .filter(p => p.length > 0);
+        let description = cleanedParts.join(' · ').trim();
+        if (description.length < 3) {
+            description = sign === '+' ? 'Ingreso Naranja X' : 'Egreso Naranja X';
+        }
+
+        const type = sign === '+' ? TransactionType.IN : TransactionType.OUT;
+        result.push({
+            id: crypto.randomUUID(),
+            rawText: descBuffer.join(' / ') + ' ' + sign + valueStr,
+            date: currentDate,
+            description,
+            amount,
+            type,
+            isSelected: true,
+            isDuplicate: false,
+        });
+        descBuffer = [];
+    };
+
+    const dateRegex = /^(\d{1,2})\s+de\s+([a-zA-Záéíóúñ]+)/i;
+    const amountRegex = /^([+\-])\s*\$?\s*([\d\.]+,\d{2})\s*$/;
+
+    for (const line of lines) {
+        // 1. ¿Es una fecha?
+        const dateMatch = line.match(dateRegex);
+        if (dateMatch) {
+            const day = dateMatch[1].padStart(2, '0');
+            const monthName = dateMatch[2].toLowerCase();
+            if (months[monthName]) {
+                const month = months[monthName];
+                let y = currentYear;
+                if (parseInt(month) > currentMonthNum + 2) y = currentYear - 1;
+                currentDate = `${y}-${month}-${day}`;
+                descBuffer = []; // reset buffer al cambiar de fecha
+                continue;
+            }
+        }
+
+        // 2. ¿Es un monto? (cierra bloque)
+        const amountMatch = line.match(amountRegex);
+        if (amountMatch && currentDate) {
+            flushTransaction(amountMatch[1], amountMatch[2]);
+            continue;
+        }
+
+        // 3. Caso: monto inline con descripción (e.g. "Rendimiento diario + $ 0,85")
+        const inlineAmount = line.match(/(.*?)\s+([+\-])\s*\$\s*([\d\.]+,\d{2})\s*$/);
+        if (inlineAmount && currentDate) {
+            const desc = inlineAmount[1].trim();
+            if (desc) descBuffer.push(desc);
+            flushTransaction(inlineAmount[2], inlineAmount[3]);
+            continue;
+        }
+
+        // 4. Es descripción → al buffer
+        if (currentDate && line.length >= 3 && !line.match(/^[\d\.,$\s\-\+]+$/)) {
+            descBuffer.push(line);
+        }
+    }
+
+    return result;
+};
+
+/**
  * Función principal que detecta el formato y usa el parser apropiado.
  */
 export const parseImportText = (text: string): ImportLine[] => {
-    // Detectar si es un resumen de Mercado Pago
+    // 1. Capturas de Naranja X (mobile screenshots) — específico
+    if (isNaranjaXScreenshot(text)) {
+        const nxResults = parseNaranjaXScreenshot(text);
+        if (nxResults.length > 0) {
+            logger.debug('Naranja X screenshot detectado', { context: 'ImportEngine', data: { count: nxResults.length } });
+            return nxResults;
+        }
+    }
+
+    // 2. PDF de Mercado Pago
     const isMercadoPagoPDF = text.includes('RESUMEN DE CUENTA') ||
         text.includes('mercado pago') ||
         text.includes('DETALLE DE MOVIMIENTOS') ||
@@ -230,7 +392,7 @@ export const parseImportText = (text: string): ImportLine[] => {
         }
     }
 
-    // Fallback al parser genérico
+    // 3. Fallback al parser genérico (capturas de Mercado Pago mobile, Lemon, etc.)
     return parseRawText(text);
 };
 
