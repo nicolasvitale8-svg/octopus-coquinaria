@@ -215,23 +215,26 @@ export const parseMercadoPagoPDF = (text: string): ImportLine[] => {
 
 /**
  * Detector de capturas de pantalla de Naranja X mobile app.
- * Busca marcadores característicos del feed de movimientos.
+ * Tolerante a typos de OCR (fuzzy markers).
  */
 const isNaranjaXScreenshot = (text: string): boolean => {
-    const lower = text.toLowerCase();
     let score = 0;
-    // Markers fuertes (presencia => alta probabilidad)
-    if (/tarjeta\s*naranja\s*x/i.test(text)) score += 3;
-    if (/pago\s*de\s*resumen/i.test(text)) score += 2;
-    if (/rendimiento\s*diario/i.test(text)) score += 2;
-    if (/creaci[oó]n\s*de\s*frasco/i.test(text)) score += 2;
-    if (/acreditaci[oó]n\s*de\s*frasco/i.test(text)) score += 2;
-    if (/pago\s*con\s*tarjeta\s*de\s*d[eé]bito/i.test(text)) score += 1;
+    // Markers fuertes con tolerancia a OCR (.{0,2} permite hasta 2 chars de error)
+    if (/tar[jiltf]eta\s*nara[njil]+\w*\s*x/i.test(text)) score += 3;
+    if (/nara[njil]+a\s*x/i.test(text)) score += 2;
+    if (/pago\s*de\s*resu[mn]e?n/i.test(text)) score += 2;
+    if (/ren?d[il]m[il]ento\s*d[il]ar[il]o/i.test(text)) score += 2;
+    if (/cre[aoá]c[il][oó]n\s*de\s*frasco/i.test(text)) score += 2;
+    if (/acred[il]tac[il][oó]n\s*de\s*frasco/i.test(text)) score += 2;
+    if (/pago\s*con\s*tar[jiltf]eta\s*de\s*d[eé]b[il]to/i.test(text)) score += 2;
     if (/perc\.?\s*rg/i.test(text)) score += 1;
+    if (/galicia\s*seg/i.test(text)) score += 1;
+    if (/transferenc[il]a\s*rec[il]b[il]da/i.test(text)) score += 1;
+    if (/dlo\*?amazon/i.test(text)) score += 1;
     // Mercado Pago tiene markers específicos que pesan en contra
     if (/resumen\s*de\s*cuenta/i.test(text)) score -= 5;
     if (/detalle\s*de\s*movimientos/i.test(text)) score -= 5;
-    return score >= 3;
+    return score >= 2; // Threshold bajado de 3 → 2 para mayor cobertura
 };
 
 /**
@@ -296,7 +299,9 @@ export const parseNaranjaXScreenshot = (text: string): ImportLine[] => {
         // valueStr: "2.112,49" o "0,85"
         const cleanValue = valueStr.replace(/\./g, '').replace(',', '.');
         const amount = parseFloat(cleanValue);
-        if (isNaN(amount) || amount <= 0 || !currentDate) return;
+        if (isNaN(amount) || amount <= 0) return;
+        // Si OCR no detecto la fecha, usamos hoy como fallback (usuario corrige manual).
+        const dateForRow = currentDate || new Date().toISOString().split('T')[0];
 
         // Strip leading "En " de cada parte (común en subtítulos NX)
         // "En Dlo*amazon Music" → "Dlo*amazon Music"
@@ -312,7 +317,7 @@ export const parseNaranjaXScreenshot = (text: string): ImportLine[] => {
         result.push({
             id: crypto.randomUUID(),
             rawText: descBuffer.join(' / ') + ' ' + sign + valueStr,
-            date: currentDate,
+            date: dateForRow,
             description,
             amount,
             type,
@@ -322,42 +327,85 @@ export const parseNaranjaXScreenshot = (text: string): ImportLine[] => {
         descBuffer = [];
     };
 
-    const dateRegex = /^(\d{1,2})\s+de\s+([a-zA-Záéíóúñ]+)/i;
-    const amountRegex = /^([+\-])\s*\$?\s*([\d\.]+,\d{2})\s*$/;
+    // Patrones flexibles de fecha. Buscamos en CUALQUIER posición de la línea,
+    // no solo al inicio, porque el OCR puede mezclar la fecha con texto contiguo.
+    // Ej: "26 de abril Rendimiento diario", "Rendimiento 26 abril", "26-04 Pago"
+    const datePatterns = [
+        /(\d{1,2})\s+de\s+([a-zA-Záéíóúñ]{3,})/i,                  // "26 de abril"
+        /(\d{1,2})\s+([a-zA-Záéíóúñ]{4,})/i,                       // "26 abril" (sin "de")
+        /(\d{1,2})[\/\.\-]([a-zA-Záéíóúñ]{3,})/i,                  // "26/abril", "26-abril"
+        /(\d{1,2})[\/\.\-](\d{1,2})(?![\/\.\-]\d)/,                // "26/04" (sin año)
+    ];
+    // Amount: + o - opcional, espacios opcionales, $ opcional, número con coma decimal
+    const amountRegex = /([+\-])?\s*\$\s*([\d\.]+,\d{2})/;
+    const amountInlineRegex = /([+\-])\s*\$\s*([\d\.]+,\d{2})/;
+
+    const tryParseDate = (line: string): { date: string; lineWithoutDate: string } | null => {
+        for (const pat of datePatterns) {
+            const m = line.match(pat);
+            if (!m) continue;
+            const dayStr = m[1];
+            const monthRaw = m[2];
+            let month: string | undefined;
+            if (/^\d+$/.test(monthRaw)) {
+                month = monthRaw.padStart(2, '0');
+            } else {
+                const monthKey = monthRaw.toLowerCase().replace(/[^a-záéíóúñ]/g, '');
+                // Fuzzy match — primer mes que comparte primeros 3 chars
+                const found = Object.keys(months).find(k =>
+                    k === monthKey || k.startsWith(monthKey.slice(0, 3)) || monthKey.startsWith(k.slice(0, 3))
+                );
+                if (found) month = months[found];
+            }
+            if (!month) continue;
+            const day = dayStr.padStart(2, '0');
+            let y = currentYear;
+            if (parseInt(month) > currentMonthNum + 2) y = currentYear - 1;
+            return {
+                date: `${y}-${month}-${day}`,
+                lineWithoutDate: line.replace(m[0], '').trim(),
+            };
+        }
+        return null;
+    };
 
     for (const line of lines) {
-        // 1. ¿Es una fecha?
-        const dateMatch = line.match(dateRegex);
-        if (dateMatch) {
-            const day = dateMatch[1].padStart(2, '0');
-            const monthName = dateMatch[2].toLowerCase();
-            if (months[monthName]) {
-                const month = months[monthName];
-                let y = currentYear;
-                if (parseInt(month) > currentMonthNum + 2) y = currentYear - 1;
-                currentDate = `${y}-${month}-${day}`;
-                descBuffer = []; // reset buffer al cambiar de fecha
-                continue;
+        // 1. ¿La línea contiene una fecha? (puede estar al inicio O acompañada de texto)
+        const dateInfo = tryParseDate(line);
+        if (dateInfo) {
+            // Antes de cambiar fecha: si el buffer tiene desc pendiente con currentDate,
+            // no flusheamos sin amount (esperamos el amount).
+            currentDate = dateInfo.date;
+            descBuffer = [];
+            // Si la línea tenía MÁS contenido después de la fecha, procesarlo
+            const remainder = dateInfo.lineWithoutDate;
+            if (remainder.length >= 3) {
+                // ¿El resto contiene un amount inline?
+                const inline = remainder.match(amountInlineRegex);
+                if (inline) {
+                    const desc = remainder.replace(inline[0], '').trim();
+                    if (desc) descBuffer.push(desc);
+                    flushTransaction(inline[1] || (remainder.includes('-') ? '-' : '+'), inline[2]);
+                } else {
+                    // Solo descripción → al buffer
+                    descBuffer.push(remainder);
+                }
             }
+            continue;
         }
 
-        // 2. ¿Es un monto? (cierra bloque)
+        // 2. ¿Es un monto puro o con texto?
         const amountMatch = line.match(amountRegex);
         if (amountMatch && currentDate) {
-            flushTransaction(amountMatch[1], amountMatch[2]);
+            const sign = amountMatch[1] || (line.includes('-') ? '-' : '+');
+            // Texto antes/después del amount es descripción adicional
+            const desc = line.replace(amountMatch[0], '').trim();
+            if (desc && desc.length >= 3) descBuffer.push(desc);
+            flushTransaction(sign, amountMatch[2]);
             continue;
         }
 
-        // 3. Caso: monto inline con descripción (e.g. "Rendimiento diario + $ 0,85")
-        const inlineAmount = line.match(/(.*?)\s+([+\-])\s*\$\s*([\d\.]+,\d{2})\s*$/);
-        if (inlineAmount && currentDate) {
-            const desc = inlineAmount[1].trim();
-            if (desc) descBuffer.push(desc);
-            flushTransaction(inlineAmount[2], inlineAmount[3]);
-            continue;
-        }
-
-        // 4. Es descripción → al buffer
+        // 3. Es descripción pura → al buffer si tenemos fecha
         if (currentDate && line.length >= 3 && !line.match(/^[\d\.,$\s\-\+]+$/)) {
             descBuffer.push(line);
         }
