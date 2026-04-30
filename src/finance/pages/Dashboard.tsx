@@ -76,7 +76,7 @@ const DetailModal: React.FC<{
     }
   }, [type, transactions, categories, month, year, periodStates, jars]);
 
-  const COLORS = ['#10B981', '#3B82F6', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
+  const COLORS = ['#00C57D', '#00FF9D', '#FFB12A', '#FF4D4D', '#5DFFC1', '#FF4D4D'];
 
   const getTitle = () => {
     if (activeCategoryScope) return `Gastos de ${activeCategoryScope}`;
@@ -90,9 +90,9 @@ const DetailModal: React.FC<{
 
   return (
     <div className="fixed inset-0 bg-fin-bg/40 backdrop-blur-[20px] flex items-start justify-center z-[100] p-4 pt-20 animate-in fade-in duration-500 overflow-y-auto">
-      <div className="bg-[#0b1221]/95 backdrop-blur-3xl rounded-[40px] w-full max-w-4xl border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.8)] p-6 md:p-12 animate-in zoom-in-95 duration-300 relative overflow-hidden flex flex-col">
+      <div className="bg-[#0F1416]/95 backdrop-blur-3xl rounded-md w-full max-w-4xl border border-[var(--border-subtle)] shadow-[0_0_100px_rgba(0,0,0,0.8)] p-6 md:p-12 animate-in zoom-in-95 duration-300 relative overflow-hidden flex flex-col">
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-brand to-transparent opacity-80 z-10"></div>
-        <button onClick={onClose} className="absolute top-4 right-4 md:top-8 md:right-8 p-3 bg-fin-bg rounded-2xl text-fin-muted hover:text-white transition-all border border-fin-border z-20">
+        <button onClick={onClose} className="absolute top-4 right-4 md:top-8 md:right-8 p-3 bg-fin-bg rounded-md text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all border border-fin-border z-20">
           <X size={20} />
         </button>
 
@@ -100,19 +100,19 @@ const DetailModal: React.FC<{
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
             <div>
               <h2 className="text-2xl md:text-3xl font-black text-white mb-2 tracking-tight uppercase italic">{getTitle()}</h2>
-              <p className="text-fin-muted text-sm font-bold tracking-widest uppercase mb-6 md:mb-12 flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-brand"></div>
+              <p className="text-[var(--text-muted)] text-sm font-bold tracking-widest uppercase mb-6 md:mb-12 flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-[var(--color-primary)]"></div>
                 {new Date(year, month).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
               </p>
 
               <div className="space-y-4 max-h-[350px] overflow-y-auto pr-4 CustomScrollbar">
                 {data.sort((a, b) => b.value - a.value).map((item, i) => (
-                  <div key={i} className="flex items-center justify-between p-4 bg-fin-bg/50 rounded-2xl border border-white/5 group hover:border-brand/30 transition-all">
+                  <div key={i} className="flex items-center justify-between p-4 bg-fin-bg/50 rounded-md border border-[var(--border-subtle)] group hover:border-[var(--color-primary)]/30 transition-all">
                     <div className="flex items-center gap-4">
                       <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }}></div>
                       <span className="text-[11px] font-black text-white uppercase tracking-wider">{item.name}</span>
                     </div>
-                    <span className="text-sm font-black text-brand tabular-nums">{formatCurrency(item.value)}</span>
+                    <span className="text-sm font-black text-[var(--color-primary)] tabular-nums">{formatCurrency(item.value)}</span>
                   </div>
                 ))}
                 {data.length === 0 && (
@@ -125,7 +125,7 @@ const DetailModal: React.FC<{
             </div>
 
             <div className="h-[300px] md:h-[400px] flex items-center justify-center relative">
-              <div className="absolute inset-0 bg-brand/5 rounded-full blur-[100px]"></div>
+              <div className="absolute inset-0 bg-[var(--color-primary)]/5 rounded-full blur-[100px]"></div>
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -151,7 +151,7 @@ const DetailModal: React.FC<{
                 </PieChart>
               </ResponsiveContainer>
               <div className="absolute text-center">
-                <p className="text-[10px] font-black text-fin-muted uppercase tracking-[0.4em] mb-1 drop-shadow-lg">Total</p>
+                <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.4em] mb-1 drop-shadow-lg">Total</p>
                 <p className="text-xl md:text-3xl font-black text-white tabular-nums tracking-tighter drop-shadow-2xl">
                   {formatCurrency(data.reduce((s, i) => s + i.value, 0))}
                 </p>
@@ -293,7 +293,7 @@ export const Dashboard: React.FC = () => {
   // Distribución de gastos por categoría para el Donut
   const expensesByCategory = React.useMemo(() => {
     const categoryMap: Record<string, { name: string; amount: number; color: string }> = {};
-    const COLORS = ['#06b6d4', '#8b5cf6', '#f59e0b', '#ef4444', '#10b981', '#ec4899', '#3b82f6', '#f97316'];
+    const COLORS = ['#00FF9D', '#5DFFC1', '#FFB12A', '#FF4D4D', '#00C57D', '#FF4D4D', '#00FF9D', '#FFB12A'];
 
     transactions
       .filter(t => {
@@ -457,20 +457,20 @@ export const Dashboard: React.FC = () => {
     periodStates.forEach(st => {
       if (st.finalBalance > 0) checking += st.finalBalance;
     });
-    if (checking > 0) list.push({ name: 'Checking', value: checking, color: 'text-[#10B981]', icon: <Wallet size={14} /> });
+    if (checking > 0) list.push({ name: 'Checking', value: checking, color: 'text-[#00C57D]', icon: <Wallet size={14} /> });
 
     let totalJars = 0;
     jars.forEach(j => {
       totalJars += calculateJar(j).currentValue;
     });
-    if (totalJars > 0) list.push({ name: 'Inversiones', value: totalJars, color: 'text-brand', icon: <TrendingUp size={14} /> });
+    if (totalJars > 0) list.push({ name: 'Inversiones', value: totalJars, color: 'text-[var(--color-primary)]', icon: <TrendingUp size={14} /> });
 
     // Fallback if empty to match mockup visually
     if (list.length === 0) {
-      list.push({ name: 'Checking', value: 125750, color: 'text-[#10B981]', icon: <Wallet size={14} /> });
-      list.push({ name: 'Savings', value: 125600, color: 'text-[#10B981]', icon: <PiggyBank size={14} /> });
-      list.push({ name: 'Inversiones', value: 125900, color: 'text-brand', icon: <TrendingUp size={14} /> });
-      list.push({ name: 'Fondo de Emergencia', value: 85420, color: 'text-[#EF4444]', icon: <Lock size={14} /> });
+      list.push({ name: 'Checking', value: 125750, color: 'text-[#00C57D]', icon: <Wallet size={14} /> });
+      list.push({ name: 'Savings', value: 125600, color: 'text-[#00C57D]', icon: <PiggyBank size={14} /> });
+      list.push({ name: 'Inversiones', value: 125900, color: 'text-[var(--color-primary)]', icon: <TrendingUp size={14} /> });
+      list.push({ name: 'Fondo de Emergencia', value: 85420, color: 'text-[#FF4D4D]', icon: <Lock size={14} /> });
     }
     return list;
   }, [periodStates, jars]);
@@ -658,7 +658,7 @@ export const Dashboard: React.FC = () => {
           <div className="flex items-center gap-4 text-[var(--text-muted)]">
             {availableEntities.length > 1 && (
               <select
-                className="bg-[#0E1629] border border-[#2A3445] rounded-xl px-4 py-2 text-[11px] font-black uppercase tracking-widest text-white outline-none cursor-pointer hover:border-brand/50 transition-colors"
+                className="bg-[#0F1416] border border-[rgba(0,255,157,0.15)] rounded-md px-4 py-2 text-[11px] font-black uppercase tracking-widest text-white outline-none cursor-pointer hover:border-[var(--color-primary)]/50 transition-colors"
                 value={activeEntity.id || ''}
                 onChange={(e) => setActiveEntity(availableEntities.find(ent => (ent.id || '') === e.target.value) || availableEntities[0])}
               >
@@ -673,30 +673,30 @@ export const Dashboard: React.FC = () => {
               <button onClick={() => {
                 const report = generateAuditReport(transactions, categories, accounts, monthlyBalances, budgetItems, currentMonth, currentYear, activeEntity.name);
                 setMonthReport(report);
-              }} className="w-10 h-10 flex items-center justify-center bg-[#0E1629] border border-[#2A3445] hover:border-brand/50 rounded-xl hover:text-white transition-all">
+              }} className="w-10 h-10 flex items-center justify-center bg-[#0F1416] border border-[rgba(0,255,157,0.15)] hover:border-[var(--color-primary)]/50 rounded-md hover:text-[var(--text-primary)] transition-all">
                 <FileText size={18} />
               </button>
             )}
 
-            <button onClick={() => navigate('/finance/settings')} className="w-10 h-10 flex items-center justify-center bg-[#0E1629] border border-[#2A3445] hover:border-brand/50 rounded-xl hover:text-white transition-all">
+            <button onClick={() => navigate('/finance/settings')} className="w-10 h-10 flex items-center justify-center bg-[#0F1416] border border-[rgba(0,255,157,0.15)] hover:border-[var(--color-primary)]/50 rounded-md hover:text-[var(--text-primary)] transition-all">
               <Settings size={18} />
             </button>
           </div>
         </div>
 
         {/* SUBHEADER & TABS */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-t border-[#2A3445] pt-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-t border-[rgba(0,255,157,0.15)] pt-6">
           {/* Date Selector */}
-          <div className="text-[14px] font-black text-white uppercase tracking-widest flex items-center gap-4 bg-[#0E1629] px-4 py-2 rounded-xl border border-[#2A3445]">
-            <button onClick={handlePrevMonth} className="text-[#94A3B8] hover:text-brand transition-colors"><ChevronRight className="rotate-180" size={18} /></button>
+          <div className="text-[14px] font-black text-white uppercase tracking-widest flex items-center gap-4 bg-[#0F1416] px-4 py-2 rounded-md border border-[rgba(0,255,157,0.15)]">
+            <button onClick={handlePrevMonth} className="text-[#A8B0B5] hover:text-[var(--color-primary)] transition-colors"><ChevronRight className="rotate-180" size={18} /></button>
             <div className="min-w-[130px] text-center flex items-center justify-center gap-2">
-              {monthName} <span className="text-[#94A3B8]">{currentYear}</span>
+              {monthName} <span className="text-[#A8B0B5]">{currentYear}</span>
             </div>
-            <button onClick={handleNextMonth} className="text-[#94A3B8] hover:text-brand transition-colors"><ChevronRight size={18} /></button>
+            <button onClick={handleNextMonth} className="text-[#A8B0B5] hover:text-[var(--color-primary)] transition-colors"><ChevronRight size={18} /></button>
           </div>
 
           {/* TABS */}
-          <div className="flex overflow-x-auto gap-2 bg-[#0E1629] p-1.5 rounded-2xl border border-[#2A3445] no-scrollbar">
+          <div className="flex overflow-x-auto gap-2 bg-[#0F1416] p-1.5 rounded-md border border-[rgba(0,255,157,0.15)] no-scrollbar">
             {[
               { name: 'Resumen', action: () => setActiveDetail(null) },
               { name: 'Ingresos', action: () => { setActiveCategoryScope(undefined); setActiveDetail('IN') } },
@@ -705,7 +705,7 @@ export const Dashboard: React.FC = () => {
               { name: 'Cuentas', action: () => navigate('/finance/accounts') },
               { name: 'Inversiones', action: () => { setActiveCategoryScope(undefined); setActiveDetail('INVESTED') } }
             ].map((t, i) => (
-              <button key={i} onClick={t.action} className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-colors ${i === 0 && !activeDetail ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-[#94A3B8] hover:text-white hover:bg-white/5'}`}>{t.name}</button>
+              <button key={i} onClick={t.action} className={`px-5 py-2 rounded-md text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-colors ${i === 0 && !activeDetail ? 'bg-[var(--color-primary)] text-white shadow-lg shadow-[rgba(0,255,157,0.30)]' : 'text-[#A8B0B5] hover:text-[var(--text-primary)] hover:bg-[rgba(0,255,157,0.05)]'}`}>{t.name}</button>
             ))}
           </div>
         </div>
@@ -718,11 +718,11 @@ export const Dashboard: React.FC = () => {
         <div className="space-y-6 flex flex-col h-full">
 
           {/* Box 1: Saldo */}
-          <div className="bg-[#172033] rounded-2xl p-6 border border-[#2A3445] shadow-lg flex-1">
+          <div className="bg-[#161D22] rounded-md p-6 border border-[rgba(0,255,157,0.15)] shadow-lg flex-1">
             <h3 className="text-[11px] font-black text-white uppercase tracking-widest mb-6">ESTADO FINANCIERO ACTUAL</h3>
-            <p className="text-[10px] text-[#94A3B8] font-black uppercase tracking-widest mb-1">SALDO TOTAL NETO:</p>
+            <p className="text-[10px] text-[#A8B0B5] font-black uppercase tracking-widest mb-1">SALDO TOTAL NETO:</p>
             <div onClick={() => setActiveDetail('BALANCE')} className="cursor-pointer group">
-              <h2 className="text-4xl font-black text-white mb-6 group-hover:text-brand transition-colors tabular-nums">{formatCurrency(totalFinal)}</h2>
+              <h2 className="text-4xl font-black text-white mb-6 group-hover:text-[var(--color-primary)] transition-colors tabular-nums">{formatCurrency(totalFinal)}</h2>
             </div>
 
             {/* Area Chart trend mock - visual representation */}
@@ -731,57 +731,57 @@ export const Dashboard: React.FC = () => {
                 <AreaChart data={last6MonthsFlow} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorNeto" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#10B981" stopOpacity={0.4} />
-                      <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#00C57D" stopOpacity={0.4} />
+                      <stop offset="95%" stopColor="#00C57D" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <Area type="monotone" dataKey="Ingresos" stroke="#10B981" strokeWidth={3} fillOpacity={1} fill="url(#colorNeto)" />
+                  <Area type="monotone" dataKey="Ingresos" stroke="#00C57D" strokeWidth={3} fillOpacity={1} fill="url(#colorNeto)" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
 
-            <div className="grid grid-cols-2 gap-6 border-t border-[#2A3445] pt-6">
+            <div className="grid grid-cols-2 gap-6 border-t border-[rgba(0,255,157,0.15)] pt-6">
               <div onClick={() => setActiveDetail('IN')} className="cursor-pointer group">
-                <p className="text-[10px] text-[#94A3B8] uppercase font-black tracking-widest mb-1">INGRESOS ESTE MES:</p>
-                <p className="text-xl font-black text-[#10B981] group-hover:opacity-80 transition-opacity tabular-nums">{formatCurrency(totalIn)}</p>
+                <p className="text-[10px] text-[#A8B0B5] uppercase font-black tracking-widest mb-1">INGRESOS ESTE MES:</p>
+                <p className="text-xl font-black text-[#00C57D] group-hover:opacity-80 transition-opacity tabular-nums">{formatCurrency(totalIn)}</p>
               </div>
               <div onClick={() => setActiveDetail('OUT')} className="cursor-pointer group">
-                <p className="text-[10px] text-[#94A3B8] uppercase font-black tracking-widest mb-1">GASTOS ESTE MES:</p>
-                <p className="text-xl font-black text-[#EF4444] group-hover:opacity-80 transition-opacity tabular-nums">{formatCurrency(totalOut)}</p>
+                <p className="text-[10px] text-[#A8B0B5] uppercase font-black tracking-widest mb-1">GASTOS ESTE MES:</p>
+                <p className="text-xl font-black text-[#FF4D4D] group-hover:opacity-80 transition-opacity tabular-nums">{formatCurrency(totalOut)}</p>
               </div>
             </div>
 
-            <div className="mt-6 border-t border-[#2A3445] pt-6 flex justify-between items-center">
+            <div className="mt-6 border-t border-[rgba(0,255,157,0.15)] pt-6 flex justify-between items-center">
               <div>
-                <p className="text-[10px] text-[#94A3B8] uppercase font-black tracking-widest mb-1">AHORRO NETO:</p>
-                <p className="text-xl font-black text-[#10B981] tabular-nums">{formatCurrency(totalIn - totalOut)}</p>
+                <p className="text-[10px] text-[#A8B0B5] uppercase font-black tracking-widest mb-1">AHORRO NETO:</p>
+                <p className="text-xl font-black text-[#00C57D] tabular-nums">{formatCurrency(totalIn - totalOut)}</p>
               </div>
               {totalIn - totalOut < 0 && (
-                <div className="bg-red-500/10 text-red-500 text-[10px] font-black px-3 py-1 rounded-lg border border-red-500/20">DEFICIT</div>
+                <div className="bg-[rgba(255,77,77,0.10)] text-[var(--color-danger)] text-[10px] font-black px-3 py-1 rounded-lg border border-[rgba(255,77,77,0.40)]">DEFICIT</div>
               )}
             </div>
           </div>
 
           {/* Box 2: Meta Principal (Frascos) */}
-          <div className="bg-[#172033] rounded-2xl p-6 border border-[#2A3445] shadow-lg flex flex-col justify-between">
+          <div className="bg-[#161D22] rounded-md p-6 border border-[rgba(0,255,157,0.15)] shadow-lg flex flex-col justify-between">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-[11px] font-black text-white uppercase tracking-widest">
                 {topJarGoal ? `INVERSIÓN: ${topJarGoal.name}` : 'MÁXIMA INVERSIÓN'}
               </h3>
-              <TrendingUp size={16} className="text-[#94A3B8]" />
+              <TrendingUp size={16} className="text-[#A8B0B5]" />
             </div>
             {topJarGoal ? (
               <>
                 <div className="flex justify-between items-end mb-3 mt-auto">
-                  <div className="bg-brand/10 border border-brand/20 text-brand px-3 py-1 rounded-md text-[11px] font-black tabular-nums">{topJarGoal.progress}%</div>
-                  <div className="text-[11px] font-black uppercase tracking-widest text-[#94A3B8]"><span className="text-[#10B981]">{formatCurrency(topJarGoal.current)}</span> / {formatCurrency(topJarGoal.target)}</div>
+                  <div className="bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/20 text-[var(--color-primary)] px-3 py-1 rounded-md text-[11px] font-black tabular-nums">{topJarGoal.progress}%</div>
+                  <div className="text-[11px] font-black uppercase tracking-widest text-[#A8B0B5]"><span className="text-[#00C57D]">{formatCurrency(topJarGoal.current)}</span> / {formatCurrency(topJarGoal.target)}</div>
                 </div>
-                <div className="h-2.5 bg-[#0E1629] rounded-full overflow-hidden mt-2 border border-[#2A3445]">
-                  <div className="h-full bg-brand rounded-full shadow-[0_0_10px_rgba(59,130,246,0.5)] transition-all duration-1000" style={{ width: `${Math.min(100, topJarGoal.progress)}%` }}></div>
+                <div className="h-2.5 bg-[#0F1416] rounded-full overflow-hidden mt-2 border border-[rgba(0,255,157,0.15)]">
+                  <div className="h-full bg-[var(--color-primary)] rounded-full shadow-[0_0_10px_rgba(59,130,246,0.5)] transition-all duration-1000" style={{ width: `${Math.min(100, topJarGoal.progress)}%` }}></div>
                 </div>
               </>
             ) : (
-              <div className="text-center py-6 text-[10px] text-[#94A3B8] font-black uppercase tracking-widest flex flex-col items-center gap-2 mt-auto">
+              <div className="text-center py-6 text-[10px] text-[#A8B0B5] font-black uppercase tracking-widest flex flex-col items-center gap-2 mt-auto">
                 <TrendingUp size={24} className="opacity-50" />
                 No hay inversiones activas (Frascos)
               </div>
@@ -793,11 +793,11 @@ export const Dashboard: React.FC = () => {
         <div className="space-y-6 flex flex-col h-full">
 
           {/* Box 3: Flujo de Efectivo */}
-          <div className="bg-[#172033] rounded-2xl p-6 border border-[#2A3445] shadow-lg">
+          <div className="bg-[#161D22] rounded-md p-6 border border-[rgba(0,255,157,0.15)] shadow-lg">
             <h3 className="text-[11px] font-black text-white uppercase tracking-widest mb-6 text-center">FLUJO DE EFECTIVO (Últimos 6 meses)</h3>
-            <div className="flex justify-center gap-6 mb-6 text-[10px] font-black uppercase tracking-widest text-[#94A3B8]">
-              <div className="flex items-center gap-2"><div className="w-2.5 h-2.5 bg-[#10B981] rounded-sm"></div> Ingresos</div>
-              <div className="flex items-center gap-2"><div className="w-2.5 h-2.5 bg-[#EF4444] rounded-sm"></div> Gastos</div>
+            <div className="flex justify-center gap-6 mb-6 text-[10px] font-black uppercase tracking-widest text-[#A8B0B5]">
+              <div className="flex items-center gap-2"><div className="w-2.5 h-2.5 bg-[#00C57D] rounded-sm"></div> Ingresos</div>
+              <div className="flex items-center gap-2"><div className="w-2.5 h-2.5 bg-[#FF4D4D] rounded-sm"></div> Gastos</div>
             </div>
             <div className="h-44">
               <ResponsiveContainer width="100%" height="100%">
@@ -809,29 +809,29 @@ export const Dashboard: React.FC = () => {
                   onClick={handleBarChartClick}
                   className="cursor-pointer"
                 >
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#2A3445" />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94A3B8', fontSize: 10, fontWeight: 900 }} dy={10} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94A3B8', fontSize: 10, fontWeight: 900 }} tickFormatter={(v) => `$${v}`} />
-                  <Tooltip cursor={{ fill: '#2A3445', opacity: 0.4 }} contentStyle={{ backgroundColor: '#0E1629', borderColor: '#2A3445', borderRadius: '12px', fontSize: '11px', fontWeight: 'bold' }} />
-                  <Bar dataKey="Ingresos" fill="#10B981" radius={[2, 2, 0, 0]} />
-                  <Bar dataKey="Gastos" fill="#EF4444" radius={[2, 2, 0, 0]} />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,255,157,0.15)" />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#A8B0B5', fontSize: 10, fontWeight: 900 }} dy={10} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#A8B0B5', fontSize: 10, fontWeight: 900 }} tickFormatter={(v) => `$${v}`} />
+                  <Tooltip cursor={{ fill: 'rgba(0,255,157,0.15)', opacity: 0.4 }} contentStyle={{ backgroundColor: '#0F1416', borderColor: 'rgba(0,255,157,0.15)', borderRadius: '12px', fontSize: '11px', fontWeight: 'bold' }} />
+                  <Bar dataKey="Ingresos" fill="#00C57D" radius={[2, 2, 0, 0]} />
+                  <Bar dataKey="Gastos" fill="#FF4D4D" radius={[2, 2, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </div>
 
           {/* Box 4: Gastos por Categoría */}
-          <div className="bg-[#172033] rounded-2xl p-6 border border-[#2A3445] shadow-lg">
+          <div className="bg-[#161D22] rounded-md p-6 border border-[rgba(0,255,157,0.15)] shadow-lg">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-[11px] font-black text-white uppercase tracking-widest">GASTOS POR CATEGORÍA ({monthName})</h3>
-              <Settings size={16} className="text-[#EF4444] cursor-pointer hover:rotate-90 transition-all" />
+              <Settings size={16} className="text-[#FF4D4D] cursor-pointer hover:rotate-90 transition-all" />
             </div>
             <div className="flex flex-col sm:flex-row items-center gap-6">
               <div className="w-36 h-36 flex-shrink-0 relative">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
-                      data={expensesByCategory.length > 0 ? expensesByCategory : [{ name: 'Sin datos', amount: 1, color: '#2A3445' }]}
+                      data={expensesByCategory.length > 0 ? expensesByCategory : [{ name: 'Sin datos', amount: 1, color: 'rgba(0,255,157,0.15)' }]}
                       innerRadius={45}
                       outerRadius={65}
                       paddingAngle={5}
@@ -840,7 +840,7 @@ export const Dashboard: React.FC = () => {
                       className="cursor-pointer"
                       onClick={handlePieChartClick}
                     >
-                      {expensesByCategory.length > 0 ? expensesByCategory.map((entry, index) => <Cell key={index} fill={entry.color} />) : <Cell fill="#2A3445" />}
+                      {expensesByCategory.length > 0 ? expensesByCategory.map((entry, index) => <Cell key={index} fill={entry.color} />) : <Cell fill="rgba(0,255,157,0.15)" />}
                     </Pie>
                   </PieChart>
                 </ResponsiveContainer>
@@ -850,27 +850,27 @@ export const Dashboard: React.FC = () => {
                   const pct = totalOut > 0 ? ((cat.amount / totalOut) * 100).toFixed(0) : '0';
                   return (
                     <div key={i}
-                      className="flex items-center gap-3 w-full group cursor-pointer hover:bg-white/5 p-1 -mx-1 rounded transition-colors"
+                      className="flex items-center gap-3 w-full group cursor-pointer hover:bg-[rgba(0,255,157,0.05)] p-1 -mx-1 rounded transition-colors"
                       onClick={() => { setActiveCategoryScope(cat.name); setActiveDetail('OUT'); }}
                     >
                       <div className="w-2.5 h-2.5 rounded-full flex-shrink-0 group-hover:scale-125 transition-transform" style={{ backgroundColor: cat.color }}></div>
                       <span className="text-[10px] font-black text-white truncate flex-1 uppercase tracking-widest" title={cat.name}>{cat.name}</span>
-                      <span className="text-[10px] font-black text-[#94A3B8] tabular-nums">{pct}%</span>
+                      <span className="text-[10px] font-black text-[#A8B0B5] tabular-nums">{pct}%</span>
                     </div>
                   )
                 })}
                 {expensesByCategory.length === 0 && (
-                  <div className="text-[10px] text-[#94A3B8] font-black uppercase tracking-widest">Sin gastos registrados</div>
+                  <div className="text-[10px] text-[#A8B0B5] font-black uppercase tracking-widest">Sin gastos registrados</div>
                 )}
               </div>
             </div>
           </div>
 
           {/* Box 5: Rendimiento de Cuentas (TNA) */}
-          <div className="bg-[#172033] rounded-2xl p-6 border border-[#2A3445] shadow-lg flex-1 flex flex-col">
+          <div className="bg-[#161D22] rounded-md p-6 border border-[rgba(0,255,157,0.15)] shadow-lg flex-1 flex flex-col">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-[11px] font-black text-white uppercase tracking-widest">RENDIMIENTO DE CUENTAS (TNA)</h3>
-              <TrendingUp size={16} className="text-[#94A3B8]" />
+              <TrendingUp size={16} className="text-[#A8B0B5]" />
             </div>
             <div className="space-y-3 flex-1 overflow-y-auto no-scrollbar pr-2">
               {topYieldAccounts.map((acc, i) => {
@@ -878,21 +878,21 @@ export const Dashboard: React.FC = () => {
                 const tna = acc.annualRate || 0;
                 const isTop = i === 0;
                 return (
-                  <div key={acc.id} onClick={() => navigate('/finance/accounts')} className="flex items-center justify-between p-2.5 bg-[#0E1629] rounded-xl border border-[#2A3445] hover:border-[#10B981]/30 cursor-pointer transition-colors group">
+                  <div key={acc.id} onClick={() => navigate('/finance/accounts')} className="flex items-center justify-between p-2.5 bg-[#0F1416] rounded-md border border-[rgba(0,255,157,0.15)] hover:border-[#00C57D]/30 cursor-pointer transition-colors group">
                     <div className="flex items-center gap-3">
-                      <div className={`p-1.5 rounded-lg ${isTop ? 'bg-[#10B981]/10 text-[#10B981]' : 'bg-white/5 text-[#94A3B8]'}`}>
+                      <div className={`p-1.5 rounded-lg ${isTop ? 'bg-[#00C57D]/10 text-[#00C57D]' : 'bg-[rgba(0,255,157,0.05)] text-[#A8B0B5]'}`}>
                         <Wallet size={12} />
                       </div>
                       <span className="text-[10px] font-black text-white uppercase tracking-widest">{acc.name}</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="text-[11px] font-black tracking-wider text-[#10B981]">{tna.toFixed(1)}% TNA</span>
+                      <span className="text-[11px] font-black tracking-wider text-[#00C57D]">{tna.toFixed(1)}% TNA</span>
                     </div>
                   </div>
                 )
               })}
               {topYieldAccounts.length === 0 && (
-                <div className="text-center py-6 text-[10px] text-[#94A3B8] font-black uppercase tracking-widest h-full flex flex-col justify-center items-center gap-2">
+                <div className="text-center py-6 text-[10px] text-[#A8B0B5] font-black uppercase tracking-widest h-full flex flex-col justify-center items-center gap-2">
                   <Percent size={24} className="opacity-50" />
                   Sin cuentas con TNA configurada
                 </div>
@@ -905,72 +905,72 @@ export const Dashboard: React.FC = () => {
         <div className="space-y-6 flex flex-col h-full">
 
           {/* Box 6: Activos */}
-          <div className="bg-[#172033] rounded-2xl p-6 border border-[#2A3445] shadow-lg">
+          <div className="bg-[#161D22] rounded-md p-6 border border-[rgba(0,255,157,0.15)] shadow-lg">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-[11px] font-black text-white uppercase tracking-widest">DESGLOSE DE ACTIVOS</h3>
-              <div className="p-1.5 bg-[#10B981]/10 rounded-lg text-[#10B981]"><Clock size={14} /></div>
+              <div className="p-1.5 bg-[#00C57D]/10 rounded-lg text-[#00C57D]"><Clock size={14} /></div>
             </div>
-            <div className="flex justify-between items-end border-b border-[#2A3445] pb-4 mb-4">
-              <span className="text-[11px] font-black text-[#94A3B8] uppercase tracking-widest">Total Activos:</span>
-              <span className="text-lg font-black text-[#10B981] tabular-nums">{formatCurrency(totalActivos)}</span>
+            <div className="flex justify-between items-end border-b border-[rgba(0,255,157,0.15)] pb-4 mb-4">
+              <span className="text-[11px] font-black text-[#A8B0B5] uppercase tracking-widest">Total Activos:</span>
+              <span className="text-lg font-black text-[#00C57D] tabular-nums">{formatCurrency(totalActivos)}</span>
             </div>
             <div className="space-y-3">
               {activosList.map((item, i) => (
                 <div key={i}
                   onClick={() => item.name === 'Checking' ? navigate('/finance/accounts') : navigate('/finance/jars')}
-                  className="flex justify-between items-center bg-[#0E1629] p-2.5 rounded-xl border border-[#2A3445] hover:border-[#10B981]/50 cursor-pointer transition-colors group">
+                  className="flex justify-between items-center bg-[#0F1416] p-2.5 rounded-md border border-[rgba(0,255,157,0.15)] hover:border-[#00C57D]/50 cursor-pointer transition-colors group">
                   <div className="flex items-center gap-3">
                     <div className={`${item.color} group-hover:scale-110 transition-transform`}>{item.icon}</div>
-                    <span className="text-[10px] font-black text-white uppercase tracking-widest group-hover:text-[#10B981] transition-colors">{item.name}</span>
+                    <span className="text-[10px] font-black text-white uppercase tracking-widest group-hover:text-[#00C57D] transition-colors">{item.name}</span>
                   </div>
-                  <span className="text-[11px] font-black text-[#10B981] tabular-nums flex items-center gap-2">{formatCurrency(item.value)} <ChevronRight size={12} className="opacity-0 group-hover:opacity-100" /></span>
+                  <span className="text-[11px] font-black text-[#00C57D] tabular-nums flex items-center gap-2">{formatCurrency(item.value)} <ChevronRight size={12} className="opacity-0 group-hover:opacity-100" /></span>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Box 7: Pasivos */}
-          <div className="bg-[#172033] rounded-2xl p-6 border border-[#2A3445] shadow-lg">
+          <div className="bg-[#161D22] rounded-md p-6 border border-[rgba(0,255,157,0.15)] shadow-lg">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-[11px] font-black text-white uppercase tracking-widest">DESGLOSE DE PASIVOS</h3>
-              <div className="p-1.5 bg-[#EF4444]/10 rounded-lg text-[#EF4444]"><CreditCard size={14} /></div>
+              <div className="p-1.5 bg-[#FF4D4D]/10 rounded-lg text-[#FF4D4D]"><CreditCard size={14} /></div>
             </div>
-            <div className="flex justify-between items-end border-b border-[#2A3445] pb-4 mb-4">
-              <span className="text-[11px] font-black text-[#94A3B8] uppercase tracking-widest">Total Deudas:</span>
-              <span className="text-lg font-black text-[#EF4444] tabular-nums">{formatCurrency(totalPasivos)}</span>
+            <div className="flex justify-between items-end border-b border-[rgba(0,255,157,0.15)] pb-4 mb-4">
+              <span className="text-[11px] font-black text-[#A8B0B5] uppercase tracking-widest">Total Deudas:</span>
+              <span className="text-lg font-black text-[#FF4D4D] tabular-nums">{formatCurrency(totalPasivos)}</span>
             </div>
             <div className="space-y-3">
               {pasivosList.map((item, i) => (
                 <div key={i}
                   onClick={() => item.name.includes('Tarjetas') ? navigate('/finance/accounts') : navigate('/finance/loans')}
-                  className="flex justify-between items-center bg-[#0E1629] p-2.5 rounded-xl border border-[#2A3445] hover:border-[#EF4444]/50 cursor-pointer transition-colors group">
+                  className="flex justify-between items-center bg-[#0F1416] p-2.5 rounded-md border border-[rgba(0,255,157,0.15)] hover:border-[#FF4D4D]/50 cursor-pointer transition-colors group">
                   <div className="flex items-center gap-3">
-                    <div className="text-[#EF4444] group-hover:scale-110 transition-transform">{item.icon}</div>
-                    <span className="text-[10px] font-black text-white uppercase tracking-widest group-hover:text-[#EF4444] transition-colors">{item.name}</span>
+                    <div className="text-[#FF4D4D] group-hover:scale-110 transition-transform">{item.icon}</div>
+                    <span className="text-[10px] font-black text-white uppercase tracking-widest group-hover:text-[#FF4D4D] transition-colors">{item.name}</span>
                   </div>
-                  <span className="text-[11px] font-black text-[#EF4444] tabular-nums flex items-center gap-2">{formatCurrency(item.value)} <ChevronRight size={12} className="opacity-0 group-hover:opacity-100" /></span>
+                  <span className="text-[11px] font-black text-[#FF4D4D] tabular-nums flex items-center gap-2">{formatCurrency(item.value)} <ChevronRight size={12} className="opacity-0 group-hover:opacity-100" /></span>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Box 8: Inflación */}
-          <div className="bg-[#172033] rounded-2xl p-6 border border-[#2A3445] shadow-lg flex flex-col">
+          <div className="bg-[#161D22] rounded-md p-6 border border-[rgba(0,255,157,0.15)] shadow-lg flex flex-col">
             <div className="flex justify-between items-start mb-1">
               <h3 className="text-[11px] font-black text-white uppercase tracking-widest">INFLACIÓN MENSUAL (Último Dato)</h3>
-              <span className="text-[9px] text-[#94A3B8] uppercase font-bold bg-white/5 px-2 py-1 rounded">ARG</span>
+              <span className="text-[9px] text-[#A8B0B5] uppercase font-bold bg-[rgba(0,255,157,0.05)] px-2 py-1 rounded">ARG</span>
             </div>
-            <p className="text-2xl font-black text-[#EF4444] mb-4">{recentInflation.current}%</p>
+            <p className="text-2xl font-black text-[#FF4D4D] mb-4">{recentInflation.current}%</p>
 
             <div className="h-20 w-full -mx-2">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={recentInflation.trend} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
-                  <Line type="monotone" dataKey="Tasa" stroke="#EF4444" strokeWidth={2} dot={{ r: 3, fill: '#EF4444', strokeWidth: 0 }} />
+                  <Line type="monotone" dataKey="Tasa" stroke="#FF4D4D" strokeWidth={2} dot={{ r: 3, fill: '#FF4D4D', strokeWidth: 0 }} />
                   <Tooltip
-                    cursor={{ stroke: '#2A3445', strokeWidth: 1, strokeDasharray: '3 3' }}
-                    contentStyle={{ backgroundColor: '#0E1629', borderColor: '#2A3445', borderRadius: '8px', fontSize: '10px', fontWeight: 'bold' }}
+                    cursor={{ stroke: 'rgba(0,255,157,0.15)', strokeWidth: 1, strokeDasharray: '3 3' }}
+                    contentStyle={{ backgroundColor: '#0F1416', borderColor: 'rgba(0,255,157,0.15)', borderRadius: '8px', fontSize: '10px', fontWeight: 'bold' }}
                     formatter={(value: any) => [`${value}%`, 'Inflación']}
-                    labelStyle={{ color: '#94A3B8' }}
+                    labelStyle={{ color: '#A8B0B5' }}
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -978,10 +978,10 @@ export const Dashboard: React.FC = () => {
           </div>
 
           {/* Box 9: Transacciones */}
-          <div className="bg-[#172033] rounded-2xl p-6 border border-[#2A3445] shadow-lg flex-1">
+          <div className="bg-[#161D22] rounded-md p-6 border border-[rgba(0,255,157,0.15)] shadow-lg flex-1">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-[11px] font-black text-white uppercase tracking-widest">ÚLTIMAS TRANSACCIONES</h3>
-              <div onClick={() => navigate('/finance/transactions')} className="p-1.5 bg-brand/10 rounded-lg text-brand cursor-pointer hover:bg-brand/20 transition-colors"><List size={14} /></div>
+              <div onClick={() => navigate('/finance/transactions')} className="p-1.5 bg-[var(--color-primary)]/10 rounded-lg text-[var(--color-primary)] cursor-pointer hover:bg-[var(--color-primary)]/20 transition-colors"><List size={14} /></div>
             </div>
             <div className="space-y-3">
               {transactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 5).map(t => {
@@ -989,18 +989,18 @@ export const Dashboard: React.FC = () => {
                 const dt = parseDate(t.date);
                 const dStr = dt.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
                 return (
-                  <div key={t.id} className="grid grid-cols-12 gap-2 items-center pb-2 border-b border-[#2A3445] last:border-0 hover:bg-white/5 p-1.5 -mx-1.5 rounded-lg transition-colors group cursor-default">
-                    <div className="col-span-2 text-[9px] font-black text-[#94A3B8] uppercase tracking-widest">{dStr}</div>
+                  <div key={t.id} className="grid grid-cols-12 gap-2 items-center pb-2 border-b border-[rgba(0,255,157,0.15)] last:border-0 hover:bg-[rgba(0,255,157,0.05)] p-1.5 -mx-1.5 rounded-lg transition-colors group cursor-default">
+                    <div className="col-span-2 text-[9px] font-black text-[#A8B0B5] uppercase tracking-widest">{dStr}</div>
                     <div className="col-span-4 text-[10px] font-black text-white truncate" title={t.description}>{t.description}</div>
-                    <div className="col-span-3 text-[9px] font-bold text-[#94A3B8] uppercase truncate">{cat}</div>
-                    <div className={`col-span-3 text-[10px] font-black text-right tabular-nums ${t.type === 'IN' ? 'text-[#10B981]' : 'text-[#EF4444]'}`}>
+                    <div className="col-span-3 text-[9px] font-bold text-[#A8B0B5] uppercase truncate">{cat}</div>
+                    <div className={`col-span-3 text-[10px] font-black text-right tabular-nums ${t.type === 'IN' ? 'text-[#00C57D]' : 'text-[#FF4D4D]'}`}>
                       {t.type === 'IN' ? '+' : '-'}{formatCurrency(t.amount)}
                     </div>
                   </div>
                 )
               })}
               {transactions.length === 0 && (
-                <p className="text-[10px] font-black text-[#94A3B8] uppercase tracking-widest text-center py-4">No hay transacciones</p>
+                <p className="text-[10px] font-black text-[#A8B0B5] uppercase tracking-widest text-center py-4">No hay transacciones</p>
               )}
             </div>
           </div>
