@@ -954,13 +954,43 @@ export const Dashboard: React.FC = () => {
             </div>
           </div>
 
-          {/* Box 8: Inflación */}
+          {/* Box 8: Inflación — manual refresh (no auto-update) */}
           <div className="bg-[#161D22] rounded-md p-6 border border-[rgba(0,255,157,0.15)] shadow-lg flex flex-col">
-            <div className="flex justify-between items-start mb-1">
+            <div className="flex justify-between items-start mb-1 gap-2">
               <h3 className="text-[11px] font-black text-white uppercase tracking-widest">INFLACIÓN MENSUAL (Último Dato)</h3>
-              <span className="text-[9px] text-[#A8B0B5] uppercase font-bold bg-[rgba(0,255,157,0.05)] px-2 py-1 rounded">ARG</span>
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={async () => {
+                    try {
+                      const fresh = await macroService.refreshMonthlyInflation();
+                      setInflationData(fresh);
+                    } catch (e) {
+                      alert('No se pudo actualizar la inflación. Intentá de nuevo.');
+                    }
+                  }}
+                  className="text-[9px] font-mono uppercase tracking-[0.18em] text-[var(--color-primary)] border border-[rgba(0,255,157,0.40)] hover:bg-[rgba(0,255,157,0.10)] px-2 py-1 rounded transition-colors"
+                  title="Actualizar inflación desde datos.gob.ar (manual)"
+                >
+                  ↻ Actualizar
+                </button>
+                <span className="text-[9px] text-[#A8B0B5] uppercase font-bold bg-[rgba(0,255,157,0.05)] px-2 py-1 rounded">ARG</span>
+              </div>
             </div>
-            <p className="text-2xl font-black text-[#FF4D4D] mb-4">{recentInflation.current}%</p>
+            {macroService.getLastUpdateTime() && (
+              <p className="text-[9px] font-mono text-[var(--text-muted)] uppercase tracking-[0.18em] mb-2">
+                ▸ Última actualización: {new Date(macroService.getLastUpdateTime()!).toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: '2-digit' })}
+              </p>
+            )}
+            {inflationData.length === 0 ? (
+              <div className="py-4 text-center">
+                <p className="text-2xl font-black text-[var(--text-muted)] mb-2">— %</p>
+                <p className="text-[10px] font-mono text-[var(--text-muted)] uppercase tracking-[0.18em]">
+                  Tocá <span className="text-[var(--color-primary)]">↻ Actualizar</span> para cargar
+                </p>
+              </div>
+            ) : (
+              <p className="text-2xl font-black text-[#FF4D4D] mb-4">{recentInflation.current}%</p>
+            )}
 
             <div className="h-20 w-full -mx-2">
               <ResponsiveContainer width="100%" height="100%">
