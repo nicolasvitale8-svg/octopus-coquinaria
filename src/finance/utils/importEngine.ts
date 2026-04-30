@@ -266,27 +266,30 @@ export const parseNaranjaXScreenshot = (text: string): ImportLine[] => {
         let s = str.trim();
         // 1. Strip non-alphanumeric noise al inicio (preserva +, -, $)
         s = s.replace(/^[^a-zA-Z0-9\+\-\$]+/, '');
-        // 2. Strip prefijos de 1-3 letras + espacio antes de letra mayúscula
-        //    "l Rendimiento", "ll Pago", "I Pago", "L Transferencia"
-        s = s.replace(/^[a-zA-Z]{1,3}\s+(?=[A-ZÁÉÍÓÚ])/, '');
+        // 2. Strip prefijos de 1-3 chars (letras, dígitos, pipes, slashes) +
+        //    espacio antes de letra mayúscula. Cubre "l Rendimiento",
+        //    "1 Pago", "I Pago", "ll Pago", "|/ Transfer"
+        s = s.replace(/^[a-zA-Z0-9|\\\/]{1,3}\s+(?=[A-ZÁÉÍÓÚa-záéíóú]{4,})/, '');
         // 3. Strip prefijos antes de "X de mes" o número
-        s = s.replace(/^[a-zA-Z0-9]{1,2}\s+(?=\d{1,2}\s+de\s+[a-z])/i, '');
-        s = s.replace(/^[a-zA-Z0-9]\s+(?=\d)/, '');
+        s = s.replace(/^[a-zA-Z0-9|\\\/]{1,2}\s+(?=\d{1,2}\s+de\s+[a-z])/i, '');
+        s = s.replace(/^[a-zA-Z0-9|\\\/]\s+(?=\d)/, '');
         return s.trim();
     };
 
-    // Descriptors canónicos de Naranja X. Si OCR garbla "Pago con tarjeta"
-    // como "Pagocontarjetade", normalizamos a la versión limpia.
+    // Descriptors canónicos de Naranja X con patterns LENIENTES.
+    // Acepta versiones parciales/truncadas/concatenadas que OCR puede generar.
+    // Estrategia: matchear las raíces clave de cada concepto (tarjeta, frasco,
+    // resumen, etc.), no requerir la forma completa con todas las palabras.
     const NX_DESCRIPTORS = [
-        { canonical: 'Rendimiento diario',         fuzzy: /ren?d[il]m[il]ento\s*d[il]ar[il]o/i },
-        { canonical: 'Pago con tarjeta de débito', fuzzy: /pago\s*c?o?n?\s*tar[jiltf]eta\s*d?e?\s*d[eé]b[il]to/i },
-        { canonical: 'Pago de resumen',            fuzzy: /pago\s*de\s*resu[mn]e?n/i },
-        { canonical: 'Creación de frasco',         fuzzy: /cre[aoá]c[il][oó]n\s*de\s*frasco/i },
-        { canonical: 'Acreditación de frasco',     fuzzy: /acred[il]tac[il][oó]n\s*de\s*frasco\s*(fijo)?/i },
-        { canonical: 'Rendimiento de frasco fijo', fuzzy: /ren?d[il]m[il]ento\s*de\s*frasco/i },
-        { canonical: 'Transferencia recibida',     fuzzy: /transferenc[il]a\s*rec[il]b[il]da/i },
-        { canonical: 'Transferencia enviada',      fuzzy: /transferenc[il]a\s*env[il]ada/i },
-        { canonical: 'PERC. RG 5617 ARCA',         fuzzy: /perc\.?\s*rg\s*\d+\s*arca/i },
+        { canonical: 'Rendimiento diario',         fuzzy: /re?nd[il]m[il]e?n?to/i },
+        { canonical: 'Pago con tarjeta de débito', fuzzy: /pago.{0,15}tar[jiltf]eta/i },
+        { canonical: 'Pago de resumen',            fuzzy: /pago.{0,5}de.{0,5}resu[mn]/i },
+        { canonical: 'Creación de frasco',         fuzzy: /cre[aoá].{0,5}c?[il]?[oó]n.{0,5}(de\s*)?frasco/i },
+        { canonical: 'Acreditación de frasco',     fuzzy: /acred[il]ta.{0,5}c?[il]?[oó]n.{0,5}(de\s*)?frasco/i },
+        { canonical: 'Rendimiento de frasco fijo', fuzzy: /rend[il]m[il]ento.{0,5}(de\s*)?frasco/i },
+        { canonical: 'Transferencia recibida',     fuzzy: /transferenc[il]a.{0,5}rec[il]b/i },
+        { canonical: 'Transferencia enviada',      fuzzy: /transferenc[il]a.{0,5}env[il]/i },
+        { canonical: 'PERC. RG 5617 ARCA',         fuzzy: /perc.{0,5}rg.{0,5}\d+/i },
     ];
     const normalizeDescriptor = (text: string): string => {
         for (const { canonical, fuzzy } of NX_DESCRIPTORS) {
