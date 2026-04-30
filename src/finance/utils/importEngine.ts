@@ -260,19 +260,39 @@ export const parseNaranjaXScreenshot = (text: string): ImportLine[] => {
     const currentYear = new Date().getFullYear();
     const currentMonthNum = new Date().getMonth() + 1;
 
-    // Limpieza agresiva de prefijos de ícono OCR
+    // Limpieza agresiva de prefijos de ícono OCR.
+    // ORDEN IMPORTA: primero trim + non-alnum strip, después prefijo 1-3 chars.
     const cleanLine = (str: string): string => {
-        let s = str;
-        // 1. Strip prefijos de 1-3 chars + espacio (típicos de iconos OCR mal capturados)
-        //    Pero NUNCA tocar +, -, $ o números seguidos de "de mes"
-        // Ejemplos válidos a limpiar: "l Rendimiento", "a 27 de", "Eo e.", "fu] PERC"
-        // Match: leading 1-3 letras (no acentuadas) + espacio
-        s = s.replace(/^[a-zA-Z]{1,3}\s+(?=[A-Z])/, ''); // "l Rendimiento" → "Rendimiento"
-        s = s.replace(/^[a-zA-Z0-9]\s+(?=\d{1,2}\s+de\s+[a-z])/i, ''); // "a 27 de abril" → "27 de abril"
-        s = s.replace(/^[a-zA-Z0-9]\s+(?=\d)/, ''); // "2 23 de abril" → "23 de abril" (un dígito + espacio + número)
-        // 2. Strip non-alphanumeric noise al inicio (pero conservar +, -, $)
+        let s = str.trim();
+        // 1. Strip non-alphanumeric noise al inicio (preserva +, -, $)
         s = s.replace(/^[^a-zA-Z0-9\+\-\$]+/, '');
+        // 2. Strip prefijos de 1-3 letras + espacio antes de letra mayúscula
+        //    "l Rendimiento", "ll Pago", "I Pago", "L Transferencia"
+        s = s.replace(/^[a-zA-Z]{1,3}\s+(?=[A-ZÁÉÍÓÚ])/, '');
+        // 3. Strip prefijos antes de "X de mes" o número
+        s = s.replace(/^[a-zA-Z0-9]{1,2}\s+(?=\d{1,2}\s+de\s+[a-z])/i, '');
+        s = s.replace(/^[a-zA-Z0-9]\s+(?=\d)/, '');
         return s.trim();
+    };
+
+    // Descriptors canónicos de Naranja X. Si OCR garbla "Pago con tarjeta"
+    // como "Pagocontarjetade", normalizamos a la versión limpia.
+    const NX_DESCRIPTORS = [
+        { canonical: 'Rendimiento diario',         fuzzy: /ren?d[il]m[il]ento\s*d[il]ar[il]o/i },
+        { canonical: 'Pago con tarjeta de débito', fuzzy: /pago\s*c?o?n?\s*tar[jiltf]eta\s*d?e?\s*d[eé]b[il]to/i },
+        { canonical: 'Pago de resumen',            fuzzy: /pago\s*de\s*resu[mn]e?n/i },
+        { canonical: 'Creación de frasco',         fuzzy: /cre[aoá]c[il][oó]n\s*de\s*frasco/i },
+        { canonical: 'Acreditación de frasco',     fuzzy: /acred[il]tac[il][oó]n\s*de\s*frasco\s*(fijo)?/i },
+        { canonical: 'Rendimiento de frasco fijo', fuzzy: /ren?d[il]m[il]ento\s*de\s*frasco/i },
+        { canonical: 'Transferencia recibida',     fuzzy: /transferenc[il]a\s*rec[il]b[il]da/i },
+        { canonical: 'Transferencia enviada',      fuzzy: /transferenc[il]a\s*env[il]ada/i },
+        { canonical: 'PERC. RG 5617 ARCA',         fuzzy: /perc\.?\s*rg\s*\d+\s*arca/i },
+    ];
+    const normalizeDescriptor = (text: string): string => {
+        for (const { canonical, fuzzy } of NX_DESCRIPTORS) {
+            if (fuzzy.test(text)) return canonical;
+        }
+        return text;
     };
 
     const isJunkLine = (s: string): boolean => {
@@ -303,12 +323,14 @@ export const parseNaranjaXScreenshot = (text: string): ImportLine[] => {
         // Si OCR no detecto la fecha, usamos hoy como fallback (usuario corrige manual).
         const dateForRow = currentDate || new Date().toISOString().split('T')[0];
 
-        // Strip leading "En " de cada parte (común en subtítulos NX)
-        // "En Dlo*amazon Music" → "Dlo*amazon Music"
+        // Strip "En " y normalizar cada parte a descriptor canónico
         const cleanedParts = descBuffer
             .map(p => p.replace(/^En\s+/i, '').trim())
-            .filter(p => p.length > 0);
-        let description = cleanedParts.join(' · ').trim();
+            .filter(p => p.length > 0)
+            .map(p => normalizeDescriptor(p));
+        // Dedup por si el mismo descriptor aparece dos veces concatenado
+        const uniqueParts = [...new Set(cleanedParts)];
+        let description = uniqueParts.join(' · ').trim();
         if (description.length < 3) {
             description = sign === '+' ? 'Ingreso Naranja X' : 'Egreso Naranja X';
         }
@@ -327,18 +349,18 @@ export const parseNaranjaXScreenshot = (text: string): ImportLine[] => {
         descBuffer = [];
     };
 
-    // Patrones flexibles de fecha. Buscamos en CUALQUIER posición de la línea,
-    // no solo al inicio, porque el OCR puede mezclar la fecha con texto contiguo.
-    // Ej: "26 de abril Rendimiento diario", "Rendimiento 26 abril", "26-04 Pago"
+    // Patrones de fecha SOLO con nombre de mes (NX usa palabras, no formato numérico).
+    // Removido el patrón "26/04" porque matcheaba false-positives como "02-11" en
+    // medio de descripciones (códigos de comercio, transacciones de tarjeta, etc.)
     const datePatterns = [
-        /(\d{1,2})\s+de\s+([a-zA-Záéíóúñ]{3,})/i,                  // "26 de abril"
-        /(\d{1,2})\s+([a-zA-Záéíóúñ]{4,})/i,                       // "26 abril" (sin "de")
-        /(\d{1,2})[\/\.\-]([a-zA-Záéíóúñ]{3,})/i,                  // "26/abril", "26-abril"
-        /(\d{1,2})[\/\.\-](\d{1,2})(?![\/\.\-]\d)/,                // "26/04" (sin año)
+        /(\d{1,2})\s+de\s+([a-zA-Záéíóúñ]{3,})/i,    // "26 de abril"
+        /(\d{1,2})\s+([a-zA-Záéíóúñ]{4,})/i,         // "26 abril" (sin "de")
+        /(\d{1,2})[\/\.\-]([a-zA-Záéíóúñ]{3,})/i,    // "26/abril", "26-abril"
     ];
-    // Amount: + o - opcional, espacios opcionales, $ opcional, número con coma decimal
-    const amountRegex = /([+\-])?\s*\$\s*([\d\.]+,\d{2})/;
-    const amountInlineRegex = /([+\-])\s*\$\s*([\d\.]+,\d{2})/;
+    // Amount: + o - opcional, espacios opcionales, $, número con separadores
+    // flexibles. Permite "$ 2.112,49", "$2,112.49", "$ 2 112,49", "$2.112,49"
+    const amountRegex = /([+\-])?\s*\$\s*([\d][\d\.\s,]*[\.,]\d{2})/;
+    const amountInlineRegex = /([+\-])\s*\$\s*([\d][\d\.\s,]*[\.,]\d{2})/;
 
     const tryParseDate = (line: string): { date: string; lineWithoutDate: string } | null => {
         for (const pat of datePatterns) {
