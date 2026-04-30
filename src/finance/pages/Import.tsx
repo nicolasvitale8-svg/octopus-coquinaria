@@ -641,7 +641,7 @@ export const ImportPage: React.FC = () => {
           <button
             onClick={processText}
             disabled={!rawText || !selectedAccountId || isScanning}
-            className="w-full bg-brand text-[var(--text-primary)] py-5 rounded-md font-black uppercase tracking-[0.2em] text-xs hover:bg-brand-hover disabled:opacity-20 transition-all shadow-xl shadow-brand/20 flex items-center justify-center gap-3 group"
+            className="w-full bg-brand text-[#050607] py-5 rounded-md font-black uppercase tracking-[0.2em] text-xs hover:bg-brand-hover disabled:opacity-20 transition-all shadow-xl shadow-brand/20 flex items-center justify-center gap-3 group"
           >
             Analizar Movimientos <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
           </button>
@@ -665,7 +665,7 @@ export const ImportPage: React.FC = () => {
         <button
           onClick={handleImport}
           disabled={isImporting || importedLines.filter(l => l.isSelected && l.categoryId).length === 0}
-          className="w-full sm:w-auto bg-[var(--color-success)] text-[var(--text-primary)] px-10 py-4 rounded-md font-black text-xs uppercase tracking-[0.2em] shadow-xl shadow-emerald-500/20 flex items-center justify-center gap-3 hover:bg-emerald-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full sm:w-auto bg-[var(--color-success)] text-[#050607] px-10 py-4 rounded-md font-black text-xs uppercase tracking-[0.2em] shadow-xl shadow-emerald-500/20 flex items-center justify-center gap-3 hover:bg-emerald-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isImporting ? (
             <><Loader2 size={18} className="animate-spin" /> Importando...</>

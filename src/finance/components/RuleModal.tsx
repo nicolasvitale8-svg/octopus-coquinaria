@@ -74,7 +74,7 @@ export const RuleModal: React.FC<RuleModalProps> = ({
                     </div>
                     <button
                         type="submit"
-                        className="w-full py-4 bg-brand text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-brand/20"
+                        className="w-full py-4 bg-brand text-[#050607] rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-brand/20"
                     >
                         Crear Regla
                     </button>

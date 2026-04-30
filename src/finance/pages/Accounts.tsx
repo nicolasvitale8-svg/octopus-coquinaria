@@ -317,7 +317,7 @@ export const Accounts: React.FC = () => {
                           />
                           <button
                             onClick={() => { setConciliatingAccount(acc); setRealBalance(''); setIsConciliateModalOpen(true); }}
-                            className="p-2 bg-brand/10 text-brand rounded-md border border-brand/20 hover:bg-brand hover:text-[var(--text-primary)] transition-all shadow-sm"
+                            className="p-2 bg-brand/10 text-brand rounded-md border border-brand/20 hover:bg-brand hover:text-[#050607] transition-all shadow-sm"
                             title="Conciliar Saldo Real"
                           >
                             <Zap size={16} />
@@ -533,7 +533,7 @@ export const Accounts: React.FC = () => {
         <div className="space-y-6">
           <div className="bg-brand/5 border border-brand/20 p-6 rounded-3xl flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-brand text-[var(--text-primary)] rounded-md shadow-lg shadow-brand/20"><Zap size={20} /></div>
+              <div className="p-3 bg-brand text-[#050607] rounded-md shadow-lg shadow-brand/20"><Zap size={20} /></div>
               <div>
                 <h4 className="font-bold text-[var(--text-primary)]">Auto-Categorización</h4>
                 <p className="text-xs text-fin-muted">Define palabras clave para que el importador OCR asigne rubros automáticamente.</p>
@@ -551,7 +551,7 @@ export const Accounts: React.FC = () => {
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
               </select>
-              <button onClick={() => { setEditingRule({}); setIsRuleModalOpen(true); }} className="bg-brand text-[var(--text-primary)] px-6 py-3 rounded-md font-black text-[10px] uppercase tracking-widest hover:bg-brand-hover shadow-lg shadow-brand/20 transition-all flex items-center gap-2">
+              <button onClick={() => { setEditingRule({}); setIsRuleModalOpen(true); }} className="bg-brand text-[#050607] px-6 py-3 rounded-md font-black text-[10px] uppercase tracking-widest hover:bg-brand-hover shadow-lg shadow-brand/20 transition-all flex items-center gap-2">
                 <Plus size={14} /> Nueva Regla
               </button>
             </div>

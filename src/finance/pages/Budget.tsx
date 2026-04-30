@@ -594,7 +594,7 @@ export const Budget: React.FC = () => {
                               setPaymentAmount(Math.max(0, item.plannedAmount - calculateActual(item)));
                               setShowPaymentModal(true);
                             }} 
-                            className="p-2 bg-[var(--color-success)]/10 rounded-lg text-[var(--color-success)] hover:bg-[var(--color-success)] hover:text-[var(--text-primary)] border border-[var(--color-success)]/20 transition-all"
+                            className="p-2 bg-[var(--color-success)]/10 rounded-lg text-[var(--color-success)] hover:bg-[var(--color-success)] hover:text-[#050607] border border-[var(--color-success)]/20 transition-all"
                             title="Ejecutar Pago"
                           >
                             <CreditCard size={14} />

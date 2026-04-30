@@ -111,7 +111,7 @@ export const OrderDetail: React.FC = () => {
                 {(pedido.estado === 'ENVIADO' || pedido.estado === 'CONFIRMADO') && (
                     <button
                         onClick={handleReceive}
-                        className="bg-green-600 hover:bg-green-500 text-white px-6 py-3 rounded-lg font-bold shadow-lg shadow-green-900/20"
+                        className="bg-green-600 hover:bg-green-500 text-[#050607] px-6 py-3 rounded-lg font-bold shadow-lg shadow-green-900/20"
                     >
                         Marcar como Recibido (Ingresar Stock)
                     </button>

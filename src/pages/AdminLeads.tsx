@@ -244,7 +244,7 @@ const AdminLeads = () => {
                     <td className="p-4 text-center flex justify-center gap-2">
                       <button
                         onClick={() => setSelectedLead(lead)}
-                        className="p-2 bg-[var(--bg-surface-soft)] hover:bg-[var(--color-primary)] text-[var(--text-secondary)] hover:text-[#050607] rounded-lg transition-all"
+                        className="p-2 bg-[var(--bg-surface-soft)] hover:bg-[var(--color-primary)] text-[#050607] hover:text-[#050607] rounded-lg transition-all"
                         title="Ver Detalle"
                       >
                         <FileText className="w-4 h-4" />

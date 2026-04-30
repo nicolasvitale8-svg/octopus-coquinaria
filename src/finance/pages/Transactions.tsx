@@ -237,7 +237,7 @@ export const Transactions: React.FC = () => {
           </button>
           <button
             onClick={() => setIsModalOpen(true)}
-            className="flex-1 md:flex-none bg-brand text-[var(--text-primary)] px-8 py-3.5 rounded-md font-bold text-sm hover:bg-brand-hover transition-all shadow-xl shadow-brand/20 flex items-center justify-center gap-3"
+            className="flex-1 md:flex-none bg-brand text-[#050607] px-8 py-3.5 rounded-md font-bold text-sm hover:bg-brand-hover transition-all shadow-xl shadow-brand/20 flex items-center justify-center gap-3"
           >
             <Plus size={18} strokeWidth={3} /> Nueva
           </button>
@@ -399,7 +399,7 @@ export const Transactions: React.FC = () => {
                       {activeFilterCount > 0 && (
                         <button
                           onClick={clearFilters}
-                          className="px-6 py-2.5 bg-brand/10 text-brand rounded-md text-[11px] font-black uppercase tracking-widest border border-brand/20 hover:bg-brand hover:text-[var(--text-primary)] transition-all"
+                          className="px-6 py-2.5 bg-brand/10 text-brand rounded-md text-[11px] font-black uppercase tracking-widest border border-brand/20 hover:bg-brand hover:text-[#050607] transition-all"
                         >
                           Limpiar Todos los Filtros
                         </button>

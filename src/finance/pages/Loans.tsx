@@ -925,7 +925,7 @@ const LoanCard: React.FC<{
                                     {payment.status === 'PENDIENTE' ? (
                                         <button
                                             onClick={() => onPayment(payment.id)}
-                                            className="p-1.5 text-[var(--text-primary)]/30 hover:text-[var(--color-success)] hover:bg-[var(--color-success)]/10 rounded-lg transition-all"
+                                            className="p-1.5 text-[#050607]/30 hover:text-[var(--color-success)] hover:bg-[var(--color-success)]/10 rounded-lg transition-all"
                                             title="Marcar como pagada"
                                         >
                                             <CheckCircle size={16} />
