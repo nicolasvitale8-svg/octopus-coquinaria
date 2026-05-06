@@ -248,7 +248,7 @@ export interface AcademyResource {
   youtubeId?: string;
   actionSteps?: string[];
   idealFor?: string[];
-  pilares?: string[]; // Para vincular con los 7 Pilares OCTOPUS
+  pilares?: string[]; // Para vincular con los 7 Pilares CEPHALOPOD
 
   // Impacto
   impactOutcome?: string;
@@ -308,7 +308,7 @@ export interface ExternalSystemAccess {
   notes?: string;
 }
 
-// --- Octopus V4: Tasks & Deliverables ---
+// --- Cephalopod V4: Tasks & Deliverables ---
 
 export type TaskType = 'INTERNAL' | 'CLIENT' | 'APPROVAL' | 'REQUEST';
 export type TaskStatus = 'TODO' | 'DOING' | 'BLOCKED' | 'DONE' | 'PENDING' | 'IN_REVIEW' | 'APPROVED' | 'REJECTED';

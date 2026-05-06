@@ -88,7 +88,7 @@ const NewsBoard: React.FC = () => {
       case 'TIP':         return { icon: Lightbulb, label: 'Tip Estratégico' };
       case 'DESCUENTO':   return { icon: Tag,        label: 'Oportunidad' };
       case 'NOVEDAD_APP': return { icon: Rocket,     label: 'Novedad App' };
-      case 'RADAR':       return { icon: Radar,      label: 'Radar Octopus' };
+      case 'RADAR':       return { icon: Radar,      label: 'Radar Cephalopod' };
       default:            return { icon: Lightbulb,  label: 'Información' };
     }
   };

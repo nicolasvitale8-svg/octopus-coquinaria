@@ -104,7 +104,7 @@ export const memberService = {
     },
 
     /**
-     * Fetch all global admins and consultants (Team Octopus)
+     * Fetch all global admins and consultants (Team Cephalopod)
      */
     getGlobalCollaborators: async (): Promise<Partial<AppUser>[]> => {
         if (!supabase) return [];

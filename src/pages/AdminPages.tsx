@@ -31,7 +31,7 @@ export const AdminConfig = () => (
         <div className="inline-flex items-center gap-2 px-3 py-1.5 border" style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-base)' }}>
           <span aria-hidden="true" className="inline-flex h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: 'var(--color-primary)', boxShadow: '0 0 6px rgba(0,255,157,0.7)' }} />
           <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--color-primary)]">
-            Motor Octopus · Activo
+            Motor Cephalopod · Activo
           </span>
         </div>
       </div>

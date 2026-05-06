@@ -229,7 +229,7 @@ const Methodology = () => {
                   <div>
                     <h3 className="text-[var(--text-primary)] font-bold text-lg mb-4 flex items-center">
                       <Zap className="w-5 h-5 text-[var(--color-primary)] mr-2" fill="currentColor" />
-                      Cómo lo trabajamos en Octopus
+                      Cómo lo trabajamos en Cephalopod
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {selectedMethodology.actions.map((action, idx) => (

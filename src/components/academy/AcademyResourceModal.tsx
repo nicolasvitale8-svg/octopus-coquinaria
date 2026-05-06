@@ -342,7 +342,7 @@ const AcademyResourceModal: React.FC<AcademyResourceModalProps> = ({ isOpen, onC
                     </div>
 
                     <div>
-                        <label className="block text-xs font-bold text-[var(--text-muted)] uppercase mb-2">Vincular con Pilares Octopus (O-C-T-O-P-U-S)</label>
+                        <label className="block text-xs font-bold text-[var(--text-muted)] uppercase mb-2">Vincular con Pilares Cephalopod (O-C-T-O-P-U-S)</label>
                         <div className="flex flex-wrap gap-2">
                             {['orden', 'creatividad', 'tecnologia', 'observacion', 'pragmatismo', 'universalidad', 'sutileza'].map(pilar => (
                                 <button

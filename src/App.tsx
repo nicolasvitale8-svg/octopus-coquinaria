@@ -99,7 +99,7 @@ const LoadingFallback = () => (
 
       <div className="space-y-1">
         <p className="font-mono text-[10px] uppercase tracking-[0.28em]" style={{ color: 'var(--color-primary)' }}>
-          ▸ Octopus OS
+          ▸ Cephalopod OS
         </p>
         <p className="font-mono text-[10px] uppercase tracking-[0.22em]" style={{ color: 'var(--text-muted)' }}>
           Inicializando módulo…

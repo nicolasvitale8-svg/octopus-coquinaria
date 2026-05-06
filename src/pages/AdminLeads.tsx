@@ -111,7 +111,7 @@ const AdminLeads = () => {
     if (!lead) return '#';
     const phone = lead.leadData?.phone?.replace(/\D/g, '') || '';
     const name = lead.leadData?.name?.split(' ')[0] || 'Hola';
-    const message = `Hola ${name}, soy parte del equipo de Octopus Coquinaria. Vi tu diagnóstico y me gustaría agendar una breve sesión para revisar tus resultados.`;
+    const message = `Hola ${name}, soy parte del equipo de Cephalopod. Vi tu diagnóstico y me gustaría agendar una breve sesión para revisar tus resultados.`;
     return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
   };
 

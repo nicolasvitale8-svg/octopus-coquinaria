@@ -39,7 +39,7 @@ const DiagnosticResults: React.FC<DiagnosticResultsProps> = ({ result, formData 
     };
 
     const getWhatsappLink = () => {
-        const message = `Hola Octopus 🐙. Soy ${formData.contactName} de ${formData.businessName}.\n\n` +
+        const message = `Hola Cephalopod 🐙. Soy ${formData.contactName} de ${formData.businessName}.\n\n` +
             `Acabo de hacer el diagnóstico express:\n` +
             `📊 *Resultado:* ${result.status}\n` +
             `🏷️ *Perfil:* ${result.profileName}\n` +

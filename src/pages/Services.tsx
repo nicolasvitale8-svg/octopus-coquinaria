@@ -57,7 +57,7 @@ const Services = () => {
                         Negocio con alta demanda esperada, pero sin estructura operativa sólida, sin procesos formales ni criterios de control.
                       </p>
 
-                      <h4 className="text-[var(--text-muted)] font-bold uppercase text-xs tracking-wider mb-3">Intervención Octopus</h4>
+                      <h4 className="text-[var(--text-muted)] font-bold uppercase text-xs tracking-wider mb-3">Intervención Cephalopod</h4>
                       <ul className="space-y-2 mb-6">
                         {[
                           "Diseño de flujo operativo y organización de sectores.",
@@ -211,7 +211,7 @@ const Services = () => {
           <div className="mb-24">
             <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-8 border-l-4 border-[var(--color-primary)] pl-4 font-space flex items-center">
               <Layers className="w-6 h-6 text-[var(--color-primary)] mr-3" />
-              Servicios Octopus
+              Servicios Cephalopod
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

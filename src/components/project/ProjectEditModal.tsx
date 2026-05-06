@@ -306,7 +306,7 @@ const ProjectEditModal: React.FC<ProjectEditModalProps> = ({ project, isOpen, on
 
                         {/* EQUIPO INTERNO (COLABORADORES) */}
                         <div className="space-y-3 pt-2">
-                            <h3 className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Colaboradores Octopus Asignados</h3>
+                            <h3 className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Colaboradores Cephalopod Asignados</h3>
                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                                 {isLoadingConsultants ? (
                                     <p className="text-xs text-[var(--text-muted)] animate-pulse">Cargando equipo...</p>
@@ -392,7 +392,7 @@ const ProjectEditModal: React.FC<ProjectEditModalProps> = ({ project, isOpen, on
                                                     checked={c.is_team_member || false}
                                                     onChange={(e) => updateContact(i, 'is_team_member', e.target.checked)}
                                                 />
-                                                <span className="text-xs text-[var(--color-success)] font-bold whitespace-nowrap flex gap-1">Es Octopus 🐙</span>
+                                                <span className="text-xs text-[var(--color-success)] font-bold whitespace-nowrap flex gap-1">Es Cephalopod 🐙</span>
                                             </div>
                                             <input
                                                 className="bg-transparent outline-none text-[var(--text-muted)] text-xs w-full italic placeholder-slate-700"

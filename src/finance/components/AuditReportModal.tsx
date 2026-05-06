@@ -206,7 +206,7 @@ export const AuditReportModal: React.FC<AuditReportModalProps> = React.memo(({ r
                     <div className="px-8 pt-6 pb-4 border-b-4 border-cyan-500">
                         <div className="flex items-start justify-between">
                             <div className="flex items-center gap-3">
-                                <img src="/logo_simple.png" alt="Octopus" className="w-14 h-14 object-contain" />
+                                <img src="/logo_simple.png" alt="Cephalopod" className="w-14 h-14 object-contain" />
                                 <div>
                                     <div className="text-xl font-black text-gray-800 tracking-wide">FINANZAFLOW</div>
                                     <div className="text-sm text-gray-500">Auditoría Financiera | Documento controlado</div>

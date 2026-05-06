@@ -272,7 +272,7 @@ const UserProfile = () => {
 
             <div className="p-8 bg-gradient-to-r from-slate-900 to-slate-800 border border-[var(--border-subtle)] rounded-3xl text-center">
                 <p className="text-[var(--text-muted)] text-sm">
-                    Recuerda que estas credenciales son estrictamente personales. Octopus Coquinaria nunca te pedirá tu contraseña por mail o WahtsApp.
+                    Recuerda que estas credenciales son estrictamente personales. Cephalopod nunca te pedirá tu contraseña por mail o WahtsApp.
                 </p>
             </div>
         </div>

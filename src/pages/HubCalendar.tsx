@@ -69,7 +69,7 @@ const HubCalendar = () => {
                     <div className="flex justify-between items-center mb-8">
                         <div>
                             <h1 className="text-3xl font-bold font-space">Mi Calendario</h1>
-                            <p className="text-[var(--text-muted)]">Eventos de Octopus + Tus Eventos Privados</p>
+                            <p className="text-[var(--text-muted)]">Eventos de Cephalopod + Tus Eventos Privados</p>
                         </div>
                         {/* Only Clients/Managers can add events */}
                         <Button onClick={() => { setSelectedDate(new Date()); setIsModalOpen(true); }} className="bg-[var(--color-primary)] text-black">

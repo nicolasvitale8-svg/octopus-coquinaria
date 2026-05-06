@@ -1,13 +1,13 @@
-// Document Generator Types for Academia Octopus
+// Document Generator Types for Academia Cephalopod
 
 export interface DocumentMetadata {
     code: string;           // OCT-ACA-GUI-001
     version: string;        // 1.0
-    title: string;          // Por dónde empezar en la Academia Octopus
+    title: string;          // Por dónde empezar en la Academia Cephalopod
     type: DocumentType;     // GUI, PRO, EDI, etc.
     date: string;           // 04/01/2026
     status: DocumentStatus; // VIGENTE, BORRADOR, OBSOLETO
-    owner: string;          // Octopus Coquinaria
+    owner: string;          // Cephalopod
     access: AccessLevel;    // PUBLIC, PRIVATE
     reference: string;      // ISO 9001:2015 (7.5 / 8.1 / 10.3)
 }
@@ -69,7 +69,7 @@ export const getDefaultMetadata = (): DocumentMetadata => ({
     type: 'GUI',
     date: getTodayFormatted(),
     status: 'BORRADOR',
-    owner: 'Octopus Coquinaria',
+    owner: 'Cephalopod',
     access: 'PUBLIC',
     reference: 'ISO 9001:2015 (7.5 / 8.1 / 10.3)'
 });

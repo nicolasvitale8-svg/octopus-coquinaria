@@ -41,7 +41,7 @@ const TickerGastronomico = () => {
       <div className="hidden md:flex items-center h-full px-4 bg-black z-20 shadow-[5px_0_10px_rgba(0,0,0,0.5)] border-r border-[var(--border-subtle)]">
         <span className="text-[var(--color-primary)] text-xs font-bold uppercase tracking-wider flex items-center gap-2">
           <Calendar className="w-3 h-3" />
-          Calendario Octopus
+          Calendario Cephalopod
         </span>
       </div>
 

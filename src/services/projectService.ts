@@ -165,7 +165,7 @@ export const getProjectById = async (id: string): Promise<Project | null> => {
             notion_url: 'https://notion.so',
             drive_url: 'https://drive.google.com',
             summary: {
-                objective: 'Validar UI de Octopus',
+                objective: 'Validar UI de Cephalopod',
                 problem: 'Falta de datos reales en modo dev',
                 pillars: ['Eficiencia', 'Testing', 'UX'],
                 services: ['Auditoría']

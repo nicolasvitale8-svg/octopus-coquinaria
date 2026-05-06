@@ -36,7 +36,7 @@ const ProjectHeader: React.FC<ProjectHeaderProps> = ({ project, userRole, onEdit
             url += cleanPhone;
         }
 
-        const message = encodeURIComponent(`Hola ${name}, te escribo de Octopus por el proyecto de consultoría de ${project.business_name}.`);
+        const message = encodeURIComponent(`Hola ${name}, te escribo de Cephalopod por el proyecto de consultoría de ${project.business_name}.`);
         url += `?text=${message}`;
         window.open(url, '_blank');
     };

@@ -139,7 +139,7 @@ const ResourceDetail = () => {
               </div>
               <h3 className="text-2xl font-bold text-white mb-4 tracking-tight">Contenido Exclusivo PRO</h3>
               <p className="text-slate-400 max-w-lg mx-auto mb-8 leading-relaxed">
-                Este recurso está reservado para miembros de la comunidad Octopus con acceso PRO.
+                Este recurso está reservado para miembros de la comunidad Cephalopod con acceso PRO.
                 Desbloquea rutas de aprendizaje, herramientas avanzadas y consultoría.
               </p>
               <div className="flex flex-col sm:flex-row justify-center gap-4">
@@ -227,7 +227,7 @@ const ResourceDetail = () => {
                   {/* Methodology Link */}
                   {resource.pilares && resource.pilares.length > 0 && (
                     <div className="bg-[#1FB6D5]/5 p-6 rounded-3xl border border-[#1FB6D5]/10">
-                      <h4 className="font-bold text-[#1FB6D5] mb-4 text-xs uppercase tracking-widest">Pilar Octopus</h4>
+                      <h4 className="font-bold text-[#1FB6D5] mb-4 text-xs uppercase tracking-widest">Pilar Cephalopod</h4>
                       <div className="flex flex-wrap gap-2">
                         {resource.pilares.map(p => (
                           <span key={p} className="bg-slate-900 text-white px-3 py-1 rounded-lg text-[10px] font-bold uppercase border border-slate-800">

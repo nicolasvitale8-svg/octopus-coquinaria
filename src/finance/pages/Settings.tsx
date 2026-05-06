@@ -81,7 +81,7 @@ export const SettingsPage: React.FC = () => {
             <div className="p-4 bg-brand/10 text-brand rounded-2xl"><RefreshCcw size={24} /></div>
             <div>
               <h3 className="text-lg font-bold text-white">Sincronización en la Nube</h3>
-              <p className="text-sm text-fin-muted">Tus datos están ahora sincronizados de forma segura con Octopus. No necesitas exportar manualmente.</p>
+              <p className="text-sm text-fin-muted">Tus datos están ahora sincronizados de forma segura con Cephalopod. No necesitas exportar manualmente.</p>
             </div>
           </div>
 

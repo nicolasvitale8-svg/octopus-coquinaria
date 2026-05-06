@@ -80,7 +80,7 @@ const ClientProjectRedirect = () => {
     }, [user, navigate]);
 
     const getWhatsappLink = () => {
-        const message = `Hola Octopus 🐙. Soy ${profile?.name || user?.email}.\n\n` +
+        const message = `Hola Cephalopod 🐙. Soy ${profile?.name || user?.email}.\n\n` +
             `Ya registré mi cuenta en la plataforma y me gustaría saber cómo activar mi proyecto personalizado y comenzar la consultoría.`;
         return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
     };
@@ -103,7 +103,7 @@ const ClientProjectRedirect = () => {
                 <div className="space-y-3">
                     <h2 className="text-3xl font-extrabold text-white font-space">¡Hola {profile?.name || 'Gastronómico'}!</h2>
                     <p className="text-lg text-slate-400 max-w-sm mx-auto">
-                        Tu proyecto se activará una vez que comiences tu ciclo de consultoría profesional con <span className="text-white font-bold">Octopus Coquinaria</span>.
+                        Tu proyecto se activará una vez que comiences tu ciclo de consultoría profesional con <span className="text-white font-bold">Cephalopod</span>.
                     </p>
                 </div>
 

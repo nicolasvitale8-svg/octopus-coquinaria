@@ -836,7 +836,7 @@ const Home = () => {
           {/* Selector de modo */}
           <div className="flex flex-col items-center mb-16">
             <h3 className="font-mono text-[11px] uppercase tracking-[0.28em] mb-6 text-[var(--text-muted)]">
-              Visualizador de Impacto Octopus
+              Visualizador de Impacto Cephalopod
             </h3>
             <div
               className="flex items-center gap-2 p-1.5 rounded-full border backdrop-blur-md shadow-2xl"

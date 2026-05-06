@@ -151,7 +151,7 @@ const Academy = () => {
               <span className="text-[10px] font-bold uppercase tracking-[0.2em]">Volver al Inicio</span>
             </button>
             <div className="text-center">
-              <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-6 font-space tracking-tight">Academia Octopus</h1>
+              <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-6 font-space tracking-tight">Academia Cephalopod</h1>
               <p className="text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed">
                 Aprendizaje guiado por tu diagnóstico para escalar tu negocio sin caos.
               </p>

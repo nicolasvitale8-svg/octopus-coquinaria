@@ -128,7 +128,7 @@ export const DocumentGenerator: React.FC = () => {
                         </div>
                         <div>
                             <h1 className="text-2xl font-black text-[var(--text-primary)] uppercase tracking-wider">Generador de Documentos</h1>
-                            <p className="text-sm text-[var(--text-muted)]">Academia Octopus • Documentos Controlados</p>
+                            <p className="text-sm text-[var(--text-muted)]">Academia Cephalopod • Documentos Controlados</p>
                         </div>
                     </div>
                     <button
@@ -198,7 +198,7 @@ export const DocumentGenerator: React.FC = () => {
                                 type="text"
                                 value={document.metadata.title}
                                 onChange={e => updateMetadata('title', e.target.value)}
-                                placeholder="Ej: Por dónde empezar en la Academia Octopus"
+                                placeholder="Ej: Por dónde empezar en la Academia Cephalopod"
                                 className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-md px-4 py-3 text-[var(--text-primary)] text-sm focus:border-[var(--color-warning)] outline-none placeholder:text-[var(--text-muted)]"
                             />
                         </div>
@@ -353,9 +353,9 @@ export const DocumentGenerator: React.FC = () => {
                                 <div className="p-8 pb-4">
                                     <div className="flex items-start justify-between mb-4">
                                         <div className="flex items-center gap-3">
-                                            <img src="/logo_simple.png" alt="Octopus" className="w-12 h-12 object-contain" />
+                                            <img src="/logo_simple.png" alt="Cephalopod" className="w-12 h-12 object-contain" />
                                             <div>
-                                                <div className="text-lg font-black text-gray-800">ACADEMIA OCTOPUS</div>
+                                                <div className="text-lg font-black text-gray-800">ACADEMIA CEPHALOPOD</div>
                                                 <div className="text-xs text-[var(--text-muted)]">Guía operativa | Documento controlado</div>
                                             </div>
                                         </div>

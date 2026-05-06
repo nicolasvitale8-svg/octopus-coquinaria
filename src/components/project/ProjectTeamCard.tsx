@@ -37,7 +37,7 @@ const ProjectTeamCard: React.FC<ProjectTeamCardProps> = ({ project, onUpdate }) 
                 {(project.project_members || project.business_memberships) && (
                     <div className="space-y-2 pt-2">
                         <p className="text-[10px] text-[var(--color-primary)] uppercase font-bold tracking-wider flex items-center gap-1">
-                            Equipo Octopus
+                            Equipo Cephalopod
                         </p>
                         {(project.project_members || project.business_memberships || [])
                             .filter((m: any) => m.usuarios?.role !== 'client') // Omit customers from team list
@@ -110,7 +110,7 @@ const ProjectTeamCard: React.FC<ProjectTeamCardProps> = ({ project, onUpdate }) 
                                             <p className="text-[var(--text-secondary)] font-bold text-sm">{c.name || 'Sin nombre'}</p>
                                             <span className={`text-xs px-1.5 py-0.5 rounded flex items-center gap-1 border ${c.is_team_member ? 'text-[var(--color-success)] bg-[var(--color-success)]/10 border-[var(--color-success)]/20' : 'text-[var(--color-primary)] bg-[var(--color-primary)]/10 border-transparent'}`}>
                                                 {c.role || 'Rol'}
-                                                {c.is_team_member && <span title="Equipo Octopus">🐙</span>}
+                                                {c.is_team_member && <span title="Equipo Cephalopod">🐙</span>}
                                             </span>
                                         </div>
                                         <div className="mt-1 flex gap-3 text-xs text-[var(--text-muted)]">

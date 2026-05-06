@@ -352,7 +352,7 @@ const Dashboard = () => {
             <div className="md:col-span-4 grid grid-rows-2 gap-4">
               <ModuleCard
                 title="Proyecto 7P"
-                description="Seguimiento mensual de tu plan operativo según método Octopus."
+                description="Seguimiento mensual de tu plan operativo según método Cephalopod."
                 icon={Briefcase}
                 kicker="Seguimiento"
                 tone="primary"

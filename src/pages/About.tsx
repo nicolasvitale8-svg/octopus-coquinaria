@@ -57,7 +57,7 @@ const About = () => {
             {/* Right Column: Text */}
             <div className="order-1 lg:order-2 text-left">
               <h1 className="text-5xl font-extrabold text-[#E6E8E5] font-space mb-2">
-                Quién está detrás de Octopus
+                Quién está detrás de Cephalopod
               </h1>
               <h2 className="text-xl text-[var(--color-primary)] font-semibold mb-8 font-mono">
                 Nicolás Vitale — Gestión operativa & control
@@ -73,7 +73,7 @@ const About = () => {
                   Esa mezcla me dio una obsesión saludable: ordenar, medir y simplificar para que el negocio funcione incluso cuando vos no estás.
                 </p>
                 <p>
-                  En Octopus aplico el modelo <span className="text-[var(--text-primary)] font-bold">7P</span> —Orden, Creatividad, Tecnología, Observación, Pragmatismo, Universalidad y Sutileza— para transformar caos operativo en rentabilidad medible.
+                  En Cephalopod aplico el modelo <span className="text-[var(--text-primary)] font-bold">7P</span> —Orden, Creatividad, Tecnología, Observación, Pragmatismo, Universalidad y Sutileza— para transformar caos operativo en rentabilidad medible.
                 </p>
                 <p className="border-l-4 border-[var(--color-primary)] pl-6 italic text-[var(--text-primary)]/80">
                   No vendo magia. No vendo tendencias. Vendo sistemas que funcionan, procesos que se cumplen y números que se entienden.
