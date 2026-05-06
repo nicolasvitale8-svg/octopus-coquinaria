@@ -62,7 +62,7 @@ const FinanceLayout = () => {
                 <div className="h-20 flex items-center px-6 border-b border-[var(--border-subtle)] bg-[var(--bg-surface)]/50 backdrop-blur-md sticky top-0 z-10">
                     <div className="flex flex-col">
                         <span className="font-black text-xs tracking-[0.3em] text-[var(--color-primary)]">FINANZAFLOW</span>
-                        <span className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest mt-0.5">Octopus System</span>
+                        <span className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest mt-0.5">Cephalopod System</span>
                     </div>
                 </div>
 
@@ -93,7 +93,7 @@ const FinanceLayout = () => {
                         className="flex items-center px-4 py-3 text-[var(--text-primary)]/60 hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-soft)] rounded-md transition-all text-sm font-medium group"
                     >
                         <Home size={18} className="mr-3 text-[var(--text-muted)] group-hover:text-[var(--color-primary)] transition-colors" />
-                        <span>Volver a Octopus</span>
+                        <span>Volver a Cephalopod</span>
                     </Link>
                     <button
                         onClick={() => navigate(-1)}

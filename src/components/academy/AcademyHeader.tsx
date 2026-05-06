@@ -27,7 +27,7 @@ const AcademyHeader: React.FC<AcademyHeaderProps> = ({ onNewResource, actions })
         </div>
         <h1 className="font-display text-2xl font-bold tracking-tight text-[var(--text-primary)] flex items-center gap-2">
           <BookOpen className="w-5 h-5 text-[var(--color-primary)]" strokeWidth={1.75} />
-          Academia Octopus
+          Academia Cephalopod
         </h1>
         <p className="font-mono text-[11px] text-[var(--text-secondary)] mt-1">
           Biblioteca de recursos educativos para tus clientes.

@@ -15,6 +15,7 @@ import { supabase } from '../services/supabase';
 import WelcomeBanner from './WelcomeBanner';
 import Button from './ui/Button';
 import StatusBadge from './ui/StatusBadge';
+import OctopusMark from './ui/OctopusMark';
 
 /**
  * Layout — top-nav público + footer del rebrand.
@@ -32,11 +33,12 @@ import StatusBadge from './ui/StatusBadge';
  */
 
 const navLinks = [
-  { name: 'Metodología', path: '/methodology' },
-  { name: 'Casos y Servicios', path: '/services' },
-  { name: 'Calendario', path: '/calendar' },
-  { name: 'Academia', path: '/academy' },
-  { name: 'Sobre mí', path: '/about' },
+  { name: 'Inicio',    path: '/' },
+  { name: 'Método',    path: '/methodology' },
+  { name: 'Servicios', path: '/services' },
+  { name: 'Sistema',   path: '/finance' },
+  { name: 'Casos',     path: '/about' },
+  { name: 'Academia',  path: '/academy' },
 ];
 
 interface LayoutProps {
@@ -114,14 +116,17 @@ const Layout: React.FC<LayoutProps> = ({ children, user: propUser }) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 md:h-18">
             <div className="flex items-center gap-8">
-              {/* Wordmark */}
-              <Link to="/" className="flex flex-col leading-tight flex-shrink-0">
-                <span className="font-display text-lg font-bold tracking-tight text-[var(--text-primary)]">
-                  OCTOPUS
-                </span>
-                <span className="font-mono text-[10px] uppercase tracking-[0.28em] text-[var(--color-primary)]">
-                  Coquinaria
-                </span>
+              {/* Wordmark CEPHALOPOD con logo */}
+              <Link to="/" className="flex items-center gap-2.5 flex-shrink-0 group">
+                <OctopusMark variant="phosphor" size={28} className="flex-shrink-0" />
+                <div className="flex flex-col leading-tight">
+                  <span className="font-display text-lg font-bold tracking-tight text-[var(--text-primary)] group-hover:text-[var(--color-primary)] transition-colors">
+                    CEPHALOPOD
+                  </span>
+                  <span className="font-mono text-[9px] uppercase tracking-[0.28em] text-[var(--color-primary)]">
+                    Sistemas que piensan.
+                  </span>
+                </div>
               </Link>
 
               {/* Desktop nav */}
@@ -317,17 +322,20 @@ const Layout: React.FC<LayoutProps> = ({ children, user: propUser }) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
-              <div className="flex flex-col leading-tight mb-4">
-                <span className="font-display text-xl font-bold tracking-tight text-[var(--text-primary)]">
-                  OCTOPUS
-                </span>
-                <span className="font-mono text-[10px] uppercase tracking-[0.28em] text-[var(--color-primary)]">
-                  {APP_NAME.replace(/^Octopus\s*/i, '')}
-                </span>
+              <div className="flex items-center gap-2.5 mb-4">
+                <OctopusMark variant="phosphor" size={32} className="flex-shrink-0" />
+                <div className="flex flex-col leading-tight">
+                  <span className="font-display text-xl font-bold tracking-tight text-[var(--text-primary)]">
+                    CEPHALOPOD
+                  </span>
+                  <span className="font-mono text-[9px] uppercase tracking-[0.28em] text-[var(--color-primary)]">
+                    Sistemas que piensan.
+                  </span>
+                </div>
               </div>
               <p className="text-sm leading-relaxed text-[var(--text-secondary)] max-w-xs">
-                Sistemas operativos para gastronomía. Tentáculos en todo el negocio,
-                cabeza fría en los números.
+                Inteligencia operativa para gastronomía. Sistemas que observan,
+                aprenden y mejoran para generar resultados medibles.
               </p>
             </div>
 
@@ -444,7 +452,7 @@ const Layout: React.FC<LayoutProps> = ({ children, user: propUser }) => {
             style={{ borderColor: 'var(--border-subtle)' }}
           >
             <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--text-muted)]">
-              © {new Date().getFullYear()} Octopus Coquinaria · Todos los derechos reservados
+              © {new Date().getFullYear()} Cephalopod · Todos los derechos reservados
             </span>
             <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--text-muted)]">
               OCT-LAYOUT-FOOT-001

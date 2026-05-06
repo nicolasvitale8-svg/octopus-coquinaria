@@ -94,7 +94,7 @@ const WelcomeBanner: React.FC = () => {
                 </div>
                 <div className="flex-grow min-w-0 pr-8">
                     <h3 className="text-emerald-200 font-semibold text-base mb-1">
-                        ¡Bienvenido a Octopus Coquinaria, {firstName}!
+                        ¡Bienvenido a Cephalopod, {firstName}!
                     </h3>
                     <p className="text-sm text-emerald-100/80 leading-relaxed">
                         Tu cuenta ya fue activada. Ya tenés acceso al sistema según tu rol asignado.

@@ -43,14 +43,14 @@ import { getResources } from '../services/academyService';
 import { AcademyResource } from '../types';
 
 /**
- * Home — Landing testigo del rebrand Octopus Coquinaria.
+ * Home — Landing testigo del rebrand Cephalopod.
  *
  * Cambios visuales (vs versión anterior):
  *   - Tipografía hero: Sora display (font-display) en lugar de Space Grotesk.
  *   - Paleta: navy + cream + gold como primario; cyan-tech queda accent.
  *   - Hero h1 reemplaza "Tu restaurante no necesita más ideas..." por el
  *     claim oficial "Sistemas que piensan. Operaciones que responden."
- *   - Eyebrow superior: "Octopus Coquinaria · Sistemas operativos para gastronomía".
+ *   - Eyebrow superior: "Cephalopod · Sistemas operativos para gastronomía".
  *   - Doc-code OCT-LAND-HERO-001 visible en mono como detalle técnico.
  *   - Iconografía 7P: lucide-react lineal (NO emojis 3D), mapeo posicional.
  *   - Loader de academia → OctopusLoader. Empty academy → EmptyState.
@@ -287,42 +287,44 @@ const Home = () => {
                 </span>
               </div>
 
-              {/* H1 — claim oficial */}
-              <h1 className="font-display text-5xl md:text-6xl lg:text-7xl font-semibold tracking-tight mb-8 leading-[1.05] text-[var(--text-primary)]">
-                Sistemas que piensan.
+              {/* H1 — claim oficial CEPHALOPOD */}
+              <h1 className="font-display text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6 leading-[1.05] text-[var(--text-primary)]" style={{ textShadow: '0 0 24px rgba(0, 255, 157, 0.15)' }}>
+                Sistemas que
                 <br />
-                <span className="text-gradient-gold">Operaciones que responden.</span>
+                <span className="text-[var(--color-primary)]" style={{ textShadow: '0 0 32px rgba(0, 255, 157, 0.45)' }}>piensan.</span>
               </h1>
 
-              {/* Sub copy — mantiene el flicker icónico */}
-              <p className="font-sans text-lg md:text-xl text-[var(--text-secondary)] mb-10 max-w-xl leading-relaxed">
-                <span className="animate-faulty-flicker inline-block font-semibold mr-1" style={{ color: 'var(--color-danger)' }}>
-                  Si tu Excel da miedo
-                </span>
-                , estás en el lugar correcto. Procesos, datos, documentación y
-                control convertidos en{' '}
-                <span className="animate-shine font-semibold text-[var(--text-primary)]">sistema</span>.
-                Para restaurantes, hoteles, frigoríficos, catering y comedores institucionales.
+              {/* Sub copy */}
+              <p className="font-sans text-lg md:text-xl text-[var(--text-secondary)] mb-3 max-w-xl leading-relaxed">
+                Transformamos procesos, datos y documentación gastronómica en
+                control y criterio operativo.
+              </p>
+              <p className="font-mono text-xs md:text-sm uppercase tracking-[0.18em] text-[var(--text-muted)] mb-10">
+                Menos improvisación · más sistema. Decisiones con respaldo. Resultados que se miden.
               </p>
 
               {/* CTAs */}
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link to="/quick-diagnostic">
                   <Button variant="primary" size="lg" icon={ArrowRight} iconPosition="right" fullWidth>
-                    Diagnóstico operativo (5 min)
+                    Solicitar diagnóstico
                   </Button>
                 </Link>
-                <a
-                  href={`https://wa.me/${WHATSAPP_NUMBER}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="sm:w-auto"
-                >
-                  <Button variant="secondary" size="lg" icon={MessageCircle} fullWidth>
-                    Hablar por WhatsApp
+                <Link to="/finance" className="sm:w-auto">
+                  <Button variant="outline" size="lg" fullWidth>
+                    Ver sistema
                   </Button>
-                </a>
+                </Link>
               </div>
+
+              {/* Método 7P — link prominente */}
+              <Link
+                to="/methodology"
+                className="inline-flex items-center gap-2 mt-6 font-mono text-[10px] uppercase tracking-[0.28em] text-[var(--text-muted)] hover:text-[var(--color-primary)] transition-colors"
+              >
+                <span className="inline-flex items-center justify-center w-4 h-4 border" style={{ borderColor: 'var(--border-subtle)' }}>+</span>
+                Método Octopus 7P
+              </Link>
 
               {/* Doc-code de pie */}
               <div className="mt-10 flex items-center gap-2 opacity-60">
@@ -531,7 +533,7 @@ const Home = () => {
               </div>
 
               <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--color-primary)] mb-4">
-                Octopus Control Center
+                Cephalopod Control Center
               </div>
 
               {/* KPI tiles */}
@@ -633,7 +635,7 @@ const Home = () => {
                   Sistema actualizado hace 5 min
                 </span>
                 <span className="font-mono text-[9px] uppercase tracking-[0.22em] text-[var(--text-muted)]">
-                  Fuente · Octopus OS
+                  Fuente · Cephalopod OS
                 </span>
               </div>
             </div>
@@ -1175,7 +1177,7 @@ const Home = () => {
             </div>
 
             <div className="relative mt-6 pt-4 border-t flex items-center justify-between font-mono text-[9px] uppercase tracking-[0.22em] text-[var(--text-muted)]" style={{ borderColor: 'var(--border-subtle)' }}>
-              <span>Octopus Coquinaria · Sistemas operativos para gastronomía</span>
+              <span>Cephalopod · Sistemas operativos para gastronomía</span>
               <span>CPD-HOM-CTA-001</span>
             </div>
           </div>

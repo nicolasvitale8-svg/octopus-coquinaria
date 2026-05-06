@@ -106,7 +106,7 @@ const NewsBoard: React.FC = () => {
           <div className="max-w-2xl">
             <div className="inline-flex items-center gap-3 mb-4">
               <span className="font-mono text-[11px] uppercase tracking-[0.28em] text-[var(--text-muted)]">
-                — Comunicados Octopus
+                — Comunicados Cephalopod
               </span>
             </div>
             <h2 className="font-display text-3xl md:text-4xl font-bold tracking-tight text-[var(--text-primary)] mb-4 leading-tight">

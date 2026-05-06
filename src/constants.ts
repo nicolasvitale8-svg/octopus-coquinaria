@@ -18,7 +18,7 @@ export const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || "";
 export const ACADEMY_ENABLED = true;
 export const INSTAGRAM_URL = "https://www.instagram.com/octopuscuquinaria/";
 export const YOUTUBE_URL = "https://www.youtube.com/@octopuscoquinaria";
-export const APP_NAME = "Octopus Coquinaria";
+export const APP_NAME = "Cephalopod";
 export const LINKEDIN_URL = "https://www.linkedin.com/";
 
 // --- ASSETS VISUALES (URLs Externas) ---

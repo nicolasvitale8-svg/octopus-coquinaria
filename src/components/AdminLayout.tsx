@@ -160,7 +160,7 @@ const AdminLayout = () => {
                 : profile?.email?.split('@')[0] || 'Admin'}
             </div>
             <div className="font-mono text-[9px] uppercase tracking-[0.28em] text-[var(--color-primary)] mt-0.5">
-              {isAdmin ? 'Octopus · Admin' : `Octopus · ${profile?.role || 'Invitado'}`}
+              {isAdmin ? 'Cephalopod · Admin' : `Cephalopod · ${profile?.role || 'Invitado'}`}
             </div>
           </Link>
 
@@ -306,7 +306,7 @@ const AdminLayout = () => {
           </button>
           <div className="flex flex-col leading-tight">
             <span className="font-display text-sm font-bold tracking-tight text-[var(--text-primary)]">
-              OCTOPUS
+              CEPHALOPOD
             </span>
             <span className="font-mono text-[9px] uppercase tracking-[0.28em] text-[var(--color-primary)]">
               Admin

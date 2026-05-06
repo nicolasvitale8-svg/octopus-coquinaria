@@ -1,7 +1,7 @@
 import React from 'react';
 
 /**
- * OctopusMark — isotipo phosphor-circuit de Octopus Coquinaria · FASE 2.
+ * OctopusMark — isotipo phosphor-circuit de Cephalopod · FASE 2.
  *
  * Reemplaza la versión lineal hand-drawn por el vector oficial del
  * brand board (cephalopod circuit-board logo).
@@ -50,7 +50,7 @@ const OctopusMark: React.FC<OctopusMarkProps> = ({
   variant = 'mono',
   size,
   animated = false,
-  title = 'Octopus Coquinaria',
+  title = 'Cephalopod',
   className = '',
   ...rest
 }) => {

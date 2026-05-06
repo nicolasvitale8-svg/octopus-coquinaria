@@ -590,7 +590,7 @@ export const Dashboard: React.FC = () => {
 
         <div className="text-center space-y-1.5">
           <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-[var(--color-primary)]">
-            ▸ Octopus OS · Sync en curso
+            ▸ Cephalopod OS · Sync en curso
           </p>
           <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--text-muted)]">
             Cargando datos financieros…

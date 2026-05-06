@@ -222,7 +222,7 @@ const Login = () => {
               }}
               className="space-y-4"
             >
-              <Input label="Usuario (Email)" name="email" type="email" placeholder="admin@octopuscoquinaria.com" required />
+              <Input label="Usuario (Email)" name="email" type="email" placeholder="admin@cephalopod.systems" required />
               <Input label="Contraseña" name="password" type="password" placeholder="••••••••" required />
               <Button fullWidth variant="primary" type="submit">
                 Ingresar al sistema
