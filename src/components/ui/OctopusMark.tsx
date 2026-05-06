@@ -65,7 +65,7 @@ const OctopusMark: React.FC<OctopusMarkProps> = ({
 
   const animClass = animated ? 'animate-phosphor-pulse' : '';
   const filterStyle = isPhosphor
-    ? { filter: 'drop-shadow(0 0 8px rgba(0, 255, 157, 0.55))' }
+    ? { filter: 'drop-shadow(0 0 6px rgba(0, 255, 157, 0.30))' }
     : undefined;
 
   return (

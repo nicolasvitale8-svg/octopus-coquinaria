@@ -166,7 +166,7 @@ const AdminLayout = () => {
 
           {/* SISTEMA · ONLINE */}
           <div className="mt-3 inline-flex items-center gap-2 px-2 py-1 border" style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-base)' }}>
-            <span aria-hidden="true" className="inline-flex h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: 'var(--color-primary)', boxShadow: '0 0 6px rgba(0,255,157,0.7)' }} />
+            <span aria-hidden="true" className="inline-flex h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: 'var(--color-primary)', boxShadow: '0 0 4px rgba(0,255,157,0.45)' }} />
             <span className="font-mono text-[9px] uppercase tracking-[0.22em] text-[var(--color-primary)]">
               Sistema · Online
             </span>
@@ -202,7 +202,7 @@ const AdminLayout = () => {
                     <span
                       aria-hidden="true"
                       className="absolute left-0 top-0 bottom-0 w-[2px]"
-                      style={{ background: 'var(--color-primary)', boxShadow: '0 0 8px rgba(0,255,157,0.6)' }}
+                      style={{ background: 'var(--color-primary)', boxShadow: '0 0 5px rgba(0,255,157,0.35)' }}
                     />
                     <span aria-hidden="true" className="absolute top-0 right-0 w-1.5 h-1.5 border-r border-t" style={{ borderColor: 'var(--color-primary)' }} />
                   </>
@@ -312,7 +312,7 @@ const AdminLayout = () => {
               Admin
             </span>
           </div>
-          <span aria-hidden="true" className="inline-flex h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: 'var(--color-primary)', boxShadow: '0 0 6px rgba(0,255,157,0.7)' }} />
+          <span aria-hidden="true" className="inline-flex h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: 'var(--color-primary)', boxShadow: '0 0 4px rgba(0,255,157,0.45)' }} />
         </header>
 
         <main

@@ -579,7 +579,7 @@ export const Dashboard: React.FC = () => {
 
         {/* Phosphor pulse */}
         <div className="relative">
-          <div className="absolute inset-0 rounded-full blur-2xl animate-pulse" style={{ background: 'rgba(0, 255, 157, 0.45)' }} />
+          <div className="absolute inset-0 rounded-full blur-2xl animate-pulse" style={{ background: 'rgba(0, 255, 157, 0.25)' }} />
           <div
             className="relative w-14 h-14 border flex items-center justify-center"
             style={{ background: 'var(--bg-surface)', borderColor: 'var(--color-primary)' }}
@@ -650,7 +650,7 @@ export const Dashboard: React.FC = () => {
             <div>
               <div className="font-mono text-[10px] uppercase tracking-[0.28em] text-[var(--text-muted)] mb-1">— FinanzaFlow · CPD-FIN-DSH-001</div>
               <h1 className="font-display text-xl md:text-2xl font-bold tracking-tight text-[var(--text-primary)] flex items-center gap-2">
-                Financias <span className="text-[var(--color-primary)] font-bold uppercase tracking-wide" style={{ textShadow: '0 0 12px rgba(0, 255, 157, 0.35)' }}>PRO</span>
+                Financias <span className="text-[var(--color-primary)] font-bold uppercase tracking-wide" style={{ textShadow: '0 0 8px rgba(0, 255, 157, 0.20)' }}>PRO</span>
               </h1>
             </div>
           </div>

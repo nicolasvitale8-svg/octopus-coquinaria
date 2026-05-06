@@ -152,7 +152,7 @@ const AdminDashboard = () => {
           <span aria-hidden="true" className="absolute bottom-0 right-0 w-2.5 h-2.5 border-r border-b" style={{ borderColor: 'var(--color-primary)' }} />
           <span className="font-mono text-[11px] uppercase tracking-[0.28em] text-[var(--text-muted)] mb-4">— Estado del Sistema</span>
           <div className="flex items-center gap-2 mb-3">
-            <span className="inline-flex h-2 w-2 rounded-full animate-pulse" style={{ background: 'var(--color-primary)', boxShadow: '0 0 8px rgba(0,255,157,0.7)' }} />
+            <span className="inline-flex h-2 w-2 rounded-full animate-pulse" style={{ background: 'var(--color-primary)', boxShadow: '0 0 5px rgba(0,255,157,0.40)' }} />
             <CheckCircle size={16} className="text-[var(--color-primary)]" strokeWidth={1.75} />
             <span className="font-mono text-sm font-bold uppercase tracking-[0.18em] text-[var(--color-primary)]">
               Operativo

@@ -158,7 +158,7 @@ const Home = () => {
         <div className="hidden lg:block absolute top-1/2 right-0 -translate-y-1/2 h-[80vh] w-[48vw] z-10 pointer-events-none">
           {/* Glow phosphor */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[55%] h-[55%] rounded-full blur-[100px]"
-               style={{ background: 'rgba(0, 255, 157, 0.14)' }} />
+               style={{ background: 'rgba(0, 255, 157, 0.08)' }} />
 
           <div className="relative w-full h-full flex items-center justify-center">
             {/* Radar SVG */}
@@ -235,7 +235,7 @@ const Home = () => {
               {/* SISTEMA: ONLINE indicator + social row */}
               <div className="flex items-center justify-between gap-4 mb-8 flex-wrap">
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 border" style={{ borderColor: 'var(--border-subtle)', background: 'rgba(0, 255, 157, 0.04)' }}>
-                  <span className="inline-flex h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: 'var(--color-primary)', boxShadow: '0 0 6px rgba(0,255,157,0.7)' }} />
+                  <span className="inline-flex h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: 'var(--color-primary)', boxShadow: '0 0 4px rgba(0,255,157,0.45)' }} />
                   <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--color-primary)]">
                     Sistema: online
                   </span>
@@ -288,10 +288,10 @@ const Home = () => {
               </div>
 
               {/* H1 — claim oficial CEPHALOPOD */}
-              <h1 className="font-display text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6 leading-[1.05] text-[var(--text-primary)]" style={{ textShadow: '0 0 24px rgba(0, 255, 157, 0.15)' }}>
+              <h1 className="font-display text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6 leading-[1.05] text-[var(--text-primary)]" style={{ textShadow: '0 0 14px rgba(0, 255, 157, 0.10)' }}>
                 Sistemas que
                 <br />
-                <span className="text-[var(--color-primary)]" style={{ textShadow: '0 0 32px rgba(0, 255, 157, 0.45)' }}>piensan.</span>
+                <span className="text-[var(--color-primary)]" style={{ textShadow: '0 0 18px rgba(0, 255, 157, 0.22)' }}>piensan.</span>
               </h1>
 
               {/* Sub copy */}
@@ -339,7 +339,7 @@ const Home = () => {
             <div className="order-1 lg:hidden flex justify-center items-center relative mb-2">
               <div className="w-[70%] max-w-[280px] relative aspect-square">
                 {/* Glow phosphor */}
-                <div className="absolute inset-0 rounded-full blur-[60px]" style={{ background: 'rgba(0, 255, 157, 0.15)' }} />
+                <div className="absolute inset-0 rounded-full blur-[60px]" style={{ background: 'rgba(0, 255, 157, 0.08)' }} />
                 {/* Radar circles */}
                 <svg viewBox="0 0 300 300" className="absolute inset-0 w-full h-full">
                   <g fill="none" stroke="#00FF9D" strokeOpacity="0.22" strokeWidth="0.6">
@@ -1129,7 +1129,7 @@ const Home = () => {
             style={{
               borderColor: 'var(--border-strong)',
               background: 'var(--bg-surface)',
-              boxShadow: '0 0 50px rgba(0, 255, 157, 0.10)',
+              boxShadow: '0 0 35px rgba(0, 255, 157, 0.06)',
             }}
           >
             {/* Corner brackets phosphor */}

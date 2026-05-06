@@ -157,7 +157,7 @@ const Layout: React.FC<LayoutProps> = ({ children, user: propUser }) => {
                 <span
                   aria-hidden="true"
                   className="inline-flex h-1.5 w-1.5 rounded-full animate-pulse"
-                  style={{ background: 'var(--color-primary)', boxShadow: '0 0 6px rgba(0,255,157,0.6)' }}
+                  style={{ background: 'var(--color-primary)', boxShadow: '0 0 4px rgba(0,255,157,0.40)' }}
                 />
                 <span className="font-mono text-[9px] uppercase tracking-[0.22em] text-[var(--color-primary)]">
                   Sistema · Online

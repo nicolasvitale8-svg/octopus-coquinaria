@@ -25,11 +25,11 @@ export const AdminConfig = () => (
         <span aria-hidden="true" className="absolute bottom-0 right-0 w-2.5 h-2.5 border-r border-b" style={{ borderColor: 'var(--color-primary)' }} />
 
         <div className="font-mono text-[10px] uppercase tracking-[0.28em] text-[var(--text-muted)] mb-2">— Sistema</div>
-        <p className="font-display text-3xl md:text-4xl font-bold text-[var(--color-primary)] mb-3" style={{ textShadow: '0 0 12px rgba(0, 255, 157, 0.35)' }}>
+        <p className="font-display text-3xl md:text-4xl font-bold text-[var(--color-primary)] mb-3" style={{ textShadow: '0 0 8px rgba(0, 255, 157, 0.20)' }}>
           v4.2.0
         </p>
         <div className="inline-flex items-center gap-2 px-3 py-1.5 border" style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-base)' }}>
-          <span aria-hidden="true" className="inline-flex h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: 'var(--color-primary)', boxShadow: '0 0 6px rgba(0,255,157,0.7)' }} />
+          <span aria-hidden="true" className="inline-flex h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: 'var(--color-primary)', boxShadow: '0 0 4px rgba(0,255,157,0.45)' }} />
           <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--color-primary)]">
             Motor Cephalopod · Activo
           </span>
