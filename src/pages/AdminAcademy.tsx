@@ -94,26 +94,33 @@ const AdminAcademy = () => {
                 }
             />
 
-            <div className="bg-[var(--bg-base)] rounded-md border border-[var(--border-subtle)] overflow-hidden shadow-xl">
-                {/* Search Bar Inline */}
-                <div className="p-4 border-b border-[var(--border-subtle)] flex items-center">
-                    <Search className="w-5 h-5 text-[var(--text-muted)] mr-3" />
-                    <input
-                        type="text"
-                        placeholder="Buscar por título, categoría o formato..."
-                        className="bg-transparent border-none focus:ring-0 text-[var(--text-primary)] w-full placeholder-[var(--text-muted)]"
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                    />
-                </div>
+            {/* Search Bar HUD */}
+            <div
+                className="relative border flex items-center px-4 py-3 gap-3"
+                style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}
+            >
+                <span aria-hidden="true" className="pointer-events-none absolute top-0 left-0 w-2.5 h-2.5 border-l border-t" style={{ borderColor: 'var(--color-primary)' }} />
+                <span aria-hidden="true" className="pointer-events-none absolute bottom-0 right-0 w-2.5 h-2.5 border-r border-b" style={{ borderColor: 'var(--color-primary)' }} />
 
-                <AcademyResourceTable
-                    resources={filteredResources}
-                    isLoading={isLoading}
-                    onDelete={handleDelete}
-                    onEdit={handleEdit}
+                <span className="font-mono text-[10px] uppercase tracking-[0.28em] text-[var(--text-muted)] select-none whitespace-nowrap">
+                    QUERY ›
+                </span>
+                <Search className="w-4 h-4 text-[var(--color-primary)]" strokeWidth={1.75} />
+                <input
+                    type="text"
+                    placeholder="Buscar por título, categoría o formato…"
+                    className="bg-transparent border-none focus:ring-0 text-[var(--text-primary)] w-full placeholder-[var(--text-muted)] font-mono text-sm focus:outline-none"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
                 />
             </div>
+
+            <AcademyResourceTable
+                resources={filteredResources}
+                isLoading={isLoading}
+                onDelete={handleDelete}
+                onEdit={handleEdit}
+            />
 
             <AcademyResourceModal
                 isOpen={isModalOpen}
