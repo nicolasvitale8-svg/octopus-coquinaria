@@ -37,7 +37,7 @@ const navLinks = [
   { name: 'Método',    path: '/methodology' },
   { name: 'Servicios', path: '/services' },
   { name: 'Sistema',   path: '/finance' },
-  { name: 'Casos',     path: '/about' },
+  { name: 'Casos',     path: '/cases' },
   { name: 'Academia',  path: '/academy' },
 ];
 
@@ -357,6 +357,11 @@ const Layout: React.FC<LayoutProps> = ({ children, user: propUser }) => {
                 <li>
                   <Link to="/services" className="text-[var(--text-secondary)] hover:text-[var(--color-primary)] transition-colors">
                     Servicios
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/cases" className="text-[var(--text-secondary)] hover:text-[var(--color-primary)] transition-colors">
+                    Casos
                   </Link>
                 </li>
                 <li>

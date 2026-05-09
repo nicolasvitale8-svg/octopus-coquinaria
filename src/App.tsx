@@ -19,6 +19,7 @@ const Academy = lazy(() => import('./pages/Academy'));
 const ResourceDetail = lazy(() => import('./pages/ResourceDetail'));
 const About = lazy(() => import('./pages/About'));
 const Services = lazy(() => import('./pages/Services'));
+const Cases = lazy(() => import('./pages/Cases'));
 const CalendarPage = lazy(() => import('./pages/Calendar'));
 const HubCalendar = lazy(() => import('./pages/HubCalendar'));
 const ClientProjectRedirect = lazy(() => import('./pages/ClientProjectRedirect'));
@@ -196,6 +197,7 @@ const App = () => {
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/about" element={<About />} />
               <Route path="/services" element={<Services />} />
+              <Route path="/cases" element={<Cases />} />
               <Route path="/calendar" element={<CalendarPage />} />
 
               {/* Finance Module Routes - FinanzaProvider SOLO envuelve las rutas de finance.

@@ -711,7 +711,7 @@ const Home = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between mb-12 reveal-on-scroll flex-wrap gap-4">
             <span className="font-mono text-[11px] uppercase tracking-[0.28em] text-[var(--text-muted)]">— Aplicaciones</span>
-            <Link to="/services" className="font-mono text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)] hover:text-[var(--color-primary)] transition-colors inline-flex items-center gap-2">
+            <Link to="/cases" className="font-mono text-[11px] uppercase tracking-[0.22em] text-[var(--text-muted)] hover:text-[var(--color-primary)] transition-colors inline-flex items-center gap-2">
               Ver más casos
               <span className="inline-flex items-center justify-center w-4 h-4 border" style={{ borderColor: 'var(--border-subtle)' }}>+</span>
             </Link>
