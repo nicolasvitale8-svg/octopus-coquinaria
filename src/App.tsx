@@ -5,6 +5,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import ScrollToTop from './components/ScrollToTop';
 import ErrorBoundary from './components/ErrorBoundary';
 import { AuthProvider } from './contexts/AuthContext';
+import { ToastProvider } from './contexts/ToastContext';
 
 // ============================================
 // LAZY LOADED - Paginas Publicas
@@ -121,6 +122,7 @@ const App = () => {
   return (
     <ErrorBoundary>
       <AuthProvider>
+        <ToastProvider>
         <Router>
           <ScrollToTop />
           <Suspense fallback={<LoadingFallback />}>
@@ -224,6 +226,7 @@ const App = () => {
             </Routes>
           </Suspense>
         </Router>
+        </ToastProvider>
       </AuthProvider>
     </ErrorBoundary>
   );

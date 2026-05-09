@@ -190,6 +190,8 @@ export interface AppUser {
   businessName?: string; // Legacy/Display
   job_title?: string;
   phone?: string;
+  avatar_url?: string | null;
+  notes?: string | null;
 }
 
 export interface Role {

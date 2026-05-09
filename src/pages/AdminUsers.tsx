@@ -18,6 +18,7 @@ interface UserData {
   phone?: string;
   job_title?: string;
   notes?: string;
+  avatar_url?: string | null;
   // memberships con nombre de proyecto (V4)
   project_members?: { projects: { business_name: string; id: string; } }[];
 }
@@ -241,9 +242,25 @@ const AdminUsers = () => {
                 <tr key={user.id} className={`hover:bg-[var(--bg-surface)]/50 transition-colors ${isPending(user.role) ? 'bg-[var(--color-warning)]/5' : ''}`}>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-[var(--bg-surface)] flex items-center justify-center text-xs font-bold text-[var(--color-primary)]">
-                        {user.full_name?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}
-                      </div>
+                      {user.avatar_url ? (
+                        <img
+                          src={user.avatar_url}
+                          alt={user.full_name || user.email}
+                          className="w-9 h-9 rounded-full object-cover border"
+                          style={{ borderColor: 'var(--color-primary)' }}
+                        />
+                      ) : (
+                        <div
+                          className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold border"
+                          style={{
+                            background: 'var(--bg-surface)',
+                            color: 'var(--color-primary)',
+                            borderColor: 'var(--border-subtle)'
+                          }}
+                        >
+                          {user.full_name?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}
+                        </div>
+                      )}
                       <div>
                         <div className="font-medium text-[var(--text-primary)]">{user.full_name || 'Sin Nombre'}</div>
                         <div className="text-xs text-[var(--text-muted)]">{user.email}</div>

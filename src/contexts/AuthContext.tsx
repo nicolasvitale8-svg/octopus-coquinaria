@@ -56,7 +56,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         Promise.race([
           supabase
             .from('usuarios')
-            .select('id, role, permissions, full_name, business_name, plan, diagnostic_scores, rejected_at')
+            .select('id, role, permissions, full_name, business_name, plan, diagnostic_scores, rejected_at, avatar_url, job_title, phone')
             .eq('id', userId)
             .single(),
           new Promise<{ timeout: true }>((resolve) =>
@@ -109,12 +109,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           id: userData.id,
           email: email || '',
           name: userData.full_name || email?.split('@')[0] || 'Usuario',
+          full_name: userData.full_name || '',
           role: userData.role as UserRole,
           plan: (userData.plan || 'FREE') as 'FREE' | 'PRO',
           diagnostic_scores: userData.diagnostic_scores || {},
           permissions: (userData.permissions || []) as Permission[],
           businessIds: membershipData.map((m: { project_id: string }) => m.project_id),
-          businessName: userData.business_name
+          businessName: userData.business_name,
+          avatar_url: userData.avatar_url || null,
+          job_title: userData.job_title || '',
+          phone: userData.phone || ''
         };
         setProfile(userProfile);
         logger.success('Perfil cargado', { context: 'Auth', data: { role: userProfile.role, email: userProfile.email } });

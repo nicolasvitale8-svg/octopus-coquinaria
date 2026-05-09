@@ -3,7 +3,20 @@ import { X, Save, Shield, User, Briefcase, Check, AlertCircle, Loader2, Phone, F
 import { supabase } from '../../services/supabase';
 import { createClient } from '@supabase/supabase-js';
 import Button from '../ui/Button';
+import AvatarUploader from '../ui/AvatarUploader';
+import { uploadAvatar, saveAvatarUrl } from '../../services/avatarService';
+import { useToast } from '../../contexts/ToastContext';
+import { JOB_TITLES, isCanonicalJobTitle } from '../../constants/jobTitles';
 import { UserRole, Permission } from '../../types';
+
+/**
+ * AdminUserModal — modal HUD de alta/edición de colaborador.
+ * - Avatar uploader integrado.
+ * - Cargo/Puesto como dropdown (mismas opciones que /hub/profile).
+ * - Toast de éxito al guardar.
+ * - Datos sincronizados con la misma tabla `usuarios`, mismas columnas que
+ *   edita el propio usuario en su perfil.
+ */
 
 interface ProjectOption {
     id: string;
@@ -18,6 +31,7 @@ interface UserData {
     phone?: string;
     job_title?: string;
     notes?: string;
+    avatar_url?: string | null;
     role: UserRole;
     permissions?: string[];
     businessIds?: string[];
@@ -47,17 +61,32 @@ const ROLE_LABELS: Record<UserRole, string> = {
     'user': 'En Espera (Lead)'
 };
 
+const inputBase =
+    "w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] text-[var(--text-primary)] px-3 py-2.5 text-sm focus:border-[var(--color-primary)] focus:outline-none transition-colors font-mono";
+
+const labelBase =
+    "block font-mono text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.22em] mb-1.5";
+
 export const AdminUserModal: React.FC<AdminUserModalProps> = ({ isOpen, onClose, onSave, userToEdit }) => {
+    const { showToast } = useToast();
+
     const [formData, setFormData] = useState<UserData>({
         email: '',
         full_name: '',
         phone: '',
         job_title: '',
         notes: '',
+        avatar_url: null,
         role: 'user',
         permissions: [],
         businessIds: []
     });
+
+    const [jobTitleSelect, setJobTitleSelect] = useState<string>('');
+    const [jobTitleOther, setJobTitleOther] = useState<string>('');
+
+    // File de avatar pendiente (cuando no hay user.id todavía: alta)
+    const [pendingAvatarFile, setPendingAvatarFile] = useState<File | null>(null);
 
     // Campo de contraseña solo para creación
     const [password, setPassword] = useState('');
@@ -72,8 +101,19 @@ export const AdminUserModal: React.FC<AdminUserModalProps> = ({ isOpen, onClose,
         if (isOpen) {
             loadProjects();
             setPassword('');
+            setError(null);
+            setPendingAvatarFile(null);
 
             if (userToEdit) {
+                const dbJob = userToEdit.job_title || '';
+                if (!dbJob || isCanonicalJobTitle(dbJob)) {
+                    setJobTitleSelect(dbJob);
+                    setJobTitleOther('');
+                } else {
+                    setJobTitleSelect('OTRO');
+                    setJobTitleOther(dbJob);
+                }
+
                 setFormData({
                     id: userToEdit.id,
                     email: userToEdit.email,
@@ -81,17 +121,21 @@ export const AdminUserModal: React.FC<AdminUserModalProps> = ({ isOpen, onClose,
                     phone: userToEdit.phone || '',
                     job_title: userToEdit.job_title || '',
                     notes: userToEdit.notes || '',
+                    avatar_url: userToEdit.avatar_url || null,
                     role: userToEdit.role,
                     permissions: userToEdit.permissions || [],
                     businessIds: userToEdit.businessIds || []
                 });
             } else {
+                setJobTitleSelect('');
+                setJobTitleOther('');
                 setFormData({
                     email: '',
                     full_name: '',
                     phone: '',
                     job_title: '',
                     notes: '',
+                    avatar_url: null,
                     role: 'user',
                     permissions: [],
                     businessIds: []
@@ -103,46 +147,35 @@ export const AdminUserModal: React.FC<AdminUserModalProps> = ({ isOpen, onClose,
     const loadProjects = async () => {
         setLoadingProjects(true);
         try {
-            if (!supabase) {
-                console.warn("No Supabase client available");
-                return;
-            }
-
-            // TIMEOUT DE SEGURIDAD: 3 SEGUNDOS
-            // Si la BD tarda más, abortamos la carga de proyectos para no bloquear la UI.
+            if (!supabase) return;
             const timeoutPromise = new Promise<{ timeout: true }>((resolve) =>
                 setTimeout(() => resolve({ timeout: true }), 3000)
             );
-
             const dbPromise = supabase
                 .from('projects')
                 .select('id, business_name')
                 .order('business_name');
-
             const result = await Promise.race([dbPromise, timeoutPromise]);
-
-            if ('timeout' in result) {
-                console.warn("⚠️ Carga de proyectos excedió el tiempo límite (3s). Se omite lista.");
-                // No seteamos proyectos, permitimos al usuario continuar
-            } else {
-                const { data, error } = result as any;
+            if (!('timeout' in result)) {
+                const { data } = result as any;
                 if (data) {
                     setProjects(data.map((p: any) => ({
                         id: p.id,
                         name: p.business_name || 'Sin nombre',
                         business_name: p.business_name
                     })));
-                } else if (error) {
-                    console.error("Error loading projects:", error);
                 }
             }
         } catch (e) {
-            console.error("Exception loading projects:", e);
+            console.error('Exception loading projects:', e);
             setProjects([]);
         } finally {
             setLoadingProjects(false);
         }
     };
+
+    const finalJobTitle = (): string =>
+        jobTitleSelect === 'OTRO' ? jobTitleOther.trim() : jobTitleSelect;
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -150,137 +183,116 @@ export const AdminUserModal: React.FC<AdminUserModalProps> = ({ isOpen, onClose,
         setIsSubmitting(true);
 
         try {
-            if (!supabase) throw new Error("Sin conexión a base de datos");
-            if (!formData.role) throw new Error("Debes asignar un rol al usuario");
+            if (!supabase) throw new Error('Sin conexión a base de datos');
+            if (!formData.role) throw new Error('Debes asignar un rol al usuario');
 
             let userId = formData.id;
 
-            // --- FLUSH DE CREACIÓN DIRECTA (SHADOW CLIENT) ---
+            // === ALTA NUEVO USUARIO ===
             if (!userId) {
-                // Estamos creando un usuario usuario totalmente nuevo
                 if (!password || password.length < 6) {
-                    throw new Error("La contraseña es obligatoria y debe tener al menos 6 caracteres.");
+                    throw new Error('La contraseña es obligatoria y debe tener al menos 6 caracteres.');
                 }
 
-                // Storage dummy para evitar conflictos con el cliente principal y advertencias de consola
                 const dummyStorage = {
                     getItem: () => null,
                     setItem: () => { },
                     removeItem: () => { },
                 };
 
-                // Cliente temporal aislado
-                // INSTANCIADO SOLO AL MOMENTO DE USAR
                 const { SUPABASE_URL, SUPABASE_ANON_KEY } = await import('../../constants');
-
-                const shadowSupabase = createClient(
-                    SUPABASE_URL,
-                    SUPABASE_ANON_KEY,
-                    {
-                        auth: {
-                            persistSession: false,
-                            autoRefreshToken: false,
-                            detectSessionInUrl: false,
-                            storage: dummyStorage
-                        }
+                const shadowSupabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+                    auth: {
+                        persistSession: false,
+                        autoRefreshToken: false,
+                        detectSessionInUrl: false,
+                        storage: dummyStorage
                     }
-                );
+                });
 
-                // Wrapper con Timeout para signUp
                 const signUpWithTimeout = async () => {
                     const timeoutPromise = new Promise<{ timeout: true }>((resolve) =>
                         setTimeout(() => resolve({ timeout: true }), 10000)
                     );
-
                     const signUpPromise = shadowSupabase.auth.signUp({
                         email: formData.email,
-                        password: password,
-                        options: {
-                            data: {
-                                full_name: formData.full_name,
-                                role: formData.role
-                            }
-                        }
+                        password,
+                        options: { data: { full_name: formData.full_name, role: formData.role } }
                     });
-
                     const result = await Promise.race([signUpPromise, timeoutPromise]);
-                    if ('timeout' in result) throw new Error("La creación del usuario excedió el tiempo límite (10s). Revisa tu conexión.");
+                    if ('timeout' in result) throw new Error('La creación excedió el tiempo límite (10s).');
                     return result;
                 };
 
-                // Registrar en Auth
                 const { data: authData, error: authError } = await signUpWithTimeout();
-
-                if (authError) throw new Error("Error al crear cuenta: " + authError.message);
-                if (!authData.user) throw new Error("No se pudo obtener el ID del nuevo usuario.");
-
+                if (authError) throw new Error('Error al crear cuenta: ' + authError.message);
+                if (!authData.user) throw new Error('No se pudo obtener el ID del nuevo usuario.');
                 userId = authData.user.id;
             }
 
-            // --- ACTUALIZACIÓN DE PERFIL ---
-            // --- ACTUALIZACIÓN DE PERFIL ---
+            // === SUBIR AVATAR PENDIENTE (si lo hay y ya tenemos userId) ===
+            let finalAvatarUrl = formData.avatar_url;
+            if (pendingAvatarFile && userId) {
+                try {
+                    const { url } = await uploadAvatar(userId, pendingAvatarFile);
+                    finalAvatarUrl = url;
+                } catch (err: any) {
+                    console.warn('Avatar upload falló:', err);
+                    showToast('No se pudo subir el avatar, pero el usuario se guardará igual.', 'info');
+                }
+            }
+
+            // === UPSERT PERFIL ===
             const payload = {
                 full_name: formData.full_name,
-                phone: formData.phone,
-                job_title: formData.job_title,
-                notes: formData.notes,
+                phone: formData.phone || null,
+                job_title: finalJobTitle() || null,
+                notes: formData.notes || null,
+                avatar_url: finalAvatarUrl || null,
                 email: formData.email,
                 role: formData.role,
                 permissions: formData.permissions
-                // businessIds van aparte
             };
 
-            // Wrapper con Timeout para UPSERT (evita bucles infinitos por RLS)
             const upsertWithTimeout = async () => {
                 const timeoutPromise = new Promise<{ timeout: true }>((resolve) =>
                     setTimeout(() => resolve({ timeout: true }), 5000)
                 );
-
                 const upsertPromise = supabase!
                     .from('usuarios')
-                    .upsert({
-                        id: userId,
-                        ...payload
-                    });
-
+                    .upsert({ id: userId, ...payload });
                 const result = await Promise.race([upsertPromise, timeoutPromise]);
-                if ('timeout' in result) throw new Error("Guardar perfil excedió el tiempo límite (5s). Posible bloqueo en Base de Datos (RLS).");
+                if ('timeout' in result) throw new Error('Guardar perfil excedió el tiempo límite (5s).');
                 return result;
             };
 
             const { error: upsertError } = await upsertWithTimeout() as any;
-
             if (upsertError) throw upsertError;
 
-            // --- ACTUALIZACIÓN DE MEMBRESÍAS ---
+            // === MEMBRESÍAS ===
             if (['consultant', 'client', 'manager'].includes(formData.role) && userId) {
-                // Limpiar existentes previos
                 await supabase.from('project_members').delete().eq('user_id', userId);
-
                 if (formData.businessIds && formData.businessIds.length > 0) {
                     const memberships = formData.businessIds.map(bid => ({
                         user_id: userId,
                         project_id: bid,
-                        role_id: 'manager' // Default for client/manager in project_members
+                        role_id: 'manager'
                     }));
-
                     const { error: memberError } = await supabase
                         .from('project_members')
                         .insert(memberships);
-
                     if (memberError) throw memberError;
                 }
             }
 
+            showToast(userToEdit ? 'Cambios guardados correctamente' : 'Colaborador creado correctamente', 'success');
             onSave();
             onClose();
-
         } catch (err: any) {
-            console.error("Error saving user:", err);
-            // Mensaje amigable si es por email duplicado
+            console.error('Error saving user:', err);
             const msg = err.message || '';
             if (msg.includes('already registered')) {
-                setError('Este email ya está registrado. Intenta editar el usuario existente o usar otro email.');
+                setError('Este email ya está registrado. Editá el usuario existente o usá otro email.');
             } else {
                 setError(msg || 'Error al guardar usuario');
             }
@@ -293,153 +305,215 @@ export const AdminUserModal: React.FC<AdminUserModalProps> = ({ isOpen, onClose,
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm px-4">
-            <div className="bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-md w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl relative flex flex-col">
-                {/* Header */}
-                <div className="p-6 border-b border-[var(--border-subtle)] flex justify-between items-center sticky top-0 bg-[var(--bg-base)] z-10">
+            <div
+                className="relative w-full max-w-3xl max-h-[92vh] overflow-y-auto border shadow-2xl animate-fade-in-up flex flex-col"
+                style={{ background: 'var(--bg-base)', borderColor: 'var(--border-subtle)' }}
+            >
+                {/* Brackets HUD */}
+                <span aria-hidden="true" className="pointer-events-none absolute top-0 left-0 w-3 h-3 border-l border-t z-20" style={{ borderColor: 'var(--color-primary)' }} />
+                <span aria-hidden="true" className="pointer-events-none absolute top-0 right-0 w-3 h-3 border-r border-t z-20" style={{ borderColor: 'var(--color-primary)' }} />
+                <span aria-hidden="true" className="pointer-events-none absolute bottom-0 left-0 w-3 h-3 border-l border-b z-20" style={{ borderColor: 'var(--color-primary)' }} />
+                <span aria-hidden="true" className="pointer-events-none absolute bottom-0 right-0 w-3 h-3 border-r border-b z-20" style={{ borderColor: 'var(--color-primary)' }} />
+
+                {/* Header sticky */}
+                <div
+                    className="p-6 border-b flex justify-between items-start sticky top-0 z-10"
+                    style={{ background: 'var(--bg-base)', borderColor: 'var(--border-subtle)' }}
+                >
                     <div>
-                        <h2 className="text-xl font-bold text-[var(--text-primary)] flex items-center gap-2">
+                        <div className="font-mono text-[10px] uppercase tracking-[0.28em] mb-1" style={{ color: 'var(--text-muted)' }}>
+                            — {userToEdit ? 'CPD-ADM-USR-EDIT' : 'CPD-ADM-USR-NEW'}
+                        </div>
+                        <h2 className="font-display text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
                             {userToEdit ? 'Editar Ficha' : 'Alta de Nuevo Colaborador'}
                         </h2>
-                        <p className="text-sm text-[var(--text-muted)]">
-                            {userToEdit ? 'Modifica los datos y accesos.' : 'Crea un usuario y asígnale contraseña.'}
+                        <p className="font-mono text-[11px] mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+                            {userToEdit ? 'Modifica los datos y accesos.' : 'Crea un usuario y asignale contraseña.'}
                         </p>
                     </div>
-                    <button onClick={onClose} className="text-[var(--text-muted)] hover:text-[var(--text-primary)] p-2 rounded-full hover:bg-[var(--bg-surface)] transition-colors">
-                        <X size={20} />
+                    <button
+                        onClick={onClose}
+                        className="transition-colors hover:text-[var(--color-primary)]"
+                        style={{ color: 'var(--text-muted)' }}
+                        title="Cerrar"
+                    >
+                        <X size={20} strokeWidth={1.75} />
                     </button>
                 </div>
 
                 {/* Body */}
-                <form onSubmit={handleSubmit} className="p-6 space-y-8 flex-1">
+                <form onSubmit={handleSubmit} className="p-6 space-y-7 flex-1">
                     {error && (
-                        <div className="bg-[rgba(255,77,77,0.12)]/20 border border-[var(--color-danger)]/50 text-[var(--color-danger)] p-4 rounded-lg flex items-center gap-3">
-                            <AlertCircle size={20} />
-                            <span>{error}</span>
+                        <div
+                            className="border p-3 flex items-start gap-2"
+                            style={{
+                                background: 'rgba(255,77,77,0.10)',
+                                borderColor: 'var(--color-danger)',
+                                color: 'var(--color-danger)'
+                            }}
+                        >
+                            <AlertCircle size={16} strokeWidth={2} className="flex-shrink-0 mt-0.5" />
+                            <span className="font-mono text-[12px]">{error}</span>
                         </div>
                     )}
 
-                    {/* 1. Datos Personales */}
+                    {/* Avatar */}
+                    <div>
+                        <h3 className="font-mono text-[10px] font-bold uppercase tracking-[0.28em] mb-3 flex items-center gap-2" style={{ color: 'var(--color-primary)' }}>
+                            <User size={14} strokeWidth={2} /> // Foto de Perfil
+                        </h3>
+                        <AvatarUploader
+                            userId={formData.id || null}
+                            initialUrl={formData.avatar_url || null}
+                            fullName={formData.full_name}
+                            size={88}
+                            onChange={(url) => setFormData({ ...formData, avatar_url: url })}
+                            onPickedFile={(file) => setPendingAvatarFile(file)}
+                            onError={(msg) => showToast(msg, 'error')}
+                        />
+                    </div>
+
+                    {/* Información Personal */}
                     <div className="space-y-4">
-                        <h3 className="text-sm font-bold text-[var(--color-primary)] uppercase tracking-wider flex items-center gap-2">
-                            <User size={16} /> Información Personal
+                        <h3 className="font-mono text-[10px] font-bold uppercase tracking-[0.28em] flex items-center gap-2" style={{ color: 'var(--color-primary)' }}>
+                            <User size={14} strokeWidth={2} /> // Información Personal
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-xs font-semibold text-[var(--text-muted)] mb-1">Nombre Completo</label>
+                                <label className={labelBase}>Nombre Completo</label>
                                 <input
                                     type="text"
                                     required
-                                    className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-lg px-4 py-2 text-[var(--text-primary)] focus:border-[var(--color-primary)] focus:outline-none"
+                                    className={inputBase}
                                     value={formData.full_name}
                                     onChange={e => setFormData({ ...formData, full_name: e.target.value })}
                                     placeholder="Ej. Juan Pérez"
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-semibold text-[var(--text-muted)] mb-1">Email (Usuario)</label>
+                                <label className={labelBase}>Email (Usuario)</label>
                                 <input
                                     type="email"
                                     required
                                     disabled={!!userToEdit}
-                                    className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-lg px-4 py-2 text-[var(--text-primary)] focus:border-[var(--color-primary)] focus:outline-none disabled:opacity-50"
+                                    className={`${inputBase} disabled:opacity-50`}
                                     value={formData.email}
                                     onChange={e => setFormData({ ...formData, email: e.target.value })}
                                     placeholder="usuario@ejemplo.com"
                                 />
                             </div>
 
-                            {/* CAMPO DE CONTRASEÑA */}
                             {!userToEdit && (
-                                <div className="col-span-full md:col-span-2 bg-[rgba(0,255,157,0.10)]/10 border border-blue-500/20 p-4 rounded-lg">
-                                    <label className="block text-xs font-bold text-[var(--color-primary)] mb-2 flex items-center gap-2">
-                                        <Lock size={12} /> CONTRASEÑA DE ACCESO
+                                <div
+                                    className="col-span-full border p-4"
+                                    style={{ background: 'var(--bg-surface)', borderColor: 'var(--color-primary)' }}
+                                >
+                                    <label className={`${labelBase} flex items-center gap-2`} style={{ color: 'var(--color-primary)' }}>
+                                        <Lock size={11} strokeWidth={2} /> Contraseña de Acceso
                                     </label>
                                     <input
                                         type="text"
                                         required
                                         minLength={6}
-                                        className="w-full bg-[var(--bg-base)] border border-blue-500/30 rounded-lg px-4 py-2 text-[var(--text-primary)] font-mono tracking-wide focus:border-[var(--color-primary)] focus:outline-none"
+                                        className={`${inputBase} tracking-wide`}
                                         value={password}
                                         onChange={e => setPassword(e.target.value)}
-                                        placeholder="Escribe la contraseña temporal..."
+                                        placeholder="Contraseña temporal…"
                                     />
-                                    <p className="text-[10px] text-[var(--color-primary-soft)]/70 mt-1">
-                                        * El usuario usará esta contraseña para ingresar. Podrá cambiarla luego.
+                                    <p className="font-mono text-[10px] mt-1" style={{ color: 'var(--text-muted)' }}>
+                                        El usuario podrá cambiarla luego desde su perfil.
                                     </p>
                                 </div>
                             )}
 
                             <div>
-                                <label className="block text-xs font-semibold text-[var(--text-muted)] mb-1">Teléfono / WhatsApp</label>
-                                <div className="relative">
-                                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] w-4 h-4" />
-                                    <input
-                                        type="tel"
-                                        className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-lg pl-10 pr-4 py-2 text-[var(--text-primary)] focus:border-[var(--color-primary)] focus:outline-none"
-                                        value={formData.phone}
-                                        onChange={e => setFormData({ ...formData, phone: e.target.value })}
-                                        placeholder="+54 9 11..."
-                                    />
-                                </div>
+                                <label className={`${labelBase} flex items-center gap-2`}>
+                                    <Phone size={11} strokeWidth={2} /> Teléfono / WhatsApp
+                                </label>
+                                <input
+                                    type="tel"
+                                    className={inputBase}
+                                    value={formData.phone}
+                                    onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                                    placeholder="+54 9 11..."
+                                />
                             </div>
+
                             <div>
-                                <label className="block text-xs font-semibold text-[var(--text-muted)] mb-1">Cargo / Puesto</label>
-                                <div className="relative">
-                                    <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] w-4 h-4" />
+                                <label className={`${labelBase} flex items-center gap-2`}>
+                                    <Briefcase size={11} strokeWidth={2} /> Cargo / Puesto
+                                </label>
+                                <select
+                                    className={inputBase}
+                                    value={jobTitleSelect}
+                                    onChange={e => setJobTitleSelect(e.target.value)}
+                                >
+                                    <option value="">— Seleccioná —</option>
+                                    {JOB_TITLES.map(opt => (
+                                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                    ))}
+                                </select>
+                                {jobTitleSelect === 'OTRO' && (
                                     <input
                                         type="text"
-                                        className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-lg pl-10 pr-4 py-2 text-[var(--text-primary)] focus:border-[var(--color-primary)] focus:outline-none"
-                                        value={formData.job_title}
-                                        onChange={e => setFormData({ ...formData, job_title: e.target.value })}
-                                        placeholder="Ej. Auditor Senior"
+                                        className={`${inputBase} mt-2`}
+                                        value={jobTitleOther}
+                                        onChange={e => setJobTitleOther(e.target.value)}
+                                        placeholder="Especificá el cargo…"
+                                        maxLength={60}
                                     />
-                                </div>
+                                )}
                             </div>
+
                             <div className="col-span-full">
-                                <label className="block text-xs font-semibold text-[var(--text-muted)] mb-1">Notas Internas</label>
-                                <div className="relative">
-                                    <FileText className="absolute left-3 top-3 text-[var(--text-muted)] w-4 h-4" />
-                                    <textarea
-                                        className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-lg pl-10 pr-4 py-2 text-[var(--text-primary)] focus:border-[var(--color-primary)] focus:outline-none resize-none h-20"
-                                        value={formData.notes}
-                                        onChange={e => setFormData({ ...formData, notes: e.target.value })}
-                                        placeholder="Información adicional..."
-                                    />
-                                </div>
+                                <label className={`${labelBase} flex items-center gap-2`}>
+                                    <FileText size={11} strokeWidth={2} /> Notas Internas
+                                </label>
+                                <textarea
+                                    className={`${inputBase} resize-none h-20`}
+                                    value={formData.notes}
+                                    onChange={e => setFormData({ ...formData, notes: e.target.value })}
+                                    placeholder="Información adicional (sólo visible para admins)…"
+                                />
                             </div>
                         </div>
                     </div>
 
-                    {/* 2. Rol en la Plataforma */}
-                    <div className="space-y-4">
-                        <h3 className="text-sm font-bold text-[var(--color-primary)] uppercase tracking-wider flex items-center gap-2">
-                            <Shield size={16} /> Nivel de Acceso (Rol)
+                    {/* Rol */}
+                    <div className="space-y-3">
+                        <h3 className="font-mono text-[10px] font-bold uppercase tracking-[0.28em] flex items-center gap-2" style={{ color: 'var(--color-primary)' }}>
+                            <Shield size={14} strokeWidth={2} /> // Nivel de Acceso (Rol)
                         </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            {(['user', 'client', 'manager', 'consultant', 'admin'] as UserRole[]).map((r) => (
-                                <button
-                                    key={r}
-                                    type="button"
-                                    onClick={() => setFormData({ ...formData, role: r })}
-                                    className={`px-4 py-3 rounded-lg text-sm font-medium border transition-all text-left flex items-center justify-between ${formData.role === r
-                                        ? 'bg-[var(--color-primary)]/20 border-[var(--color-primary)] text-[var(--color-primary)]'
-                                        : 'bg-[var(--bg-base)] border-[var(--border-subtle)] text-[var(--text-muted)] hover:border-[var(--border-strong)]'
-                                        }`}
-                                >
-                                    <span>{ROLE_LABELS[r]}</span>
-                                    {formData.role === r && <Check size={16} />}
-                                </button>
-                            ))}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            {(['user', 'client', 'manager', 'consultant', 'admin'] as UserRole[]).map((r) => {
+                                const active = formData.role === r;
+                                return (
+                                    <button
+                                        key={r}
+                                        type="button"
+                                        onClick={() => setFormData({ ...formData, role: r })}
+                                        className="px-3 py-2.5 font-mono text-[12px] uppercase tracking-[0.16em] border transition-all text-left flex items-center justify-between"
+                                        style={{
+                                            background: active ? 'rgba(0,255,157,0.10)' : 'var(--bg-base)',
+                                            color: active ? 'var(--color-primary)' : 'var(--text-muted)',
+                                            borderColor: active ? 'var(--color-primary)' : 'var(--border-subtle)'
+                                        }}
+                                    >
+                                        <span>{ROLE_LABELS[r]}</span>
+                                        {active && <Check size={14} strokeWidth={2} />}
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
 
-                    {/* 3. Permisos */}
+                    {/* Permisos */}
                     {['manager', 'consultant'].includes(formData.role) && (
-                        <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
-                            <h3 className="text-sm font-bold text-[var(--color-primary)] uppercase tracking-wider flex items-center gap-2">
-                                <Check size={16} /> Permisos Funcionales
+                        <div className="space-y-3">
+                            <h3 className="font-mono text-[10px] font-bold uppercase tracking-[0.28em] flex items-center gap-2" style={{ color: 'var(--color-primary)' }}>
+                                <Check size={14} strokeWidth={2} /> // Permisos Funcionales
                             </h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                                 {AVAILABLE_PERMISSIONS.map((perm) => {
                                     const isActive = formData.permissions?.includes(perm.id);
                                     return (
@@ -451,18 +525,32 @@ export const AdminUserModal: React.FC<AdminUserModalProps> = ({ isOpen, onClose,
                                                     : [...(formData.permissions || []), perm.id];
                                                 setFormData({ ...formData, permissions: newPerms });
                                             }}
-                                            className={`p-3 rounded-lg border cursor-pointer transition-all flex items-start gap-3 ${isActive ? 'bg-[rgba(0,255,157,0.10)]/10 border-blue-500/40' : 'bg-[var(--bg-base)] border-[var(--border-subtle)] hover:border-[var(--border-subtle)]'
-                                                }`}
+                                            className="p-3 border cursor-pointer transition-all flex items-start gap-3"
+                                            style={{
+                                                background: isActive ? 'rgba(0,255,157,0.08)' : 'var(--bg-base)',
+                                                borderColor: isActive ? 'var(--color-primary)' : 'var(--border-subtle)'
+                                            }}
                                         >
-                                            <div className={`mt-0.5 w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 ${isActive ? 'bg-[var(--color-primary)] border-blue-500 text-[#050607]' : 'border-[var(--border-strong)]'
-                                                }`}>
-                                                {isActive && <Check size={10} />}
+                                            <div
+                                                className="mt-0.5 w-4 h-4 border flex items-center justify-center flex-shrink-0"
+                                                style={{
+                                                    background: isActive ? 'var(--color-primary)' : 'transparent',
+                                                    borderColor: isActive ? 'var(--color-primary)' : 'var(--border-subtle)',
+                                                    color: '#050607'
+                                                }}
+                                            >
+                                                {isActive && <Check size={10} strokeWidth={3} />}
                                             </div>
                                             <div>
-                                                <div className={`text-sm font-medium ${isActive ? 'text-[var(--color-primary-soft)]' : 'text-[var(--text-secondary)]'}`}>
+                                                <div
+                                                    className="font-mono text-[12px] font-bold uppercase tracking-[0.14em]"
+                                                    style={{ color: isActive ? 'var(--color-primary)' : 'var(--text-secondary)' }}
+                                                >
                                                     {perm.label}
                                                 </div>
-                                                <div className="text-xs text-[var(--text-muted)]">{perm.description}</div>
+                                                <div className="font-mono text-[10px] mt-0.5" style={{ color: 'var(--text-muted)' }}>
+                                                    {perm.description}
+                                                </div>
                                             </div>
                                         </div>
                                     );
@@ -471,15 +559,15 @@ export const AdminUserModal: React.FC<AdminUserModalProps> = ({ isOpen, onClose,
                         </div>
                     )}
 
-                    {/* 4. Proyectos */}
+                    {/* Proyectos */}
                     {['client', 'manager', 'consultant'].includes(formData.role) && (
-                        <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
-                            <h3 className="text-sm font-bold text-[var(--color-primary)] uppercase tracking-wider flex items-center gap-2">
-                                <Briefcase size={16} /> Asignación de Proyectos
+                        <div className="space-y-3">
+                            <h3 className="font-mono text-[10px] font-bold uppercase tracking-[0.28em] flex items-center gap-2" style={{ color: 'var(--color-primary)' }}>
+                                <Briefcase size={14} strokeWidth={2} /> // Asignación de Proyectos
                             </h3>
                             {loadingProjects ? (
-                                <div className="text-[var(--text-muted)] text-sm flex items-center gap-2">
-                                    <Loader2 className="animate-spin" size={14} /> Cargando proyectos disponibles...
+                                <div className="font-mono text-[12px] flex items-center gap-2" style={{ color: 'var(--text-muted)' }}>
+                                    <Loader2 className="animate-spin" size={14} /> Cargando proyectos disponibles…
                                 </div>
                             ) : (
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 max-h-48 overflow-y-auto p-1 custom-scrollbar">
@@ -494,10 +582,12 @@ export const AdminUserModal: React.FC<AdminUserModalProps> = ({ isOpen, onClose,
                                                         : [...(formData.businessIds || []), proj.id];
                                                     setFormData({ ...formData, businessIds: newBids });
                                                 }}
-                                                className={`px-3 py-2 rounded border cursor-pointer text-sm truncate transition-colors ${isSelected
-                                                    ? 'bg-emerald-900/20 border-[var(--color-success)]/50 text-[var(--color-success)]'
-                                                    : 'bg-[var(--bg-base)] border-[var(--border-subtle)] text-[var(--text-muted)] hover:border-[var(--border-strong)]'
-                                                    }`}
+                                                className="px-3 py-2 border cursor-pointer font-mono text-[12px] truncate transition-colors"
+                                                style={{
+                                                    background: isSelected ? 'rgba(0,255,157,0.08)' : 'var(--bg-base)',
+                                                    color: isSelected ? 'var(--color-primary)' : 'var(--text-muted)',
+                                                    borderColor: isSelected ? 'var(--color-primary)' : 'var(--border-subtle)'
+                                                }}
                                                 title={proj.name}
                                             >
                                                 {proj.name}
@@ -505,26 +595,36 @@ export const AdminUserModal: React.FC<AdminUserModalProps> = ({ isOpen, onClose,
                                         );
                                     })}
                                     {projects.length === 0 && (
-                                        <div className="text-[var(--text-muted)] text-xs col-span-full">No hay proyectos disponibles.</div>
+                                        <div className="font-mono text-[11px] col-span-full" style={{ color: 'var(--text-muted)' }}>
+                                            No hay proyectos disponibles.
+                                        </div>
                                     )}
                                 </div>
                             )}
                         </div>
                     )}
-
                 </form>
 
-                {/* Footer */}
-                <div className="p-6 border-t border-[var(--border-subtle)] flex justify-end gap-3 bg-[var(--bg-base)] sticky bottom-0 z-10">
-                    <Button variant="ghost" onClick={onClose} disabled={isSubmitting}>Cancelar</Button>
-                    <Button onClick={handleSubmit} disabled={isSubmitting} className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-soft)] text-[#050607]">
+                {/* Footer sticky */}
+                <div
+                    className="p-5 border-t flex justify-end gap-3 sticky bottom-0 z-10"
+                    style={{ background: 'var(--bg-base)', borderColor: 'var(--border-subtle)' }}
+                >
+                    <Button variant="ghost" onClick={onClose} disabled={isSubmitting}>
+                        Cancelar
+                    </Button>
+                    <Button
+                        variant="primary"
+                        onClick={handleSubmit}
+                        disabled={isSubmitting}
+                    >
                         {isSubmitting ? (
                             <>
-                                <Loader2 className="animate-spin mr-2" size={16} /> Procesando...
+                                <Loader2 className="animate-spin mr-2" size={14} /> Procesando…
                             </>
                         ) : (
                             <>
-                                <Save className="mr-2" size={16} />
+                                <Save className="mr-2" size={14} />
                                 {userToEdit ? 'Guardar Cambios' : 'Crear Usuario'}
                             </>
                         )}
