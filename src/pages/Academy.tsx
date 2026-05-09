@@ -1,16 +1,48 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import { useAuth } from '../contexts/AuthContext';
-import { AcademyResource, LearningPath, ResourceCategory, ResourceFormat, ResourceAccess } from '../types';
+import { AcademyResource, LearningPath, ResourceFormat, ResourceAccess } from '../types';
 import {
   Play, FileText, LayoutTemplate, Clock, ArrowRight, BookOpen,
-  Lock, ArrowLeft, Target, GraduationCap, Zap, Star, ChevronRight, ClipboardList
+  Lock, ArrowLeft, Target, GraduationCap, Zap, Star, ChevronRight, ClipboardList, X
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import Button from '../components/ui/Button';
 import { getResources, getLearningPaths, getRecommendedContent } from '../services/academyService';
 
-// --- HELPER COMPONENTS ---
+/**
+ * Academy.tsx — Página pública /academy CEPHALOPOD HUD.
+ * Tokens phosphor, marcos rectos con brackets, doc-codes,
+ * font-mono para tracking, font-display para títulos.
+ */
+
+// --- HELPERS UI ---
+
+const CornerBrackets: React.FC<{ size?: string }> = ({ size = 'w-2.5 h-2.5' }) => (
+  <>
+    <span aria-hidden="true" className={`pointer-events-none absolute top-0 left-0 ${size} border-l border-t z-10`} style={{ borderColor: 'var(--color-primary)' }} />
+    <span aria-hidden="true" className={`pointer-events-none absolute top-0 right-0 ${size} border-r border-t z-10`} style={{ borderColor: 'var(--color-primary)' }} />
+    <span aria-hidden="true" className={`pointer-events-none absolute bottom-0 left-0 ${size} border-l border-b z-10`} style={{ borderColor: 'var(--color-primary)' }} />
+    <span aria-hidden="true" className={`pointer-events-none absolute bottom-0 right-0 ${size} border-r border-b z-10`} style={{ borderColor: 'var(--color-primary)' }} />
+  </>
+);
+
+const SectionHeader: React.FC<{ docCode: string; title: string; icon: React.ReactNode; subtitle?: string }> = ({ docCode, title, icon, subtitle }) => (
+  <div className="mb-6">
+    <div className="font-mono text-[10px] uppercase tracking-[0.28em] mb-2" style={{ color: 'var(--text-muted)' }}>
+      — {docCode}
+    </div>
+    <div className="flex items-center gap-2">
+      <span style={{ color: 'var(--color-primary)' }}>{icon}</span>
+      <h2 className="font-display text-2xl font-bold tracking-tight" style={{ color: 'var(--text-primary)' }}>{title}</h2>
+    </div>
+    {subtitle && (
+      <p className="font-mono text-[11px] mt-1" style={{ color: 'var(--text-secondary)' }}>{subtitle}</p>
+    )}
+  </div>
+);
+
+// --- RESOURCE CARD HUD ---
 
 interface ResourceCardProps {
   resource: AcademyResource;
@@ -20,72 +52,73 @@ interface ResourceCardProps {
 }
 
 const ResourceCard: React.FC<ResourceCardProps> = ({ resource, highlighted = false, hasAccess, onClick }) => {
-  const getIcon = (format: ResourceFormat) => {
+  const getFormatIcon = (format: ResourceFormat) => {
     switch (format) {
-      case 'VIDEO': return <Play className="w-3 h-3 ml-1" fill="currentColor" />;
-      case 'TEMPLATE': return <LayoutTemplate className="w-3 h-3 ml-1" />;
-      case 'TIP': return <Zap className="w-3 h-3 ml-1" />;
-      case 'FORM': return <ClipboardList className="w-3 h-3 ml-1" />;
-      default: return <FileText className="w-3 h-3 ml-1" />;
+      case 'VIDEO': return <Play className="w-3 h-3" fill="currentColor" />;
+      case 'TEMPLATE': return <LayoutTemplate className="w-3 h-3" />;
+      case 'TIP': return <Zap className="w-3 h-3" />;
+      case 'FORM': return <ClipboardList className="w-3 h-3" />;
+      default: return <FileText className="w-3 h-3" />;
     }
   };
 
   return (
     <div
       onClick={() => onClick(resource)}
-      className={`group h-full flex flex-col bg-slate-900/50 rounded-2xl border transition-all duration-300 cursor-pointer ${hasAccess ? 'hover:-translate-y-1 hover:border-[#1FB6D5]/40 active:translate-y-0 active:scale-[0.98]' : 'opacity-75 grayscale-[0.5]'} ${highlighted ? 'border-[#1FB6D5]/50 shadow-lg shadow-[#1FB6D5]/10 bg-slate-900' : 'border-slate-800'}`}
+      className={`group relative h-full flex flex-col border transition-all duration-200 cursor-pointer ${
+        hasAccess ? 'hover:-translate-y-[2px]' : 'opacity-70'
+      }`}
+      style={{
+        background: highlighted ? 'var(--bg-base)' : 'var(--bg-surface)',
+        borderColor: highlighted ? 'var(--color-primary)' : 'var(--border-subtle)'
+      }}
+      onMouseEnter={(e) => { if (hasAccess) e.currentTarget.style.borderColor = 'var(--color-primary)'; }}
+      onMouseLeave={(e) => { e.currentTarget.style.borderColor = highlighted ? 'var(--color-primary)' : 'var(--border-subtle)'; }}
     >
-      <div className="p-6 flex-grow relative">
+      {highlighted && <CornerBrackets />}
+
+      <div className="p-5 flex-grow">
         <div className="flex justify-between items-start mb-4">
-          <span className={`inline-flex items-center px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${highlighted ? 'bg-[#1FB6D5]/20 text-[#1FB6D5]' : 'bg-slate-800 text-slate-400'}`}>
-            {resource.format} {getIcon(resource.format)}
+          <span
+            className="inline-flex items-center gap-1 px-2 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.18em] border"
+            style={{
+              background: 'var(--bg-base)',
+              color: 'var(--color-primary)',
+              borderColor: 'var(--border-subtle)'
+            }}
+          >
+            {getFormatIcon(resource.format)} {resource.format}
           </span>
           <div className="flex items-center gap-2">
-            {!hasAccess && <Lock className="w-3 h-3 text-amber-500" />}
-            <span className="text-[10px] font-bold text-slate-500 uppercase flex items-center">
-              <Clock className="w-3 h-3 mr-1" /> {resource.durationMinutes} min
+            {!hasAccess && <Lock className="w-3 h-3" style={{ color: 'var(--color-warning)' }} strokeWidth={2} />}
+            <span className="font-mono text-[10px] font-bold uppercase flex items-center" style={{ color: 'var(--text-muted)' }}>
+              <Clock className="w-3 h-3 mr-1" strokeWidth={1.75} /> {resource.durationMinutes} MIN
             </span>
           </div>
         </div>
 
-        <h3 className="text-lg font-bold text-white mb-2 group-hover:text-[#1FB6D5] transition-colors line-clamp-2 leading-tight font-space">
+        <h3 className="font-display text-lg font-bold mb-2 line-clamp-2 leading-tight transition-colors group-hover:text-[var(--color-primary)]" style={{ color: 'var(--text-primary)' }}>
           {resource.title}
         </h3>
-        <p className="text-sm text-slate-400 line-clamp-2 leading-relaxed italic mb-3">
-          "{resource.outcome}"
+        <p className="font-mono text-[12px] line-clamp-2 leading-relaxed italic" style={{ color: 'var(--text-secondary)' }}>
+          › {resource.outcome}
         </p>
       </div>
 
-      <div className="px-6 py-4 border-t border-slate-800/50 flex justify-between items-center bg-slate-900/40 rounded-b-2xl">
-        <span className="text-[10px] font-bold text-[#1FB6D5] uppercase tracking-widest">{resource.category}</span>
-        <span className="text-[10px] font-bold text-slate-600 uppercase italic">{resource.impactTag}</span>
+      <div
+        className="px-5 py-3 border-t flex justify-between items-center"
+        style={{ background: 'var(--bg-base)', borderColor: 'var(--border-subtle)' }}
+      >
+        <span className="font-mono text-[10px] font-bold uppercase tracking-[0.22em]" style={{ color: 'var(--color-primary)' }}>
+          {resource.category}
+        </span>
+        <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: 'var(--text-muted)' }}>
+          {resource.impactTag}
+        </span>
       </div>
     </div>
   );
 };
-
-const PathCard: React.FC<{ path: LearningPath; hasAccess: boolean; onClick: () => void }> = ({ path, hasAccess, onClick }) => (
-  <div
-    onClick={onClick}
-    className={`group bg-gradient-to-br from-slate-900 to-[#021019] border border-slate-800 rounded-3xl p-8 hover:border-[#1FB6D5]/40 transition-all cursor-pointer relative overflow-hidden ${!hasAccess ? 'opacity-80' : ''}`}
-  >
-    <div className="absolute top-0 right-0 w-32 h-32 bg-[#1FB6D5]/5 rounded-full blur-3xl group-hover:bg-[#1FB6D5]/10 transition-colors"></div>
-    <div className="relative z-10">
-      <div className="flex justify-between items-center mb-6">
-        <span className="bg-[#00344F] text-[#1FB6D5] text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest border border-[#1FB6D5]/20">RUTA: {path.category}</span>
-        <div className="flex items-center gap-3">
-          <span className="text-xs text-slate-500 font-bold">{path.resourceIds.length} módulos</span>
-          {!hasAccess && <Lock className="w-4 h-4 text-amber-500" />}
-        </div>
-      </div>
-      <h3 className="text-2xl font-bold text-white mb-2 font-space group-hover:text-[#1FB6D5] transition-colors">{path.title}</h3>
-      <p className="text-slate-400 mb-8 line-clamp-2">{path.subtitle || 'Domina esta área con nuestro plan estructurado.'}</p>
-      <div className="flex items-center text-[#1FB6D5] font-bold text-sm">
-        Empezar ruta <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-2 transition-transform" />
-      </div>
-    </div>
-  </div>
-);
 
 // --- MAIN COMPONENT ---
 
@@ -136,45 +169,63 @@ const Academy = () => {
 
   return (
     <Layout>
-      <div className="bg-slate-1000 min-h-screen pb-24">
-        {/* Header */}
-        <div className="relative bg-[#021019] border-b border-slate-800 pt-8 pb-16 overflow-hidden">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-[#1FB6D5]/10 rounded-full blur-[100px] -z-0"></div>
+      <div style={{ background: 'var(--bg-base)' }} className="min-h-screen pb-24">
+        {/* HEADER HUD */}
+        <div
+          className="relative border-b pt-8 pb-12 overflow-hidden"
+          style={{ background: 'var(--bg-base)', borderColor: 'var(--border-subtle)' }}
+        >
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <button
               onClick={() => navigate('/')}
-              className="flex items-center gap-2 text-slate-500 hover:text-white transition-colors mb-8 group"
+              className="flex items-center gap-2 mb-8 group transition-colors"
+              style={{ color: 'var(--text-muted)' }}
             >
-              <div className="p-1.5 rounded-full bg-slate-900/50 border border-slate-800 group-hover:border-[#1FB6D5]/30 transition-all">
-                <ArrowLeft className="w-3.5 h-3.5" />
+              <div
+                className="p-1.5 border transition-all"
+                style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}
+              >
+                <ArrowLeft className="w-3.5 h-3.5" strokeWidth={1.75} />
               </div>
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em]">Volver al Inicio</span>
+              <span className="font-mono text-[10px] font-bold uppercase tracking-[0.28em] group-hover:text-[var(--color-primary)] transition-colors">
+                Volver al Inicio
+              </span>
             </button>
-            <div className="text-center">
-              <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-6 font-space tracking-tight">Academia Cephalopod</h1>
-              <p className="text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed">
+
+            <div className="text-center max-w-3xl mx-auto">
+              <div className="font-mono text-[10px] uppercase tracking-[0.32em] mb-3" style={{ color: 'var(--color-primary)' }}>
+                — CPD-PUB-ACA-001
+              </div>
+              <h1 className="font-display text-4xl md:text-5xl font-extrabold tracking-tight mb-4" style={{ color: 'var(--text-primary)' }}>
+                Academia <span style={{ color: 'var(--color-primary)' }}>Cephalopod</span>
+              </h1>
+              <p className="font-mono text-sm md:text-base max-w-2xl mx-auto leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
                 Aprendizaje guiado por tu diagnóstico para escalar tu negocio sin caos.
               </p>
             </div>
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 space-y-20 pb-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 space-y-16 pb-20">
 
           {loading ? (
             <div className="flex flex-col items-center justify-center py-32 space-y-4">
-              <div className="w-12 h-12 border-4 border-[#1FB6D5]/20 border-t-[#1FB6D5] rounded-full animate-spin"></div>
-              <p className="text-slate-500 font-bold uppercase text-[10px] tracking-[0.2em]">Cargando Academia</p>
+              <div className="w-10 h-10 border-2 animate-spin" style={{ borderColor: 'var(--border-subtle)', borderTopColor: 'var(--color-primary)' }}></div>
+              <p className="font-mono text-[10px] font-bold uppercase tracking-[0.28em]" style={{ color: 'var(--text-muted)' }}>
+                [ CARGANDO ACADEMIA ]
+              </p>
             </div>
           ) : (
             <>
               {/* BLOQUE 1: POR DÓNDE EMPEZAR */}
               <section className="animate-fade-in">
-                <div className="flex items-center gap-3 mb-8">
-                  <Star className="text-[#1FB6D5] w-5 h-5" />
-                  <h2 className="text-xl font-bold text-white font-space uppercase tracking-widest">Por dónde empezar</h2>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <SectionHeader
+                  docCode="CPD-PUB-ACA-PIN-001"
+                  title="Por dónde empezar"
+                  icon={<Star className="w-5 h-5" strokeWidth={1.75} />}
+                  subtitle="Recursos destacados para arrancar."
+                />
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {pinnedResources.map(res => (
                     <ResourceCard
                       key={res.id}
@@ -185,69 +236,102 @@ const Academy = () => {
                     />
                   ))}
                   {pinnedResources.length === 0 && (
-                    <div className="col-span-full bg-slate-900/30 p-10 rounded-3xl border border-slate-800 text-center">
-                      <p className="text-slate-500 italic">No hay contenido destacado actualmente.</p>
+                    <div
+                      className="col-span-full p-10 border text-center"
+                      style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}
+                    >
+                      <p className="font-mono text-xs uppercase tracking-[0.22em] italic" style={{ color: 'var(--text-muted)' }}>
+                        [ SIN CONTENIDO DESTACADO ]
+                      </p>
                     </div>
                   )}
                 </div>
               </section>
 
-              {/* BLOQUE 2: TU PRIORIDAD AHORA */}
-              <section className="relative overflow-hidden p-1 rounded-[2.5rem] bg-gradient-to-r from-[#1FB6D5]/20 via-transparent to-transparent">
-                <div className="bg-[#021019] p-8 md:p-12 rounded-[2.3rem] border border-slate-800/50">
-                  <div className="flex flex-col lg:flex-row gap-12 items-center">
+              {/* BLOQUE 2: RECOMENDACIÓN INTELIGENTE */}
+              <section
+                className="relative border overflow-hidden"
+                style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}
+              >
+                <CornerBrackets size="w-3 h-3" />
+
+                <div className="p-8 md:p-12">
+                  <div className="flex flex-col lg:flex-row gap-12 items-start">
                     <div className="lg:w-1/2">
-                      <div className="inline-flex items-center px-4 py-1 rounded-full bg-[#1FB6D5]/10 text-[#1FB6D5] text-[10px] font-bold uppercase tracking-widest mb-6 border border-[#1FB6D5]/20">
-                        <Target className="w-3 h-3 mr-2" /> Recomendación Inteligente
+                      <div
+                        className="inline-flex items-center px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.28em] border mb-6"
+                        style={{
+                          background: 'var(--bg-base)',
+                          color: 'var(--color-primary)',
+                          borderColor: 'var(--color-primary)'
+                        }}
+                      >
+                        <Target className="w-3 h-3 mr-2" strokeWidth={2} /> Recomendación Inteligente
                       </div>
 
                       {hasScores && topCategory ? (
                         <>
-                          <h2 className="text-4xl font-extrabold text-white mb-4 font-space">Tu prioridad: <span className="text-[#1FB6D5]">{topCategory}</span></h2>
-                          <p className="text-slate-400 text-lg mb-8 max-w-lg leading-relaxed">
-                            Basado en tu diagnóstico, enfocarte en <strong>{topCategory.toLowerCase()}</strong> tendrá el mayor impacto en tu rentabilidad ahora mismo.
+                          <h2 className="font-display text-3xl md:text-4xl font-extrabold mb-4 tracking-tight" style={{ color: 'var(--text-primary)' }}>
+                            Tu prioridad: <span style={{ color: 'var(--color-primary)' }}>{topCategory}</span>
+                          </h2>
+                          <p className="font-mono text-sm md:text-base mb-6 max-w-lg leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+                            Basado en tu diagnóstico, enfocarte en <strong style={{ color: 'var(--text-primary)' }}>{topCategory.toLowerCase()}</strong> tendrá el mayor impacto en tu rentabilidad ahora mismo.
                           </p>
                           {plan === 'FREE' && (
-                            <div className="p-6 bg-[#00344F]/30 border border-[#1FB6D5]/20 rounded-2xl mb-8">
-                              <p className="text-[#1FB6D5] text-sm font-bold mb-4 flex items-center">
-                                <Zap className="w-4 h-4 mr-2" /> ¡Upgrade a PRO para desbloquear todo!
+                            <div
+                              className="p-5 border mb-6"
+                              style={{ background: 'var(--bg-base)', borderColor: 'var(--color-primary)' }}
+                            >
+                              <p className="font-mono text-[12px] font-bold uppercase tracking-[0.18em] mb-3 flex items-center" style={{ color: 'var(--color-primary)' }}>
+                                <Zap className="w-3 h-3 mr-2" strokeWidth={2} /> Upgrade a PRO para desbloquear todo
                               </p>
                               <Link to="/quick-diagnostic">
-                                <Button size="sm" className="bg-[#1FB6D5] text-[#021019] hover:bg-white text-xs px-6 py-3 rounded-lg font-bold">VER PLANES PRO</Button>
+                                <Button variant="primary" size="sm">VER PLANES PRO</Button>
                               </Link>
                             </div>
                           )}
                         </>
                       ) : (
                         <>
-                          <h2 className="text-4xl font-extrabold text-white mb-6 font-space italic">¿Ya sabés por dónde empezar?</h2>
-                          <p className="text-slate-400 text-lg mb-8 max-w-lg leading-relaxed">
+                          <h2 className="font-display text-3xl md:text-4xl font-extrabold mb-4 tracking-tight" style={{ color: 'var(--text-primary)' }}>
+                            ¿Ya sabés por dónde empezar?
+                          </h2>
+                          <p className="font-mono text-sm md:text-base mb-6 max-w-lg leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
                             Realizá el diagnóstico rápido para que nuestro algoritmo ordene tu aprendizaje y detecte tus cuellos de botella.
                           </p>
                           <Link to="/quick-diagnostic">
-                            <Button className="bg-[#1FB6D5] text-[#021019] hover:bg-white px-8 py-4 rounded-2xl font-bold flex items-center gap-2">
-                              Hacer Diagnóstico <ArrowRight className="w-4 h-4" />
-                            </Button>
+                            <Button variant="primary" icon={ArrowRight}>Hacer Diagnóstico</Button>
                           </Link>
                         </>
                       )}
                     </div>
 
-                    <div className="lg:w-1/2 w-full space-y-4">
+                    <div className="lg:w-1/2 w-full space-y-3">
+                      <div className="font-mono text-[10px] uppercase tracking-[0.28em] mb-3" style={{ color: 'var(--text-muted)' }}>
+                        // RECURSOS SUGERIDOS
+                      </div>
                       {recommendedResources.map(res => (
                         <div
                           key={res.id}
                           onClick={() => setSelectedResource(res)}
-                          className="flex items-center p-4 bg-slate-900 border border-slate-800 rounded-2xl hover:border-[#1FB6D5]/40 transition-all cursor-pointer group"
+                          className="flex items-center p-3 border transition-all cursor-pointer group"
+                          style={{ background: 'var(--bg-base)', borderColor: 'var(--border-subtle)' }}
+                          onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--color-primary)'}
+                          onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border-subtle)'}
                         >
-                          <div className="w-12 h-12 rounded-xl bg-slate-800 flex items-center justify-center text-[#1FB6D5] font-bold group-hover:bg-[#1FB6D5] group-hover:text-[#021019] transition-colors">
-                            <Play size={20} />
+                          <div
+                            className="w-10 h-10 border flex items-center justify-center transition-colors"
+                            style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-subtle)', color: 'var(--color-primary)' }}
+                          >
+                            <Play size={16} strokeWidth={1.75} />
                           </div>
-                          <div className="ml-4 flex-grow">
-                            <h4 className="text-white font-bold text-sm leading-tight group-hover:text-[#1FB6D5]">{res.title}</h4>
-                            <p className="text-slate-500 text-[10px] uppercase font-bold mt-1 tracking-wider">{res.impactTag} • {res.durationMinutes} MIN</p>
+                          <div className="ml-3 flex-grow">
+                            <h4 className="font-display font-bold text-sm leading-tight" style={{ color: 'var(--text-primary)' }}>{res.title}</h4>
+                            <p className="font-mono text-[10px] uppercase font-bold mt-1 tracking-[0.18em]" style={{ color: 'var(--text-muted)' }}>
+                              {res.impactTag} · {res.durationMinutes} MIN
+                            </p>
                           </div>
-                          <ChevronRight className="text-slate-700 group-hover:text-[#1FB6D5]" size={16} />
+                          <ChevronRight size={14} className="group-hover:text-[var(--color-primary)]" style={{ color: 'var(--text-muted)' }} />
                         </div>
                       ))}
                     </div>
@@ -255,9 +339,8 @@ const Academy = () => {
                 </div>
               </section>
 
-              {/* BLOQUE 3: RUTAS DE MAESTRÍA (auto-generadas) */}
+              {/* BLOQUE 3: RUTAS DE MAESTRÍA */}
               {(() => {
-                // Agrupar recursos por learningPath
                 const pathMap = new Map<string, AcademyResource[]>();
                 resources.forEach(r => {
                   if (r.learningPath && r.learningPath.trim()) {
@@ -271,13 +354,13 @@ const Academy = () => {
 
                 return (
                   <section>
-                    <div className="flex items-center justify-between mb-8">
-                      <div className="flex items-center gap-3">
-                        <GraduationCap className="text-[#1FB6D5] w-6 h-6" />
-                        <h2 className="text-2xl font-bold text-white font-space tracking-tight">Rutas de Maestría</h2>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <SectionHeader
+                      docCode="CPD-PUB-ACA-PATH-001"
+                      title="Rutas de Maestría"
+                      icon={<GraduationCap className="w-6 h-6" strokeWidth={1.75} />}
+                      subtitle="Programas estructurados por área."
+                    />
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                       {Array.from(pathMap.entries()).map(([pathName, pathResources]) => {
                         const totalMinutes = pathResources.reduce((s, r) => s + r.durationMinutes, 0);
                         const hasPro = pathResources.some(r => r.access === 'PRO');
@@ -288,38 +371,61 @@ const Academy = () => {
                           <div
                             key={pathName}
                             onClick={() => {
-                              // Scroll to first resource of this path (future: open path detail)
                               const firstRes = pathResources[0];
                               if (firstRes) setSelectedResource(firstRes);
                             }}
-                            className={`group bg-gradient-to-br from-slate-900 to-[#021019] border border-slate-800 rounded-3xl p-8 hover:border-[#1FB6D5]/40 transition-all cursor-pointer relative overflow-hidden ${!hasAccess ? 'opacity-80' : ''}`}
+                            className={`group relative border p-6 transition-all cursor-pointer ${!hasAccess ? 'opacity-80' : ''}`}
+                            style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}
+                            onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--color-primary)'}
+                            onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border-subtle)'}
                           >
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-[#1FB6D5]/5 rounded-full blur-3xl group-hover:bg-[#1FB6D5]/10 transition-colors"></div>
-                            <div className="relative z-10">
-                              <div className="flex justify-between items-center mb-6">
-                                <span className="bg-[#00344F] text-[#1FB6D5] text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest border border-[#1FB6D5]/20">
-                                  RUTA: {mainCategory}
+                            <CornerBrackets />
+
+                            <div className="flex justify-between items-start mb-5">
+                              <span
+                                className="font-mono text-[10px] font-bold uppercase tracking-[0.22em] px-2 py-1 border"
+                                style={{
+                                  background: 'var(--bg-base)',
+                                  color: 'var(--color-primary)',
+                                  borderColor: 'var(--color-primary)'
+                                }}
+                              >
+                                RUTA · {mainCategory}
+                              </span>
+                              <div className="flex items-center gap-3">
+                                <span className="font-mono text-[10px] font-bold uppercase" style={{ color: 'var(--text-muted)' }}>
+                                  {pathResources.length} MÓD · {totalMinutes} MIN
                                 </span>
-                                <div className="flex items-center gap-3">
-                                  <span className="text-xs text-slate-500 font-bold">{pathResources.length} módulos</span>
-                                  <span className="text-xs text-slate-500 font-bold">{totalMinutes} min</span>
-                                  {hasPro && <Lock className="w-4 h-4 text-amber-500" />}
-                                </div>
+                                {hasPro && <Lock className="w-3.5 h-3.5" style={{ color: 'var(--color-warning)' }} strokeWidth={2} />}
                               </div>
-                              <h3 className="text-2xl font-bold text-white mb-2 font-space group-hover:text-[#1FB6D5] transition-colors">{pathName}</h3>
-                              <p className="text-slate-400 mb-6 text-sm">
-                                {pathResources.map(r => r.title).join(' → ')}
-                              </p>
-                              <div className="flex flex-wrap gap-2 mb-6">
-                                {pathResources.map((r, i) => (
-                                  <span key={r.id} className="text-[9px] font-bold uppercase tracking-wider text-slate-500 bg-slate-800/50 px-2 py-1 rounded-lg">
-                                    {i + 1}. {r.title.length > 30 ? r.title.slice(0, 30) + '…' : r.title}
-                                  </span>
-                                ))}
-                              </div>
-                              <div className="flex items-center text-[#1FB6D5] font-bold text-sm">
-                                {hasAccess ? 'Empezar ruta' : 'Desbloquear con PRO'} <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-2 transition-transform" />
-                              </div>
+                            </div>
+
+                            <h3 className="font-display text-2xl font-bold mb-2 transition-colors group-hover:text-[var(--color-primary)]" style={{ color: 'var(--text-primary)' }}>
+                              {pathName}
+                            </h3>
+                            <p className="font-mono text-[12px] mb-5 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+                              {pathResources.map(r => r.title).join(' → ')}
+                            </p>
+
+                            <div className="flex flex-wrap gap-2 mb-5">
+                              {pathResources.map((r, i) => (
+                                <span
+                                  key={r.id}
+                                  className="font-mono text-[10px] font-bold uppercase tracking-[0.16em] px-2 py-1 border"
+                                  style={{
+                                    background: 'var(--bg-base)',
+                                    color: 'var(--text-muted)',
+                                    borderColor: 'var(--border-subtle)'
+                                  }}
+                                >
+                                  {String(i + 1).padStart(2, '0')} · {r.title.length > 28 ? r.title.slice(0, 28) + '…' : r.title}
+                                </span>
+                              ))}
+                            </div>
+
+                            <div className="flex items-center font-mono text-[11px] font-bold uppercase tracking-[0.22em]" style={{ color: 'var(--color-primary)' }}>
+                              {hasAccess ? '› Empezar ruta' : '› Desbloquear con PRO'}
+                              <ArrowRight className="ml-2 w-3.5 h-3.5 transition-transform group-hover:translate-x-1" strokeWidth={2} />
                             </div>
                           </div>
                         );
@@ -329,13 +435,15 @@ const Academy = () => {
                 );
               })()}
 
-              {/* BLOQUE EXTRA: BIBLIOTECA DE HERRAMIENTAS */}
+              {/* BLOQUE 4: BIBLIOTECA DE HERRAMIENTAS */}
               <section className="animate-fade-in">
-                <div className="flex items-center gap-3 mb-8">
-                  <LayoutTemplate className="text-[#1FB6D5] w-6 h-6" />
-                  <h2 className="text-2xl font-bold text-white font-space tracking-tight">Biblioteca de Herramientas</h2>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <SectionHeader
+                  docCode="CPD-PUB-ACA-LIB-001"
+                  title="Biblioteca de Herramientas"
+                  icon={<LayoutTemplate className="w-6 h-6" strokeWidth={1.75} />}
+                  subtitle="Plantillas, guías y recursos descargables."
+                />
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {resources.filter(r => !r.isPinned && r.format !== 'TIP').map(res => (
                     <ResourceCard
                       key={res.id}
@@ -345,80 +453,154 @@ const Academy = () => {
                     />
                   ))}
                   {resources.filter(r => !r.isPinned && r.format !== 'TIP').length === 0 && (
-                    <div className="col-span-full py-12 text-center bg-slate-900/20 rounded-3xl border border-slate-800/50">
-                      <p className="text-slate-500 italic">Próximamente más herramientas...</p>
+                    <div
+                      className="col-span-full py-12 text-center border"
+                      style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}
+                    >
+                      <p className="font-mono text-xs uppercase tracking-[0.22em] italic" style={{ color: 'var(--text-muted)' }}>
+                        [ PRÓXIMAMENTE MÁS HERRAMIENTAS ]
+                      </p>
                     </div>
                   )}
                 </div>
               </section>
 
-              {/* BLOQUE 4: MICROTIPS */}
-              <section className="bg-slate-900/30 p-10 rounded-[3rem] border border-slate-800/80">
-                <div className="max-w-4xl mx-auto">
-                  <div className="text-center mb-12">
-                    <div className="inline-block p-3 rounded-2xl bg-amber-500/10 text-amber-500 mb-6">
-                      <Zap size={32} />
-                    </div>
-                    <h2 className="text-3xl font-bold text-white mb-4 font-space uppercase tracking-tighter">Microtips de Gestión</h2>
-                    <p className="text-slate-400">Implementaciones rápidas de menos de 1 minuto.</p>
-                  </div>
+              {/* BLOQUE 5: MICROTIPS */}
+              {microtips.length > 0 && (
+                <section
+                  className="relative border p-8 md:p-10"
+                  style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}
+                >
+                  <CornerBrackets size="w-3 h-3" />
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {microtips.slice(0, 4).map(tip => (
-                      <div key={tip.id} className="p-6 bg-[#021019] border border-slate-800 rounded-3xl group hover:border-amber-500/30 transition-all cursor-pointer" onClick={() => setSelectedResource(tip)}>
-                        <div className="flex justify-between items-start mb-4">
-                          <span className="text-amber-500 text-[10px] font-bold uppercase tracking-[0.2em]">{tip.category}</span>
-                          <span className="text-slate-600 text-[10px] font-bold">{tip.durationMinutes} MIN</span>
-                        </div>
-                        <h4 className="text-lg font-bold text-white mb-3 group-hover:text-amber-500 transition-colors font-space leading-tight">{tip.title}</h4>
-                        <p className="text-sm text-slate-500 line-clamp-2 italic">"{tip.outcome}"</p>
+                  <div className="max-w-4xl mx-auto">
+                    <div className="text-center mb-10">
+                      <div
+                        className="inline-flex items-center justify-center w-12 h-12 border mb-4"
+                        style={{ background: 'var(--bg-base)', borderColor: 'var(--color-warning)', color: 'var(--color-warning)' }}
+                      >
+                        <Zap size={20} strokeWidth={1.75} />
                       </div>
-                    ))}
+                      <div className="font-mono text-[10px] uppercase tracking-[0.28em] mb-2" style={{ color: 'var(--text-muted)' }}>
+                        — CPD-PUB-ACA-TIP-001
+                      </div>
+                      <h2 className="font-display text-2xl md:text-3xl font-bold mb-2 tracking-tight" style={{ color: 'var(--text-primary)' }}>
+                        Microtips de Gestión
+                      </h2>
+                      <p className="font-mono text-[12px]" style={{ color: 'var(--text-secondary)' }}>
+                        Implementaciones rápidas en menos de 1 minuto.
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {microtips.slice(0, 4).map(tip => (
+                        <div
+                          key={tip.id}
+                          className="p-5 border group cursor-pointer transition-all"
+                          style={{ background: 'var(--bg-base)', borderColor: 'var(--border-subtle)' }}
+                          onClick={() => setSelectedResource(tip)}
+                          onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--color-warning)'}
+                          onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border-subtle)'}
+                        >
+                          <div className="flex justify-between items-start mb-3">
+                            <span className="font-mono text-[10px] font-bold uppercase tracking-[0.22em]" style={{ color: 'var(--color-warning)' }}>
+                              {tip.category}
+                            </span>
+                            <span className="font-mono text-[10px] font-bold uppercase" style={{ color: 'var(--text-muted)' }}>
+                              {tip.durationMinutes} MIN
+                            </span>
+                          </div>
+                          <h4 className="font-display text-base font-bold mb-2 leading-tight transition-colors group-hover:text-[var(--color-warning)]" style={{ color: 'var(--text-primary)' }}>
+                            {tip.title}
+                          </h4>
+                          <p className="font-mono text-[11px] line-clamp-2 italic" style={{ color: 'var(--text-secondary)' }}>
+                            › {tip.outcome}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              </section>
+                </section>
+              )}
             </>
           )}
         </div>
       </div>
 
-      {/* DETAIL MODAL */}
+      {/* DETAIL MODAL HUD */}
       {selectedResource && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-sm">
-          <div className="bg-[#021019] border border-slate-800 rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden animate-scale-up flex flex-col max-h-[90vh]">
-            <div className="h-2 bg-[#1FB6D5] flex-shrink-0"></div>
-            <div className="p-8 md:p-10 overflow-y-auto custom-scrollbar">
-              <div className="flex justify-between items-start mb-8">
-                <div className="flex items-center gap-3">
-                  <span className="bg-slate-800 text-slate-400 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+          <div
+            className="relative w-full max-w-2xl border shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-fade-in-up"
+            style={{ background: 'var(--bg-base)', borderColor: 'var(--border-subtle)' }}
+          >
+            <CornerBrackets size="w-3 h-3" />
+
+            {/* Top stripe phosphor */}
+            <div className="h-[3px] flex-shrink-0" style={{ background: 'var(--color-primary)' }}></div>
+
+            <div className="p-6 md:p-8 overflow-y-auto custom-scrollbar">
+              <div className="flex justify-between items-start mb-6">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span
+                    className="font-mono text-[10px] font-bold uppercase tracking-[0.22em] px-2 py-1 border"
+                    style={{ background: 'var(--bg-surface)', color: 'var(--color-primary)', borderColor: 'var(--border-subtle)' }}
+                  >
                     {selectedResource.format}
                   </span>
-                  <span className="text-slate-500 text-[10px] font-bold uppercase flex items-center">
-                    <Clock size={12} className="mr-1" /> {selectedResource.durationMinutes} min
+                  <span className="font-mono text-[10px] font-bold uppercase flex items-center" style={{ color: 'var(--text-muted)' }}>
+                    <Clock size={12} className="mr-1" strokeWidth={1.75} /> {selectedResource.durationMinutes} MIN
                   </span>
                 </div>
-                {!canAccess(selectedResource.access) && (
-                  <div className="bg-amber-500 text-[#021019] px-3 py-1 rounded-full text-[10px] font-bold uppercase flex items-center font-bold">
-                    <Lock size={12} className="mr-1" /> Premium
-                  </div>
-                )}
+                <div className="flex items-center gap-2">
+                  {!canAccess(selectedResource.access) && (
+                    <div
+                      className="font-mono text-[10px] font-bold uppercase tracking-[0.22em] px-2 py-1 border flex items-center"
+                      style={{
+                        background: 'rgba(255,177,42,0.10)',
+                        color: 'var(--color-warning)',
+                        borderColor: 'var(--color-warning)'
+                      }}
+                    >
+                      <Lock size={11} className="mr-1" strokeWidth={2} /> PRO
+                    </div>
+                  )}
+                  <button
+                    onClick={() => setSelectedResource(null)}
+                    className="p-1.5 transition-colors hover:text-[var(--color-primary)]"
+                    style={{ color: 'var(--text-muted)' }}
+                    title="Cerrar"
+                  >
+                    <X className="w-5 h-5" strokeWidth={1.75} />
+                  </button>
+                </div>
               </div>
 
-              <h2 className="text-3xl font-bold text-white mb-2 font-space leading-tight">{selectedResource.title}</h2>
-              <p className="text-[#1FB6D5] font-bold text-sm uppercase tracking-widest mb-8 italic">Logro: {selectedResource.outcome}</p>
+              <div className="font-mono text-[10px] uppercase tracking-[0.28em] mb-2" style={{ color: 'var(--text-muted)' }}>
+                — CPD-PUB-ACA-RES
+              </div>
+              <h2 className="font-display text-2xl md:text-3xl font-bold mb-2 leading-tight" style={{ color: 'var(--text-primary)' }}>
+                {selectedResource.title}
+              </h2>
+              <p className="font-mono text-xs uppercase tracking-[0.22em] mb-6 italic" style={{ color: 'var(--color-primary)' }}>
+                › Logro: {selectedResource.outcome}
+              </p>
 
-              <div className="space-y-6">
-                <p className="text-slate-400 text-lg leading-relaxed whitespace-pre-line">{selectedResource.description}</p>
+              <div className="space-y-5">
+                <p className="font-mono text-sm leading-relaxed whitespace-pre-line" style={{ color: 'var(--text-secondary)' }}>
+                  {selectedResource.description}
+                </p>
 
                 {selectedResource.actionSteps && selectedResource.actionSteps.length > 0 && (
-                  <div className="pt-6 border-t border-slate-800">
-                    <h4 className="text-white text-xs font-bold uppercase tracking-widest mb-4 flex items-center gap-2">
-                      <ArrowRight size={14} className="text-[#1FB6D5]" /> Hoja de Ruta
+                  <div className="pt-5 border-t" style={{ borderColor: 'var(--border-subtle)' }}>
+                    <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.28em] mb-3 flex items-center gap-2" style={{ color: 'var(--color-primary)' }}>
+                      <ArrowRight size={12} strokeWidth={2} /> // Hoja de Ruta
                     </h4>
-                    <ul className="space-y-3">
+                    <ul className="space-y-2">
                       {selectedResource.actionSteps.map((step, idx) => (
-                        <li key={idx} className="text-slate-300 text-sm flex gap-3">
-                          <span className="text-[#1FB6D5] font-bold">{idx + 1}.</span> {step}
+                        <li key={idx} className="font-mono text-[12px] flex gap-2" style={{ color: 'var(--text-primary)' }}>
+                          <span className="font-bold" style={{ color: 'var(--color-primary)' }}>{String(idx + 1).padStart(2, '0')}.</span>
+                          <span style={{ color: 'var(--text-secondary)' }}>{step}</span>
                         </li>
                       ))}
                     </ul>
@@ -426,28 +608,29 @@ const Academy = () => {
                 )}
               </div>
 
-              <div className="mt-10 pt-8 border-t border-slate-800 flex flex-col sm:flex-row gap-4">
+              <div className="mt-8 pt-6 border-t flex flex-col sm:flex-row gap-3" style={{ borderColor: 'var(--border-subtle)' }}>
                 {canAccess(selectedResource.access) ? (
                   <a href={selectedResource.downloadUrl} target="_blank" rel="noreferrer" className="flex-grow">
-                    <Button className="w-full bg-[#1FB6D5] text-[#021019] hover:bg-white font-bold py-4 rounded-2xl group text-sm uppercase tracking-widest">
-                      Comenzar Ahora <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" />
+                    <Button variant="primary" className="w-full" icon={ArrowRight}>
+                      Comenzar Ahora
                     </Button>
                   </a>
                 ) : (
-                  <div className="flex-grow bg-[#00344F]/20 border border-[#1FB6D5]/20 p-5 rounded-2xl text-center">
-                    <p className="text-xs text-[#1FB6D5] font-bold mb-3 uppercase tracking-tighter">Este contenido requiere plan PRO</p>
+                  <div
+                    className="flex-grow p-4 border text-center"
+                    style={{ background: 'var(--bg-surface)', borderColor: 'var(--color-primary)' }}
+                  >
+                    <p className="font-mono text-[10px] font-bold uppercase tracking-[0.28em] mb-3" style={{ color: 'var(--color-primary)' }}>
+                      Este contenido requiere plan PRO
+                    </p>
                     <Link to="/quick-diagnostic">
-                      <Button variant="outline" className="w-full border-[#1FB6D5] text-[#1FB6D5] hover:bg-[#1FB6D5] hover:text-[#021019] font-bold py-3 rounded-xl text-xs">
+                      <Button variant="primary" size="sm" className="w-full">
                         ACTUALIZAR MI PLAN
                       </Button>
                     </Link>
                   </div>
                 )}
-                <Button
-                  variant="outline"
-                  onClick={() => setSelectedResource(null)}
-                  className="sm:px-10 py-4 border-slate-700 rounded-2xl font-bold hover:bg-slate-800 text-sm"
-                >
+                <Button variant="ghost" onClick={() => setSelectedResource(null)}>
                   Cerrar
                 </Button>
               </div>
