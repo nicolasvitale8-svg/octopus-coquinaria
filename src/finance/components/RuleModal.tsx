@@ -72,11 +72,28 @@ export const RuleModal: React.FC<RuleModalProps> = ({
                                 .map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                         </select>
                     </div>
+                    <div className="space-y-1">
+                        <label className="text-[10px] font-black uppercase text-fin-muted ml-1">
+                            Prioridad <span className="text-fin-muted/60 normal-case ml-1">(default 100 — mayor número = se evalúa primero)</span>
+                        </label>
+                        <input
+                            type="number"
+                            min={0}
+                            step={10}
+                            value={editingRule?.priority ?? 100}
+                            onChange={e => setEditingRule({ ...editingRule, priority: e.target.value ? Number(e.target.value) : 100 })}
+                            className="w-full bg-fin-bg border border-fin-border rounded-xl p-4 text-white font-bold"
+                            placeholder="100"
+                        />
+                        <p className="text-[10px] text-fin-muted/70 ml-1 mt-1">
+                            Tip: regla específica como "rappi delivery" → 200; regla genérica como "rappi" → 100.
+                        </p>
+                    </div>
                     <button
                         type="submit"
                         className="w-full py-4 bg-brand text-[#050607] rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-brand/20"
                     >
-                        Crear Regla
+                        {editingRule?.id ? 'Guardar Cambios' : 'Crear Regla'}
                     </button>
                 </form>
             </div>

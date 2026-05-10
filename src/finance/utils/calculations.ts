@@ -188,19 +188,24 @@ export const calculateBudgetAlerts = (
     // Only show if it's already due or due within 3 days
     if (isCurrentMonth && targetDay > currentDay + 3) return false;
 
-    // Check for matching transactions
-    const hasMatch = transactions.some(t => {
+    // Sumar TODAS las tx del mes que matcheen categoría/subcategoría.
+    // El bug viejo usaba some() con tolerancia 20% sobre UNA tx, lo que en gastronomía
+    // (donde un mismo plan se cubre con múltiples pagos parciales) marcaba como "pagado"
+    // a la primera tx aproximada y silenciaba la alerta antes de tiempo.
+    // Ahora: pagado si la SUMA del mes cubre al menos el 95% del planned (5% de tolerancia
+    // contempla descuentos chicos, redondeos, recargos menores).
+    const matchedSum = transactions.reduce((sum, t) => {
       const transDate = parseDate(t.date);
-      // We look for transactions in the same month/year
-      // NOTE: We could be more strict with dates if needed
-      return transDate.getMonth() === month &&
+      const matches =
+        transDate.getMonth() === month &&
         transDate.getFullYear() === year &&
         t.categoryId === item.categoryId &&
-        (!item.subCategoryId || t.subCategoryId === item.subCategoryId) &&
-        Math.abs(t.amount - item.plannedAmount) / item.plannedAmount < 0.2;
-    });
+        (!item.subCategoryId || t.subCategoryId === item.subCategoryId);
+      return matches ? sum + t.amount : sum;
+    }, 0);
 
-    return !hasMatch;
+    const isCovered = item.plannedAmount > 0 && matchedSum >= item.plannedAmount * 0.95;
+    return !isCovered;
   });
 };
 

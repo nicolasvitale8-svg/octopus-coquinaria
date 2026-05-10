@@ -68,8 +68,8 @@ export const SupabaseService: IFinanceService = {
         const dbObj: Record<string, any> = {
             name: acc.name,
             account_type_id: acc.accountTypeId,
-            currency: acc.currency,
-            is_active: acc.isActive,
+            currency: acc.currency || 'ARS',
+            is_active: acc.isActive ?? true,
             user_id: userId,
             business_id: businessId || null
         };
@@ -473,7 +473,10 @@ export const SupabaseService: IFinanceService = {
         if (businessId) query = query.eq('business_id', businessId);
         else query = query.is('business_id', null).eq('user_id', userId);
 
-        const { data, error } = await query;
+        // Mayor priority primero; tie-break por created_at (más vieja gana)
+        const { data, error } = await query
+            .order('priority', { ascending: false })
+            .order('created_at', { ascending: true });
         if (error) throw error;
         return (data || []).map((d: Record<string, any>) => ({
             id: d.id,
@@ -482,13 +485,14 @@ export const SupabaseService: IFinanceService = {
             categoryId: d.category_id,
             subCategoryId: d.sub_category_id,
             direction: d.direction,
-            isActive: d.is_active
+            isActive: d.is_active,
+            priority: d.priority ?? 100
         }));
     },
 
     saveRule: async (rule: Partial<TextCategoryRule>, businessId?: string) => {
         const userId = await SupabaseService.getUserId();
-        const dbObj = {
+        const dbObj: Record<string, any> = {
             id: rule.id,
             pattern: rule.pattern,
             match_type: rule.matchType,
@@ -496,6 +500,7 @@ export const SupabaseService: IFinanceService = {
             sub_category_id: rule.subCategoryId || null,
             direction: rule.direction,
             is_active: rule.isActive ?? true,
+            priority: rule.priority ?? 100,
             user_id: userId,
             business_id: businessId || null
         };

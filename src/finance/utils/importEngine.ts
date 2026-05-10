@@ -471,12 +471,16 @@ export const parseImportText = (text: string): ImportLine[] => {
 
 /**
  * Applies learned rules to categorize imported lines.
+ * Las reglas se ordenan por priority DESC defensivamente para que el caller no
+ * pueda romper el matching si pasa el array sin ordenar (getRules ya ordena).
  */
 export const applyRules = (lines: ImportLine[], rules: TextCategoryRule[]): ImportLine[] => {
     logger.debug('Applying rules', { context: 'ImportEngine', data: { rulesCount: rules.length, linesCount: lines.length } });
 
+    const sortedRules = [...rules].sort((a, b) => (b.priority ?? 100) - (a.priority ?? 100));
+
     return lines.map(line => {
-        const match = rules.find(r => {
+        const match = sortedRules.find(r => {
             if (!r.isActive) return false;
             const text = line.description.toLowerCase();
             const pattern = r.pattern.toLowerCase();

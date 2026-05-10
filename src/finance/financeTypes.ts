@@ -104,6 +104,11 @@ export interface TextCategoryRule {
   subCategoryId?: string;
   direction?: TransactionType;
   isActive: boolean;
+  /**
+   * Prioridad de matching. Mayor número = se evalúa primero.
+   * Default 100. Reglas más específicas conviene ponerlas en 200+.
+   */
+  priority?: number;
 }
 
 export interface ImportLine {
