@@ -4,8 +4,8 @@ import { SupabaseService } from '../services/supabaseService';
 import { chequeService, Cheque } from '../services/chequeService';
 import { calculatePeriodBalance, calculateJar, formatCurrency, calculateBudgetAlerts, generateAuditReport, generateMonthReport } from '../utils/calculations';
 import { downloadMonthReportPdf } from '../services/monthReportPdfService';
-import { Account, Transaction, Jar, MonthlyBalance, Category, SubCategory, BudgetItem, AuditReport } from '../financeTypes';
-import { TrendingUp, TrendingDown, DollarSign, Lock, ChevronRight, LayoutGrid, List, Wallet, ArrowUpRight, UploadCloud, PlusCircle, Settings, Sparkles, User, Building2, PieChart as PieIcon, X, Bell, AlertTriangle, FileText, CreditCard, PiggyBank, Clock, ArrowRight, BarChart3, Percent } from 'lucide-react';
+import { Account, Transaction, Jar, MonthClosure, MonthlyBalance, Category, SubCategory, BudgetItem, AuditReport } from '../financeTypes';
+import { TrendingUp, TrendingDown, DollarSign, Lock, ChevronRight, LayoutGrid, List, Wallet, ArrowUpRight, UploadCloud, PlusCircle, Settings, Sparkles, User, Building2, PieChart as PieIcon, X, Bell, AlertTriangle, FileText, CreditCard, PiggyBank, Clock, ArrowRight, BarChart3, Percent, LockOpen } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, AreaChart, Area, CartesianGrid, LineChart, Line, Legend } from 'recharts';
 import { useNavigate } from 'react-router-dom';
 import { useFinanza } from '../context/FinanzaContext';
@@ -184,6 +184,7 @@ export const Dashboard: React.FC = () => {
   const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
   const [budgetItems, setBudgetItems] = useState<BudgetItem[]>([]);
   const [cheques, setCheques] = useState<Cheque[]>([]);
+  const [monthClosures, setMonthClosures] = useState<MonthClosure[]>([]);
   const [activeDetail, setActiveDetail] = useState<'IN' | 'OUT' | 'BALANCE' | 'INVESTED' | null>(null);
   const [activeCategoryScope, setActiveCategoryScope] = useState<string | undefined>(undefined);
   const [monthReport, setMonthReport] = useState<AuditReport | null>(null);
@@ -216,7 +217,7 @@ export const Dashboard: React.FC = () => {
       sinceDate.setDate(1);
       const since = sinceDate.toISOString().slice(0, 10);
 
-      const [t, acc, j, mb, cat, subCat, budget, chqs, inflationOut] = await Promise.all([
+      const [t, acc, j, mb, cat, subCat, budget, chqs, closures, inflationOut] = await Promise.all([
         SupabaseService.getTransactions(bId, { since }),
         SupabaseService.getAccounts(bId),
         SupabaseService.getJars(bId),
@@ -225,6 +226,7 @@ export const Dashboard: React.FC = () => {
         SupabaseService.getAllSubCategories(bId),
         SupabaseService.getBudgetItems(bId),
         chequeService.getAll(bId || ''),
+        SupabaseService.getMonthClosures(bId),
         macroService.getMonthlyInflation()
       ]);
 
@@ -236,6 +238,7 @@ export const Dashboard: React.FC = () => {
       setSubCategories(subCat);
       setBudgetItems(budget);
       setCheques(chqs);
+      setMonthClosures(closures);
       setInflationData(inflationOut);
 
       // Cargar préstamos
@@ -708,6 +711,47 @@ export const Dashboard: React.FC = () => {
               <ArrowUpRight size={18} />
             </button>
 
+            {/* Cerrar / Reabrir Mes — solo para meses pasados o el actual ya terminando */}
+            {(() => {
+              const isClosed = monthClosures.some(c => c.year === currentYear && c.month === currentMonth);
+              const isPast = currentYear < new Date().getFullYear() ||
+                (currentYear === new Date().getFullYear() && currentMonth < new Date().getMonth());
+              if (!isPast && !isClosed) return null;
+              return (
+                <button
+                  onClick={async () => {
+                    const bId = activeEntity.id || undefined;
+                    if (isClosed) {
+                      if (!confirm(`¿Reabrir el mes ${currentMonth + 1}/${currentYear}? Los números volverán a poder editarse.`)) return;
+                      try {
+                        await SupabaseService.reopenMonth(currentYear, currentMonth, bId);
+                        setMonthClosures(prev => prev.filter(c => !(c.year === currentYear && c.month === currentMonth)));
+                      } catch (e: any) {
+                        alert('Error al reabrir: ' + (e?.message || 'desconocido'));
+                      }
+                    } else {
+                      if (!confirm(`¿Cerrar el mes ${currentMonth + 1}/${currentYear}? Marca el período como auditado.`)) return;
+                      try {
+                        await SupabaseService.closeMonth(currentYear, currentMonth, bId);
+                        const refreshed = await SupabaseService.getMonthClosures(bId);
+                        setMonthClosures(refreshed);
+                      } catch (e: any) {
+                        alert('Error al cerrar: ' + (e?.message || 'desconocido'));
+                      }
+                    }
+                  }}
+                  title={isClosed ? 'Reabrir mes' : 'Cerrar mes'}
+                  className={`w-10 h-10 flex items-center justify-center border rounded-md transition-all ${
+                    isClosed
+                      ? 'bg-[var(--color-primary)]/15 border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)]/25'
+                      : 'bg-[#0F1416] border-[rgba(0,255,157,0.15)] hover:border-[var(--color-primary)]/50 hover:text-[var(--text-primary)]'
+                  }`}
+                >
+                  {isClosed ? <LockOpen size={18} /> : <Lock size={18} />}
+                </button>
+              );
+            })()}
+
             <button onClick={() => navigate('/finance/settings')} className="w-10 h-10 flex items-center justify-center bg-[#0F1416] border border-[rgba(0,255,157,0.15)] hover:border-[var(--color-primary)]/50 rounded-md hover:text-[var(--text-primary)] transition-all">
               <Settings size={18} />
             </button>
@@ -716,13 +760,28 @@ export const Dashboard: React.FC = () => {
 
         {/* SUBHEADER & TABS */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-t border-[rgba(0,255,157,0.15)] pt-6">
-          {/* Date Selector */}
-          <div className="text-[14px] font-black text-white uppercase tracking-widest flex items-center gap-4 bg-[#0F1416] px-4 py-2 rounded-md border border-[rgba(0,255,157,0.15)]">
-            <button onClick={handlePrevMonth} className="text-[#A8B0B5] hover:text-[var(--color-primary)] transition-colors"><ChevronRight className="rotate-180" size={18} /></button>
-            <div className="min-w-[130px] text-center flex items-center justify-center gap-2">
-              {monthName} <span className="text-[#A8B0B5]">{currentYear}</span>
+          {/* Date Selector + estado de cierre */}
+          <div className="flex items-center gap-3 flex-wrap">
+            <div className="text-[14px] font-black text-white uppercase tracking-widest flex items-center gap-4 bg-[#0F1416] px-4 py-2 rounded-md border border-[rgba(0,255,157,0.15)]">
+              <button onClick={handlePrevMonth} className="text-[#A8B0B5] hover:text-[var(--color-primary)] transition-colors"><ChevronRight className="rotate-180" size={18} /></button>
+              <div className="min-w-[130px] text-center flex items-center justify-center gap-2">
+                {monthName} <span className="text-[#A8B0B5]">{currentYear}</span>
+              </div>
+              <button onClick={handleNextMonth} className="text-[#A8B0B5] hover:text-[var(--color-primary)] transition-colors"><ChevronRight size={18} /></button>
             </div>
-            <button onClick={handleNextMonth} className="text-[#A8B0B5] hover:text-[var(--color-primary)] transition-colors"><ChevronRight size={18} /></button>
+            {monthClosures.some(c => c.year === currentYear && c.month === currentMonth) && (
+              <span
+                className="inline-flex items-center gap-1.5 px-3 py-2 font-mono text-[10px] font-bold uppercase tracking-[0.22em] border"
+                style={{
+                  background: 'rgba(0,255,157,0.10)',
+                  color: 'var(--color-primary)',
+                  borderColor: 'var(--color-primary)'
+                }}
+                title="Mes auditado y cerrado formalmente"
+              >
+                <Lock size={11} strokeWidth={2.5} /> MES CERRADO
+              </span>
+            )}
           </div>
 
           {/* TABS */}

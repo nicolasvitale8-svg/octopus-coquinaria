@@ -4,6 +4,7 @@ import {
     BudgetItem,
     Category,
     Jar,
+    MonthClosure,
     MonthlyBalance,
     SubCategory,
     TextCategoryRule,
@@ -72,6 +73,7 @@ export class DemoFinanceService implements IFinanceService {
     private budgetItems: BudgetItem[] = [];
     private jars: Jar[] = [];
     private rules: TextCategoryRule[] = [];
+    private monthClosures: MonthClosure[] = [];
 
     async getUserId(): Promise<string | null> {
         return 'demo-user-id';
@@ -279,5 +281,27 @@ export class DemoFinanceService implements IFinanceService {
 
     async deleteRule(id: string): Promise<void> {
         this.rules = this.rules.filter(r => r.id !== id);
+    }
+
+    // --- MONTH CLOSURES ---
+    async getMonthClosures(_businessId?: string): Promise<MonthClosure[]> {
+        return [...this.monthClosures];
+    }
+
+    async closeMonth(year: number, month: number, _businessId?: string, notes?: string): Promise<void> {
+        const exists = this.monthClosures.some(c => c.year === year && c.month === month);
+        if (exists) return;
+        this.monthClosures.push({
+            id: uuidv4(),
+            year,
+            month,
+            closedAt: new Date().toISOString(),
+            closedBy: null,
+            notes: notes || null
+        });
+    }
+
+    async reopenMonth(year: number, month: number, _businessId?: string): Promise<void> {
+        this.monthClosures = this.monthClosures.filter(c => !(c.year === year && c.month === month));
     }
 }

@@ -30,6 +30,15 @@ export interface MonthlyBalance {
   amount: number; // The balance at the START of this month
 }
 
+export interface MonthClosure {
+  id: string;
+  year: number;
+  month: number; // 0-11
+  closedAt: string; // ISO timestamp
+  closedBy?: string | null;
+  notes?: string | null;
+}
+
 export interface Category {
   id: string;
   name: string;

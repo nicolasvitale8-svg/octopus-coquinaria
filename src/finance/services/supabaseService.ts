@@ -6,6 +6,7 @@ import {
     BudgetItem,
     Category,
     Jar,
+    MonthClosure,
     MonthlyBalance,
     SubCategory,
     TextCategoryRule,
@@ -539,6 +540,49 @@ export const SupabaseService: IFinanceService = {
             .from('fin_transactions')
             .delete()
             .eq('id', id);
+        if (error) throw error;
+    },
+
+    // --- MONTH CLOSURES ---
+    getMonthClosures: async (businessId?: string): Promise<MonthClosure[]> => {
+        const userId = await SupabaseService.getUserId();
+        let query = supabase.from('fin_month_closures').select('*');
+        if (businessId) query = query.eq('business_id', businessId);
+        else query = query.is('business_id', null).eq('user_id', userId);
+
+        const { data, error } = await query.order('year', { ascending: false }).order('month', { ascending: false });
+        if (error) throw error;
+        return (data || []).map((d: Record<string, any>) => ({
+            id: d.id,
+            year: d.year,
+            month: d.month,
+            closedAt: d.closed_at,
+            closedBy: d.closed_by,
+            notes: d.notes
+        }));
+    },
+
+    closeMonth: async (year: number, month: number, businessId?: string, notes?: string) => {
+        const userId = await SupabaseService.getUserId();
+        const { error } = await supabase
+            .from('fin_month_closures')
+            .insert([{
+                user_id: businessId ? null : userId,
+                business_id: businessId || null,
+                year,
+                month,
+                closed_by: userId,
+                notes: notes || null
+            }]);
+        if (error) throw error;
+    },
+
+    reopenMonth: async (year: number, month: number, businessId?: string) => {
+        const userId = await SupabaseService.getUserId();
+        let query = supabase.from('fin_month_closures').delete().eq('year', year).eq('month', month);
+        if (businessId) query = query.eq('business_id', businessId);
+        else query = query.is('business_id', null).eq('user_id', userId);
+        const { error } = await query;
         if (error) throw error;
     }
 };

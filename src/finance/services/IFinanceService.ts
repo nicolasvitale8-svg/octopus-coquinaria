@@ -4,6 +4,7 @@ import {
     BudgetItem,
     Category,
     Jar,
+    MonthClosure,
     MonthlyBalance,
     SubCategory,
     TextCategoryRule,
@@ -70,4 +71,9 @@ export interface IFinanceService {
     getRules(businessId?: string): Promise<TextCategoryRule[]>;
     saveRule(rule: Partial<TextCategoryRule>, businessId?: string): Promise<void>;
     deleteRule(id: string): Promise<void>;
+
+    // Month closures
+    getMonthClosures(businessId?: string): Promise<MonthClosure[]>;
+    closeMonth(year: number, month: number, businessId?: string, notes?: string): Promise<void>;
+    reopenMonth(year: number, month: number, businessId?: string): Promise<void>;
 }
