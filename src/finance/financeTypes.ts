@@ -54,6 +54,8 @@ export interface Transaction {
   amount: number;
   type: TransactionType;
   accountId: string;
+  /** UUID compartido por las 2 puntas de una transferencia (OUT + IN). null si no es transferencia. */
+  transferId?: string | null;
 }
 
 export interface BudgetItem {

@@ -223,7 +223,7 @@ export const calculateYearSummary = (
   for (let month = 0; month < 12; month++) {
     const monthTransactions = transactions.filter(t => {
       const d = parseDate(t.date);
-      const isTransfer = t.description?.toLowerCase().includes('transferencia');
+      const isTransfer = !!t.transferId;
       return d.getMonth() === month && d.getFullYear() === year && !isTransfer;
     });
 
@@ -305,7 +305,7 @@ export const generateMonthReport = (
 ): MonthReport => {
   const monthTransactions = transactions.filter(t => {
     const d = parseDate(t.date);
-    const isTransfer = t.description?.toLowerCase().includes('transferencia');
+    const isTransfer = !!t.transferId;
     return d.getMonth() === month && d.getFullYear() === year && !isTransfer;
   });
 
@@ -377,7 +377,7 @@ export const generateMonthReport = (
 
   const prevTransactions = transactions.filter(t => {
     const d = parseDate(t.date);
-    const isTransfer = t.description?.toLowerCase().includes('transferencia');
+    const isTransfer = !!t.transferId;
     return d.getMonth() === prevMonth && d.getFullYear() === prevYear && !isTransfer;
   });
 
@@ -516,7 +516,7 @@ export const generateAuditReport = (
   // Filtrar transacciones del mes actual (sin transferencias)
   const monthTx = transactions.filter(t => {
     const d = parseDate(t.date);
-    const isTransfer = t.description?.toLowerCase().includes('transferencia');
+    const isTransfer = !!t.transferId;
     return d.getMonth() === month && d.getFullYear() === year && !isTransfer;
   });
 

@@ -276,13 +276,14 @@ export const SupabaseService: IFinanceService = {
             note: d.note,
             amount: d.amount,
             type: d.type,
-            accountId: d.account_id
+            accountId: d.account_id,
+            transferId: d.transfer_id || null
         }));
     },
 
     addTransaction: async (t: Partial<Transaction>, businessId?: string) => {
         const userId = await SupabaseService.getUserId();
-        const dbObj = {
+        const dbObj: Record<string, any> = {
             date: t.date,
             category_id: t.categoryId,
             sub_category_id: t.subCategoryId || null,
@@ -294,6 +295,7 @@ export const SupabaseService: IFinanceService = {
             user_id: userId,
             business_id: businessId || null
         };
+        if (t.transferId) dbObj.transfer_id = t.transferId;
         const { data, error } = await supabase
             .from('fin_transactions')
             .insert([dbObj])
@@ -331,6 +333,11 @@ export const SupabaseService: IFinanceService = {
         categoryId: string
     }, businessId?: string) => {
         const userId = await SupabaseService.getUserId();
+        // UUID v4 generado client-side; ambas puntas comparten el mismo transfer_id
+        // para que el filtro de transferencias sea robusto (no por string match).
+        const transferId = (typeof crypto !== 'undefined' && (crypto as any).randomUUID)
+            ? crypto.randomUUID()
+            : `${Date.now()}-${Math.random().toString(16).slice(2)}-${Math.random().toString(16).slice(2)}`;
 
         // 1. Transaction OUT (from source)
         const outTransaction = {
@@ -341,7 +348,8 @@ export const SupabaseService: IFinanceService = {
             type: TransactionType.OUT,
             account_id: params.fromAccountId,
             user_id: userId,
-            business_id: businessId || null
+            business_id: businessId || null,
+            transfer_id: transferId
         };
 
         // 2. Transaction IN (to destination)
@@ -353,7 +361,8 @@ export const SupabaseService: IFinanceService = {
             type: TransactionType.IN,
             account_id: params.toAccountId,
             user_id: userId,
-            business_id: businessId || null
+            business_id: businessId || null,
+            transfer_id: transferId
         };
 
         const { error } = await supabase
