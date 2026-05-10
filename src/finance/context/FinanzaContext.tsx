@@ -102,12 +102,20 @@ export const FinanzaProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
                 setAvailableEntities(entities);
 
-                // Restore from localStorage if valid
-                const saved = localStorage.getItem('finanza_active_entity');
+                // Restore from localStorage if valid (key namespaced por usuario para
+                // evitar contaminación entre cuentas en la misma máquina)
+                const storageKey = `finanza_active_entity_${user.id}`;
+                const saved = localStorage.getItem(storageKey);
                 if (saved) {
                     const parsed = JSON.parse(saved);
                     const exists = entities.find(e => e.id === parsed.id);
                     if (exists) setActiveEntityState(exists);
+                    else setActiveEntityState(personalEntity); // entidad guardada ya no es accesible
+                } else {
+                    // Reset al cambiar de usuario: sin entrada propia, default a personal
+                    setActiveEntityState(personalEntity);
+                    // Migración: borrar la key legacy sin namespace si quedó suelta
+                    localStorage.removeItem('finanza_active_entity');
                 }
             } catch (err) {
                 console.error("Error loading finance entities:", err);
@@ -126,7 +134,9 @@ export const FinanzaProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     const setActiveEntity = (entity: FinanceEntity) => {
         setActiveEntityState(entity);
-        localStorage.setItem('finanza_active_entity', JSON.stringify(entity));
+        if (user?.id) {
+            localStorage.setItem(`finanza_active_entity_${user.id}`, JSON.stringify(entity));
+        }
     };
 
     return (
