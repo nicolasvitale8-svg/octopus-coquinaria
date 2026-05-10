@@ -174,7 +174,10 @@ export class DemoFinanceService implements IFinanceService {
     }
 
     // --- TRANSACTIONS ---
-    async getTransactions(businessId?: string): Promise<Transaction[]> {
+    async getTransactions(businessId?: string, options?: { since?: string }): Promise<Transaction[]> {
+        if (options?.since) {
+            return this.transactions.filter(t => t.date >= options.since!);
+        }
         return this.transactions;
     }
 

@@ -207,8 +207,16 @@ export const Dashboard: React.FC = () => {
 
     try {
       const bId = activeEntity.id || undefined;
+      // PERF: el dashboard solo necesita los últimos 13 meses (saldos del mes actual,
+      // comparativos 3M, audit report, chart anual). Filtramos server-side para no
+      // bajar la historia completa cada vez que se carga la pantalla.
+      const sinceDate = new Date();
+      sinceDate.setMonth(sinceDate.getMonth() - 13);
+      sinceDate.setDate(1);
+      const since = sinceDate.toISOString().slice(0, 10);
+
       const [t, acc, j, mb, cat, subCat, budget, chqs, inflationOut] = await Promise.all([
-        SupabaseService.getTransactions(bId),
+        SupabaseService.getTransactions(bId, { since }),
         SupabaseService.getAccounts(bId),
         SupabaseService.getJars(bId),
         SupabaseService.getMonthlyBalances(bId),

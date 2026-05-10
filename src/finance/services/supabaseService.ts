@@ -259,11 +259,15 @@ export const SupabaseService: IFinanceService = {
     },
 
     // --- TRANSACTIONS ---
-    getTransactions: async (businessId?: string): Promise<Transaction[]> => {
+    getTransactions: async (businessId?: string, options?: { since?: string }): Promise<Transaction[]> => {
         const userId = await SupabaseService.getUserId();
         let query = supabase.from('fin_transactions').select('*');
         if (businessId) query = query.eq('business_id', businessId);
         else query = query.is('business_id', null).eq('user_id', userId);
+
+        if (options?.since) {
+            query = query.gte('date', options.since);
+        }
 
         const { data, error } = await query.order('date', { ascending: false });
         if (error) throw error;

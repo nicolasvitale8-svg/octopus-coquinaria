@@ -37,7 +37,11 @@ export interface IFinanceService {
     deleteSubCategory(id: string): Promise<void>;
 
     // Transactions
-    getTransactions(businessId?: string): Promise<Transaction[]>;
+    /**
+     * Devuelve transacciones. Sin `since`, todas (compat). Con `since` (YYYY-MM-DD)
+     * filtra server-side por date >= since para acotar payload en datasets grandes.
+     */
+    getTransactions(businessId?: string, options?: { since?: string }): Promise<Transaction[]>;
     addTransaction(t: Partial<Transaction>, businessId?: string): Promise<Transaction>;
     updateTransaction(t: Transaction): Promise<void>;
     deleteTransaction(id: string): Promise<void>;
