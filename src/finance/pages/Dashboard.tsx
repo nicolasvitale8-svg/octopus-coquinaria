@@ -2,7 +2,8 @@
 import React, { useEffect, useState } from 'react';
 import { SupabaseService } from '../services/supabaseService';
 import { chequeService, Cheque } from '../services/chequeService';
-import { calculatePeriodBalance, calculateJar, formatCurrency, calculateBudgetAlerts, generateAuditReport } from '../utils/calculations';
+import { calculatePeriodBalance, calculateJar, formatCurrency, calculateBudgetAlerts, generateAuditReport, generateMonthReport } from '../utils/calculations';
+import { downloadMonthReportPdf } from '../services/monthReportPdfService';
 import { Account, Transaction, Jar, MonthlyBalance, Category, SubCategory, BudgetItem, AuditReport } from '../financeTypes';
 import { TrendingUp, TrendingDown, DollarSign, Lock, ChevronRight, LayoutGrid, List, Wallet, ArrowUpRight, UploadCloud, PlusCircle, Settings, Sparkles, User, Building2, PieChart as PieIcon, X, Bell, AlertTriangle, FileText, CreditCard, PiggyBank, Clock, ArrowRight, BarChart3, Percent } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, AreaChart, Area, CartesianGrid, LineChart, Line, Legend } from 'recharts';
@@ -676,15 +677,36 @@ export const Dashboard: React.FC = () => {
               </select>
             )}
 
-            {/* Generate Report */}
+            {/* Generate Audit Report (modal en pantalla, mes pasado) */}
             {(currentYear < new Date().getFullYear() || (currentYear === new Date().getFullYear() && currentMonth < new Date().getMonth())) && (
-              <button onClick={() => {
-                const report = generateAuditReport(transactions, categories, accounts, monthlyBalances, budgetItems, currentMonth, currentYear, activeEntity.name);
-                setMonthReport(report);
-              }} className="w-10 h-10 flex items-center justify-center bg-[#0F1416] border border-[rgba(0,255,157,0.15)] hover:border-[var(--color-primary)]/50 rounded-md hover:text-[var(--text-primary)] transition-all">
+              <button
+                onClick={() => {
+                  const report = generateAuditReport(transactions, categories, accounts, monthlyBalances, budgetItems, currentMonth, currentYear, activeEntity.name);
+                  setMonthReport(report);
+                }}
+                title="Auditoría del mes"
+                className="w-10 h-10 flex items-center justify-center bg-[#0F1416] border border-[rgba(0,255,157,0.15)] hover:border-[var(--color-primary)]/50 rounded-md hover:text-[var(--text-primary)] transition-all"
+              >
                 <FileText size={18} />
               </button>
             )}
+
+            {/* Descargar Reporte Mensual PDF (siempre disponible) */}
+            <button
+              onClick={async () => {
+                try {
+                  const monthRpt = generateMonthReport(transactions, categories, accounts, monthlyBalances, currentMonth, currentYear, activeEntity.name);
+                  await downloadMonthReportPdf(monthRpt);
+                } catch (err) {
+                  console.error('Error generando PDF mensual:', err);
+                  alert('No se pudo generar el PDF. Revisá la consola.');
+                }
+              }}
+              title="Descargar reporte mensual en PDF"
+              className="w-10 h-10 flex items-center justify-center bg-[#0F1416] border border-[rgba(0,255,157,0.15)] hover:border-[var(--color-primary)]/50 rounded-md hover:text-[var(--text-primary)] transition-all"
+            >
+              <ArrowUpRight size={18} />
+            </button>
 
             <button onClick={() => navigate('/finance/settings')} className="w-10 h-10 flex items-center justify-center bg-[#0F1416] border border-[rgba(0,255,157,0.15)] hover:border-[var(--color-primary)]/50 rounded-md hover:text-[var(--text-primary)] transition-all">
               <Settings size={18} />
