@@ -5,6 +5,16 @@ import {
   CategoryBreakdown, MonthReport
 } from '../financeTypes';
 
+/**
+ * parseDate — parsea una fecha "YYYY-MM-DD" en zona horaria LOCAL.
+ * Evita el bug de timezone que sufre `new Date('YYYY-MM-DD')` (interpreta UTC midnight,
+ * lo que en UTC-3 hace que el 1° de un mes se renderice como el último día del mes anterior).
+ */
+export const parseDate = (dateStr: string): Date => {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  return new Date(y, m - 1, d);
+};
+
 export const calculateJar = (jar: Jar): JarCalculation => {
   // Parsear fechas como locales (split YYYY-MM-DD) para evitar desfase UTC
   const [sy, sm, sd] = jar.startDate.split('-').map(Number);
@@ -76,7 +86,7 @@ export const calculatePeriodBalance = (
 
   // 2. Filter Transactions for this specific month/year and account
   const periodTransactions = transactions.filter(t => {
-    const d = new Date(t.date);
+    const d = parseDate(t.date);
     return t.accountId === account.id && d.getMonth() === month && d.getFullYear() === year;
   });
 
@@ -117,7 +127,7 @@ export const getProposedOpeningBalance = (
   const prevOpening = prevOpeningRecord ? prevOpeningRecord.amount : 0;
 
   const prevTransactions = transactions.filter(t => {
-    const d = new Date(t.date);
+    const d = parseDate(t.date);
     return t.accountId === accountId && d.getMonth() === prevMonth && d.getFullYear() === prevYear;
   });
 
@@ -180,7 +190,7 @@ export const calculateBudgetAlerts = (
 
     // Check for matching transactions
     const hasMatch = transactions.some(t => {
-      const transDate = new Date(t.date);
+      const transDate = parseDate(t.date);
       // We look for transactions in the same month/year
       // NOTE: We could be more strict with dates if needed
       return transDate.getMonth() === month &&
@@ -195,12 +205,6 @@ export const calculateBudgetAlerts = (
 };
 
 // --- ANNUAL VIEW & REPORTS ---
-
-// Helper para parsear fechas string "YYYY-MM-DD" en local sin timezone shift
-const parseDate = (dateStr: string) => {
-  const [y, m, d] = dateStr.split('-').map(Number);
-  return new Date(y, m - 1, d);
-};
 
 /**
  * Calcula el resumen anual con datos de cada mes
