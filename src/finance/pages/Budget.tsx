@@ -54,10 +54,83 @@ export const Budget: React.FC = () => {
 
   useEffect(() => { loadData(); }, [activeEntity]);
 
+  /**
+   * Replica al mes target los items del mes anterior que sean
+   *  - recurrentes (Gasto Fijo Mensual), o
+   *  - cuotas pendientes (currentInstallment < totalInstallments).
+   *
+   * Es idempotente: chequea SIEMPRE contra la DB (no contra estado en memoria,
+   * que puede estar desactualizado tras navegaciones rápidas) y captura el
+   * unique constraint para no duplicar aunque haya carreras.
+   *
+   * Devuelve true si copió al menos un item (para que el caller decida recargar).
+   */
+  const replicateRecurringTo = async (
+    targetMonth: number,
+    targetYear: number,
+    bId: string | undefined,
+  ): Promise<boolean> => {
+    // Mes anterior
+    const prevDate = new Date(targetYear, targetMonth - 1, 1);
+    const pm = prevDate.getMonth();
+    const py = prevDate.getFullYear();
+
+    const allItems = await SupabaseService.getBudgetItems(bId);
+    const prevItems = allItems.filter(i => i.month === pm && i.year === py);
+    const targetItems = allItems.filter(i => i.month === targetMonth && i.year === targetYear);
+
+    // Set de claves ya existentes en el target → evita duplicar.
+    // Clave compuesta: label + categoryId (consistente con el unique de DB).
+    const targetKeys = new Set(
+      targetItems.map(i => `${(i.label || '').toLowerCase().trim()}|${i.categoryId || ''}`),
+    );
+
+    let copied = 0;
+    for (const item of prevItems) {
+      const isRecurring = !!item.isRecurring;
+      const hasInstallments = (item.totalInstallments || 1) > (item.currentInstallment || 1);
+      if (!isRecurring && !hasInstallments) continue;
+
+      const key = `${(item.label || '').toLowerCase().trim()}|${item.categoryId || ''}`;
+      if (targetKeys.has(key)) continue; // ya existe → skip
+
+      const newItem: any = {
+        ...item,
+        id: undefined,
+        month: targetMonth,
+        year: targetYear,
+      };
+      if (hasInstallments && !isRecurring) {
+        newItem.currentInstallment = (item.currentInstallment || 1) + 1;
+      }
+
+      try {
+        await SupabaseService.saveBudgetItem(newItem, bId);
+        targetKeys.add(key);
+        copied++;
+      } catch (err: any) {
+        // Si la DB rechaza por unique violation, lo ignoramos: ya estaba copiado.
+        const msg = String(err?.message || err || '');
+        if (msg.includes('duplicate key') || msg.includes('uniq_fin_budget_items')) continue;
+        console.warn('replicateRecurringTo: skip item por error', err);
+      }
+    }
+    return copied > 0;
+  };
+
   const loadData = async () => {
     setLoading(true);
     try {
       const bId = activeEntity.id || undefined;
+
+      // 1) Antes de leer, intentar replicar al mes activo lo recurrente del mes
+      // anterior. Si copió algo, los datos que vamos a leer ya lo incluyen.
+      try {
+        await replicateRecurringTo(currentMonth, currentYear, bId);
+      } catch (e) {
+        console.warn('Auto-replicación falló, sigo igual:', e);
+      }
+
       const [items, t, cat, subCat, accs] = await Promise.all([
         SupabaseService.getBudgetItems(bId),
         SupabaseService.getTransactions(bId),
@@ -78,7 +151,6 @@ export const Budget: React.FC = () => {
         savingsCat = await service.addCategory({ name: savingsCatName, type: 'MIX', isActive: true }, bId);
         updatedCats = [...cat, savingsCat];
 
-        // Crear subcategorías
         const subs = ['Frascos (Plazo Fijo)', 'Cripto', 'Acciones / FCI', 'Ahorro en USD', 'Otro'];
         for (const subName of subs) {
           const newSub = await service.addSubCategory({ categoryId: savingsCat.id, name: subName, isActive: true }, bId);
@@ -98,39 +170,9 @@ export const Budget: React.FC = () => {
     const m = newDate.getMonth();
     const y = newDate.getFullYear();
 
-    // Check if there's any budget for the target month
-    const targetItems = budgetItems.filter(i => i.month === m && i.year === y);
-
-    if (targetItems.length === 0) {
-      // Logic to copy recurring and installments
-      const prevDate = new Date(y, m - 1, 1);
-      const pm = prevDate.getMonth();
-      const py = prevDate.getFullYear();
-      const prevItems = budgetItems.filter(i => i.month === pm && i.year === py);
-
-      const bId = activeEntity.id || undefined;
-      let hasCopied = false;
-
-      for (const item of prevItems) {
-        if (item.isRecurring) {
-          const newItem = { ...item, id: undefined, month: m, year: y };
-          await SupabaseService.saveBudgetItem(newItem, bId);
-          hasCopied = true;
-        } else if ((item.totalInstallments || 1) > (item.currentInstallment || 1)) {
-          const newItem = {
-            ...item,
-            id: undefined,
-            month: m,
-            year: y,
-            currentInstallment: (item.currentInstallment || 1) + 1
-          };
-          await SupabaseService.saveBudgetItem(newItem, bId);
-          hasCopied = true;
-        }
-      }
-
-      if (hasCopied) await loadData();
-    }
+    const bId = activeEntity.id || undefined;
+    const copied = await replicateRecurringTo(m, y, bId);
+    if (copied) await loadData();
 
     setCurrentMonth(m);
     setCurrentYear(y);
@@ -226,8 +268,16 @@ export const Budget: React.FC = () => {
           newItem.currentInstallment = (item.currentInstallment || 1) + 1;
         }
 
-        await SupabaseService.saveBudgetItem(newItem, bId);
-        importCount++;
+        try {
+          await SupabaseService.saveBudgetItem(newItem, bId);
+          importCount++;
+        } catch (e: any) {
+          const msg = String(e?.message || '');
+          if (!(msg.includes('duplicate key') || msg.includes('uniq_fin_budget_items'))) {
+            throw e;
+          }
+          // Duplicado: lo ignoramos silenciosamente.
+        }
       }
 
       await loadData();
@@ -269,14 +319,23 @@ export const Budget: React.FC = () => {
       }
 
       const { id, ...newItemData } = item;
-      const newItem = { 
+      const newItem = {
         ...newItemData,
-        month: nextMonth, 
-        year: nextYear 
+        month: nextMonth,
+        year: nextYear
       };
-      
-      await SupabaseService.saveBudgetItem(newItem, bId);
-      alert(`Ítem "${item.label}" copiado al mes siguiente exitosamente.`);
+
+      try {
+        await SupabaseService.saveBudgetItem(newItem, bId);
+        alert(`Ítem "${item.label}" copiado al mes siguiente exitosamente.`);
+      } catch (e: any) {
+        const msg = String(e?.message || '');
+        if (msg.includes('duplicate key') || msg.includes('uniq_fin_budget_items')) {
+          alert(`El ítem "${item.label}" ya existe en el próximo mes. No se copia para evitar duplicados.`);
+        } else {
+          throw e;
+        }
+      }
     } catch (error) {
       console.error(error);
       alert("Error al copiar el ítem");
