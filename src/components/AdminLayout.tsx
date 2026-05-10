@@ -12,7 +12,6 @@ import {
   Megaphone,
   BarChart2,
   ShieldCheck,
-  RefreshCw,
   ExternalLink,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -27,7 +26,6 @@ import StatusBadge from './ui/StatusBadge';
  *   - Active nav: bracket phosphor TL + barra lateral phosphor + bg-surface-soft
  *   - Sidebar header con kicker mono "— Operador" arriba del nombre
  *   - SISTEMA · ONLINE indicator debajo del wordmark
- *   - Forzar sync con frame mono terminal
  *   - Doc-code CPD-LAYOUT-ADM-001 + version + uptime al pie
  *   - Mobile header con corner brackets phosphor
  */
@@ -35,7 +33,6 @@ import StatusBadge from './ui/StatusBadge';
 const AdminLayout = () => {
   const { signOut, profile, isAdmin } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isSyncing, setIsSyncing] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const [pendingCount, setPendingCount] = useState<number>(0);
@@ -83,36 +80,6 @@ const AdminLayout = () => {
   );
 
   const isActive = (path: string) => location.pathname === path;
-
-  const handleSync = async () => {
-    if (
-      !confirm(
-        '¿Forzar sincronización de TODOS los datos (Proyectos, Leads, Calendario, Academia)?\n\nEsto subirá tus cambios locales a la nube.',
-      )
-    ) {
-      return;
-    }
-    setIsSyncing(true);
-    try {
-      const { syncLocalProjects } = await import('../services/projectService');
-      const { syncLocalLeads } = await import('../services/storage');
-      const { syncLocalEvents } = await import('../services/calendarService');
-      const { syncLocalResources } = await import('../services/academyService');
-      await Promise.all([
-        syncLocalProjects(),
-        syncLocalLeads(),
-        syncLocalEvents(),
-        syncLocalResources(),
-      ]);
-      await new Promise((r) => setTimeout(r, 800));
-      alert('Sincronización completada con éxito.');
-    } catch (e) {
-      console.error('Sync Error', e);
-      alert('Hubo un error al sincronizar. Revisá la consola.');
-    } finally {
-      setIsSyncing(false);
-    }
-  };
 
   return (
     <div
@@ -222,19 +189,11 @@ const AdminLayout = () => {
             );
           })}
 
-          {/* Forzar Sync */}
+          {/* Sistema */}
           <div className="pt-3 mt-3 border-t" style={{ borderColor: 'var(--border-subtle)' }}>
             <div className="px-3 pt-1 pb-2 font-mono text-[9px] uppercase tracking-[0.28em] text-[var(--text-muted)]">
               — Sistema
             </div>
-            <button
-              onClick={handleSync}
-              disabled={isSyncing}
-              className="flex w-full items-center gap-3 px-3 py-2 text-sm font-medium transition-colors text-[var(--color-primary)] hover:bg-[var(--bg-surface-soft)] disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <RefreshCw className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} strokeWidth={1.75} />
-              <span>{isSyncing ? 'Sincronizando…' : 'Forzar sincronización'}</span>
-            </button>
 
             <Link
               to="/"
