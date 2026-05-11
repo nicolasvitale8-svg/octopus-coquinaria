@@ -304,4 +304,9 @@ export class DemoFinanceService implements IFinanceService {
     async reopenMonth(year: number, month: number, _businessId?: string): Promise<void> {
         this.monthClosures = this.monthClosures.filter(c => !(c.year === year && c.month === month));
     }
+
+    async payCardSummary(_params: any, _businessId?: string): Promise<{ transactionId: string; paidItemsCount: number }> {
+        // Demo: no persiste; devuelve mock para que la UI no rompa.
+        return { transactionId: uuidv4(), paidItemsCount: 0 };
+    }
 }

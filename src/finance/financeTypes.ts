@@ -80,6 +80,14 @@ export interface BudgetItem {
   isRecurring?: boolean;
   totalInstallments?: number;
   currentInstallment?: number;
+  /** Cuenta de pago asociada (tarjeta de crédito típicamente para cuotas). */
+  accountId?: string | null;
+  /** UUID de la serie de cuotas (= id del finance_loan origen). */
+  installmentSeriesId?: string | null;
+  /** Cuándo se marcó como pagado. NULL = pendiente. */
+  paidAt?: string | null;
+  /** ID de la fin_transactions que lo pagó. Compartido entre cuotas del mismo resumen. */
+  paymentTransactionId?: string | null;
 }
 
 export interface Jar {

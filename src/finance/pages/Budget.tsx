@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { SupabaseService } from '../services/supabaseService';
-import { Account, BudgetItem, Category, SubCategory, Transaction, TransactionType } from '../financeTypes';
+import { Account, AccountType, BudgetItem, Category, SubCategory, Transaction, TransactionType } from '../financeTypes';
 import { formatCurrency, formatPercentage, getAdjustedWorkingDay } from '../utils/calculations';
-import { Plus, Trash2, Pencil, ChevronRight, PieChart, Sparkles, Calendar as CalendarIcon, Clock, X, CreditCard, Wallet, Landmark, ArrowRight, Check, Copy } from 'lucide-react';
+import { Plus, Trash2, Pencil, ChevronRight, PieChart, Sparkles, Calendar as CalendarIcon, Clock, X, CreditCard, Wallet, Landmark, ArrowRight, Check, Copy, Receipt } from 'lucide-react';
 import { useFinanza } from '../context/FinanzaContext';
 
 export const Budget: React.FC = () => {
@@ -23,11 +23,20 @@ export const Budget: React.FC = () => {
 
   // Payment Execution State
   const [accounts, setAccounts] = useState<Account[]>([]);
+  const [accountTypes, setAccountTypes] = useState<AccountType[]>([]);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [executingItem, setExecutingItem] = useState<BudgetItem | null>(null);
   const [paymentAmount, setPaymentAmount] = useState<number>(0);
   const [selectedAccountId, setSelectedAccountId] = useState<string>('');
   const [isExecuting, setIsExecuting] = useState(false);
+
+  // Card Summary Payment State
+  const [showCardSummaryModal, setShowCardSummaryModal] = useState(false);
+  const [cardSummaryAccountId, setCardSummaryAccountId] = useState<string>('');
+  const [cardSummaryAmount, setCardSummaryAmount] = useState<number>(0);
+  const [cardSummaryPayAccountId, setCardSummaryPayAccountId] = useState<string>('');
+  const [cardSummaryCategoryId, setCardSummaryCategoryId] = useState<string>('');
+  const [isPayingCardSummary, setIsPayingCardSummary] = useState(false);
 
   // Sorting State
   const [sortConfig, setSortConfig] = useState<{ key: 'date' | 'amount' | 'category' | 'label', direction: 'asc' | 'desc' }>({ key: 'date', direction: 'asc' });
@@ -131,17 +140,19 @@ export const Budget: React.FC = () => {
         console.warn('Auto-replicación falló, sigo igual:', e);
       }
 
-      const [items, t, cat, subCat, accs] = await Promise.all([
+      const [items, t, cat, subCat, accs, accTypes] = await Promise.all([
         SupabaseService.getBudgetItems(bId),
         SupabaseService.getTransactions(bId),
         SupabaseService.getCategories(bId),
         SupabaseService.getAllSubCategories(bId),
-        SupabaseService.getAccounts(bId)
+        SupabaseService.getAccounts(bId),
+        SupabaseService.getAccountTypes(bId)
       ]);
       setBudgetItems(items);
       setTransactions(t);
       setSubCategories(subCat);
       setAccounts(accs);
+      setAccountTypes(accTypes);
 
       // Auto-crear categoría Inversiones/Ahorro si no existe
       const savingsCatName = 'Inversiones / Ahorro';
@@ -232,6 +243,82 @@ export const Budget: React.FC = () => {
       setIsExecuting(false);
     }
   };
+
+  // ============== PAGO RESUMEN DE TARJETA ==============
+
+  /** ¿La cuenta es de tipo tarjeta de crédito? */
+  const isCreditCardAccount = (acc: Account): boolean => {
+    const t = accountTypes.find(at => at.id === acc.accountTypeId);
+    if (!t) return false;
+    const name = (t.name || '').toLowerCase();
+    return name.includes('crédit') || name.includes('credito') || name.includes('tarjeta');
+  };
+
+  /** Tarjetas con cuotas pendientes en el mes activo. */
+  const cardsWithPendingThisMonth = useMemo(() => {
+    const out: { account: Account; items: BudgetItem[]; total: number }[] = [];
+    accounts.filter(isCreditCardAccount).forEach(acc => {
+      const pendingItems = budgetItems.filter(b =>
+        b.accountId === acc.id &&
+        b.year === currentYear &&
+        b.month === currentMonth &&
+        !b.paidAt
+      );
+      if (pendingItems.length > 0) {
+        const total = pendingItems.reduce((s, i) => s + (i.plannedAmount || 0), 0);
+        out.push({ account: acc, items: pendingItems, total });
+      }
+    });
+    return out;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accounts, accountTypes, budgetItems, currentMonth, currentYear]);
+
+  const openCardSummaryModal = (accountId: string) => {
+    const card = cardsWithPendingThisMonth.find(c => c.account.id === accountId);
+    if (!card) return;
+    setCardSummaryAccountId(accountId);
+    setCardSummaryAmount(card.total);
+    setCardSummaryPayAccountId('');
+    // Default category: la del primer item (suelen ser todas la misma "Préstamos / Cuotas")
+    setCardSummaryCategoryId(card.items[0]?.categoryId || '');
+    setShowCardSummaryModal(true);
+  };
+
+  const handlePayCardSummary = async () => {
+    if (isPayingCardSummary) return;
+    if (!cardSummaryAccountId || !cardSummaryPayAccountId || cardSummaryAmount <= 0 || !cardSummaryCategoryId) {
+      alert('Completá todos los campos del resumen.');
+      return;
+    }
+    setIsPayingCardSummary(true);
+    try {
+      const bId = activeEntity.id || undefined;
+      const card = cardsWithPendingThisMonth.find(c => c.account.id === cardSummaryAccountId);
+      if (!card) throw new Error('Tarjeta no encontrada.');
+
+      const result = await SupabaseService.payCardSummary({
+        cardAccountId: cardSummaryAccountId,
+        payFromAccountId: cardSummaryPayAccountId,
+        year: currentYear,
+        month: currentMonth,
+        totalAmount: Number(cardSummaryAmount),
+        date: new Date().toISOString().split('T')[0],
+        categoryId: cardSummaryCategoryId,
+        description: `Pago resumen ${card.account.name} ${currentMonth + 1}/${currentYear}`
+      }, bId);
+
+      await loadData();
+      setShowCardSummaryModal(false);
+      alert(`Resumen pagado. ${result.paidItemsCount} cuotas marcadas como pagadas. Transacción ID: ${result.transactionId.slice(0, 8)}...`);
+    } catch (error: any) {
+      console.error('Error pagando resumen:', error);
+      alert('Error al pagar resumen: ' + (error?.message || 'desconocido'));
+    } finally {
+      setIsPayingCardSummary(false);
+    }
+  };
+
+  // ============== /PAGO RESUMEN ==============
 
   const importFromPreviousMonth = async () => {
     if (!confirm('¿Importar items recurrentes del mes anterior? Esto no duplicará items existentes.')) return;
@@ -611,6 +698,11 @@ export const Budget: React.FC = () => {
                           {item.isRecurring && (
                             <span className="text-[8px] font-black text-[var(--color-success)] bg-[var(--color-success)]/10 px-1.5 py-0.5 rounded-md uppercase tracking-tighter border border-[var(--color-success)]/20">Fijo</span>
                           )}
+                          {item.paidAt && (
+                            <span className="text-[8px] font-black text-[var(--color-primary)] bg-[var(--color-primary)]/10 px-1.5 py-0.5 rounded-md uppercase tracking-tighter border border-[var(--color-primary)]/30 flex items-center gap-1">
+                              <Check size={9} strokeWidth={3} /> Pagada
+                            </span>
+                          )}
                           {(item.totalInstallments || 1) > 1 && (
                             <span className="text-[8px] font-black text-brand bg-brand/10 px-1.5 py-0.5 rounded-md uppercase tracking-tighter border border-brand/20">
                               {item.currentInstallment} / {item.totalInstallments}
@@ -712,6 +804,30 @@ export const Budget: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* CHIPS: Resumen pendiente por tarjeta de crédito */}
+      {cardsWithPendingThisMonth.length > 0 && (
+        <div className="flex flex-wrap gap-3 mt-2">
+          {cardsWithPendingThisMonth.map(({ account, items, total }) => (
+            <button
+              key={account.id}
+              onClick={() => openCardSummaryModal(account.id)}
+              className="group flex items-center gap-3 bg-fin-card border border-fin-border hover:border-brand px-4 py-3 rounded-md transition-all"
+              title={`Pagar resumen completo de ${account.name}`}
+            >
+              <Receipt className="w-4 h-4 text-brand" />
+              <div className="text-left">
+                <div className="text-[10px] font-black uppercase tracking-widest text-fin-muted group-hover:text-[var(--text-primary)]">
+                  Pagar resumen {account.name}
+                </div>
+                <div className="text-xs font-bold text-[var(--text-primary)]">
+                  {items.length} cuota{items.length === 1 ? '' : 's'} · {formatCurrency(total)}
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="bg-fin-card p-1 rounded-md border border-fin-border w-fit">
         <button
@@ -909,6 +1025,106 @@ export const Budget: React.FC = () => {
       }
 
       {/* Modal de Ejecución de Pago */}
+      {/* MODAL: Pagar Resumen de Tarjeta */}
+      {showCardSummaryModal && (() => {
+        const card = cardsWithPendingThisMonth.find(c => c.account.id === cardSummaryAccountId);
+        if (!card) return null;
+        const otherAccounts = accounts.filter(a => a.id !== card.account.id && a.isActive !== false);
+        return (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+            <div className="bg-fin-card w-full max-w-lg rounded-[32px] border border-fin-border shadow-2xl overflow-hidden relative">
+              <div className="p-8 space-y-6">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <div className="font-mono text-[10px] uppercase tracking-[0.28em] text-fin-muted mb-1">— CPD-FIN-CARD-PAY</div>
+                    <h3 className="text-xl font-black text-[var(--text-primary)] flex items-center gap-2">
+                      <Receipt className="text-brand" size={22} />
+                      Pagar Resumen {card.account.name}
+                    </h3>
+                    <p className="text-[11px] text-fin-muted mt-1">
+                      {currentMonth + 1}/{currentYear} · {card.items.length} cuota{card.items.length === 1 ? '' : 's'} pendiente{card.items.length === 1 ? '' : 's'}
+                    </p>
+                  </div>
+                  <button onClick={() => setShowCardSummaryModal(false)} className="p-2 text-fin-muted hover:text-[var(--text-primary)]">
+                    <X size={18} />
+                  </button>
+                </div>
+
+                {/* Lista de cuotas */}
+                <div className="bg-fin-bg border border-fin-border rounded-md p-4 max-h-40 overflow-y-auto space-y-1">
+                  {card.items.map(it => (
+                    <div key={it.id} className="flex justify-between text-xs">
+                      <span className="text-[var(--text-primary)]">{it.label}</span>
+                      <span className="text-fin-muted font-mono">{formatCurrency(it.plannedAmount)}</span>
+                    </div>
+                  ))}
+                  <div className="flex justify-between text-xs font-bold pt-2 mt-2 border-t border-fin-border">
+                    <span className="text-[var(--text-primary)]">Suma cuotas</span>
+                    <span className="text-brand font-mono">{formatCurrency(card.total)}</span>
+                  </div>
+                </div>
+
+                {/* Monto total del resumen (editable, default = suma de cuotas) */}
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase text-fin-muted tracking-widest">
+                    Total del resumen (incluye consumos extra si los hay)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={cardSummaryAmount}
+                    onChange={e => setCardSummaryAmount(Number(e.target.value))}
+                    className="w-full bg-fin-bg border border-fin-border rounded-md p-3 text-[var(--text-primary)] font-bold focus:border-brand outline-none"
+                  />
+                  {Math.abs(cardSummaryAmount - card.total) > 0.5 && (
+                    <p className="text-[10px] text-amber-400">
+                      Diferencia con suma de cuotas: {formatCurrency(cardSummaryAmount - card.total)} (consumos extra / intereses)
+                    </p>
+                  )}
+                </div>
+
+                {/* Cuenta desde la que se paga */}
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase text-fin-muted tracking-widest">Pagar desde</label>
+                  <select
+                    value={cardSummaryPayAccountId}
+                    onChange={e => setCardSummaryPayAccountId(e.target.value)}
+                    className="w-full bg-fin-bg border border-fin-border rounded-md p-3 text-[var(--text-primary)] text-xs font-bold focus:border-brand outline-none"
+                  >
+                    <option value="">Seleccionar cuenta…</option>
+                    {otherAccounts.map(a => (
+                      <option key={a.id} value={a.id}>{a.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Categoría */}
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase text-fin-muted tracking-widest">Categoría de la transacción</label>
+                  <select
+                    value={cardSummaryCategoryId}
+                    onChange={e => setCardSummaryCategoryId(e.target.value)}
+                    className="w-full bg-fin-bg border border-fin-border rounded-md p-3 text-[var(--text-primary)] text-xs font-bold focus:border-brand outline-none"
+                  >
+                    {categories.filter(c => c.type === TransactionType.OUT || c.type === 'MIX').map(c => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <button
+                  onClick={handlePayCardSummary}
+                  disabled={isPayingCardSummary || !cardSummaryPayAccountId || cardSummaryAmount <= 0}
+                  className="w-full py-4 bg-brand text-fin-bg rounded-md font-black text-xs uppercase tracking-[0.2em] shadow-lg shadow-brand/20 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isPayingCardSummary ? 'Procesando…' : `Pagar ${formatCurrency(cardSummaryAmount)} · marcar ${card.items.length} cuota${card.items.length === 1 ? '' : 's'}`}
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
       {showPaymentModal && executingItem && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
           <div className="bg-fin-card w-full max-w-md rounded-[32px] border border-fin-border shadow-2xl overflow-hidden relative">

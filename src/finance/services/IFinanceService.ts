@@ -62,6 +62,24 @@ export interface IFinanceService {
     saveBudgetItem(item: Partial<BudgetItem>, businessId?: string): Promise<void>;
     deleteBudgetItem(id: string): Promise<void>;
 
+    /**
+     * Pago consolidado de resumen de tarjeta.
+     * - Crea UNA tx OUT por `totalAmount` en `payFromAccountId` (banco/efectivo).
+     * - Marca como pagadas todas las cuotas pendientes del mes (year, month) cuyo
+     *   `account_id` sea `cardAccountId` (la tarjeta de crédito).
+     * Devuelve el ID de la tx y la cantidad de cuotas marcadas.
+     */
+    payCardSummary(params: {
+        cardAccountId: string;        // tarjeta cuyas cuotas se marcan
+        payFromAccountId: string;     // cuenta desde donde sale el pago
+        year: number;
+        month: number;
+        totalAmount: number;
+        date: string;
+        categoryId: string;
+        description?: string;
+    }, businessId?: string): Promise<{ transactionId: string; paidItemsCount: number }>;
+
     // Jars
     getJars(businessId?: string): Promise<Jar[]>;
     saveJar(jar: Partial<Jar>, businessId?: string): Promise<void>;

@@ -398,13 +398,17 @@ export const SupabaseService: IFinanceService = {
             plannedDate: d.planned_date,
             isRecurring: d.is_recurring,
             totalInstallments: d.total_installments,
-            currentInstallment: d.current_installment
+            currentInstallment: d.current_installment,
+            accountId: d.account_id || null,
+            installmentSeriesId: d.installment_series_id || null,
+            paidAt: d.paid_at || null,
+            paymentTransactionId: d.payment_transaction_id || null
         }));
     },
 
     saveBudgetItem: async (item: Partial<BudgetItem>, businessId?: string) => {
         const userId = await SupabaseService.getUserId();
-        const dbObj = {
+        const dbObj: Record<string, any> = {
             id: item.id,
             year: item.year,
             month: item.month,
@@ -420,6 +424,11 @@ export const SupabaseService: IFinanceService = {
             user_id: userId,
             business_id: businessId || null
         };
+        if (item.accountId !== undefined) dbObj.account_id = item.accountId;
+        if (item.installmentSeriesId !== undefined) dbObj.installment_series_id = item.installmentSeriesId;
+        if (item.paidAt !== undefined) dbObj.paid_at = item.paidAt;
+        if (item.paymentTransactionId !== undefined) dbObj.payment_transaction_id = item.paymentTransactionId;
+
         const { error } = await supabase
             .from('fin_budget_items')
             .upsert(dbObj);
@@ -584,5 +593,61 @@ export const SupabaseService: IFinanceService = {
         else query = query.is('business_id', null).eq('user_id', userId);
         const { error } = await query;
         if (error) throw error;
+    },
+
+    // --- PAGO CONSOLIDADO RESUMEN DE TARJETA ---
+    payCardSummary: async (
+        params: {
+            cardAccountId: string;
+            payFromAccountId: string;
+            year: number;
+            month: number;
+            totalAmount: number;
+            date: string;
+            categoryId: string;
+            description?: string;
+        },
+        businessId?: string
+    ): Promise<{ transactionId: string; paidItemsCount: number }> => {
+        const userId = await SupabaseService.getUserId();
+
+        // 1) Crear UNA transacción de salida por el total del resumen,
+        //    cargada en la cuenta de pago (banco/efectivo).
+        const txObj: Record<string, any> = {
+            date: params.date,
+            category_id: params.categoryId,
+            description: params.description || 'Pago resumen de tarjeta',
+            amount: params.totalAmount,
+            type: 'OUT',
+            account_id: params.payFromAccountId,
+            user_id: userId,
+            business_id: businessId || null
+        };
+        const { data: txData, error: txError } = await supabase
+            .from('fin_transactions')
+            .insert([txObj])
+            .select();
+        if (txError) throw txError;
+        if (!txData || txData.length === 0) throw new Error('No se pudo crear la transacción del resumen.');
+
+        const transactionId = txData[0].id;
+
+        // 2) Marcar como pagados los budget items del mes cuyo account_id es
+        //    la tarjeta. Update en lote.
+        const nowIso = new Date().toISOString();
+        let q = supabase
+            .from('fin_budget_items')
+            .update({ paid_at: nowIso, payment_transaction_id: transactionId })
+            .eq('account_id', params.cardAccountId)
+            .eq('year', params.year)
+            .eq('month', params.month)
+            .is('paid_at', null);
+        if (businessId) q = q.eq('business_id', businessId);
+        else q = q.is('business_id', null).eq('user_id', userId);
+
+        const { data: updData, error: updError } = await q.select();
+        if (updError) throw updError;
+
+        return { transactionId, paidItemsCount: updData?.length || 0 };
     }
 };
