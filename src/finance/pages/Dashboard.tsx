@@ -5,7 +5,7 @@ import { chequeService, Cheque } from '../services/chequeService';
 import { calculatePeriodBalance, calculateJar, formatCurrency, calculateBudgetAlerts, generateAuditReport, generateMonthReport } from '../utils/calculations';
 import { downloadMonthReportPdf } from '../services/monthReportPdfService';
 import { Account, Transaction, Jar, MonthClosure, MonthlyBalance, Category, SubCategory, BudgetItem, AuditReport } from '../financeTypes';
-import { TrendingUp, TrendingDown, DollarSign, Lock, ChevronRight, LayoutGrid, List, Wallet, ArrowUpRight, UploadCloud, PlusCircle, Settings, Sparkles, User, Building2, PieChart as PieIcon, X, Bell, AlertTriangle, FileText, CreditCard, PiggyBank, Clock, ArrowRight, BarChart3, Percent, LockOpen } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, Lock, ChevronRight, LayoutGrid, List, Wallet, ArrowUpRight, ArrowDownRight, UploadCloud, PlusCircle, Settings, Sparkles, User, Building2, PieChart as PieIcon, X, Bell, AlertTriangle, FileText, CreditCard, PiggyBank, Clock, ArrowRight, BarChart3, Percent, Unlock } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, AreaChart, Area, CartesianGrid, LineChart, Line, Legend } from 'recharts';
 import { useNavigate } from 'react-router-dom';
 import { useFinanza } from '../context/FinanzaContext';
@@ -773,7 +773,7 @@ export const Dashboard: React.FC = () => {
                       : 'bg-[#0F1416] border-[rgba(0,255,157,0.15)] hover:border-[var(--color-primary)]/50 hover:text-[var(--text-primary)]'
                   }`}
                 >
-                  {isClosed ? <LockOpen size={18} /> : <Lock size={18} />}
+                  {isClosed ? <Unlock size={18} /> : <Lock size={18} />}
                 </button>
               );
             })()}
