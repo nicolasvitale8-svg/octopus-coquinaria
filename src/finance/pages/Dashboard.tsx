@@ -14,6 +14,10 @@ import { BudgetRPMGauge } from '../components/BudgetRPMGauge';
 import { AuditReportModal } from '../components/AuditReportModal';
 import { loanService, Loan, LoanPayment } from '../services/loanService';
 import { macroService, InflationDataPoint } from '../services/macroService';
+import CashFlowProjection from '../components/dashboard/CashFlowProjection';
+import TopExpenses from '../components/dashboard/TopExpenses';
+import BudgetTrafficLight from '../components/dashboard/BudgetTrafficLight';
+import UpcomingPayments from '../components/dashboard/UpcomingPayments';
 
 interface PeriodAccountState {
   account: Account;
@@ -1124,6 +1128,50 @@ export const Dashboard: React.FC = () => {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* ============================================================
+          BLOQUE WIDGETS HUD · análisis profundo
+         ============================================================ */}
+      <div className="mt-8 space-y-6">
+        <div className="flex items-center gap-3">
+          <div className="font-mono text-[10px] uppercase tracking-[0.28em] text-fin-muted">— ANÁLISIS · {monthName} {currentYear}</div>
+          <div className="flex-1 h-px bg-[var(--border-subtle)]" />
+        </div>
+
+        {/* Fila 1: proyección a 6M (full width) */}
+        <CashFlowProjection
+          accounts={accounts}
+          transactions={transactions}
+          monthlyBalances={monthlyBalances}
+          budgetItems={budgetItems}
+          monthsAhead={6}
+        />
+
+        {/* Fila 2: semáforo + top egresos */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <BudgetTrafficLight
+            budgetItems={budgetItems}
+            transactions={transactions}
+            categories={categories}
+            month={currentMonth}
+            year={currentYear}
+          />
+          <TopExpenses
+            transactions={transactions}
+            categories={categories}
+            month={currentMonth}
+            year={currentYear}
+            topN={5}
+          />
+        </div>
+
+        {/* Fila 3: próximos vencimientos */}
+        <UpcomingPayments
+          budgetItems={budgetItems}
+          categories={categories}
+          daysAhead={7}
+        />
       </div>
     </div>
   );
