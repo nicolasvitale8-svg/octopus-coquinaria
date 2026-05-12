@@ -18,6 +18,7 @@ import CashFlowProjection from '../components/dashboard/CashFlowProjection';
 import TopExpenses from '../components/dashboard/TopExpenses';
 import BudgetTrafficLight from '../components/dashboard/BudgetTrafficLight';
 import UpcomingPayments from '../components/dashboard/UpcomingPayments';
+import KpiWithDelta from '../components/dashboard/KpiWithDelta';
 
 interface PeriodAccountState {
   account: Account;
@@ -277,25 +278,46 @@ export const Dashboard: React.FC = () => {
   };
 
   // Totales excluyendo transferencias entre cuentas (para el resumen global)
-  const totalIn = React.useMemo(() => {
+  /**
+   * Suma tx del mes M/Y, excluyendo transferencias (por transferId, robusto).
+   */
+  const sumMonth = React.useCallback((m: number, y: number, type: 'IN' | 'OUT') => {
     return transactions
       .filter(t => {
+        if (t.transferId) return false; // robusto: ya no filtra por string
         const d = parseDate(t.date);
-        const isTransfer = t.description?.toLowerCase().includes('transferencia');
-        return d.getMonth() === currentMonth && d.getFullYear() === currentYear && t.type === 'IN' && !isTransfer;
+        return d.getMonth() === m && d.getFullYear() === y && t.type === type;
       })
       .reduce((sum, t) => sum + t.amount, 0);
-  }, [transactions, currentMonth, currentYear]);
+  }, [transactions]);
 
-  const totalOut = React.useMemo(() => {
-    return transactions
-      .filter(t => {
-        const d = parseDate(t.date);
-        const isTransfer = t.description?.toLowerCase().includes('transferencia');
-        return d.getMonth() === currentMonth && d.getFullYear() === currentYear && t.type === 'OUT' && !isTransfer;
-      })
-      .reduce((sum, t) => sum + t.amount, 0);
-  }, [transactions, currentMonth, currentYear]);
+  const totalIn = React.useMemo(() => sumMonth(currentMonth, currentYear, 'IN'),
+    [sumMonth, currentMonth, currentYear]);
+  const totalOut = React.useMemo(() => sumMonth(currentMonth, currentYear, 'OUT'),
+    [sumMonth, currentMonth, currentYear]);
+
+  // --- Comparativas MoM y 3M para KPIs principales ---
+  const prevMonthInfo = React.useMemo(() => {
+    const d = new Date(currentYear, currentMonth - 1, 1);
+    return { m: d.getMonth(), y: d.getFullYear() };
+  }, [currentMonth, currentYear]);
+
+  const prevIn = React.useMemo(() => sumMonth(prevMonthInfo.m, prevMonthInfo.y, 'IN'),
+    [sumMonth, prevMonthInfo]);
+  const prevOut = React.useMemo(() => sumMonth(prevMonthInfo.m, prevMonthInfo.y, 'OUT'),
+    [sumMonth, prevMonthInfo]);
+
+  /** Promedio de los 3 meses anteriores al activo (no incluye el mes actual). */
+  const avg3M = React.useMemo(() => {
+    let ai = 0, ao = 0, cnt = 0;
+    for (let off = 1; off <= 3; off++) {
+      const d = new Date(currentYear, currentMonth - off, 1);
+      ai += sumMonth(d.getMonth(), d.getFullYear(), 'IN');
+      ao += sumMonth(d.getMonth(), d.getFullYear(), 'OUT');
+      cnt++;
+    }
+    return cnt > 0 ? { in: ai / cnt, out: ao / cnt } : { in: 0, out: 0 };
+  }, [sumMonth, currentMonth, currentYear]);
 
   const totalFinal = periodStates.reduce((s, st) => s + st.finalBalance, 0);
   const totalInJars = jars.map(calculateJar).reduce((acc, j) => acc + j.currentValue, 0);
@@ -833,26 +855,44 @@ export const Dashboard: React.FC = () => {
               </ResponsiveContainer>
             </div>
 
-            <div className="grid grid-cols-2 gap-6 border-t border-[rgba(0,255,157,0.15)] pt-6">
-              <div onClick={() => setActiveDetail('IN')} className="cursor-pointer group">
-                <p className="text-[10px] text-[#A8B0B5] uppercase font-black tracking-widest mb-1">INGRESOS ESTE MES:</p>
-                <p className="text-xl font-black text-[#00C57D] group-hover:opacity-80 transition-opacity tabular-nums">{formatCurrency(totalIn)}</p>
-              </div>
-              <div onClick={() => setActiveDetail('OUT')} className="cursor-pointer group">
-                <p className="text-[10px] text-[#A8B0B5] uppercase font-black tracking-widest mb-1">GASTOS ESTE MES:</p>
-                <p className="text-xl font-black text-[#FF4D4D] group-hover:opacity-80 transition-opacity tabular-nums">{formatCurrency(totalOut)}</p>
-              </div>
+            {/* KPIs con comparativa MoM y 3M (nuevos KpiWithDelta) */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 border-t border-[rgba(0,255,157,0.15)] pt-6">
+              <KpiWithDelta
+                label="Ingresos este mes"
+                value={totalIn}
+                prevValue={prevIn}
+                avg3M={avg3M.in}
+                accentColor="var(--color-primary)"
+                direction="higherIsBetter"
+                icon={<ArrowUpRight className="w-4 h-4" />}
+                onClick={() => setActiveDetail('IN')}
+              />
+              <KpiWithDelta
+                label="Egresos este mes"
+                value={totalOut}
+                prevValue={prevOut}
+                avg3M={avg3M.out}
+                accentColor="var(--color-danger)"
+                direction="lowerIsBetter"
+                icon={<ArrowDownRight className="w-4 h-4" />}
+                onClick={() => setActiveDetail('OUT')}
+              />
+              <KpiWithDelta
+                label="Ahorro neto"
+                value={totalIn - totalOut}
+                prevValue={prevIn - prevOut}
+                avg3M={avg3M.in - avg3M.out}
+                accentColor={(totalIn - totalOut) >= 0 ? 'var(--color-primary)' : 'var(--color-danger)'}
+                direction="higherIsBetter"
+                icon={<DollarSign className="w-4 h-4" />}
+              />
             </div>
 
-            <div className="mt-6 border-t border-[rgba(0,255,157,0.15)] pt-6 flex justify-between items-center">
-              <div>
-                <p className="text-[10px] text-[#A8B0B5] uppercase font-black tracking-widest mb-1">AHORRO NETO:</p>
-                <p className="text-xl font-black text-[#00C57D] tabular-nums">{formatCurrency(totalIn - totalOut)}</p>
+            {totalIn - totalOut < 0 && (
+              <div className="mt-4 inline-flex items-center bg-[rgba(255,77,77,0.10)] text-[var(--color-danger)] text-[10px] font-black px-3 py-1 rounded border border-[rgba(255,77,77,0.40)] uppercase tracking-[0.22em]">
+                ⚠ Déficit del mes
               </div>
-              {totalIn - totalOut < 0 && (
-                <div className="bg-[rgba(255,77,77,0.10)] text-[var(--color-danger)] text-[10px] font-black px-3 py-1 rounded-lg border border-[rgba(255,77,77,0.40)]">DEFICIT</div>
-              )}
-            </div>
+            )}
           </div>
 
           {/* Box 2: Meta Principal (Frascos) */}
