@@ -1174,8 +1174,28 @@ export const Dashboard: React.FC = () => {
           BLOQUE WIDGETS HUD · análisis profundo
          ============================================================ */}
       <div className="mt-8 space-y-6">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <div className="font-mono text-[10px] uppercase tracking-[0.28em] text-fin-muted">— ANÁLISIS · {monthName} {currentYear}</div>
+          {(() => {
+            const now = new Date();
+            const isCurrent = now.getMonth() === currentMonth && now.getFullYear() === currentYear;
+            if (!isCurrent) return null;
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+            const dayOfMonth = now.getDate();
+            return (
+              <span
+                className="font-mono text-[9px] uppercase tracking-[0.22em] px-2 py-0.5 border"
+                style={{
+                  borderColor: 'var(--color-warning)',
+                  color: 'var(--color-warning)',
+                  background: 'rgba(255,177,42,0.06)',
+                }}
+                title="El mes activo aún no terminó — los KPIs y comparativas son parciales."
+              >
+                Mes en curso · día {dayOfMonth}/{daysInMonth}
+              </span>
+            );
+          })()}
           <div className="flex-1 h-px bg-[var(--border-subtle)]" />
         </div>
 

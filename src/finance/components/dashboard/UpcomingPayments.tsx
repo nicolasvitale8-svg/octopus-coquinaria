@@ -20,22 +20,28 @@ interface RowUpcoming {
 }
 
 const UpcomingPayments: React.FC<Props> = ({ budgetItems, categories, daysAhead = 7 }) => {
-  const { rows, totalDue } = useMemo(() => {
+  const { rows, totalOverdue, totalUpcoming } = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const limit = new Date(today);
-    limit.setDate(limit.getDate() + daysAhead);
+
+    // Excluir aportes a Inversiones/Ahorro/Frasco (no son "deudas" reales, son aportes).
+    const investmentCatIds = new Set(
+      categories
+        .filter(c => /inversi|ahorro|frasco/i.test(c.name) || c.type === 'MIX')
+        .map(c => c.id),
+    );
 
     const out: RowUpcoming[] = [];
     budgetItems.forEach(b => {
       if (b.type !== TransactionType.OUT) return;
       if (b.paidAt) return; // ya pagado
+      if (investmentCatIds.has(b.categoryId)) return;
       const day = b.plannedDate || 1;
       // Construir la fecha de vencimiento en el mes/año del budget item
       const due = getAdjustedWorkingDay(day, b.month, b.year, false);
       due.setHours(0, 0, 0, 0);
 
-      // Filtrar a [hoy-7, hoy+daysAhead] (incluye vencidos recientes)
+      // Filtrar a [hoy-daysAhead, hoy+daysAhead] (incluye vencidos recientes)
       const diff = Math.round((due.getTime() - today.getTime()) / (24 * 60 * 60 * 1000));
       if (diff > daysAhead) return;
       if (diff < -daysAhead) return;
@@ -52,8 +58,9 @@ const UpcomingPayments: React.FC<Props> = ({ budgetItems, categories, daysAhead 
     });
 
     out.sort((a, b) => a.daysLeft - b.daysLeft);
-    const totalDue = out.filter(r => r.daysLeft >= 0).reduce((s, r) => s + r.amount, 0);
-    return { rows: out, totalDue };
+    const totalOverdue = out.filter(r => r.daysLeft < 0).reduce((s, r) => s + r.amount, 0);
+    const totalUpcoming = out.filter(r => r.daysLeft >= 0).reduce((s, r) => s + r.amount, 0);
+    return { rows: out, totalOverdue, totalUpcoming };
   }, [budgetItems, categories, daysAhead]);
 
   if (rows.length === 0) {
@@ -76,7 +83,7 @@ const UpcomingPayments: React.FC<Props> = ({ budgetItems, categories, daysAhead 
       <span aria-hidden="true" className="pointer-events-none absolute top-0 left-0 w-3 h-3 border-l border-t" style={{ borderColor: 'var(--color-warning)' }} />
       <span aria-hidden="true" className="pointer-events-none absolute bottom-0 right-0 w-3 h-3 border-r border-b" style={{ borderColor: 'var(--color-warning)' }} />
 
-      <div className="flex items-start justify-between mb-4">
+      <div className="flex items-start justify-between mb-4 gap-4 flex-wrap">
         <div>
           <div className="font-mono text-[10px] uppercase tracking-[0.28em] text-fin-muted mb-1">— CPD-FIN-UPC-001</div>
           <h3 className="font-display text-lg font-bold text-[var(--text-primary)] flex items-center gap-2">
@@ -84,9 +91,21 @@ const UpcomingPayments: React.FC<Props> = ({ budgetItems, categories, daysAhead 
             Próximos vencimientos · {daysAhead} días
           </h3>
         </div>
-        <div className="text-right">
-          <div className="font-mono text-[9px] uppercase tracking-[0.18em] text-fin-muted">TOTAL A PAGAR</div>
-          <div className="font-mono text-lg font-bold text-[var(--color-warning)]">{formatCurrency(totalDue)}</div>
+        <div className="flex gap-5 text-right">
+          {totalOverdue > 0 && (
+            <div>
+              <div className="font-mono text-[9px] uppercase tracking-[0.18em] text-fin-muted">VENCIDOS</div>
+              <div className="font-mono text-base font-bold text-[var(--color-danger)]">{formatCurrency(totalOverdue)}</div>
+            </div>
+          )}
+          <div>
+            <div className="font-mono text-[9px] uppercase tracking-[0.18em] text-fin-muted">PRÓXIMOS</div>
+            <div className="font-mono text-base font-bold text-[var(--color-warning)]">{formatCurrency(totalUpcoming)}</div>
+          </div>
+          <div>
+            <div className="font-mono text-[9px] uppercase tracking-[0.18em] text-fin-muted">TOTAL A PAGAR</div>
+            <div className="font-mono text-lg font-bold text-[var(--text-primary)]">{formatCurrency(totalOverdue + totalUpcoming)}</div>
+          </div>
         </div>
       </div>
 

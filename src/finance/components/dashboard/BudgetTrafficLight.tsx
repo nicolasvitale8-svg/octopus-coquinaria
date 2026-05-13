@@ -17,7 +17,7 @@ interface Row {
   planned: number;
   actual: number;
   pct: number;
-  status: 'good' | 'warning' | 'critical' | 'over';
+  status: 'good' | 'warning' | 'critical' | 'over' | 'noplan';
 }
 
 const statusColor = (s: Row['status']) => {
@@ -26,6 +26,7 @@ const statusColor = (s: Row['status']) => {
     case 'warning': return 'var(--color-warning)';
     case 'critical': return '#ff8c42';
     case 'over': return 'var(--color-danger)';
+    case 'noplan': return 'var(--text-muted)';
   }
 };
 
@@ -35,15 +36,28 @@ const statusLabel = (s: Row['status']) => {
     case 'warning': return 'ATENCIÓN';
     case 'critical': return 'CRÍTICO';
     case 'over': return 'EXCEDIDO';
+    case 'noplan': return 'SIN PRESUPUESTO';
   }
 };
 
 const BudgetTrafficLight: React.FC<Props> = ({ budgetItems, transactions, categories, month, year }) => {
   const rows = useMemo<Row[]>(() => {
+    // Excluir categorías de tipo Inversiones/Ahorro/Frasco (aportes propios).
+    const investmentCatIds = new Set(
+      categories
+        .filter(c => /inversi|ahorro|frasco/i.test(c.name) || c.type === 'MIX')
+        .map(c => c.id),
+    );
+
     // Agrupar presupuesto por categoría
     const plannedByCat = new Map<string, number>();
     budgetItems
-      .filter(b => b.year === year && b.month === month && b.type === TransactionType.OUT)
+      .filter(b =>
+        b.year === year &&
+        b.month === month &&
+        b.type === TransactionType.OUT &&
+        !investmentCatIds.has(b.categoryId),
+      )
       .forEach(b => {
         plannedByCat.set(b.categoryId, (plannedByCat.get(b.categoryId) || 0) + b.plannedAmount);
       });
@@ -54,6 +68,7 @@ const BudgetTrafficLight: React.FC<Props> = ({ budgetItems, transactions, catego
       .filter(t => {
         if (t.transferId) return false;
         if (t.type !== TransactionType.OUT) return false;
+        if (investmentCatIds.has(t.categoryId)) return false;
         const d = parseDate(t.date);
         return d.getMonth() === month && d.getFullYear() === year;
       })
@@ -69,9 +84,13 @@ const BudgetTrafficLight: React.FC<Props> = ({ budgetItems, transactions, catego
       const planned = plannedByCat.get(catId) || 0;
       const actual = actualByCat.get(catId) || 0;
       if (planned === 0 && actual === 0) return;
-      const pct = planned > 0 ? (actual / planned) * 100 : (actual > 0 ? 999 : 0);
+      // Si no hay plan → "SIN PRESUPUESTO" (no es excedido, es no planeado).
+      // El % se muestra como 100% (barra llena gris) para visualizar el monto.
+      const noPlan = planned === 0;
+      const pct = noPlan ? 100 : (actual / planned) * 100;
       let status: Row['status'] = 'good';
-      if (pct > 100) status = 'over';
+      if (noPlan) status = 'noplan';
+      else if (pct > 100) status = 'over';
       else if (pct > 90) status = 'critical';
       else if (pct > 75) status = 'warning';
       out.push({
@@ -84,7 +103,12 @@ const BudgetTrafficLight: React.FC<Props> = ({ budgetItems, transactions, catego
       });
     });
 
-    return out.sort((a, b) => b.pct - a.pct);
+    // Orden: primero EXCEDIDO/CRÍTICO, después por monto real desc, NOPLAN al final.
+    return out.sort((a, b) => {
+      if (a.status === 'noplan' && b.status !== 'noplan') return 1;
+      if (b.status === 'noplan' && a.status !== 'noplan') return -1;
+      return b.pct - a.pct;
+    });
   }, [budgetItems, transactions, categories, month, year]);
 
   if (rows.length === 0) {

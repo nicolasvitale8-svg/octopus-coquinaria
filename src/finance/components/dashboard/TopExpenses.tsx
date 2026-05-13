@@ -13,16 +13,25 @@ interface Props {
 
 const TopExpenses: React.FC<Props> = ({ transactions, categories, month, year, topN = 5 }) => {
   const { items, totalMonth } = useMemo(() => {
+    // Excluir categorías de tipo Inversiones/Ahorro/Frasco: son aportes propios,
+    // no gastos reales.
+    const investmentCatIds = new Set(
+      categories
+        .filter(c => /inversi|ahorro|frasco/i.test(c.name) || c.type === 'MIX')
+        .map(c => c.id),
+    );
+
     const monthTx = transactions.filter(t => {
       if (t.transferId) return false;
       if (t.type !== TransactionType.OUT) return false;
+      if (investmentCatIds.has(t.categoryId)) return false;
       const d = parseDate(t.date);
       return d.getMonth() === month && d.getFullYear() === year;
     });
     const totalMonth = monthTx.reduce((s, t) => s + t.amount, 0);
     const sorted = [...monthTx].sort((a, b) => b.amount - a.amount).slice(0, topN);
     return { items: sorted, totalMonth };
-  }, [transactions, month, year, topN]);
+  }, [transactions, categories, month, year, topN]);
 
   if (items.length === 0) {
     return (

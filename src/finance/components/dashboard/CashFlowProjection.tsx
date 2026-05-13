@@ -71,8 +71,30 @@ const CashFlowProjection: React.FC<Props> = ({
         { in: 0, out: 0 },
       );
 
+    // Promedio de ingresos REALES de los 3 meses anteriores → fallback para
+    // meses futuros que no tengan presupuesto IN cargado. Evita la falsa alarma
+    // de "saldo negativo" cuando solo se cargaron los gastos.
+    const avg3MIn = (() => {
+      let total = 0, count = 0;
+      for (let off = 1; off <= 3; off++) {
+        const d = new Date(todayYear, todayMonth - off, 1);
+        const m = d.getMonth(), y = d.getFullYear();
+        const sum = transactions
+          .filter(t => {
+            if (t.transferId) return false;
+            if (t.type !== TransactionType.IN) return false;
+            const dd = parseDate(t.date);
+            return dd.getMonth() === m && dd.getFullYear() === y;
+          })
+          .reduce((s, t) => s + t.amount, 0);
+        total += sum;
+        count++;
+      }
+      return count > 0 ? total / count : 0;
+    })();
+
     let runningBalance = openingThisMonth + realInMonth.in - realInMonth.out;
-    const points: { label: string; balance: number; in: number; out: number; isProjection: boolean }[] = [];
+    const points: { label: string; balance: number; in: number; out: number; isProjection: boolean; inIsEstimated?: boolean }[] = [];
 
     // Punto "Hoy"
     points.push({
@@ -93,12 +115,21 @@ const CashFlowProjection: React.FC<Props> = ({
       const y = d.getFullYear();
 
       const monthBudget = budgetItems.filter(b => b.year === y && b.month === m);
-      const inSum = monthBudget
+      let inSum = monthBudget
         .filter(b => b.type === TransactionType.IN)
         .reduce((s, b) => s + b.plannedAmount, 0);
       const outSum = monthBudget
         .filter(b => b.type === TransactionType.OUT)
         .reduce((s, b) => s + b.plannedAmount, 0);
+
+      // Si no hay presupuesto IN cargado pero hay historia de ingresos, usar el
+      // promedio 3M como estimación realista. Caso típico: alguien presupuestó
+      // sus gastos fijos pero no recarga "Sueldo" todos los meses.
+      let inIsEstimated = false;
+      if (inSum === 0 && avg3MIn > 0) {
+        inSum = avg3MIn;
+        inIsEstimated = true;
+      }
 
       runningBalance += inSum - outSum;
       points.push({
@@ -107,10 +138,14 @@ const CashFlowProjection: React.FC<Props> = ({
         in: inSum,
         out: outSum,
         isProjection: true,
+        inIsEstimated,
       });
     }
     return points;
   }, [accounts, transactions, monthlyBalances, budgetItems, monthsAhead]);
+
+  // Cuántos meses futuros usan ingreso estimado (proxy)
+  const estimatedMonths = data.filter(d => d.inIsEstimated).length;
 
   const minBalance = Math.min(...data.map(d => d.balance));
   const hasNegative = minBalance < 0;
@@ -131,11 +166,22 @@ const CashFlowProjection: React.FC<Props> = ({
             Saldo agregado hoy + proyección {monthsAhead}M con presupuesto.
           </p>
         </div>
-        {hasNegative && (
-          <div className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] px-2 py-1 border bg-[rgba(255,77,77,0.10)] text-[var(--color-danger)] border-[var(--color-danger)]">
-            ⚠ Saldo negativo proyectado
-          </div>
-        )}
+        <div className="flex flex-col items-end gap-1">
+          {hasNegative && (
+            <div className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] px-2 py-1 border bg-[rgba(255,77,77,0.10)] text-[var(--color-danger)] border-[var(--color-danger)]">
+              ⚠ Saldo negativo proyectado
+            </div>
+          )}
+          {estimatedMonths > 0 && (
+            <div
+              className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] px-2 py-1 border"
+              style={{ borderColor: 'var(--text-muted)', color: 'var(--text-muted)' }}
+              title="Para los meses futuros sin presupuesto de ingresos cargado, se usa el promedio de los últimos 3 meses como proxy."
+            >
+              Ingresos {estimatedMonths}M = proxy 3M
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="h-56">
