@@ -855,8 +855,10 @@ export const Dashboard: React.FC = () => {
               </ResponsiveContainer>
             </div>
 
-            {/* KPIs con comparativa MoM y 3M (nuevos KpiWithDelta) */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 border-t border-[rgba(0,255,157,0.15)] pt-6">
+            {/* KPIs con comparativa MoM y 3M (nuevos KpiWithDelta).
+                grid-cols-1: el Box 'Estado Financiero' es una columna lateral
+                estrecha → apilados vertical evita números cortados. */}
+            <div className="grid grid-cols-1 gap-3 border-t border-[rgba(0,255,157,0.15)] pt-6">
               <KpiWithDelta
                 label="Ingresos este mes"
                 value={totalIn}
