@@ -4,7 +4,7 @@ import { SupabaseService } from '../services/supabaseService';
 import { chequeService, Cheque } from '../services/chequeService';
 import { calculatePeriodBalance, calculateJar, formatCurrency, calculateBudgetAlerts, generateAuditReport, generateMonthReport } from '../utils/calculations';
 import { downloadMonthReportPdf } from '../services/monthReportPdfService';
-import { Account, Transaction, Jar, MonthClosure, MonthlyBalance, Category, SubCategory, BudgetItem, AuditReport } from '../financeTypes';
+import { Account, AccountType, Transaction, Jar, MonthClosure, MonthlyBalance, Category, SubCategory, BudgetItem, AuditReport } from '../financeTypes';
 import { TrendingUp, TrendingDown, DollarSign, Lock, ChevronRight, LayoutGrid, List, Wallet, ArrowUpRight, ArrowDownRight, UploadCloud, PlusCircle, Settings, Sparkles, User, Building2, PieChart as PieIcon, X, Bell, AlertTriangle, FileText, CreditCard, PiggyBank, Clock, ArrowRight, BarChart3, Percent, Unlock } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, AreaChart, Area, CartesianGrid, LineChart, Line, Legend } from 'recharts';
 import { useNavigate } from 'react-router-dom';
@@ -21,6 +21,7 @@ import UpcomingPayments from '../components/dashboard/UpcomingPayments';
 import KpiWithDelta from '../components/dashboard/KpiWithDelta';
 import CashRunway from '../components/dashboard/CashRunway';
 import YearHeatmap from '../components/dashboard/YearHeatmap';
+import CardsSummary from '../components/dashboard/CardsSummary';
 
 interface PeriodAccountState {
   account: Account;
@@ -182,6 +183,7 @@ export const Dashboard: React.FC = () => {
 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
+  const [accountTypes, setAccountTypes] = useState<AccountType[]>([]);
   const [jars, setJars] = useState<Jar[]>([]);
   const [monthlyBalances, setMonthlyBalances] = useState<MonthlyBalance[]>([]);
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
@@ -224,9 +226,10 @@ export const Dashboard: React.FC = () => {
       sinceDate.setDate(1);
       const since = sinceDate.toISOString().slice(0, 10);
 
-      const [t, acc, j, mb, cat, subCat, budget, chqs, closures, inflationOut] = await Promise.all([
+      const [t, acc, accTypes, j, mb, cat, subCat, budget, chqs, closures, inflationOut] = await Promise.all([
         SupabaseService.getTransactions(bId, { since }),
         SupabaseService.getAccounts(bId),
+        SupabaseService.getAccountTypes(bId),
         SupabaseService.getJars(bId),
         SupabaseService.getMonthlyBalances(bId),
         SupabaseService.getCategories(bId),
@@ -239,6 +242,7 @@ export const Dashboard: React.FC = () => {
 
       setTransactions(t);
       setAccounts(acc);
+      setAccountTypes(accTypes);
       setJars(j);
       setMonthlyBalances(mb);
       setCategories(cat);
@@ -1272,6 +1276,27 @@ export const Dashboard: React.FC = () => {
 
         {/* Fila 2: heatmap anual (full width) */}
         <YearHeatmap transactions={transactions} year={currentYear} />
+
+        {/* Fila 2.5: resumen consolidado de tarjetas de crédito */}
+        <CardsSummary
+          cards={accounts.filter(a => {
+            const t = accountTypes.find(at => at.id === a.accountTypeId);
+            if (!t) return false;
+            const name = (t.name || '').toLowerCase();
+            return (name.includes('crédit') || name.includes('credito') || name.includes('tarjeta')) && a.isActive !== false;
+          })}
+          loans={loansList}
+          loanPaymentsMap={loanPaymentsMap}
+          budgetItems={budgetItems}
+          currentMonth={currentMonth}
+          currentYear={currentYear}
+          onPayCard={(cardId) => {
+            // Por ahora navega a /finance/budget donde está el modal de pago
+            // consolidado. En el futuro podríamos abrir el modal inline desde
+            // acá pasando los datos via state.
+            navigate('/finance/budget?card=' + cardId);
+          }}
+        />
 
         {/* Fila 3: semáforo + top egresos */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
