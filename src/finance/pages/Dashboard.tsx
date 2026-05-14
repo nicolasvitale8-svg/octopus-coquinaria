@@ -328,16 +328,26 @@ export const Dashboard: React.FC = () => {
       .reduce((sum, item) => sum + item.plannedAmount, 0);
   }, [budgetItems, currentMonth, currentYear]);
 
-  // Distribución de gastos por categoría para el Donut
+  // Distribución de gastos por categoría para el Donut.
+  // Excluye Inversiones/Ahorro/Frasco: son aportes propios, no gastos.
+  // Filtra transferencias por t.transferId (no por string).
   const expensesByCategory = React.useMemo(() => {
+    const investmentCatIds = new Set(
+      categories
+        .filter(c => /inversi|ahorro|frasco/i.test(c.name) || c.type === 'MIX')
+        .map(c => c.id),
+    );
+
     const categoryMap: Record<string, { name: string; amount: number; color: string }> = {};
     const COLORS = ['#00FF9D', '#5DFFC1', '#FFB12A', '#FF4D4D', '#00C57D', '#FF4D4D', '#00FF9D', '#FFB12A'];
 
     transactions
       .filter(t => {
+        if (t.transferId) return false;
+        if (t.type !== 'OUT') return false;
+        if (investmentCatIds.has(t.categoryId)) return false;
         const d = parseDate(t.date);
-        const isTransfer = t.description?.toLowerCase().includes('transferencia');
-        return d.getMonth() === currentMonth && d.getFullYear() === currentYear && t.type === 'OUT' && !isTransfer;
+        return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
       })
       .forEach(t => {
         const cat = categories.find(c => c.id === t.categoryId);
@@ -430,12 +440,23 @@ export const Dashboard: React.FC = () => {
     return items.sort((a, b) => a.payment.due_date.localeCompare(b.payment.due_date));
   }, [loansList, loanPaymentsMap]);
 
+  /**
+   * Saldo pendiente de préstamos ACTIVOS tomados (no GIVEN).
+   * Cuenta cuotas no pagadas × monto. Es más robusto que (total − pagado)
+   * cuando los pagos no están registrados en finance_loan_payments
+   * (caso típico: el usuario pagó el resumen de tarjeta pero las cuotas
+   * individuales del préstamo siguen marcadas como PENDIENTE).
+   * Fallback: si no hay payments cargados, asumir 0 pagadas → total restante.
+   */
   const totalDebtRemaining = React.useMemo(() => {
     return loansList
       .filter(l => l.status === 'ACTIVO' && l.direction !== 'GIVEN')
       .reduce((sum, l) => {
-        const paid = (loanPaymentsMap[l.id] || []).filter(p => p.status === 'PAGADA').reduce((s, p) => s + p.amount, 0);
-        return sum + (l.total_amount - paid);
+        const payments = loanPaymentsMap[l.id] || [];
+        const paidCount = payments.filter(p => p.status === 'PAGADA').length;
+        const totalCuotas = l.total_installments || 1;
+        const pendingCount = Math.max(0, totalCuotas - paidCount);
+        return sum + pendingCount * Number(l.installment_amount || 0);
       }, 0);
   }, [loansList, loanPaymentsMap]);
 
@@ -835,13 +856,21 @@ export const Dashboard: React.FC = () => {
           {/* Box 1: Saldo */}
           <div className="bg-[#161D22] rounded-md p-6 border border-[rgba(0,255,157,0.15)] shadow-lg flex-1">
             <h3 className="text-[11px] font-black text-white uppercase tracking-widest mb-6">ESTADO FINANCIERO ACTUAL</h3>
-            <p className="text-[10px] text-[#A8B0B5] font-black uppercase tracking-widest mb-1">SALDO TOTAL NETO:</p>
+            <div className="flex items-center gap-1.5 mb-1">
+              <p className="text-[10px] text-[#A8B0B5] font-black uppercase tracking-widest">SALDO TOTAL NETO:</p>
+              <span
+                className="inline-flex items-center justify-center w-4 h-4 rounded-full border border-[#A8B0B5]/40 text-[#A8B0B5] text-[9px] font-bold cursor-help"
+                title="Saldo operativo: suma de cuentas de cashflow (no incluye Inversiones / Frascos). Para ver activos totales, mirá el bloque DESGLOSE DE ACTIVOS."
+              >
+                ?
+              </span>
+            </div>
             <div onClick={() => setActiveDetail('BALANCE')} className="cursor-pointer group">
               <h2 className="text-4xl font-black text-white mb-6 group-hover:text-[var(--color-primary)] transition-colors tabular-nums">{formatCurrency(totalFinal)}</h2>
             </div>
 
-            {/* Area Chart trend mock - visual representation */}
-            <div className="h-32 mb-8 -mx-2 pointer-events-none">
+            {/* Mini-chart: tendencia de ingresos (últimos 6 meses) con tooltip al hover */}
+            <div className="h-32 mb-8 -mx-2">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={last6MonthsFlow} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
                   <defs>
@@ -850,6 +879,12 @@ export const Dashboard: React.FC = () => {
                       <stop offset="95%" stopColor="#00C57D" stopOpacity={0} />
                     </linearGradient>
                   </defs>
+                  <Tooltip
+                    cursor={{ stroke: '#00C57D', strokeOpacity: 0.4 }}
+                    contentStyle={{ backgroundColor: '#0F1416', borderColor: 'rgba(0,255,157,0.3)', borderRadius: '8px', fontSize: '11px', fontWeight: 'bold' }}
+                    formatter={(value: any) => [formatCurrency(Number(value)), 'Ingresos']}
+                    labelFormatter={(label) => `Mes: ${label}`}
+                  />
                   <Area type="monotone" dataKey="Ingresos" stroke="#00C57D" strokeWidth={3} fillOpacity={1} fill="url(#colorNeto)" />
                 </AreaChart>
               </ResponsiveContainer>
@@ -946,8 +981,22 @@ export const Dashboard: React.FC = () => {
                 >
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,255,157,0.15)" />
                   <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#A8B0B5', fontSize: 10, fontWeight: 900 }} dy={10} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#A8B0B5', fontSize: 10, fontWeight: 900 }} tickFormatter={(v) => `$${v}`} />
-                  <Tooltip cursor={{ fill: 'rgba(0,255,157,0.15)', opacity: 0.4 }} contentStyle={{ backgroundColor: '#0F1416', borderColor: 'rgba(0,255,157,0.15)', borderRadius: '12px', fontSize: '11px', fontWeight: 'bold' }} />
+                  <YAxis
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#A8B0B5', fontSize: 10, fontWeight: 900 }}
+                    width={50}
+                    tickFormatter={(v: number) =>
+                      v >= 1_000_000 ? `$${(v / 1_000_000).toFixed(1)}M`
+                        : v >= 1_000 ? `$${Math.round(v / 1_000)}K`
+                        : `$${v}`
+                    }
+                  />
+                  <Tooltip
+                    cursor={{ fill: 'rgba(0,255,157,0.15)', opacity: 0.4 }}
+                    contentStyle={{ backgroundColor: '#0F1416', borderColor: 'rgba(0,255,157,0.15)', borderRadius: '12px', fontSize: '11px', fontWeight: 'bold' }}
+                    formatter={(value: any) => formatCurrency(Number(value))}
+                  />
                   <Bar dataKey="Ingresos" fill="#00C57D" radius={[2, 2, 0, 0]} />
                   <Bar dataKey="Gastos" fill="#FF4D4D" radius={[2, 2, 0, 0]} />
                 </BarChart>
