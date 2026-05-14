@@ -20,6 +20,7 @@ import BudgetTrafficLight from '../components/dashboard/BudgetTrafficLight';
 import UpcomingPayments from '../components/dashboard/UpcomingPayments';
 import KpiWithDelta from '../components/dashboard/KpiWithDelta';
 import CashRunway from '../components/dashboard/CashRunway';
+import YearHeatmap from '../components/dashboard/YearHeatmap';
 
 interface PeriodAccountState {
   account: Account;
@@ -1269,7 +1270,10 @@ export const Dashboard: React.FC = () => {
           />
         </div>
 
-        {/* Fila 2: semáforo + top egresos */}
+        {/* Fila 2: heatmap anual (full width) */}
+        <YearHeatmap transactions={transactions} year={currentYear} />
+
+        {/* Fila 3: semáforo + top egresos */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <BudgetTrafficLight
             budgetItems={budgetItems}
