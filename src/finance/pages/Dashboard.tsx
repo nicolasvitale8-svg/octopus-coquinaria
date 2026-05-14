@@ -19,6 +19,7 @@ import TopExpenses from '../components/dashboard/TopExpenses';
 import BudgetTrafficLight from '../components/dashboard/BudgetTrafficLight';
 import UpcomingPayments from '../components/dashboard/UpcomingPayments';
 import KpiWithDelta from '../components/dashboard/KpiWithDelta';
+import CashRunway from '../components/dashboard/CashRunway';
 
 interface PeriodAccountState {
   account: Account;
@@ -1250,14 +1251,23 @@ export const Dashboard: React.FC = () => {
           <div className="flex-1 h-px bg-[var(--border-subtle)]" />
         </div>
 
-        {/* Fila 1: proyección a 6M (full width) */}
-        <CashFlowProjection
-          accounts={accounts}
-          transactions={transactions}
-          monthlyBalances={monthlyBalances}
-          budgetItems={budgetItems}
-          monthsAhead={6}
-        />
+        {/* Fila 1: Cash Runway + Flujo de caja proyectado */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <CashRunway
+            accounts={accounts}
+            monthlyBalances={monthlyBalances}
+            transactions={transactions}
+            currentMonth={currentMonth}
+            currentYear={currentYear}
+          />
+          <CashFlowProjection
+            accounts={accounts}
+            transactions={transactions}
+            monthlyBalances={monthlyBalances}
+            budgetItems={budgetItems}
+            monthsAhead={6}
+          />
+        </div>
 
         {/* Fila 2: semáforo + top egresos */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
