@@ -439,11 +439,150 @@ export const parseNaranjaXScreenshot = (text: string): ImportLine[] => {
     return result;
 };
 
+// ============================================================
+// NARANJA X — PDF CAJA DE AHORRO (resumen mensual)
+// ============================================================
+
+const NX_CAJA_MONTHS: Record<string, string> = {
+    'ENE': '01', 'FEB': '02', 'MAR': '03', 'ABR': '04', 'MAY': '05', 'JUN': '06',
+    'JUL': '07', 'AGO': '08', 'SEP': '09', 'OCT': '10', 'NOV': '11', 'DIC': '12',
+};
+
+/** Detecta el PDF de Caja de Ahorro Naranja X por sus marcas características. */
+const isNaranjaXCajaAhorroPDF = (text: string): boolean => {
+    const hasMovHeader = /Movimientos del mes de tu cuenta/i.test(text);
+    const hasNaranjaDigital = /Naranja Digital|naranja\s*x/i.test(text);
+    const hasFrascoOrRendimiento =
+        /rendimiento diario|acreditación de frasco|creación de frasco/i.test(text);
+    // Pide al menos 2 marcadores para evitar falsos positivos.
+    return [hasMovHeader, hasNaranjaDigital, hasFrascoOrRendimiento].filter(Boolean).length >= 2;
+};
+
+/** Convierte "$ 1.234,56" o "1.234,56" o "$1234.56" a número positivo. */
+const nxParseAmount = (raw: string): number => {
+    if (!raw) return 0;
+    const cleaned = raw.replace(/[\s$]/g, '');
+    if (!cleaned) return 0;
+    // Manejar formatos: argentino (1.234,56) o latino con puntos como separador miles
+    if (/,\d{1,2}$/.test(cleaned)) {
+        // Coma decimal: quitar puntos como separadores de miles
+        return parseFloat(cleaned.replace(/\./g, '').replace(',', '.')) || 0;
+    }
+    // Sin coma decimal: parsear tal cual
+    return parseFloat(cleaned.replace(/[^\d.\-]/g, '')) || 0;
+};
+
+/**
+ * Parsea el PDF de Caja de Ahorro Naranja X (mensual).
+ *
+ * Estructura de cada línea de movimiento:
+ *   DD/MES  Nº_operación  Descripción  $Ingreso  $Egreso  $Saldo
+ *
+ * Reglas:
+ *  - El año no aparece explícito → se asume el año actual. (El usuario puede
+ *    ajustar la fecha al cargar si fuera de otro año.)
+ *  - Se detecta IN/OUT por el delta del Saldo respecto al saldo previo.
+ *  - Se ignora la línea "Dinero inicial" / "Dinero final" / "Acreditación de
+ *    frasco fijo" (movimientos internos de cuenta a frasco, no son gastos).
+ *  - Descripciones multilínea (ej: "Transferencia recibida VITALE, NICOLAS")
+ *    se reconstruyen uniendo líneas hasta la próxima fecha o monto.
+ */
+export const parseNaranjaXCajaAhorroPDF = (text: string): ImportLine[] => {
+    const out: ImportLine[] = [];
+    const currentYear = new Date().getFullYear();
+
+    // Recortar la sección útil: desde la primera "Movimientos del mes de tu cuenta"
+    // hasta el primer "Dinero final" (excluyente).
+    const start = text.indexOf('Movimientos del mes de tu cuenta');
+    const sliced = start >= 0 ? text.slice(start) : text;
+    const endMatch = sliced.search(/\bDinero final\b/);
+    const block = endMatch >= 0 ? sliced.slice(0, endMatch) : sliced;
+
+    // Patrón fecha-operacion: "06/MAY 12268222568"
+    const lineRe = /(\d{2})\/(ENE|FEB|MAR|ABR|MAY|JUN|JUL|AGO|SEP|OCT|NOV|DIC)\s+(\d{8,})\s+([^\n]+?)\s+\$\s*([\-\d.,]+)(?:\s+\$\s*([\-\d.,]+))?\s+\$\s*([\-\d.,]+)/gi;
+
+    let prevBalance: number | null = null;
+    let m: RegExpExecArray | null;
+    while ((m = lineRe.exec(block)) !== null) {
+        const day = m[1];
+        const monthAbbr = m[2].toUpperCase();
+        const opNumber = m[3];
+        const rawDesc = (m[4] || '').replace(/\s+/g, ' ').trim();
+        // m[5] y m[6] son los dos primeros montos (Ingreso, Egreso) — alguno puede faltar
+        // m[7] es el saldo.
+        const a1 = nxParseAmount(m[5] || '');
+        const a2 = nxParseAmount(m[6] || '');
+        const saldo = nxParseAmount(m[7] || '');
+        const mm = NX_CAJA_MONTHS[monthAbbr];
+        if (!mm) continue;
+        const date = `${currentYear}-${mm}-${day.padStart(2, '0')}`;
+
+        // Saltar movimientos internos cuenta ↔ frasco (no son gastos ni ingresos reales).
+        if (/acreditaci[oó]n de frasco|creaci[oó]n de frasco|rendimiento de frasco/i.test(rawDesc)) {
+            prevBalance = saldo;
+            continue;
+        }
+        // Saltar transferencias entre cuentas del mismo titular (auto-transferencias).
+        if (/transferencia (enviada|recibida)\s+(VITALE|NICOLAS\s+ABEL\s+LUIS\s+VITA)/i.test(rawDesc)) {
+            prevBalance = saldo;
+            continue;
+        }
+
+        // Determinar IN/OUT por delta del saldo si tenemos saldo previo,
+        // sino usar heurística de "qué monto vino primero".
+        let type: TransactionType;
+        let amount = 0;
+        if (prevBalance !== null) {
+            const delta = saldo - prevBalance;
+            if (delta >= 0) {
+                type = TransactionType.IN;
+                amount = a1 > 0 ? a1 : a2;
+            } else {
+                type = TransactionType.OUT;
+                // El monto OUT puede estar en m[5] (si el PDF lo puso ahí) o m[6].
+                amount = a2 > 0 ? a2 : a1;
+            }
+            // Si el monto no se detectó bien, usar |delta|.
+            if (amount === 0) amount = Math.abs(delta);
+        } else {
+            // Primer movimiento: si solo viene un monto, asumir IN si va al saldo positivo.
+            amount = a1 > 0 ? a1 : a2;
+            type = saldo >= 0 ? TransactionType.IN : TransactionType.OUT;
+        }
+
+        prevBalance = saldo;
+
+        if (!amount || amount < 0.01) continue;
+
+        out.push({
+            id: `nxcaja-${opNumber}`,
+            rawText: `${day}/${monthAbbr} ${opNumber} ${rawDesc} ${m[7]}`,
+            date,
+            description: rawDesc,
+            amount: Math.abs(amount),
+            type,
+            isSelected: true,
+            isDuplicate: false,
+        });
+    }
+
+    return out;
+};
+
 /**
  * Función principal que detecta el formato y usa el parser apropiado.
  */
 export const parseImportText = (text: string): ImportLine[] => {
-    // 1. Capturas de Naranja X (mobile screenshots) — específico
+    // 1. PDF Caja de Ahorro Naranja X (mensual)
+    if (isNaranjaXCajaAhorroPDF(text)) {
+        const nxCajaResults = parseNaranjaXCajaAhorroPDF(text);
+        if (nxCajaResults.length > 0) {
+            logger.debug('Naranja X Caja de Ahorro PDF detectado', { context: 'ImportEngine', data: { count: nxCajaResults.length } });
+            return nxCajaResults;
+        }
+    }
+
+    // 2. Capturas de Naranja X tarjeta (mobile screenshots)
     if (isNaranjaXScreenshot(text)) {
         const nxResults = parseNaranjaXScreenshot(text);
         if (nxResults.length > 0) {
@@ -452,7 +591,7 @@ export const parseImportText = (text: string): ImportLine[] => {
         }
     }
 
-    // 2. PDF de Mercado Pago
+    // 3. PDF de Mercado Pago
     const isMercadoPagoPDF = text.includes('RESUMEN DE CUENTA') ||
         text.includes('mercado pago') ||
         text.includes('DETALLE DE MOVIMIENTOS') ||
@@ -465,7 +604,7 @@ export const parseImportText = (text: string): ImportLine[] => {
         }
     }
 
-    // 3. Fallback al parser genérico (capturas de Mercado Pago mobile, Lemon, etc.)
+    // 4. Fallback al parser genérico (capturas de Mercado Pago mobile, Lemon, etc.)
     return parseRawText(text);
 };
 
