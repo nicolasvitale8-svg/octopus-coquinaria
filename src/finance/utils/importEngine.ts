@@ -569,11 +569,114 @@ export const parseNaranjaXCajaAhorroPDF = (text: string): ImportLine[] => {
     return out;
 };
 
+// ============================================================
+// SUPERVIELLE — PDF de movimientos de cuenta
+// ============================================================
+
+/** Detecta el PDF del Banco Supervielle por sus marcas características. */
+const isSupervielleAccountPDF = (text: string): boolean => {
+    const hasSupervielle = /SUPERVIELLE/i.test(text);
+    const hasDebinOrConceptoQB = /CONCEPTO_QB|TIPO_DEBIN|ID_DEBIN/i.test(text);
+    const hasFechaHeader = /Fecha\s+Concepto\s+Detalle/i.test(text) ||
+        /Remuneración\s+de\s+Saldo/i.test(text);
+    return [hasSupervielle, hasDebinOrConceptoQB, hasFechaHeader].filter(Boolean).length >= 2;
+};
+
+/** Extrae el NOMBRE del detalle Supervielle (puede ir antes o después del CBU). */
+const supExtractName = (detail: string): string | null => {
+    const m = detail.match(/NOMBRE:\s+(.+?)(?=\s+CBU:|\s+MOTIVO:|\s+\d{1,3}(?:\.\d{3})*,\d{2}|$)/i);
+    return m ? m[1].trim().replace(/\s+/g, ' ') : null;
+};
+
+const supParseAmount = (raw: string): number => {
+    if (!raw) return 0;
+    return parseFloat(raw.replace(/\./g, '').replace(',', '.')) || 0;
+};
+
+/**
+ * Parser del PDF de movimientos de cuenta Supervielle.
+ * Estructura por movimiento:
+ *   YYYY/MM/DD HH:MM <Concepto> <Detalle con CONCEPTO_QB, LEYENDA, NOMBRE, CBU>
+ *   <Débito> <Crédito> <Saldo>
+ *
+ * Reglas:
+ * - Filtra: 'Remuneración de Saldo', 'Intereses pagados' (renta del banco,
+ *   ruido para presupuesto), auto-transferencias al propio titular
+ *   (NOMBRE VITALE NICOLAS ABEL LUIS).
+ * - Mantiene: Pago de Sueldo (IN), Debito DEBIN no-auto (OUT),
+ *   Transferencias por CBU a terceros (OUT). Extrae el nombre del
+ *   comercio/destinatario para usar como descripción legible.
+ * - Año viene en la fecha (YYYY/MM/DD), no se asume.
+ * - IN/OUT por concepto (DEBIN/Transferencia enviada = OUT, Sueldo = IN).
+ */
+export const parseSupervielleAccountPDF = (text: string): ImportLine[] => {
+    const out: ImportLine[] = [];
+
+    // Aplanar saltos de línea para que cada movimiento sea una "línea lógica".
+    const flat = text.replace(/\s+/g, ' ');
+
+    // Bloque = fecha+hora + todo hasta antes del próximo encabezado de fecha.
+    const blockRe = /(\d{4}\/\d{2}\/\d{2})\s+(\d{2}:\d{2})\s+(.+?)(?=\s+\d{4}\/\d{2}\/\d{2}\s+\d{2}:\d{2}|$)/g;
+    const moneyRe = /([0-9](?:[0-9.]*),[0-9]{2})/g;
+
+    let m: RegExpExecArray | null;
+    while ((m = blockRe.exec(flat)) !== null) {
+        const rawDate = m[1]; // YYYY/MM/DD
+        const date = rawDate.replace(/\//g, '-'); // YYYY-MM-DD
+        const rest = m[3].trim();
+
+        if (/^Remuneración de Saldo\b|^Intereses pagados\b/i.test(rest)) continue;
+        if (/NOMBRE:\s+VITALE\s+NICOLAS\s+ABEL\s+LUIS/i.test(rest)) continue;
+
+        const amts = [...rest.matchAll(moneyRe)].map(a => a[1]);
+        if (amts.length < 2) continue;
+        const monto = supParseAmount(amts[amts.length - 2]);
+        if (monto < 0.01) continue;
+
+        let type: TransactionType = TransactionType.OUT;
+        if (/Pago de Sueldo/i.test(rest)) type = TransactionType.IN;
+
+        const name = supExtractName(rest);
+        let desc: string;
+        if (/Pago de Sueldo/i.test(rest)) {
+            desc = 'Pago de Sueldo';
+        } else if (name) {
+            if (/Pago con QR/i.test(rest)) desc = `QR · ${name}`;
+            else if (/Transferencia enviada/i.test(rest)) desc = `Transferencia a ${name}`;
+            else desc = name;
+        } else {
+            desc = rest.split(/\s+/).slice(0, 5).join(' ');
+        }
+
+        out.push({
+            id: `sup-${date}-${out.length}`,
+            rawText: `${rawDate} ${m[2]} ${rest.slice(0, 80)}`,
+            date,
+            description: desc,
+            amount: monto,
+            type,
+            isSelected: true,
+            isDuplicate: false,
+        });
+    }
+
+    return out;
+};
+
 /**
  * Función principal que detecta el formato y usa el parser apropiado.
  */
 export const parseImportText = (text: string): ImportLine[] => {
-    // 1. PDF Caja de Ahorro Naranja X (mensual)
+    // 1. PDF Supervielle
+    if (isSupervielleAccountPDF(text)) {
+        const supResults = parseSupervielleAccountPDF(text);
+        if (supResults.length > 0) {
+            logger.debug('Supervielle PDF detectado', { context: 'ImportEngine', data: { count: supResults.length } });
+            return supResults;
+        }
+    }
+
+    // 2. PDF Caja de Ahorro Naranja X (mensual)
     if (isNaranjaXCajaAhorroPDF(text)) {
         const nxCajaResults = parseNaranjaXCajaAhorroPDF(text);
         if (nxCajaResults.length > 0) {
