@@ -124,6 +124,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         logger.success('Perfil cargado', { context: 'Auth', data: { role: userProfile.role, email: userProfile.email } });
       } else {
         logger.warn('Perfil no encontrado', { context: 'Auth', data: { userId } });
+        // Validar la sesion contra el servidor: un token puede referir a un usuario
+        // que ya no existe (p.ej. sesion emitida durante un restore del proyecto).
+        // En ese caso se fuerza el cierre de sesion en vez de navegar sin datos.
+        try {
+          const { data: authCheck, error: authCheckError } = await supabase.auth.getUser();
+          if (authCheckError || !authCheck?.user) {
+            logger.warn('Sesion invalida (usuario inexistente en auth), cerrando sesion', { context: 'Auth', data: { userId } });
+            try {
+              if (typeof window !== 'undefined') {
+                alert('Tu sesion ya no es valida. Volve a iniciar sesion.');
+              }
+            } catch { }
+            await supabase.auth.signOut();
+            setUser(null);
+            setProfile(null);
+            return;
+          }
+        } catch { }
         setProfile(null);
       }
     } catch (err) {
