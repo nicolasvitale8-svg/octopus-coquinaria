@@ -511,7 +511,7 @@ export const Transactions: React.FC = () => {
                           {acc?.name}
                         </span>
                       </td>
-                      <td className={`px-8 py-5 text-right font-black tabular-nums text-[16px] ${t.type === 'IN' ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]/90'}`}>
+                      <td className={`px-8 py-5 text-right font-black tabular-nums text-[16px] ${t.type === 'IN' ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'}`}>
                         {t.type === 'IN' ? '+' : '-'}{formatCurrency(t.amount)}
                       </td>
                       <td className="px-8 py-5">
