@@ -5,6 +5,26 @@ import { Plus, X, Tag, Calendar, Wallet, Filter, ListFilter, RotateCcw, Trending
 import { formatCurrency } from '../utils/calculations';
 import { useFinanza } from '../context/FinanzaContext';
 
+// Paleta por rubro: color deterministico segun el nombre, para escanear la tabla sin leer.
+const CATEGORY_PALETTE = [
+  { text: '#5DFFC1', bg: 'rgba(0,255,157,0.08)',   border: 'rgba(0,255,157,0.35)' },
+  { text: '#FFB454', bg: 'rgba(255,180,84,0.10)',  border: 'rgba(255,180,84,0.35)' },
+  { text: '#6AB7FF', bg: 'rgba(106,183,255,0.10)', border: 'rgba(106,183,255,0.35)' },
+  { text: '#B48CFF', bg: 'rgba(180,140,255,0.10)', border: 'rgba(180,140,255,0.35)' },
+  { text: '#FF94C9', bg: 'rgba(255,148,201,0.10)', border: 'rgba(255,148,201,0.35)' },
+  { text: '#FFE066', bg: 'rgba(255,224,102,0.10)', border: 'rgba(255,224,102,0.35)' },
+  { text: '#7EE8F2', bg: 'rgba(126,232,242,0.10)', border: 'rgba(126,232,242,0.35)' },
+  { text: '#FF8A70', bg: 'rgba(255,138,112,0.10)', border: 'rgba(255,138,112,0.35)' },
+];
+const categoryColor = (name?: string) => {
+  if (!name) return CATEGORY_PALETTE[0];
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
+  return CATEGORY_PALETTE[h % CATEGORY_PALETTE.length];
+};
+
+const PAGE_SIZE = 50;
+
 export const Transactions: React.FC = () => {
   const navigate = useNavigate();
   const { activeEntity, service, isDemoMode } = useFinanza();
@@ -29,6 +49,10 @@ export const Transactions: React.FC = () => {
   const [filterAccount, setFilterAccount] = useState('');
   const [filterType, setFilterType] = useState<TransactionType | ''>('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [page, setPage] = useState(0);
+
+  // Volver a la primera pagina cuando cambia cualquier filtro
+  useEffect(() => { setPage(0); }, [filterStartDate, filterEndDate, filterCategory, filterAccount, filterType, searchTerm]);
 
   const [formData, setFormData] = useState<Partial<Transaction> & { isTransfer?: boolean, toAccountId?: string }>({
     date: new Date().toISOString().split('T')[0],
@@ -185,13 +209,50 @@ export const Transactions: React.FC = () => {
       const isTransfer = t.description?.toLowerCase().includes('transferencia');
       if (isTransfer) return acc;
 
+      if (t.type === TransactionType.IN) { acc.in += t.amount; acc.inCount += 1; }
+      else { acc.out += t.amount; acc.outCount += 1; }
+      return acc;
+    }, { in: 0, out: 0, inCount: 0, outCount: 0 });
+  }, [filteredTransactions]);
+
+  // Totales del periodo anterior (misma duracion, inmediatamente previo) para mostrar variacion
+  const prevTotals = useMemo(() => {
+    if (!filterStartDate || !filterEndDate) return null;
+    const start = new Date(filterStartDate + 'T00:00:00');
+    const end = new Date(filterEndDate + 'T00:00:00');
+    const days = Math.round((end.getTime() - start.getTime()) / 86400000) + 1;
+    if (days <= 0) return null;
+    const prevEnd = new Date(start.getTime() - 86400000);
+    const prevStart = new Date(prevEnd.getTime() - (days - 1) * 86400000);
+    const ps = prevStart.toISOString().split('T')[0];
+    const pe = prevEnd.toISOString().split('T')[0];
+    return transactions.reduce((acc, t) => {
+      if (t.date < ps || t.date > pe) return acc;
+      if (t.description?.toLowerCase().includes('transferencia')) return acc;
+      if (filterCategory && t.categoryId !== filterCategory) return acc;
+      if (filterAccount && t.accountId !== filterAccount) return acc;
       if (t.type === TransactionType.IN) acc.in += t.amount;
       else acc.out += t.amount;
       return acc;
     }, { in: 0, out: 0 });
-  }, [filteredTransactions]);
+  }, [transactions, filterStartDate, filterEndDate, filterCategory, filterAccount]);
 
-  const activeFilterCount = [filterStartDate, filterEndDate, filterCategory, filterAccount, filterType, searchTerm].filter(Boolean).length;
+  const pctDelta = (cur: number, prev?: number | null): number | null =>
+    prev == null || prev === 0 ? null : ((cur - prev) / prev) * 100;
+
+  // Fecha del ultimo movimiento cargado (sin filtros), para el empty state
+  const lastTxDate = useMemo(() => transactions.reduce((m, t) => (t.date > m ? t.date : m), ''), [transactions]);
+  const goToLastMovementMonth = () => {
+    if (!lastTxDate) return;
+    const d = new Date(lastTxDate + 'T00:00:00');
+    setFilterStartDate(new Date(d.getFullYear(), d.getMonth(), 1).toISOString().split('T')[0]);
+    setFilterEndDate(new Date(d.getFullYear(), d.getMonth() + 1, 0).toISOString().split('T')[0]);
+  };
+
+  // El rango por defecto (mes actual) no cuenta como filtro activo
+  const isDefaultRange = filterStartDate === firstDay && filterEndDate === lastDay;
+  const activeFilterCount = [filterCategory, filterAccount, filterType, searchTerm].filter(Boolean).length
+    + ((filterStartDate || filterEndDate) && !isDefaultRange ? 1 : 0);
   if (loading && transactions.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] space-y-4 animate-pulse">
@@ -350,22 +411,32 @@ export const Transactions: React.FC = () => {
         <div className="bg-fin-card p-6 rounded-md border border-fin-border flex items-center gap-5 hover:border-[var(--color-success)]/30 transition-all group">
           <div className="p-4 bg-[var(--color-success)]/10 text-[var(--color-success)] rounded-md group-hover:scale-110 transition-transform"><TrendingUp size={24} /></div>
           <div>
-            <p className="text-[10px] font-black text-fin-muted uppercase tracking-widest mb-1">Entradas Filtradas</p>
+            <p className="text-[10px] font-black text-fin-muted uppercase tracking-widest mb-1">Entradas · {filteredTotals.inCount} mov.</p>
             <p className="text-2xl font-black text-[var(--text-primary)] tabular-nums tracking-tight">{formatCurrency(filteredTotals.in)}</p>
+            {(() => { const dl = pctDelta(filteredTotals.in, prevTotals?.in); return dl != null ? (
+              <p className={`text-[10px] font-bold tabular-nums mt-1 ${dl >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'}`}>
+                {dl >= 0 ? '▲' : '▼'} {Math.abs(dl).toFixed(1)}% vs período anterior
+              </p>
+            ) : null; })()}
           </div>
         </div>
         <div className="bg-fin-card p-6 rounded-md border border-fin-border flex items-center gap-5 hover:border-[var(--color-danger)]/30 transition-all group">
           <div className="p-4 bg-[var(--color-danger)]/10 text-[var(--color-danger)] rounded-md group-hover:scale-110 transition-transform"><TrendingDown size={24} /></div>
           <div>
-            <p className="text-[10px] font-black text-fin-muted uppercase tracking-widest mb-1">Salidas Filtradas</p>
+            <p className="text-[10px] font-black text-fin-muted uppercase tracking-widest mb-1">Salidas · {filteredTotals.outCount} mov.</p>
             <p className="text-2xl font-black text-[var(--text-primary)] tabular-nums tracking-tight">{formatCurrency(filteredTotals.out)}</p>
+            {(() => { const dl = pctDelta(filteredTotals.out, prevTotals?.out); return dl != null ? (
+              <p className={`text-[10px] font-bold tabular-nums mt-1 ${dl <= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'}`}>
+                {dl >= 0 ? '▲' : '▼'} {Math.abs(dl).toFixed(1)}% vs período anterior
+              </p>
+            ) : null; })()}
           </div>
         </div>
         <div className="bg-fin-card p-6 rounded-md border border-fin-border flex items-center gap-5 hover:border-brand/30 transition-all group">
           <div className="p-4 bg-brand/10 text-brand rounded-md group-hover:scale-110 transition-transform"><DollarSign size={24} /></div>
           <div>
             <p className="text-[10px] font-black text-fin-muted uppercase tracking-widest mb-1">Resultado Neto</p>
-            <p className="text-2xl font-black text-[var(--text-primary)] tabular-nums tracking-tight">{formatCurrency(filteredTotals.in - filteredTotals.out)}</p>
+            <p className={`text-2xl font-black tabular-nums tracking-tight ${filteredTotals.in - filteredTotals.out >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'}`}>{formatCurrency(filteredTotals.in - filteredTotals.out)}</p>
           </div>
         </div>
       </div>
@@ -387,7 +458,7 @@ export const Transactions: React.FC = () => {
             <tbody className="divide-y divide-fin-border/30">
               {filteredTransactions.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-8 py-24 text-center">
+                  <td colSpan={6} className="px-8 py-24 text-center">
                     <div className="flex flex-col items-center gap-6 text-fin-muted">
                       <div className="p-6 bg-fin-bg rounded-full border border-fin-border">
                         <ListFilter size={48} strokeWidth={1} className="opacity-30" />
@@ -395,7 +466,16 @@ export const Transactions: React.FC = () => {
                       <div className="space-y-1">
                         <p className="text-sm font-bold text-[var(--text-primary)]">Sin resultados</p>
                         <p className="text-xs font-medium italic opacity-60">No encontramos movimientos que coincidan con los filtros aplicados</p>
+                        {lastTxDate && <p className="text-xs font-medium opacity-60">Último movimiento registrado: <span className="font-bold text-[var(--text-primary)]/80 tabular-nums">{lastTxDate}</span></p>}
                       </div>
+                      {lastTxDate && (
+                        <button
+                          onClick={goToLastMovementMonth}
+                          className="px-6 py-2.5 bg-brand/10 text-brand rounded-md text-[11px] font-black uppercase tracking-widest border border-brand/20 hover:bg-brand hover:text-[#050607] transition-all"
+                        >
+                          Ir al mes del último movimiento
+                        </button>
+                      )}
                       {activeFilterCount > 0 && (
                         <button
                           onClick={clearFilters}
@@ -408,17 +488,21 @@ export const Transactions: React.FC = () => {
                   </td>
                 </tr>
               ) : (
-                filteredTransactions.map(t => {
+                filteredTransactions.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE).map(t => {
                   const cat = categories.find(c => c.id === t.categoryId);
                   const acc = accounts.find(a => a.id === t.accountId);
+                  const catColor = categoryColor(cat?.name);
                   return (
-                    <tr key={t.id} className="hover:bg-fin-bg/30 transition-colors group">
+                    <tr key={t.id} className="odd:bg-white/[0.02] hover:bg-fin-bg/30 transition-colors group">
                       <td className="px-8 py-5 font-bold text-[var(--text-primary)]/60 tabular-nums text-xs whitespace-nowrap">{t.date}</td>
                       <td className="px-8 py-5">
                         <p className="font-bold text-[var(--text-primary)] text-[14px] leading-tight truncate max-w-[220px]">{t.description}</p>
                       </td>
                       <td className="px-8 py-5">
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-fin-bg border border-fin-border rounded-lg text-[10px] font-black text-brand uppercase tracking-tighter">
+                        <span
+                          className="inline-flex items-center gap-1.5 px-3 py-1 border rounded-lg text-[10px] font-black uppercase tracking-tighter"
+                          style={{ color: catColor.text, backgroundColor: catColor.bg, borderColor: catColor.border }}
+                        >
                           <Tag size={10} /> {cat?.name}
                         </span>
                       </td>
@@ -427,11 +511,11 @@ export const Transactions: React.FC = () => {
                           {acc?.name}
                         </span>
                       </td>
-                      <td className={`px-8 py-5 text-right font-black tabular-nums text-[16px] ${t.type === 'IN' ? 'text-[var(--color-success)]' : 'text-[var(--text-primary)]'}`}>
+                      <td className={`px-8 py-5 text-right font-black tabular-nums text-[16px] ${t.type === 'IN' ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]/90'}`}>
                         {t.type === 'IN' ? '+' : '-'}{formatCurrency(t.amount)}
                       </td>
                       <td className="px-8 py-5">
-                        <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="flex items-center justify-center gap-2 opacity-100 md:opacity-50 md:group-hover:opacity-100 transition-opacity">
                           <button
                             onClick={() => openEditModal(t)}
                             className="p-2 text-fin-muted hover:text-brand bg-fin-bg rounded-lg border border-fin-border/50 transition-colors"
@@ -455,6 +539,29 @@ export const Transactions: React.FC = () => {
             </tbody>
           </table>
         </div>
+        {filteredTransactions.length > PAGE_SIZE && (
+          <div className="flex items-center justify-between px-8 py-4 border-t border-fin-border">
+            <p className="text-[10px] font-black uppercase tracking-widest text-fin-muted tabular-nums">
+              {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, filteredTransactions.length)} de {filteredTransactions.length}
+            </p>
+            <div className="flex gap-2">
+              <button
+                disabled={page === 0}
+                onClick={() => setPage(pg => pg - 1)}
+                className="px-4 py-2 rounded-md text-[10px] font-black uppercase tracking-widest border border-fin-border text-fin-muted hover:text-[var(--text-primary)] disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+              >
+                Anterior
+              </button>
+              <button
+                disabled={(page + 1) * PAGE_SIZE >= filteredTransactions.length}
+                onClick={() => setPage(pg => pg + 1)}
+                className="px-4 py-2 rounded-md text-[10px] font-black uppercase tracking-widest border border-fin-border text-fin-muted hover:text-[var(--text-primary)] disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+              >
+                Siguiente
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Add Transaction Modal */}
