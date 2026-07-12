@@ -262,16 +262,25 @@ export const SupabaseService: IFinanceService = {
     // --- TRANSACTIONS ---
     getTransactions: async (businessId?: string, options?: { since?: string }): Promise<Transaction[]> => {
         const userId = await SupabaseService.getUserId();
-        let query = supabase.from('fin_transactions').select('*');
-        if (businessId) query = query.eq('business_id', businessId);
-        else query = query.is('business_id', null).eq('user_id', userId);
 
-        if (options?.since) {
-            query = query.gte('date', options.since);
+        // Fetch paginado: PostgREST corta silenciosamente en 1000 filas.
+        // Se trae en paginas hasta recibir una pagina incompleta.
+        const PAGE = 1000;
+        const data: Record<string, any>[] = [];
+        for (let from = 0; ; from += PAGE) {
+            let query = supabase.from('fin_transactions').select('*');
+            if (businessId) query = query.eq('business_id', businessId);
+            else query = query.is('business_id', null).eq('user_id', userId);
+            if (options?.since) query = query.gte('date', options.since);
+
+            const { data: pageData, error } = await query
+                .order('date', { ascending: false })
+                .order('id', { ascending: false })
+                .range(from, from + PAGE - 1);
+            if (error) throw error;
+            data.push(...(pageData || []));
+            if (!pageData || pageData.length < PAGE) break;
         }
-
-        const { data, error } = await query.order('date', { ascending: false });
-        if (error) throw error;
         return (data || []).map((d: Record<string, any>) => ({
             id: d.id,
             date: d.date,
