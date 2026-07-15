@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
+import LoadingScreen from '../../components/ui/LoadingScreen';
 import { useNavigate } from 'react-router-dom';
 import { SupabaseService } from '../services/supabaseService';
 import { calculateYearSummary, formatCurrency } from '../utils/calculations';
@@ -88,12 +89,7 @@ export const AnnualSummary: React.FC = () => {
 
     if (loading) {
         return (
-            <div className="flex flex-col items-center justify-center h-[60vh] space-y-4 animate-pulse">
-                <div className="w-12 h-12 bg-brand/20 rounded-full flex items-center justify-center">
-                    <Sparkles className="text-brand animate-spin" size={24} />
-                </div>
-                <p className="text-fin-muted font-bold uppercase tracking-widest text-[10px]">Cargando datos anuales...</p>
-            </div>
+            <LoadingScreen title="Cargando datos anuales" fullScreen={false} />
         );
     }
 

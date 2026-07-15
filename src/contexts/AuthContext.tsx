@@ -42,6 +42,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [profile, setProfile] = useState<AppUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const fetchingUserId = React.useRef<string | null>(null);
+  // Id del perfil ya cargado — se usa en onAuthStateChange para no depender
+  // del closure de `profile` (que queda congelado en el primer render).
+  const profileIdRef = React.useRef<string | null>(null);
 
   const fetchProfile = async (userId: string, email?: string, metadata?: Record<string, unknown>, retryCount = 0) => {
     if (fetchingUserId.current === userId && retryCount === 0) return;
@@ -121,6 +124,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           phone: userData.phone || ''
         };
         setProfile(userProfile);
+        profileIdRef.current = userProfile.id;
         logger.success('Perfil cargado', { context: 'Auth', data: { role: userProfile.role, email: userProfile.email } });
       } else {
         logger.warn('Perfil no encontrado', { context: 'Auth', data: { userId } });
@@ -184,16 +188,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     initSession();
 
     // 2. Listen for changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    // IMPORTANTE: sin awaits dentro del callback. supabase-js retiene un lock
+    // interno mientras corre onAuthStateChange; un await de otra query acá
+    // deja colgada cualquier consulta concurrente de la app (deadlock).
+    // Ref: https://supabase.com/docs/reference/javascript/auth-onauthstatechange
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session && session.user) {
-        setUser(session.user);
-        // Si cambió el usuario o no tenemos perfil, buscarlo/crearlo
-        if (!profile || profile.id !== session.user.id) {
-          await fetchProfile(session.user.id, session.user.email, session.user.user_metadata);
+        const u = session.user;
+        setUser(u);
+        // Solo recargar el perfil si realmente cambió el usuario.
+        // TOKEN_REFRESHED no debe disparar recargas (antes causaba el
+        // parpadeo logueado/deslogueado del header).
+        if (event !== 'TOKEN_REFRESHED' && profileIdRef.current !== u.id) {
+          setTimeout(() => {
+            fetchProfile(u.id, u.email, u.user_metadata);
+          }, 0);
         }
-      } else {
+      } else if (event === 'SIGNED_OUT' || event === 'INITIAL_SESSION') {
+        // Solo limpiar en eventos definitivos; los null transitorios de otros
+        // eventos no deben desloguear visualmente al usuario.
         setUser(null);
         setProfile(null);
+        profileIdRef.current = null;
       }
       setIsLoading(false);
     });
@@ -217,6 +233,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // 2. Force local cleanup
       setUser(null);
       setProfile(null);
+      profileIdRef.current = null;
       // DO NOT clear all localStorage, we want to keep unsynced projects!
       // localStorage.clear();
       // Just clear any potentially stuck Supabase auth keys if needed,

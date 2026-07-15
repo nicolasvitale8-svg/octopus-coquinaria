@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import LoadingScreen from '../../components/ui/LoadingScreen';
 import { procurementService } from '../services/procurementService';
 import { Insumo, MovimientoStock } from '../types';
 import { ArrowLeft, ArrowDownCircle, ArrowUpCircle, Plus, X, History, Package } from 'lucide-react';
@@ -134,7 +135,7 @@ export const StockMovements: React.FC = () => {
             {/* Tabla de Movimientos */}
             <div className="bg-[var(--bg-base)] rounded-md border border-gray-800 overflow-hidden">
                 {loading ? (
-                    <div className="p-8 text-center text-[var(--text-muted)]">Cargando movimientos...</div>
+                    <LoadingScreen title="Cargando movimientos" fullScreen={false} />
                 ) : movimientos.length === 0 ? (
                     <div className="p-12 text-center text-[var(--text-muted)]">
                         <Package size={48} className="mx-auto mb-4 opacity-50" />

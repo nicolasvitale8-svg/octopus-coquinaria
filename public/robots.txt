@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+# Zonas privadas (requieren login, sin valor para buscadores)
+Disallow: /admin
+Disallow: /finance
+Disallow: /hub
+Disallow: /dashboard
+
+Sitemap: https://octopus-coquinaria.vercel.app/sitemap.xml

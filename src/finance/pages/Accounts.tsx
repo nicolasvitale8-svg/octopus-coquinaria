@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import LoadingScreen from '../../components/ui/LoadingScreen';
 import { useSearchParams } from 'react-router-dom';
 import { Account, AccountType, MonthlyBalance, TextCategoryRule, Category, SubCategory, TransactionType, Transaction } from '../financeTypes';
 import { formatCurrency } from '../utils/calculations';
@@ -209,12 +210,7 @@ export const Accounts: React.FC = () => {
 
   if (loading && accounts.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-[60vh] space-y-4 animate-pulse">
-        <div className="w-12 h-12 bg-brand/20 rounded-full flex items-center justify-center">
-          <Sparkles className="text-brand animate-spin" size={24} />
-        </div>
-        <p className="text-fin-muted font-bold uppercase tracking-widest text-[10px]">Cargando configuración...</p>
-      </div>
+      <LoadingScreen title="Cargando configuración" fullScreen={false} />
     );
   }
 

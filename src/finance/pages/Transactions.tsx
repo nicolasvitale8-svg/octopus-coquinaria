@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import LoadingScreen from '../../components/ui/LoadingScreen';
 import { useNavigate } from 'react-router-dom';
 import { Transaction, Account, Category, SubCategory, TransactionType } from '../financeTypes';
 import { Plus, X, Tag, Calendar, Wallet, Filter, ListFilter, RotateCcw, TrendingUp, TrendingDown, DollarSign, Search, Sparkles, Edit2, Trash2, FileUp } from 'lucide-react';
@@ -255,12 +256,7 @@ export const Transactions: React.FC = () => {
     + ((filterStartDate || filterEndDate) && !isDefaultRange ? 1 : 0);
   if (loading && transactions.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-[60vh] space-y-4 animate-pulse">
-        <div className="w-12 h-12 bg-brand/20 rounded-full flex items-center justify-center">
-          <Sparkles className="text-brand animate-spin" size={24} />
-        </div>
-        <p className="text-fin-muted font-bold uppercase tracking-widest text-[10px]">Cargando movimientos...</p>
-      </div>
+      <LoadingScreen title="Cargando movimientos" fullScreen={false} />
     );
   }
 

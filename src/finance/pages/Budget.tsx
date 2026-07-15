@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import LoadingScreen from '../../components/ui/LoadingScreen';
 import { SupabaseService } from '../services/supabaseService';
 import { Account, AccountType, BudgetItem, Category, SubCategory, Transaction, TransactionType } from '../financeTypes';
 import { formatCurrency, formatPercentage, getAdjustedWorkingDay } from '../utils/calculations';
@@ -767,12 +768,7 @@ export const Budget: React.FC = () => {
   };
   if (loading && budgetItems.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-[60vh] space-y-4 animate-pulse">
-        <div className="w-12 h-12 bg-brand/20 rounded-full flex items-center justify-center">
-          <Sparkles className="text-brand animate-spin" size={24} />
-        </div>
-        <p className="text-fin-muted font-bold uppercase tracking-widest text-[10px]">Cargando presupuesto...</p>
-      </div>
+      <LoadingScreen title="Cargando presupuesto" fullScreen={false} />
     );
   }
 

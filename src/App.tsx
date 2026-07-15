@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Login from './pages/Login';
 import ProtectedRoute from './components/ProtectedRoute';
 import ScrollToTop from './components/ScrollToTop';
+import RouteMeta from './components/RouteMeta';
 import ErrorBoundary from './components/ErrorBoundary';
 import { AuthProvider } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';
@@ -26,6 +27,7 @@ const CalendarPage = lazy(() => import('./pages/Calendar'));
 const HubCalendar = lazy(() => import('./pages/HubCalendar'));
 const ClientProjectRedirect = lazy(() => import('./pages/ClientProjectRedirect'));
 const PendingApproval = lazy(() => import('./pages/PendingApproval'));
+const NotFound = lazy(() => import('./pages/NotFound'));
 
 // ============================================
 // LAZY LOADED MODULES (Code Splitting)
@@ -78,6 +80,7 @@ const App = () => {
         <ToastProvider>
         <Router>
           <ScrollToTop />
+          <RouteMeta />
           <Suspense fallback={<LoadingFallback />}>
             <Routes>
               <Route path="/" element={<Home />} />
@@ -175,7 +178,7 @@ const App = () => {
                 <Route path="/finance/loans" element={<FinanceLoans />} />
               </Route>
 
-              <Route path="*" element={<Navigate to="/" replace />} />
+              <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
         </Router>

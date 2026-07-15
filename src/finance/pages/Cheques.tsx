@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import LoadingScreen from '../../components/ui/LoadingScreen';
 import {
     Plus, Search, Filter, Calendar, DollarSign, Briefcase, Building2, User, Wallet, Trash2, Edit2, XCircle
 } from 'lucide-react';
@@ -204,7 +205,7 @@ export const Cheques = () => {
             {/* List */}
             <div className="space-y-4">
                 {loading ? (
-                    <div className="p-8 text-center text-[var(--text-muted)]">Cargando cheques...</div>
+                    <LoadingScreen title="Cargando cheques" fullScreen={false} />
                 ) : filteredCheques.length === 0 ? (
                     <div className="text-center py-20 text-fin-muted opacity-50">
                         <p className="text-sm font-medium">No hay cheques registrados en esta sección.</p>

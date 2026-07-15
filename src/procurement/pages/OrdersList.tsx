@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
+import LoadingScreen from '../../components/ui/LoadingScreen';
 import { procurementService } from '../services/procurementService';
 import { Pedido, Presupuesto } from '../types';
 import { PresupuestoCard } from '../components/PresupuestoCard';
@@ -109,7 +110,7 @@ export const OrdersList: React.FC = () => {
                 </div>
 
                 {loading ? (
-                    <div className="p-8 text-center text-[var(--text-muted)]">Cargando pedidos...</div>
+                    <LoadingScreen title="Cargando pedidos" fullScreen={false} />
                 ) : pedidosFiltrados.length === 0 ? (
                     <div className="p-12 text-center text-[var(--text-muted)]">
                         {filtroEstado === 'ALL'
