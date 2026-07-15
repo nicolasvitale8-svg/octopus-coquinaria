@@ -10,6 +10,11 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  // En produccion se eliminan console.log/info/debug/warn del bundle
+  // (console.error se conserva para diagnostico). El logger propio no se ve afectado.
+  esbuild: {
+    pure: ['console.log', 'console.info', 'console.debug', 'console.warn'],
+  },
   build: {
     outDir: 'dist',
     sourcemap: false,
@@ -31,8 +36,10 @@ export default defineConfig({
             if (id.includes('@supabase')) {
               return 'vendor-supabase';
             }
-            // Otros vendors
-            return 'vendor';
+            // OJO: sin catch-all. Un "return 'vendor'" generico fusiona las libs
+            // de import dinamico (tesseract ~15MB, pdfjs ~2MB, jspdf, html2canvas)
+            // en un chunk que carga al inicio. Sin catch-all, Rollup las deja en
+            // chunks propios que solo se descargan al usarlas.
           }
           // Dejar que Vite maneje los chunks de src/ automáticamente con lazy()
         }

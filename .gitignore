@@ -31,3 +31,7 @@ scripts/*.ts
 scripts/*.txt
 !scripts/analyze_excel.py
 !scripts/migrate_excel_v2.py
+
+# Basura de OneDrive/Windows
+desktop.ini
+Thumbs.db
