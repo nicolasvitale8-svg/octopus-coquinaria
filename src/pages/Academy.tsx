@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
+import LoadingScreen from '../components/ui/LoadingScreen';
 import { useAuth } from '../contexts/AuthContext';
 import { AcademyResource, LearningPath, ResourceFormat, ResourceAccess } from '../types';
 import {
@@ -209,12 +210,7 @@ const Academy = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 space-y-16 pb-20">
 
           {loading ? (
-            <div className="flex flex-col items-center justify-center py-32 space-y-4">
-              <div className="w-10 h-10 border-2 animate-spin" style={{ borderColor: 'var(--border-subtle)', borderTopColor: 'var(--color-primary)' }}></div>
-              <p className="font-mono text-[10px] font-bold uppercase tracking-[0.28em]" style={{ color: 'var(--text-muted)' }}>
-                [ CARGANDO ACADEMIA ]
-              </p>
-            </div>
+            <LoadingScreen title="Cargando Academia" fullScreen={false} />
           ) : (
             <>
               {/* BLOQUE 1: POR DÓNDE EMPEZAR */}
