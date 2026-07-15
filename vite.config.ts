@@ -22,8 +22,13 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: (id) => {
-          // Solo separar vendors de node_modules
           if (id.includes('node_modules')) {
+            // Libs pesadas de import dinamico (OCR/PDF): quedan FUERA de los
+            // chunks manuales para que Rollup las deje en chunks lazy propios
+            // que solo se descargan al usarlas (antes iban al vendor de 1,5MB).
+            if (id.includes('tesseract') || id.includes('pdfjs-dist') || id.includes('jspdf') || id.includes('html2canvas')) {
+              return; // chunk automatico (lazy)
+            }
             // React core y router juntos
             if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
               return 'vendor-react';
@@ -36,10 +41,9 @@ export default defineConfig({
             if (id.includes('@supabase')) {
               return 'vendor-supabase';
             }
-            // OJO: sin catch-all. Un "return 'vendor'" generico fusiona las libs
-            // de import dinamico (tesseract ~15MB, pdfjs ~2MB, jspdf, html2canvas)
-            // en un chunk que carga al inicio. Sin catch-all, Rollup las deja en
-            // chunks propios que solo se descargan al usarlas.
+            // Resto de vendors juntos: mantiene el orden de inicializacion
+            // probado en produccion (sin esto hay ReferenceError TDZ en runtime).
+            return 'vendor';
           }
           // Dejar que Vite maneje los chunks de src/ automáticamente con lazy()
         }
