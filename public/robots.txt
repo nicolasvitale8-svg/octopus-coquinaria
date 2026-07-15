@@ -6,4 +6,4 @@ Disallow: /finance
 Disallow: /hub
 Disallow: /dashboard
 
-Sitemap: https://octopus-coquinaria.vercel.app/sitemap.xml
+Sitemap: https://octopuscoquinaria.com/sitemap.xml
